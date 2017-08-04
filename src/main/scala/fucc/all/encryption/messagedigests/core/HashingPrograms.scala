@@ -1,34 +1,38 @@
 package fucc.all.encryption.messagedigests.core
 
-import cats._
-import cats.data.NonEmptyList
-import cats.implicits._
+import cats.data.{NonEmptyList, State}
 
-abstract class HashingPrograms[F[_]: Monad, T <: HashAlgorithm](
-    algebra: DigestAlgebra[F, T])(implicit val p: PureHasher[T]) {
+abstract class HashingPrograms[T](
+    algebra: HashAlgebra[T])(implicit val p: PureHasher[T]) {
 
-  def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): F[T] = {
-    algebra
-      .hash(cryptoPickler.pickler(toHash))
-      .map(p.fromHashedBytes)
+  def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): T = {
+    (algebra.hash _).andThen(p.fromHashedBytes)(cryptoPickler.pickler(toHash))
   }
 
   def hashCombine[C](toHash: NonEmptyList[C])(
-      implicit cryptoPickler: CryptoPickler[C]): F[T] = {
-    algebra
-      .hash(toHash.map(cryptoPickler.pickler).reduceLeft(_ ++ _))
-      .map(p.fromHashedBytes)
+      implicit cryptoPickler: CryptoPickler[C]): T = {
+    (algebra.hash _).andThen(p.fromHashedBytes)(toHash.map(cryptoPickler.pickler).reduceLeft(_ ++ _))
   }
 
-  def hashCumulative[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): F[T] = {
-    val lifted: NonEmptyList[algebra.S] = toHash.map(cryptoPickler.pickler.andThen(algebra.liftS))
-    lifted.tail.foldLeft(algebra.consume(lifted.head).map(l => (p.fromHashedBytes(l), lifted.head))){
-      (accumulator, right) =>
-        for {
-          a <- accumulator
-          combined = algebra.monoid.combine(a._2,right)
-          n <- algebra.consume(combined)
-        } yield (p.fromHashedBytes(n), combined)
-    }.map(_._1)
+  def consumeAndLift(state: algebra.S): T = {
+    (algebra.consume _).andThen(p.fromHashedBytes)(state)
   }
+
+  def hashCumulative[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): List[Array[Byte]] = {
+    def appendAndHash(newState: algebra.S): State[algebra.S, Array[Byte]] = State[algebra.S, Array[Byte]]{
+      oldState =>
+        val combined = algebra.monoid.combine(oldState, newState)
+        (combined, algebra.consume(combined))
+    }
+
+    val lifted: NonEmptyList[algebra.S] = toHash.map(cryptoPickler.pickler.andThen(algebra.liftS))
+    lifted.tail.foldLeft(State.pure[algebra.S, List[Array[Byte]]](Nil)){
+      (prev, right) =>
+        for{
+          arr <- prev
+          n <- appendAndHash(right)
+        } yield n :: arr
+    }.runA(lifted.head).value
+  }
+
 }

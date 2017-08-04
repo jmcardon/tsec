@@ -11,17 +11,16 @@ package object core {
   type PickledLift[T] = Array[Byte] => T
   type TaggedHasher[T] = MessageDigest @@ T
   type CharEncoder[T] = Charset @@ T
+  type HashErr[T] = Either[Throwable, T]
 
   sealed trait StringEncoding
   sealed trait UTF8 extends StringEncoding
   sealed trait UTF16 extends StringEncoding
 
-  case class CryptoPickler[T](pickler: BytePickler[T]) extends AnyVal
+  final case class DigestLift(list: List[Byte])
+  final case class CryptoPickler[T](pickler: BytePickler[T]) extends AnyVal
 
   object CryptoPickler {
     def stringPickle[S <: StringEncoding](charEncoder: CharEncoder[S]): CryptoPickler[String  ] = CryptoPickler[String](_.getBytes(charEncoder))
   }
-
-  val defaultStringEncoder: CryptoPickler[String] = CryptoPickler.stringPickle[UTF8](Charset.forName("UTF-8").taggedWith[UTF8])
-
 }

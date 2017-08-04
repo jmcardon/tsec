@@ -17,7 +17,7 @@ case class SHA512(array: Array[Byte]) extends HashAlgorithm
 
 object SHA512 extends DeriveHashTag[SHA512](_.array, new SHA512(_), "SHA-512")
 
-sealed abstract class DeriveHashTag[T <: HashAlgorithm](extract: T => Array[Byte], build: Array[Byte] => T, repr: String){
+sealed abstract class DeriveHashTag[T](extract: T => Array[Byte], build: Array[Byte] => T, repr: String){
   implicit val hashTag: HashTag[T] = HashTag.fromString[T](repr)
   implicit lazy val pureHasher = new PureHasher[T] {
     def bytes(data: T): Array[Byte] = extract(data)

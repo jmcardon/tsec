@@ -4,7 +4,7 @@ import java.security.MessageDigest
 
 import com.softwaremill.tagging._
 
-trait PureHasher[C <: HashAlgorithm]{
+trait PureHasher[C]{
   def tagged(implicit hashTag: HashTag[C]): TaggedHasher[C] = MessageDigest.getInstance(hashTag.algorithm).taggedWith[C]
   def bytes(data: C): Array[Byte]
   def fromHashedBytes(array: Array[Byte]): C
