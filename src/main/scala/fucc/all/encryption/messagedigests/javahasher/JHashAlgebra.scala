@@ -1,9 +1,11 @@
 package fucc.all.encryption.messagedigests.javahasher
 
+import java.security.MessageDigest
+
 import cats.Monoid
 import fucc.all.encryption.messagedigests.core._
 
-class JHashAlgebra[T: HashTag](implicit hasher: PureHasher[T]) extends HashAlgebra[T] {
+class JHashAlgebra[T: HashTag](implicit hasher: PureHasher[MessageDigest,T]) extends HashAlgebra[T] {
   type S = DigestLift
 
   implicit def monoid: Monoid[DigestLift] = new Monoid[DigestLift]{

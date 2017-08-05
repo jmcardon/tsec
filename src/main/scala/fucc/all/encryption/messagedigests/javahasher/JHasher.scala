@@ -1,13 +1,15 @@
 package fucc.all.encryption.messagedigests.javahasher
 
+import java.security.MessageDigest
 import fucc.all.encryption.messagedigests.core._
+import fucc.all.encryption.messagedigests.javahasher.implicits._
 
-class JHasher[T: HashTag: PureHasher](
-    algebra: JHashAlgebra[T])
-    extends HashingPrograms[T](algebra)
+class JHasher[T: HashTag](
+    algebra: JHashAlgebra[T])(implicit pureHasher: PureHasher[MessageDigest, T])
+    extends HashingPrograms[MessageDigest,T](algebra)
 
 object JHasher {
-  def apply[T : HashTag: PureHasher] =
+  def apply[T : HashTag](implicit p: PureHasher[MessageDigest, T]) =
     new JHasher[T](new JHashAlgebra[T])
 
   lazy val MD5: JHasher[MD5] = apply[MD5]

@@ -2,8 +2,8 @@ package fucc.all.encryption.messagedigests.core
 
 import cats.data.{NonEmptyList, State}
 
-abstract class HashingPrograms[T](
-    algebra: HashAlgebra[T])(implicit val p: PureHasher[T]) {
+abstract class HashingPrograms[K, T](
+    algebra: HashAlgebra[T])(implicit val p: PureHasher[K,T]) {
 
   def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): T = {
     (algebra.hash _).andThen(p.fromHashedBytes)(cryptoPickler.pickler(toHash))
