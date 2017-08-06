@@ -1,12 +1,7 @@
-import cats.Eq
-import fucc.messagedigests.javahasher._
-import fucc.messagedigests.javahasher.syntax._
 import fucc.passwordhashers.core._
 import fucc.passwordhashers.syntax._
 import fucc.passwordhashers.instances._
 import cats.syntax.either._
-import fucc.passwordhashers.instances.HardenedSCrypt.SCryptPasswordHasher
-import fucc.passwordhashers.instances.SCrypt.SCryptPasswordHasher
 
 class PasswordTest extends TestSpec {
 
@@ -24,14 +19,6 @@ class PasswordTest extends TestSpec {
       case Right(true) => true
       case _           => false
     })
-  }
-
-  it should "syntax should generate same result" in {
-    val bcrypt = BCryptPasswordHasher()
-    val hash1: PasswordValidated[BCrypt] = bcrypt.hash(plainPassword)
-    val hash2: PasswordValidated[BCrypt] = plainPassword.hash(bcrypt)
-
-    assert(hash1 === hash2)
   }
 
   it should "return different results for different rounds" in {
