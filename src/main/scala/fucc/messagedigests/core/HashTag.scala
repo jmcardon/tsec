@@ -1,4 +1,4 @@
-package fucc.all.encryption.messagedigests.core
+package fucc.messagedigests.core
 
 trait HashTag[T] {
   val algorithm: String
