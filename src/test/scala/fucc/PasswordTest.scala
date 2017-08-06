@@ -1,0 +1,5 @@
+package fucc
+
+class PasswordTest {
+
+}
