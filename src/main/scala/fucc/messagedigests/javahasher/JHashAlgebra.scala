@@ -3,6 +3,7 @@ package fucc.messagedigests.javahasher
 import java.security.MessageDigest
 
 import cats.Monoid
+
 import fucc.core.CryptoTag
 import fucc.messagedigests.core._
 

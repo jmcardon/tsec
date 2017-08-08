@@ -14,5 +14,4 @@ package object syntax {
       passwordHasher.checkHashed(password, hash)
     }
   }
-
 }

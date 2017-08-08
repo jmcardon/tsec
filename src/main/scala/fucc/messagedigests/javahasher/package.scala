@@ -28,6 +28,7 @@ package object javahasher {
 
   def pureJavaHasher[T](extract: T => Array[Byte], build: Array[Byte] => T) =
     new PureHasher[MessageDigest, T] {
+
       def tagged(implicit hashTag: CryptoTag[T]): TaggedHasher[MessageDigest, T] =
         Hasher(MessageDigest.getInstance(hashTag.algorithm)).taggedWith[T]
 
@@ -36,6 +37,7 @@ package object javahasher {
       def fromHashedBytes(array: Array[Byte]): T = build(array)
 
       def hashToBytes(toHash: Array[Byte])(
+
           implicit hashTag: CryptoTag[T]): Array[Byte] =
         tagged.hasher.digest(toHash)
     }
