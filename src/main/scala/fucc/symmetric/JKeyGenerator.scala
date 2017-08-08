@@ -1,6 +1,6 @@
 package fucc.symmetric
 
-import javax.crypto.{KeyGenerator => KG, SecretKey}
+import javax.crypto.{KeyGenerator => KG}
 
 import fucc.core.CryptoTag
 
@@ -13,6 +13,6 @@ object JKeyGenerator {
 
     def generator =
       KG.getInstance(tag.algorithm)
-    override def generateKey(): SecretKey = generator.generateKey()
+    override def generateKey(): SecretKey[T] = SecretKey[T](generator.generateKey())
   }
 }
