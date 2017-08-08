@@ -3,14 +3,16 @@ package fucc.messagedigests.javahasher
 import java.security.MessageDigest
 
 import cats.Monoid
+import fucc.core.CryptoTag
 import fucc.messagedigests.core._
+
 import scala.annotation.tailrec
 
 /**
  * Intepreter for the java default security implementation
  * @tparam T
  */
-class JHashAlgebra[T: HashTag](implicit hasher: PureHasher[MessageDigest, T])
+class JHashAlgebra[T: CryptoTag](implicit hasher: PureHasher[MessageDigest, T])
     extends HashAlgebra[T] {
   type S = DigestLift
 
