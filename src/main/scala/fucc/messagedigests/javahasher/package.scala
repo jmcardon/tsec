@@ -5,6 +5,7 @@ import java.security.MessageDigest
 
 import fucc.messagedigests.core._
 import com.softwaremill.tagging._
+import fucc.common.JCryptoTag
 import org.apache.commons.codec.binary.{Base64 => ApacheB}
 
 package object javahasher {
@@ -27,7 +28,7 @@ package object javahasher {
 
   def pureJavaHasher[T](extract: T => Array[Byte], build: Array[Byte] => T) =
     new PureHasher[MessageDigest, T] {
-      def tagged(implicit hashTag: HashTag[T]): TaggedHasher[MessageDigest, T] =
+      def tagged(implicit hashTag: JCryptoTag[T]): TaggedHasher[MessageDigest, T] =
         Hasher(MessageDigest.getInstance(hashTag.algorithm)).taggedWith[T]
 
       def bytes(data: T): Array[Byte] = extract(data)
@@ -35,7 +36,7 @@ package object javahasher {
       def fromHashedBytes(array: Array[Byte]): T = build(array)
 
       def hashToBytes(toHash: Array[Byte])(
-          implicit hashTag: HashTag[T]): Array[Byte] =
+          implicit hashTag: JCryptoTag[T]): Array[Byte] =
         tagged.hasher.digest(toHash)
     }
 

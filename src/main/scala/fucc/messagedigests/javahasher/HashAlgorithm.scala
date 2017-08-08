@@ -1,7 +1,8 @@
 package fucc.messagedigests.javahasher
 
 import cats.data.NonEmptyList
-import fucc.messagedigests.core.{CryptoPickler, HashTag}
+import fucc.common.JCryptoTag
+import fucc.messagedigests.core.CryptoPickler
 
 sealed trait HashAlgorithm
 case class SHA1(array: Array[Byte]) extends HashAlgorithm
@@ -21,7 +22,7 @@ case class SHA512(array: Array[Byte]) extends HashAlgorithm
 object SHA512 extends DeriveHashTag[SHA512]("SHA-512")
 
 sealed abstract class DeriveHashTag[T: JPureHasher](repr: String){
-  implicit val hashTag: HashTag[T] = HashTag.fromString[T](repr)
+  implicit val hashTag: JCryptoTag[T] = JCryptoTag.fromString[T](repr)
   implicit lazy val jHasher: JHasher[T] = JHasher[T]
   def hash[C: CryptoPickler]: (C) => T = jHasher.hash
   def combineAndHash[C: CryptoPickler]: (NonEmptyList[C]) => T = jHasher.combineAndHash[C]

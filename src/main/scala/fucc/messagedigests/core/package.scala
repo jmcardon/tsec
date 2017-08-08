@@ -16,7 +16,7 @@ package object core {
   sealed trait UTF8 extends StringEncoding
   sealed trait UTF16 extends StringEncoding
 
-  final case class DigestLift(list: List[Array[Byte]])
+  final case class DigestLift(list: List[Array[Byte]]) extends AnyVal
   final case class CryptoPickler[T](pickle: BytePickler[T]) extends AnyVal
   final case class Hasher[T](hasher: T) extends AnyVal
 
