@@ -1,4 +1,4 @@
-package fucc.cipher
+package fucc.cipher.core
 
 sealed trait CipherError
 
