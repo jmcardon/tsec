@@ -9,24 +9,24 @@ import tsec.cipher.core.{CipherAlgo, SecretKey}
 import tsec.symmetric.core.{KeyError, SymmetricKeyGenerator}
 
 object JSymmetricKeyGenerator {
-  def fromType[T](tag: CipherAlgo[T]): SymmetricKeyGenerator[JSymmetric[T]] =
-    new SymmetricKeyGenerator[JSymmetric[T]] {
+  def fromType[T](tag: CipherAlgo[T]): SymmetricKeyGenerator[JEncryptionKey[T]] =
+    new SymmetricKeyGenerator[JEncryptionKey[T]] {
       def generator: KG = KG.getInstance(tag.algorithm)
 
-      def generateKeyUnsafe(): SecretKey[JSymmetric[T]] =
-        SecretKey[JSymmetric[T]](generator.generateKey().taggedWith[T])
+      def generateKeyUnsafe(): SecretKey[JEncryptionKey[T]] =
+        SecretKey[JEncryptionKey[T]](generator.generateKey().taggedWith[T])
 
-      def generateKey(): Either[KeyError, SecretKey[JSymmetric[T]]] =
+      def generateKey(): Either[KeyError, SecretKey[JEncryptionKey[T]]] =
         Either
           .catchNonFatal(
-            SecretKey[JSymmetric[T]](generator.generateKey().taggedWith[T]))
+            SecretKey[JEncryptionKey[T]](generator.generateKey().taggedWith[T]))
           .leftMap(e => KeyError(e.getMessage))
 
-      def buildKeyUnsafe(key: Array[Byte]): SecretKey[JSymmetric[T]] =
+      def buildKeyUnsafe(key: Array[Byte]): SecretKey[JEncryptionKey[T]] =
         SecretKey(new SecretKeySpec(key, tag.algorithm).taggedWith[T])
 
       def buildKey(key: Array[Byte]): Either[KeyError, SecretKey[JSecretKey @@ T]] =
-        Either.catchNonFatal(SecretKey[JSymmetric[T]](new SecretKeySpec(key, tag.algorithm).taggedWith[T]))
+        Either.catchNonFatal(SecretKey[JEncryptionKey[T]](new SecretKeySpec(key, tag.algorithm).taggedWith[T]))
           .leftMap(e => KeyError(e.getMessage))
     }
 }

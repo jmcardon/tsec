@@ -7,6 +7,6 @@ import tsec.symmetric.core.SymmetricKeyGenerator
 
 abstract class WithSymmetricGenerator[T](repr: String) {
   implicit val tag: CipherAlgo[T] = CryptoTag.fromString[T](repr).taggedWith[CipherAlgorithm]
-  implicit val keyGen: SymmetricKeyGenerator[JSymmetric[T]] = JSymmetricKeyGenerator.fromType[T](tag)
+  implicit val keyGen: SymmetricKeyGenerator[JEncryptionKey[T]] = JSymmetricKeyGenerator.fromType[T](tag)
 }
 

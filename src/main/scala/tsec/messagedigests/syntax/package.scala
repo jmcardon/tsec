@@ -1,6 +1,7 @@
-package tsec.messagedigests.javahasher
+package tsec.messagedigests
 
 import tsec.messagedigests.core.CryptoPickler
+import tsec.messagedigests.javahasher.JHasher
 
 package object syntax {
 

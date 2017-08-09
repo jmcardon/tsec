@@ -1,10 +1,8 @@
 package tsec.symmetric
 
 import javax.crypto.{SecretKey => JSecretKey}
-
-import com.softwaremill.tagging.@@
+import com.softwaremill.tagging._
 
 package object instances {
-  type JSymmetric[T] = JSecretKey @@ T
-
+  type JEncryptionKey[T] = JSecretKey @@ T
 }
