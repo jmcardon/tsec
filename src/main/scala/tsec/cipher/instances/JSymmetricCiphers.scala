@@ -7,7 +7,7 @@ import javax.crypto.{Cipher => JCipher, SecretKey => JSecretKey}
 
 import com.softwaremill.tagging.@@
 
-class JSymmetricCiphers[A: CipherAlgo, M: CMode: ModeKeySpec, P: Padding](algebra: JSymmetricCipherInterpreter[A, M, P])
+class JSymmetricCiphers[A: CipherAlgo, M: CMode: ModeKeySpec, P: Padding](val algebra: JSymmetricCipherInterpreter[A, M, P])
     extends CipherPrograms[Either[CipherError, ?], A, M, P, JSecretKey @@ A](algebra)
 
 object JSymmetricCiphers {

@@ -5,6 +5,8 @@
 More resources:
  JCA: https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
  
+ Passwords:
+ https://stackoverflow.com/questions/8881291/why-is-char-preferred-over-string-for-passwords
  
  Mode:
  https://crypto.stackexchange.com/questions/26783/ciphertext-and-tag-size-and-iv-transmission-with-aes-in-gcm-mode
