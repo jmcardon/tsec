@@ -1,3 +1,3 @@
-# FUCC: Functional utility crypto categories
+# tsec: A pure, general purpose crypto library.
 
 (WIP)
