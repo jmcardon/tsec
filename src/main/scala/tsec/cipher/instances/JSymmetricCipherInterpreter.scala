@@ -10,7 +10,7 @@ class JSymmetricCipherInterpreter[A, M, P](
     modeTag: CMode[M],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
-) extends CipherAlgebra[Either[CipherError, ?], A, M, P, JEncryptionKey[A]] {
+) extends CipherAlgebra[Either[CipherError, ?], A, M, P, JEncryptionKey] {
 
   type C = JCipher
 
@@ -45,7 +45,7 @@ class JSymmetricCipherInterpreter[A, M, P](
           decryptor.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildAlgorithmSpec(cipherText.iv))
           decryptor
         })
-        .leftMap(e => DecryptError(e.getMessage))
+        .leftMap(e => KeyError(e.getMessage))
       decrypted <- Either.catchNonFatal(init.doFinal(cipherText.content)).leftMap(e => DecryptError(e.getMessage))
     } yield PlainText(decrypted)
 
