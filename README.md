@@ -54,6 +54,7 @@ BouncyCastle:
  JCA: https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html
  https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
  https://paragonie.com/blog/2017/03/jwt-json-web-tokens-is-bad-standard-that-everyone-should-avoid
+ https://developer.android.com/reference/javax/crypto/Cipher.html <- good resource for common combinations
  
  Passwords:
  https://stackoverflow.com/questions/8881291/why-is-char-preferred-over-string-for-passwords
@@ -65,4 +66,3 @@ BouncyCastle:
 Padding schemes: 
   https://security.stackexchange.com/questions/52665/which-is-the-best-cipher-mode-and-padding-mode-for-aes-encryption
   https://crypto.stackexchange.com/questions/10775/practical-disadvantages-of-gcm-mode-encryption
-  https://developer.android.com/reference/javax/crypto/Cipher.html <- good resource for common combinations
