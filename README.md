@@ -55,6 +55,10 @@ BouncyCastle:
  https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
  https://paragonie.com/blog/2017/03/jwt-json-web-tokens-is-bad-standard-that-everyone-should-avoid
  https://developer.android.com/reference/javax/crypto/Cipher.html <- good resource for common combinations
+ https://tools.ietf.org/html/rfc5116
+ http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38c.pdf
+ http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-spec.pdf
+ https://crypto.stackexchange.com/questions/6842/how-to-choose-between-aes-ccm-and-aes-gcm-for-storage-volume-encryption
  
  Passwords:
  https://stackoverflow.com/questions/8881291/why-is-char-preferred-over-string-for-passwords

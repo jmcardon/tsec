@@ -7,4 +7,7 @@ import com.softwaremill.tagging._
 package object instances {
   type JSpec[T] = AlgorithmParameterSpec @@ T
   def tagSpec[T](a: AlgorithmParameterSpec): JSpec[T] = a.taggedWith[T]
+
+  case object NoSuchInstanceError
+  type NoSuchInstanceError = NoSuchInstanceError.type
 }
