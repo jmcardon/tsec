@@ -11,15 +11,18 @@ import tsec.symmetric.core.{KeyError, SymmetricAlgorithm, SymmetricKeyGenerator}
 object JSymmetricKeyGenerator {
   def fromType[T](tag: SymmetricAlgorithm[T]): SymmetricKeyGenerator[JEncryptionKey[T]] =
     new SymmetricKeyGenerator[JEncryptionKey[T]] {
-      def keyLength: Int = tag.keylength
-
-      def generator: KG = {
+      val tagAlgorithm: String = {
         val underscoreIndex = tag.algorithm.indexOf("_")
         if (underscoreIndex < 0)
-          KG.getInstance(tag.algorithm)
+          tag.algorithm
         else
-          KG.getInstance(tag.algorithm.substring(0, underscoreIndex))
+          tag.algorithm.substring(0, underscoreIndex)
       }
+
+      def keyLength: Int = tag.keylength
+
+      def generator: KG = KG.getInstance(tagAlgorithm)
+
 
       def generateKeyUnsafe(): SecretKey[JEncryptionKey[T]] = {
         val gen = generator
@@ -40,7 +43,7 @@ object JSymmetricKeyGenerator {
       //This means dividing by 8 to get the number of elements
       def buildKeyUnsafe(key: Array[Byte]): SecretKey[JEncryptionKey[T]] =
         SecretKey(
-          new SecretKeySpec(key.slice(0, JCipher.getMaxAllowedKeyLength(tag.algorithm) / 8), tag.algorithm)
+          new SecretKeySpec(key.slice(0, tag.keylength / 8), tagAlgorithm)
             .taggedWith[T]
         )
 
@@ -48,7 +51,7 @@ object JSymmetricKeyGenerator {
         Either
           .catchNonFatal(
             SecretKey[JEncryptionKey[T]](
-              new SecretKeySpec(key.slice(0, JCipher.getMaxAllowedKeyLength(tag.algorithm) / 8), tag.algorithm)
+              new SecretKeySpec(key.slice(0, tag.keylength / 8), tagAlgorithm)
                 .taggedWith[T]
             )
           )
