@@ -17,8 +17,7 @@ package object javahasher {
 
   implicit class HasherOps[T](val hasher: JHasher[T]) extends AnyVal {
     def hashStringToBase64(s: String): String =
-      ApacheB.encodeBase64String(
-        hasher.p.bytes(hasher.hash[String](s)(defaultStringEncoder)))
+      ApacheB.encodeBase64String(hasher.p.bytes(hasher.hash[String](s)(defaultStringEncoder)))
   }
 
   implicit class HashedOps[T](val hashed: T) extends AnyVal {
@@ -36,9 +35,7 @@ package object javahasher {
 
       def fromHashedBytes(array: Array[Byte]): T = build(array)
 
-      def hashToBytes(toHash: Array[Byte])(
-
-          implicit hashTag: CryptoTag[T]): Array[Byte] =
+      def hashToBytes(toHash: Array[Byte])(implicit hashTag: CryptoTag[T]): Array[Byte] =
         tagged.hasher.digest(toHash)
     }
 

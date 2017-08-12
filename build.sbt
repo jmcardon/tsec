@@ -14,7 +14,6 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-mtl-core" % "0.0.2",
   "com.lambdaworks" % "scrypt" % "1.4.0"
 )
-
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
 
 scalacOptions := Seq(

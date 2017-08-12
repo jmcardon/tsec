@@ -4,10 +4,11 @@ import javax.crypto.{Cipher => JCipher}
 
 import cats.syntax.either._
 import tsec.cipher.core._
+import tsec.symmetric.core.SymmetricAlgorithm
 import tsec.symmetric.instances.JEncryptionKey
 
 class JCASymmetricCipher[A, M, P](
-    implicit algoTag: CipherAlgo[A],
+    implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
 ) extends CipherAlgebra[Either[CipherError, ?], A, M, P, JEncryptionKey] {
@@ -31,7 +32,11 @@ class JCASymmetricCipher[A, M, P](
       })
       .leftMap(e => KeyError(e.getMessage))
 
-  private def initDecryptor(decryptor: JCipher, key: SecretKey[JEncryptionKey[A]], iv: Array[Byte]): Either[KeyError, Unit] =
+  private def initDecryptor(
+      decryptor: JCipher,
+      key: SecretKey[JEncryptionKey[A]],
+      iv: Array[Byte]
+  ): Either[KeyError, Unit] =
     Either
       .catchNonFatal({
         decryptor.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildAlgorithmSpec(iv))
@@ -92,9 +97,11 @@ class JCASymmetricCipher[A, M, P](
 }
 
 object JCASymmetricCipher {
-  def getCipher[A: CipherAlgo, M: ModeKeySpec, P: Padding]: Either[NoSuchInstanceError, JCASymmetricCipher[A, M, P]] = {
+  def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
+    : Either[NoSuchInstanceError, JCASymmetricCipher[A, M, P]] = {
     val c = new JCASymmetricCipher[A, M, P]
     c.genInstance.map(_ => c).leftMap(_ => NoSuchInstanceError)
   }
-  def getCipherUnsafe[A: CipherAlgo, M: ModeKeySpec, P: Padding]: JCASymmetricCipher[A, M, P] = new JCASymmetricCipher[A, M, P]
+  def getCipherUnsafe[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]: JCASymmetricCipher[A, M, P] =
+    new JCASymmetricCipher[A, M, P]
 }

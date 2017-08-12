@@ -59,6 +59,8 @@ BouncyCastle:
  http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38c.pdf
  http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-spec.pdf
  https://crypto.stackexchange.com/questions/6842/how-to-choose-between-aes-ccm-and-aes-gcm-for-storage-volume-encryption
+ https://tools.ietf.org/html/rfc5116
+ 
  
  Passwords:
  https://stackoverflow.com/questions/8881291/why-is-char-preferred-over-string-for-passwords

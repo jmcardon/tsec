@@ -2,7 +2,7 @@ package tsec.cipher.core
 
 trait CipherAlgebra[F[_], A, M, P, K[_]] {
   type C
-  
+
   def genInstance: F[C]
 
   def encrypt(clearText: PlainText[A, M, P], key: SecretKey[K[A]]): F[CipherText[A, M, P]]

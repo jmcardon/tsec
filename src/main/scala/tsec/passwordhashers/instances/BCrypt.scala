@@ -16,20 +16,17 @@ object BCrypt {
             JBCrypt.hashpw(pass.pass, JBCrypt.gensalt(rounds.rounds))
         })
 
-      def checkPassword(pass: Password, hashed: BCrypt): Boolean = {
+      def checkPassword(pass: Password, hashed: BCrypt): Boolean =
         JBCrypt.checkpw(pass.pass, hashed.hashed)
-      }
     }
 }
 
 object BCryptAlgebra extends ImplAlgebra[BCrypt]
 
 class BCryptPasswordHasher(default: PasswordOpt)
-    extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, default)(
-      BCrypt.BCryptHasher)
+    extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, default)(BCrypt.BCryptHasher)
 
 object BCryptPasswordHasher {
-  def apply(defaultOpt: PasswordOpt = Rounds(DefaultBcryptRounds).asRight[Salt])
-    : BCryptPasswordHasher =
+  def apply(defaultOpt: PasswordOpt = Rounds(DefaultBcryptRounds).asRight[Salt]): BCryptPasswordHasher =
     new BCryptPasswordHasher(defaultOpt)
 }

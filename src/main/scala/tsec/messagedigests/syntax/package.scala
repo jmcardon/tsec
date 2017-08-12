@@ -9,6 +9,6 @@ package object syntax {
     def digestHash[K](implicit jHasher: JHasher[K], pickler: CryptoPickler[T]): K = jHasher.hash(c)
   }
 
-  implicit def digestOps[T : CryptoPickler](c: T): DigestOps[T] = new DigestOps[T](c)
+  implicit def digestOps[T: CryptoPickler](c: T): DigestOps[T] = new DigestOps[T](c)
 
 }

@@ -10,11 +10,10 @@ import tsec.messagedigests.core._
 import scala.annotation.tailrec
 
 /**
- * Intepreter for the java default security implementation
- * @tparam T
- */
-class JHashAlgebra[T: CryptoTag](implicit hasher: PureHasher[MessageDigest, T])
-    extends HashAlgebra[T] {
+  * Intepreter for the java default security implementation
+  * @tparam T
+  */
+class JHashAlgebra[T: CryptoTag](implicit hasher: PureHasher[MessageDigest, T]) extends HashAlgebra[T] {
   type S = DigestLift
 
   implicit def monoid: Monoid[DigestLift] = new Monoid[DigestLift] {
@@ -31,23 +30,24 @@ class JHashAlgebra[T: CryptoTag](implicit hasher: PureHasher[MessageDigest, T])
   def hash(s: Array[Byte]): Array[Byte] = hasher.hashToBytes(s)
 
   def consume(state: DigestLift): Array[Byte] = {
-    @tailrec def impureConcat(concatArray: Array[Byte], indexList: List[Int], arrays: List[Array[Byte]]): Array[Byte] = indexList match {
-      case Nil => concatArray
-      case x::xs =>
-        arrays.head.copyToArray(concatArray, x)
-        impureConcat(concatArray, xs, arrays.tail)
-    }
+    @tailrec def impureConcat(concatArray: Array[Byte], indexList: List[Int], arrays: List[Array[Byte]]): Array[Byte] =
+      indexList match {
+        case Nil => concatArray
+        case x :: xs =>
+          arrays.head.copyToArray(concatArray, x)
+          impureConcat(concatArray, xs, arrays.tail)
+      }
 
     @tailrec def indexList(prev: Int, array: List[Array[Byte]], accum: List[Int]): List[Int] = array match {
-      case Nil => accum
-      case _::Nil => accum
-      case x::xs =>
+      case Nil      => accum
+      case _ :: Nil => accum
+      case x :: xs =>
         val newPrev = prev + x.length
-        indexList(newPrev, xs, newPrev::accum)
+        indexList(newPrev, xs, newPrev :: accum)
     }
 
-    val newArray = new Array[Byte](state.list.foldLeft(0)(_ + _.length))
-    val combined: Array[Byte] = impureConcat(newArray, indexList(0, state.list, List(0)).reverse,state.list)
+    val newArray              = new Array[Byte](state.list.foldLeft(0)(_ + _.length))
+    val combined: Array[Byte] = impureConcat(newArray, indexList(0, state.list, List(0)).reverse, state.list)
 
     hasher.hashToBytes(combined)
   }

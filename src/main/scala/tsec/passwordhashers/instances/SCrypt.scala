@@ -11,7 +11,8 @@ object SCrypt {
       def hashPw(pass: Password, opt: PasswordOpt): SCrypt =
         SCrypt(
           JSCrypt
-            .scrypt(pass.pass, DefaultSCryptN, DefaultSCryptR, DefaultSCryptP))
+            .scrypt(pass.pass, DefaultSCryptN, DefaultSCryptR, DefaultSCryptP)
+        )
 
       def checkPassword(pass: Password, hashed: SCrypt): Boolean =
         JSCrypt.check(pass.pass, hashed.hashed)
@@ -20,7 +21,7 @@ object SCrypt {
   object SCryptAlgebra extends ImplAlgebra[SCrypt]
 
   implicit object SCryptPasswordHasher
-      extends PWHashPrograms[PasswordValidated, SCrypt](
-        SCryptAlgebra,
-        Right(Rounds(DefaultSCryptN)))(SCrypt.ScryptPasswordHasher)
+      extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Right(Rounds(DefaultSCryptN)))(
+        SCrypt.ScryptPasswordHasher
+      )
 }
