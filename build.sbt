@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.common" %% "tagging" % "2.1.0",
   "de.svenkubiak" % "jBCrypt" % "0.4.1",
   "com.lambdaworks" % "scrypt" % "1.4.0",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
   "org.typelevel" %% "cats-mtl-core" % "0.0.2"
 )
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
