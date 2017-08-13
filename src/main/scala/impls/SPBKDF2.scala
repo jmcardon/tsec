@@ -24,11 +24,13 @@ class SPBKDF2 {
     * @param   dkLen         Intended length, in octets, of the derived key.
     * @return The derived key.
     */
-  def pbkdf2(hmacAlgorithm: String,
-             password: Array[Byte],
-             salt: Array[Byte],
-             iterationCount: Int,
-             dkLen: Int): Array[Byte] = {
+  def pbkdf2(
+      hmacAlgorithm: String,
+      password: Array[Byte],
+      salt: Array[Byte],
+      iterationCount: Int,
+      dkLen: Int
+  ): Array[Byte] = {
     val mac = Mac.getInstance(hmacAlgorithm)
     mac.init(new SecretKeySpec(password, hmacAlgorithm))
     val DK = new Array[Byte](dkLen)
@@ -49,11 +51,11 @@ class SPBKDF2 {
     val hLen = mac.getMacLength
     if (dkLen > (Math.pow(2, 32) - 1) * hLen)
       throw new GeneralSecurityException("Requested key length too long")
-    val U = new Array[Byte](hLen)
+    val U              = new Array[Byte](hLen)
     val T: Array[Byte] = new Array[Byte](hLen)
-    val block1 = new Array[Byte](S.length + 4)
-    val l = Math.ceil(dkLen.toDouble / hLen).toInt
-    val r = dkLen - (l - 1) * hLen
+    val block1         = new Array[Byte](S.length + 4)
+    val l              = Math.ceil(dkLen.toDouble / hLen).toInt
+    val r              = dkLen - (l - 1) * hLen
     arraycopy(S, 0, block1, 0, S.length)
     var i = 1
     while (i <= l) {
@@ -86,12 +88,14 @@ class SPBKDF2 {
             j - 1
           }
         }
-        arraycopy(T,
-                  0,
-                  DK,
-                  (i - 1) * hLen,
-                  if (i == l) r
-                  else hLen)
+        arraycopy(
+          T,
+          0,
+          DK,
+          (i - 1) * hLen,
+          if (i == l) r
+          else hLen
+        )
       }
       {
         i += 1
