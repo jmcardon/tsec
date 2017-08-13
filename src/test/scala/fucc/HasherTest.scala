@@ -1,7 +1,8 @@
 import java.security.MessageDigest
 
-import fucc.messagedigests.javahasher._
-import fucc.messagedigests.javahasher.syntax._
+import tsec.messagedigests.javahasher._
+import tsec.messagedigests.syntax._
+
 
 import org.apache.commons.codec.binary.Base64
 

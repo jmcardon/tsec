@@ -1,6 +1,7 @@
 import cats.Eq
-import fucc.passwordhashers.core.PasswordError
-import fucc.passwordhashers.instances.BCrypt
+import tsec.passwordhashers.core.PasswordError
+import tsec.passwordhashers.instances.BCrypt
+
 import org.scalatest.FlatSpec
 
 trait TestSpec extends FlatSpec {

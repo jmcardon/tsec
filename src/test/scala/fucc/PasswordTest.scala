@@ -1,6 +1,6 @@
-import fucc.passwordhashers.core._
-import fucc.passwordhashers.syntax._
-import fucc.passwordhashers.instances._
+import tsec.passwordhashers.core._
+import tsec.passwordhashers.syntax._
+import tsec.passwordhashers.instances._
 import cats.syntax.either._
 
 class PasswordTest extends TestSpec {
@@ -13,7 +13,7 @@ class PasswordTest extends TestSpec {
 
   "BCrypt password hasher" should "generate and verify with default settings" in {
     implicit val bcrypt = BCryptPasswordHasher()
-    val hash: PasswordValidated[BCrypt] = plainPassword.hash
+    val hash: PasswordValidated[BCrypt] = plainPassword.hashPassword
 
     assert(hash.flatMap(bcrypt.checkHashed(plainPassword, _)) match {
       case Right(true) => true
