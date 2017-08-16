@@ -8,9 +8,8 @@ package object core {
   final case class PasswordError(reason: String) extends AnyVal
 
   type PasswordValidated[A] = Either[PasswordError, A]
-  type PasswordOpt          = Either[Salt, Rounds]
   trait PasswordHasher[T] {
-    def hashPw(pass: Password, opt: PasswordOpt): T
+    def hashPw(pass: Password, opt: Rounds): T
     def checkPassword(pass: Password, hashed: T): Boolean
   }
 

@@ -9,6 +9,6 @@ object PBKDF2SHA1 {
   implicit val hasher: PasswordHasher[PBKDF2SHA1] = ???
 }
 
-class PBKDF2PasswordHasher(algebra: ImplAlgebra[PBKDF2SHA1], default: PasswordOpt)(
+class PBKDF2PasswordHasher(algebra: ImplAlgebra[PBKDF2SHA1], default: Rounds)(
     implicit hasher: PasswordHasher[PBKDF2SHA1]
 ) extends PWHashPrograms[PasswordValidated, PBKDF2SHA1](algebra, default)(hasher)

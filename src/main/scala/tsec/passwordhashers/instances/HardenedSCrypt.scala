@@ -8,20 +8,19 @@ case class HardenedSCrypt(hashed: String)
 object HardenedSCrypt {
   implicit lazy val HardenedSCryptPasswordHasher =
     new PasswordHasher[HardenedSCrypt] {
-      def hashPw(pass: Password, opt: PasswordOpt): HardenedSCrypt =
+      def hashPw(pass: Password, opt: Rounds): HardenedSCrypt =
         HardenedSCrypt(
-          JSCrypt
-            .scrypt(pass.pass, SCryptHardenedN, SCryptHardnedR, SCryptHardenedP)
+          SCryptUtil.scrypt(pass.pass, SCryptHardenedN, SCryptHardnedR, SCryptHardenedP)
         )
 
       def checkPassword(pass: Password, hashed: HardenedSCrypt): Boolean =
-        JSCrypt.check(pass.pass, hashed.hashed)
+        SCryptUtil.check(pass.pass, hashed.hashed)
     }
 
   object Hardened extends ImplAlgebra[HardenedSCrypt]
 
   implicit object SCryptPasswordHasher
-      extends PWHashPrograms[PasswordValidated, HardenedSCrypt](Hardened, Right(Rounds(DefaultSCryptN)))(
+      extends PWHashPrograms[PasswordValidated, HardenedSCrypt](Hardened, Rounds(DefaultSCryptN))(
         HardenedSCryptPasswordHasher
       )
 }

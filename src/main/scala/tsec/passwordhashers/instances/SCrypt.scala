@@ -8,10 +8,9 @@ case class SCrypt(hashed: String)
 object SCrypt {
   implicit lazy val ScryptPasswordHasher: PasswordHasher[SCrypt] =
     new PasswordHasher[SCrypt] {
-      def hashPw(pass: Password, opt: PasswordOpt): SCrypt =
+      def hashPw(pass: Password, opt: Rounds): SCrypt =
         SCrypt(
-          JSCrypt
-            .scrypt(pass.pass, DefaultSCryptN, DefaultSCryptR, DefaultSCryptP)
+          SCryptUtil.scrypt(pass.pass, math.pow(2, opt.rounds).toInt, DefaultSCryptR, DefaultSCryptP)
         )
 
       def checkPassword(pass: Password, hashed: SCrypt): Boolean =
@@ -21,7 +20,7 @@ object SCrypt {
   object SCryptAlgebra extends ImplAlgebra[SCrypt]
 
   implicit object SCryptPasswordHasher
-      extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Right(Rounds(DefaultSCryptN)))(
+      extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(14))(
         SCrypt.ScryptPasswordHasher
       )
 }
