@@ -7,21 +7,23 @@ import tsec.mac.MacKey
 import tsec.mac.core.{MacAlgebra, MacSigningKey}
 
 /**
- * TODO: Improve error types
- *
- * @param macTag
- * @tparam A
- */
-class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[Either[Throwable,?],A, MacKey]  {
+  * TODO: Improve error types
+  *
+  * @param macTag
+  * @tparam A
+  */
+class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[Either[MacError, ?], A, MacKey] {
   type M = Mac
 
-  def genInstance: Either[Throwable, Mac] = Either.catchNonFatal(Mac.getInstance(macTag.algorithm))
+  def genInstance: Either[MacInstanceError, Mac] =
+    Either
+      .catchNonFatal(Mac.getInstance(macTag.algorithm))
+      .leftMap(MacInstanceError.fromThrowable)
 
-  def sign(content: Array[Byte], key: MacSigningKey[MacKey[A]]): Either[Throwable,Array[Byte]] = {
+  def sign(content: Array[Byte], key: MacSigningKey[MacKey[A]]): Either[MacError, Array[Byte]] =
     for {
       instance <- genInstance
-      _ <- Either.catchNonFatal(instance.init(key.key))
-      fin <- Either.catchNonFatal(instance.doFinal(content))
+      _        <- Either.catchNonFatal(instance.init(key.key)).leftMap(MacInitError.fromThrowable)
+      fin      <- Either.catchNonFatal(instance.doFinal(content)).leftMap(MacSigningError.fromThrowable)
     } yield fin
-  }
 }

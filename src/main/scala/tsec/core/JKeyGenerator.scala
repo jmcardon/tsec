@@ -1,7 +1,6 @@
 package tsec.core
 
 import javax.crypto.KeyGenerator
-import tsec.cipher.common.KeyError
 
 /**
  * Our symmetric key generator, abstracted out
@@ -15,8 +14,8 @@ import tsec.cipher.common.KeyError
 trait JKeyGenerator[T, K[_]] {
   def keyLength: Int
   def generator: KeyGenerator
-  def generateKey(): Either[KeyError, K[T]]
+  def generateKey(): Either[KeyBuilderError, K[T]]
   def generateKeyUnsafe(): K[T]
-  def buildKey(key: Array[Byte]): Either[KeyError, K[T]]
+  def buildKey(key: Array[Byte]): Either[KeyBuilderError, K[T]]
   def buildKeyUnsafe(key: Array[Byte]): K[T]
 }

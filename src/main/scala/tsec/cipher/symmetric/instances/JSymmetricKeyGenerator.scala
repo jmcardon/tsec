@@ -5,8 +5,8 @@ import javax.crypto.{Cipher => JCipher, KeyGenerator => KG, SecretKey => JSecret
 
 import cats.syntax.either._
 import com.softwaremill.tagging._
-import tsec.cipher.common.{KeyError, SecretKey}
-import tsec.core.JKeyGenerator
+import tsec.cipher.common.SecretKey
+import tsec.core.{JKeyGenerator, KeyBuilderError}
 
 object JSymmetricKeyGenerator {
   def fromType[T](tag: SymmetricAlgorithm[T]): JKeyGenerator[JEncryptionKey[T], SecretKey] =
@@ -30,14 +30,14 @@ object JSymmetricKeyGenerator {
         SecretKey[JEncryptionKey[T]](gen.generateKey().taggedWith[T])
       }
 
-      def generateKey(): Either[KeyError, SecretKey[JEncryptionKey[T]]] =
+      def generateKey(): Either[KeyBuilderError, SecretKey[JEncryptionKey[T]]] =
         Either
           .catchNonFatal({
             val gen = generator
             gen.init(keyLength)
             SecretKey[JEncryptionKey[T]](gen.generateKey().taggedWith[T])
           })
-          .leftMap(KeyError.fromThrowable)
+          .leftMap(KeyBuilderError.fromThrowable)
 
       //Note: JCipher.getMaxAllowedKeyLength(tag.algorithm) returns a length in bits. for an array of bytes
       //This means dividing by 8 to get the number of elements in bytes
@@ -47,7 +47,7 @@ object JSymmetricKeyGenerator {
             .taggedWith[T]
         )
 
-      def buildKey(key: Array[Byte]): Either[KeyError, SecretKey[JSecretKey @@ T]] =
+      def buildKey(key: Array[Byte]): Either[KeyBuilderError, SecretKey[JSecretKey @@ T]] =
         Either
           .catchNonFatal(
             SecretKey[JEncryptionKey[T]](
@@ -55,6 +55,6 @@ object JSymmetricKeyGenerator {
                 .taggedWith[T]
             )
           )
-          .leftMap(KeyError.fromThrowable)
+          .leftMap(KeyBuilderError.fromThrowable)
     }
 }

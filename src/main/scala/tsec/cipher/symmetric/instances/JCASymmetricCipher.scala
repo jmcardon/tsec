@@ -25,26 +25,26 @@ class JCASymmetricCipher[A, M, P](
   Made private so as to not encourage any use of stateful operations
   The only other option would be to defer these operations with something like IO, given they are stateful
    */
-  private def initEncryptor(e: JCipher, secretKey: SecretKey[JEncryptionKey[A]]): Either[KeyError, Unit] =
+  private def initEncryptor(e: JCipher, secretKey: SecretKey[JEncryptionKey[A]]): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
         e.init(JCipher.ENCRYPT_MODE, secretKey.key)
       })
-      .leftMap(KeyError.fromThrowable)
+      .leftMap(CipherKeyError.fromThrowable)
 
   private def initDecryptor(
       decryptor: JCipher,
       key: SecretKey[JEncryptionKey[A]],
       iv: Array[Byte]
-  ): Either[KeyError, Unit] =
+  ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
         decryptor.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildAlgorithmSpec(iv))
       })
-      .leftMap(KeyError.fromThrowable)
+      .leftMap(CipherKeyError.fromThrowable)
 
-  private def setAAD(e: JCipher, aad: AAD): Either[KeyError, Unit] =
-    Either.catchNonFatal(e.updateAAD(aad.aad)).leftMap(KeyError.fromThrowable)
+  private def setAAD(e: JCipher, aad: AAD): Either[CipherKeyError, Unit] =
+    Either.catchNonFatal(e.updateAAD(aad.aad)).leftMap(CipherKeyError.fromThrowable)
   /*
   End stateful ops
    */

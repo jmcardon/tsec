@@ -15,18 +15,18 @@ class JCAAsymmetricCipher[A, M, P](
 
   type C = JCipher
 
-  private def initEncrypter(encrypter: JCipher, key: PrivateKey[JPrivateKey]): Either[KeyError, Unit] =
-    Either.catchNonFatal(encrypter.init(JCipher.ENCRYPT_MODE, key.key)).leftMap(e => KeyError(e.getMessage))
+  private def initEncrypter(encrypter: JCipher, key: PrivateKey[JPrivateKey]): Either[CipherKeyError, Unit] =
+    Either.catchNonFatal(encrypter.init(JCipher.ENCRYPT_MODE, key.key)).leftMap(CipherKeyError.fromThrowable)
 
-  private def initDecrypter(decrypter: JCipher, key: PublicKey[JPublicKey]): Either[KeyError, Unit] =
-    Either.catchNonFatal(decrypter.init(JCipher.DECRYPT_MODE, key.key)).leftMap(e => KeyError(e.getMessage))
+  private def initDecrypter(decrypter: JCipher, key: PublicKey[JPublicKey]): Either[CipherKeyError, Unit] =
+    Either.catchNonFatal(decrypter.init(JCipher.DECRYPT_MODE, key.key)).leftMap(CipherKeyError.fromThrowable)
 
   def genInstance: Either[CipherError, JCipher] =
     Either
       .catchNonFatal(
         JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
       )
-      .leftMap(e => InstanceInitError(e.getMessage))
+      .leftMap(InstanceInitError.fromThrowable)
 
   override def encrypt(
       plainText: PlainText[A, M, P],
@@ -35,7 +35,7 @@ class JCAAsymmetricCipher[A, M, P](
     for {
       instance <- genInstance
       _        <- initEncrypter(instance, key)
-      enc      <- Either.catchNonFatal(instance.doFinal(plainText.content)).leftMap(e => EncryptError(e.getMessage))
+      enc      <- Either.catchNonFatal(instance.doFinal(plainText.content)).leftMap(EncryptError.fromThrowable)
     } yield CipherText(enc, Array.empty[Byte])
 
   override def decrypt(
@@ -45,7 +45,7 @@ class JCAAsymmetricCipher[A, M, P](
     for {
       instance <- genInstance
       _        <- initDecrypter(instance, key)
-      enc      <- Either.catchNonFatal(instance.doFinal(cipherText.content)).leftMap(e => DecryptError(e.getMessage))
+      enc      <- Either.catchNonFatal(instance.doFinal(cipherText.content)).leftMap(DecryptError.fromThrowable)
     } yield PlainText(enc)
 }
 
