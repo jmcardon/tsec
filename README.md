@@ -60,6 +60,7 @@ BouncyCastle:
  http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-spec.pdf
  https://crypto.stackexchange.com/questions/6842/how-to-choose-between-aes-ccm-and-aes-gcm-for-storage-volume-encryption
  https://tools.ietf.org/html/rfc5116
+ https://security.stackexchange.com/questions/2202/lessons-learned-and-misconceptions-regarding-encryption-and-cryptology/2213#2213
  
  
  Passwords:
@@ -72,3 +73,12 @@ BouncyCastle:
 Padding schemes: 
   https://security.stackexchange.com/questions/52665/which-is-the-best-cipher-mode-and-padding-mode-for-aes-encryption
   https://crypto.stackexchange.com/questions/10775/practical-disadvantages-of-gcm-mode-encryption
+  
+SecureRandom:
+https://www.synopsys.com/blogs/software-security/proper-use-of-javas-securerandom/
+https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
+
+HMac
+https://tools.ietf.org/html/rfc2104
+https://tools.ietf.org/html/rfc4868
+NOTE: Hmac keys should not be smaller than the output length
