@@ -93,6 +93,12 @@ object SCryptUtil {
     }
   }
 
+  /**
+   * Scala fast log2
+   *
+   * @param k
+   * @return
+   */
   private def log2(k: Int) = {
     var n = k
     var log = 0

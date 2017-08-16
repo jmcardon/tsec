@@ -20,7 +20,7 @@ object SCrypt {
   object SCryptAlgebra extends ImplAlgebra[SCrypt]
 
   implicit object SCryptPasswordHasher
-      extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(14))(
+      extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(DefaultSCryptN))(
         SCrypt.ScryptPasswordHasher
       )
 }
