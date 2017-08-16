@@ -7,7 +7,7 @@ import tsec.mac.MacKey
 import tsec.mac.core.{MacAlgebra, MacSigningKey}
 
 /**
-  * TODO: Improve error types
+  * Our interpreter over the JCA mac
   *
   * @param macTag
   * @tparam A

@@ -8,7 +8,7 @@ import com.softwaremill.tagging._
 import tsec.core.CryptoTag
 import org.apache.commons.codec.binary.{Base64 => ApacheB}
 
-package object javahasher {
+package object instances {
 
   type JPureHasher[T] = PureHasher[MessageDigest, T]
 
@@ -38,17 +38,5 @@ package object javahasher {
       def hashToBytes(toHash: Array[Byte])(implicit hashTag: CryptoTag[T]): Array[Byte] =
         tagged.hasher.digest(toHash)
     }
-
-  /*
-  Java default hasher implementations
-   */
-  implicit lazy val MD5Hasher: PureHasher[MessageDigest, MD5] =
-    pureJavaHasher[MD5](_.array, MD5.apply)
-  implicit lazy val SHA1Hasher: PureHasher[MessageDigest, SHA1] =
-    pureJavaHasher[SHA1](_.array, SHA1.apply)
-  implicit lazy val SHA256Hasher: PureHasher[MessageDigest, SHA256] =
-    pureJavaHasher[SHA256](_.array, SHA256.apply)
-  implicit lazy val SHA512Hasher: PureHasher[MessageDigest, SHA512] =
-    pureJavaHasher[SHA512](_.array, SHA512.apply)
 
 }

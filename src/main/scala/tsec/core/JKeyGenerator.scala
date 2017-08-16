@@ -4,18 +4,17 @@ import javax.crypto.KeyGenerator
 
 /**
  * Our symmetric key generator, abstracted out
- * TODO: KeyError to common package
  * This is not so easy given keyError is useful to CipherError as well, but
  * duplicated classes is a nono
  *
- * @tparam T
- * @tparam K
+ * @tparam A The algorithm to generate the key for
+ * @tparam K the key type, i.e Symmetric cipher or Mac key
  */
-trait JKeyGenerator[T, K[_]] {
+trait JKeyGenerator[A, K[_]] {
   def keyLength: Int
   def generator: KeyGenerator
-  def generateKey(): Either[KeyBuilderError, K[T]]
-  def generateKeyUnsafe(): K[T]
-  def buildKey(key: Array[Byte]): Either[KeyBuilderError, K[T]]
-  def buildKeyUnsafe(key: Array[Byte]): K[T]
+  def generateKey(): Either[KeyBuilderError, K[A]]
+  def generateKeyUnsafe(): K[A]
+  def buildKey(key: Array[Byte]): Either[KeyBuilderError, K[A]]
+  def buildKeyUnsafe(key: Array[Byte]): K[A]
 }

@@ -1,6 +1,6 @@
 import java.security.MessageDigest
 
-import tsec.messagedigests.javahasher._
+import tsec.messagedigests.instances._
 import tsec.messagedigests.syntax._
 
 

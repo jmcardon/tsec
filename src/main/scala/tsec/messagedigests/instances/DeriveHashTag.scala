@@ -1,29 +1,12 @@
-package tsec.messagedigests.javahasher
+package tsec.messagedigests.instances
 
 import cats.data.NonEmptyList
 
 import tsec.core.CryptoTag
 import tsec.messagedigests.core.CryptoPickler
 
-sealed trait HashAlgorithm
-case class SHA1(array: Array[Byte]) extends HashAlgorithm
-
-object SHA1 extends DeriveHashTag[SHA1]("SHA-1")
-
-case class MD5(array: Array[Byte]) extends HashAlgorithm
-
-object MD5 extends DeriveHashTag[MD5]("MD5")
-
-case class SHA256(array: Array[Byte]) extends HashAlgorithm
-
-object SHA256 extends DeriveHashTag[SHA256]("SHA-256")
-
-case class SHA512(array: Array[Byte]) extends HashAlgorithm
-
-object SHA512 extends DeriveHashTag[SHA512]("SHA-512")
-
-sealed abstract class DeriveHashTag[T: JPureHasher](repr: String) {
-
+protected[instances] abstract class DeriveHashTag[T](repr: String) {
+  implicit val jPureHasher: JPureHasher[T]
   implicit val hashTag: CryptoTag[T]                                 = CryptoTag.fromString[T](repr)
   implicit lazy val jHasher: JHasher[T]                              = JHasher[T]
   def hash[C: CryptoPickler]: (C) => T                               = jHasher.hash

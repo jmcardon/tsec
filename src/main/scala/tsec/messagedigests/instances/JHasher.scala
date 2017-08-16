@@ -1,4 +1,4 @@
-package tsec.messagedigests.javahasher
+package tsec.messagedigests.instances
 
 import java.security.MessageDigest
 import tsec.core.CryptoTag
