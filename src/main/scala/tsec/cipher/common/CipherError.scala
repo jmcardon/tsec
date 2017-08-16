@@ -46,6 +46,15 @@ case class DecryptError(message: String) extends CipherError
 
 object DecryptError extends ErrorConstruct[DecryptError](new DecryptError(_))
 
+
+/**
+  * Error during signing
+  */
+case class SignError(message: String) extends CipherError
+
+object SignError extends ErrorConstruct[SignError](new SignError(_))
+
+
 sealed private[common] abstract class ErrorConstruct[T](f: String => T) {
   def fromThrowable(e: Throwable): T = f(e.getMessage)
 }
