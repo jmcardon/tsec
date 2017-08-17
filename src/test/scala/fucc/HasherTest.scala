@@ -1,9 +1,9 @@
+package fucc
+
 import java.security.MessageDigest
 
 import tsec.messagedigests.instances._
 import tsec.messagedigests.syntax._
-
-
 import org.apache.commons.codec.binary.Base64
 
 class HasherTest extends TestSpec {

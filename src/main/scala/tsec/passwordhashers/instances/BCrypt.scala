@@ -17,14 +17,11 @@ object BCrypt {
       def checkPassword(pass: Password, hashed: BCrypt): Boolean =
         JBCrypt.checkpw(pass.pass, hashed.hashed)
     }
+
+  object BCryptAlgebra extends ImplAlgebra[BCrypt]
+
+  implicit object BCryptPasswordHasher
+    extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, Rounds(DefaultBcryptRounds))(BCrypt.BCryptHasher)
 }
 
-object BCryptAlgebra extends ImplAlgebra[BCrypt]
 
-class BCryptPasswordHasher(default: Rounds)
-    extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, default)(BCrypt.BCryptHasher)
-
-object BCryptPasswordHasher {
-  def apply(defaultOpt: Rounds = Rounds(DefaultBcryptRounds)): BCryptPasswordHasher =
-    new BCryptPasswordHasher(defaultOpt)
-}

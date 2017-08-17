@@ -1,6 +1,6 @@
 package tsec.passwordhashers.core
 
-abstract class PWHashPrograms[F[_], A](algebra: PWHasherAlgebra[F, A], default: Rounds)(
+abstract class PWHashPrograms[F[_], A](algebra: PWHasherAlgebra[F, A], val default: Rounds)(
     implicit hasher: PasswordHasher[A]
 ) {
 

@@ -1,3 +1,5 @@
+package fucc
+
 import tsec.passwordhashers.core._
 import tsec.passwordhashers.syntax._
 import tsec.passwordhashers.instances._
@@ -8,24 +10,29 @@ class PasswordTest extends TestSpec {
   val plainPassword = "abc"
 
   /**
-    * Bcrypt
-    */
+   * Our password spec in general
+   * @param specname the name for ourspec
+   * @param programs our password hasher programs to test against
+   * @tparam A the password hashing algorithm
+   */
+  def testSpec[A: PasswordHasher](specname: String)(implicit programs:  PWHashPrograms[PasswordValidated, A]): Unit = {
+    specname should "generate and verify with default settings" in {
+      val hash: PasswordValidated[A] = plainPassword.hashPassword[A]
 
-  "BCrypt password hasher" should "generate and verify with default settings" in {
-    implicit val bcrypt = BCryptPasswordHasher()
-    val hash: PasswordValidated[BCrypt] = plainPassword.hashPassword
+      assert(hash.flatMap(programs.checkHashed(plainPassword, _)) match {
+        case Right(true) => true
+        case _           => false
+      })
+    }
 
-    assert(hash.flatMap(bcrypt.checkHashed(plainPassword, _)) match {
-      case Right(true) => true
-      case _           => false
-    })
+    it should "return different results for different rounds" in {
+      assert(programs.setRoundsAndHash(plainPassword, Rounds(programs.default.rounds + 1)) !== programs.hash(plainPassword))
+    }
   }
 
-  it should "return different results for different rounds" in {
-    val bcrypt1 = BCryptPasswordHasher(Rounds(DefaultBcryptRounds).asRight[Salt])
-    val bcrypt2 = BCryptPasswordHasher(Rounds(DefaultBcryptRounds+1).asRight[Salt])
+  testSpec[SCrypt]("SCrypt")
 
-    assert(bcrypt1.hash(plainPassword) !== bcrypt2.hash(plainPassword))
-  }
+  testSpec[BCrypt]("BCrypt")
 
+//  testSpec[HardenedSCrypt]("HardenedSCrypt")
 }
