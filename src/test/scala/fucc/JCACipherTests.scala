@@ -4,7 +4,7 @@ import org.scalatest.{Matchers, MustMatchers}
 import tsec.cipher.common._
 import tsec.cipher.common.mode._
 import tsec.cipher.common.padding._
-import tsec.cipher.symmetric.instances._
+import tsec.cipher.symmetric.instances.{JEncryptionKey, _}
 import tsec.core.JKeyGenerator
 
 import scala.annotation.tailrec
@@ -21,8 +21,9 @@ class JCACipherTests extends TestSpec with MustMatchers {
       (array1 zip array2).forall(r => r._1 == r._2)
 
   def cipherTest[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
-      spec: String
-  )(implicit keyGen: JKeyGenerator[JEncryptionKey[A], SecretKey, CipherKeyBuildError]): Unit = {
+      spec: String,
+      keyGen: JKeyGenerator[JEncryptionKey[A], SecretKey, CipherKeyBuildError]
+  ): Unit = {
     val testMessage                       = "The Moose is Loose"
     val testPlainText: PlainText[A, M, P] = PlainText[A, M, P](testMessage.getBytes("UTF-8"))
 
@@ -79,23 +80,24 @@ class JCACipherTests extends TestSpec with MustMatchers {
         decrypted <- instance.decrypt(encrypted, key2)
       } yield new String(decrypted.content, "UTF-8")
       testEncryptionDecryption mustNot equal(Right(testMessage))
-
-      behavior of (spec + " Key Generator")
-
-      it should "Truncate a key longer than the max cipher keylength" in {
-        val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
-        val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
-          k <- keyGen.buildKey(randomKey)
-        } yield k.key.getEncoded.length < randomKey.length
-
-        keyLenTest mustBe Right(true)
-      }
     }
+
+    behavior of (spec + " Key Generator")
+
+    it should "Truncate a key longer than the max cipher keylength" in {
+      val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
+      val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
+        k <- keyGen.buildKey(randomKey)
+      } yield k.key.getEncoded.length < randomKey.length
+
+      keyLenTest mustBe Right(true)
+    }
+
   }
 
-  cipherTest[AES128, GCM, NoPadding]("AES128 GCM with no padding")
-  cipherTest[AES256, GCM, NoPadding]("AES256 GCM wit no padding")
-  cipherTest[GeneralAES, CBC, PKCS7Padding]("AES CBC with PKCS7Padding")
-  cipherTest[GeneralAES, CTR, PKCS7Padding]("AES CTR with PKCS7Padding")
+  cipherTest[AES128, GCM, NoPadding]("AES128 GCM with no padding", AES128.keyGen)
+  cipherTest[AES256, GCM, NoPadding]("AES256 GCM with no padding", AES256.keyGen)
+  cipherTest[GeneralAES, CBC, PKCS7Padding]("AES CBC with PKCS7Padding", GeneralAES.keyGen)
+  cipherTest[GeneralAES, CTR, PKCS7Padding]("AES CTR with PKCS7Padding", GeneralAES.keyGen)
 
 }

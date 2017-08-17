@@ -50,6 +50,8 @@ BouncyCastle:
 
 #### More resources:
 
+http://www.fi.muni.cz/~xsvenda/docs/AE_comparison_ipics04.pdf
+
 
  JCA: https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html
  https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
