@@ -5,8 +5,10 @@ import tsec.cipher.common._
 import tsec.cipher.common.mode._
 import tsec.cipher.common.padding._
 import tsec.cipher.symmetric.instances._
+import tsec.core.JKeyGenerator
 
 import scala.annotation.tailrec
+import scala.util.Random
 
 class JCACipherTests extends TestSpec with MustMatchers {
 
@@ -18,7 +20,9 @@ class JCACipherTests extends TestSpec with MustMatchers {
     else
       (array1 zip array2).forall(r => r._1 == r._2)
 
-  def cipherTest[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](spec: String, w: WithSymmetricGenerator[A]): Unit = {
+  def cipherTest[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+      spec: String
+  )(implicit keyGen: JKeyGenerator[JEncryptionKey[A], SecretKey, CipherKeyBuildError]): Unit = {
     val testMessage                       = "The Moose is Loose"
     val testPlainText: PlainText[A, M, P] = PlainText[A, M, P](testMessage.getBytes("UTF-8"))
 
@@ -26,7 +30,7 @@ class JCACipherTests extends TestSpec with MustMatchers {
 
     it should "Encrypt and decrypt for the same key" in {
       val testEncryptionDecryption: Either[CipherError, String] = for {
-        key       <- w.keyGen.generateKey()
+        key       <- keyGen.generateKey()
         instance  <- JCASymmetricCipher.getCipher[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
         decrypted <- instance.decrypt(encrypted, key)
@@ -58,7 +62,7 @@ class JCACipherTests extends TestSpec with MustMatchers {
         } else true
 
       val testIvs: Either[CipherError, Boolean] = for {
-        key      <- w.keyGen.generateKey()
+        key      <- keyGen.generateKey()
         instance <- JCASymmetricCipher.getCipher[A, M, P]
         first    <- instance.encrypt(testPlainText, key)
       } yield tailrecGenIVs(first, 100000, instance, key)
@@ -68,26 +72,30 @@ class JCACipherTests extends TestSpec with MustMatchers {
 
     it should "not decrypt properly for an incorrect key" in {
       val testEncryptionDecryption: Either[CipherError, String] = for {
-        key1      <- w.keyGen.generateKey()
-        key2      <- w.keyGen.generateKey()
+        key1      <- keyGen.generateKey()
+        key2      <- keyGen.generateKey()
         instance  <- JCASymmetricCipher.getCipher[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key1)
         decrypted <- instance.decrypt(encrypted, key2)
       } yield new String(decrypted.content, "UTF-8")
       testEncryptionDecryption mustNot equal(Right(testMessage))
+
+      behavior of (spec + " Key Generator")
+
+      it should "Truncate a key longer than the max cipher keylength" in {
+        val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
+        val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
+          k <- keyGen.buildKey(randomKey)
+        } yield k.key.getEncoded.length < randomKey.length
+
+        keyLenTest mustBe Right(true)
+      }
     }
-
-    behavior of (spec + " Key Generator")
-
-//    it should "Truncate a key longer than the max cipher keylength" {
-//
-//    }
-
   }
 
-  cipherTest[AES128, GCM, NoPadding]("AES128 GCM with no padding", AES128)
-  cipherTest[AES256, GCM, NoPadding]("AES256 GCM wit no padding", AES256)
-  cipherTest[GeneralAES, CBC, PKCS7Padding]("AES CBC with PKCS7Padding", GeneralAES)
-  cipherTest[GeneralAES, CTR, PKCS7Padding]("AES CTR with PKCS7Padding", GeneralAES)
+  cipherTest[AES128, GCM, NoPadding]("AES128 GCM with no padding")
+  cipherTest[AES256, GCM, NoPadding]("AES256 GCM wit no padding")
+  cipherTest[GeneralAES, CBC, PKCS7Padding]("AES CBC with PKCS7Padding")
+  cipherTest[GeneralAES, CTR, PKCS7Padding]("AES CTR with PKCS7Padding")
 
 }

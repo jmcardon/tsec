@@ -34,7 +34,7 @@ class JCAAsymmetricCipher[A, M, P](
       )
       .leftMap(ErrorConstruct.fromThrowable[InstanceInitError])
 
-  override def encrypt(
+  def encrypt(
       plainText: PlainText[A, M, P],
       key: PrivateKey[JPrivateKey]
   ): Either[CipherError, CipherText[A, M, P]] =
