@@ -63,6 +63,7 @@ http://www.fi.muni.cz/~xsvenda/docs/AE_comparison_ipics04.pdf
  https://crypto.stackexchange.com/questions/6842/how-to-choose-between-aes-ccm-and-aes-gcm-for-storage-volume-encryption
  https://tools.ietf.org/html/rfc5116
  https://security.stackexchange.com/questions/2202/lessons-learned-and-misconceptions-regarding-encryption-and-cryptology/2213#2213
+ https://blog.cryptographyengineering.com/2012/05/19/how-to-choose-authenticated-encryption/
  
  
  Passwords:

@@ -4,6 +4,9 @@ version := "0.0.1"
 
 scalaVersion := "2.12.3"
 
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
+
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats" % "0.9.0",
   "com.chuusai" %% "shapeless" % "2.3.2",
@@ -15,7 +18,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.1" % "test",
   "co.fs2" %% "fs2-cats" % "0.3.0",
   "co.fs2" %% "fs2-core" % "0.9.6",
-  "org.bitbucket.b_c" % "jose4j" % "0.6.0"
+  "org.bitbucket.b_c" % "jose4j" % "0.6.0",
+  "com.github.ichoran" %% "thyme" % "0.1.2-SNAPSHOT"
 )
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
 

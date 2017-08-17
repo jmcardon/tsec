@@ -1,37 +1,38 @@
 package tsec.cipher.symmetric.instances
 
-import cats.{Monad, MonadError}
+import cats._
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
 import javax.crypto.{Cipher => JCipher}
-import cats.effect.{Async, Sync}
+import fs2.Stream
 import cats.implicits._
-import cats.effect.implicits._
+import fs2.async.mutable.Queue
+import fs2.util.Async
 
-
-class JCAMonadicCipher[F[_]: Monad: Sync, A, M, P](
+class JCAMonadicQueue[F[_]: Monad: Async, A, M, P](cipherQueue: Queue[F, JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
 ) extends SymmetricCipherAlgebra[F, A, M, P, JEncryptionKey] {
   type C = JCipher
 
-  def genInstance: F[JCipher] =
-    Sync[F].delay(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
+  def genInstance: F[JCipher] = cipherQueue.dequeue1
+
+  def replaceInstance(instance: JCipher): F[Unit] = cipherQueue.enqueue1(instance)
 
   protected[symmetric] def initEncryptor(e: JCipher, secretKey: SecretKey[JEncryptionKey[A]]): F[Unit] =
-    Sync[F].delay(e.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
+    Async[F].delay(e.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
 
   protected[symmetric] def initDecryptor(
       decryptor: JCipher,
       key: SecretKey[JEncryptionKey[A]],
       iv: Array[Byte]
   ): F[Unit] =
-    Sync[F].delay(decryptor.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
+    Async[F].delay(decryptor.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): F[Unit] =
-    Sync[F].delay(e.updateAAD(aad.aad))
+    Async[F].delay(e.updateAAD(aad.aad))
 
   /**
     * Encrypt our plaintext with a tagged secret key
@@ -44,8 +45,9 @@ class JCAMonadicCipher[F[_]: Monad: Sync, A, M, P](
     for {
       instance  <- genInstance
       _         <- initEncryptor(instance, key)
-      encrypted <-  Sync[F].delay(instance.doFinal(plainText.content))
-      iv        <- Sync[F].pure(Option(instance.getIV).fold(throw IvError("No Iv Found"))(f => f))
+      encrypted <- Async[F].pure(instance.doFinal(plainText.content))
+      iv        <- Async[F].pure(Option(instance.getIV).fold(throw IvError("No Iv Found"))(f => f))
+      _         <- replaceInstance(instance)
     } yield CipherText(encrypted, iv)
 
   /**
@@ -63,8 +65,9 @@ class JCAMonadicCipher[F[_]: Monad: Sync, A, M, P](
       instance  <- genInstance
       _         <- initEncryptor(instance, key)
       _         <- setAAD(instance, aad)
-      encrypted <- Sync[F].delay(instance.doFinal(plainText.content))
-      iv        <- Sync[F].pure(Option(instance.getIV).fold(throw IvError("No Iv Found"))(f => f))
+      encrypted <- Async[F].delay(instance.doFinal(plainText.content))
+      iv        <- Async[F].pure(Option(instance.getIV).fold(throw IvError("No Iv Found"))(f => f))
+      _         <- replaceInstance(instance)
     } yield CipherText(encrypted, iv)
 
   /**
@@ -78,7 +81,8 @@ class JCAMonadicCipher[F[_]: Monad: Sync, A, M, P](
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
-      decrypted <- Sync[F].delay(instance.doFinal(cipherText.content))
+      decrypted <- Async[F].delay(instance.doFinal(cipherText.content))
+      _         <- replaceInstance(instance)
     } yield PlainText(decrypted)
 
   /**
@@ -96,6 +100,32 @@ class JCAMonadicCipher[F[_]: Monad: Sync, A, M, P](
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
       _         <- setAAD(instance, aad)
-      decrypted <- Sync[F].delay(instance.doFinal(cipherText.content))
+      decrypted <- Async[F].delay(instance.doFinal(cipherText.content))
+      _         <- replaceInstance(instance)
     } yield PlainText(decrypted)
+}
+
+object JCAMonadicQueue {
+  def genInstance[F[_]: Monad: Async, A, M, P](queueSize: Int)(
+    implicit algoTag: SymmetricAlgorithm[A],
+    modeSpec: ModeKeySpec[M],
+    paddingTag: Padding[P]
+  ): F[JCAMonadicQueue[F, A, M, P]] = {
+    val mkqueue: F[Queue[F, JCipher]] = Stream
+        .eval(Queue.bounded[F, JCipher](queueSize))
+        .flatMap { queue =>
+          Stream
+            .repeatEval(
+              Async[F].pure(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
+            )
+            .take(queueSize)
+            .through(queue.enqueue)
+            .map(_ => queue)
+        }
+        .runLog
+        .map(_.head)
+    for {
+      q <- mkqueue
+    } yield new JCAMonadicQueue[F, A, M, P](q)
+  }
 }
