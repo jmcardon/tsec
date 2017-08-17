@@ -1,4 +1,6 @@
 package tsec.cipher.common.mode
 
+/*
+Will tentatively not implement
+ */
 sealed trait CTS
-object CTS extends DefaultModeKeySpec[CTS]("CTS")

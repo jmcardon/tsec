@@ -7,6 +7,7 @@ import tsec.messagedigests.core._
 import com.softwaremill.tagging._
 import tsec.core.CryptoTag
 import org.apache.commons.codec.binary.{Base64 => ApacheB}
+import shapeless._
 
 package object instances {
 
@@ -16,27 +17,25 @@ package object instances {
     CryptoPickler.stringPickle[UTF8](Charset.forName("UTF-8").taggedWith[UTF8])
 
   implicit class HasherOps[T](val hasher: JHasher[T]) extends AnyVal {
-    def hashStringToBase64(s: String): String =
-      ApacheB.encodeBase64String(hasher.p.bytes(hasher.hash[String](s)(defaultStringEncoder)))
+    def hashStringToBase64(s: String)(implicit gen: HashingPrograms.HashAux[T]): String =
+      ApacheB.encodeBase64String(gen.to(hasher.hash[String](s)(defaultStringEncoder)).head)
   }
 
   implicit class HashedOps[T](val hashed: T) extends AnyVal {
-    def toBase64String(implicit p: PureHasher[MessageDigest, T]): String =
-      ApacheB.encodeBase64String(p.bytes(hashed))
+    def toBase64String(implicit p: PureHasher[MessageDigest, T],gen: HashingPrograms.HashAux[T]): String =
+      ApacheB.encodeBase64String(gen.to(hashed).head)
   }
 
-  def pureJavaHasher[T](extract: T => Array[Byte], build: Array[Byte] => T) =
+  def pureJavaHasher[T](implicit gen: HashingPrograms.HashAux[T]) =
     new PureHasher[MessageDigest, T] {
 
       def tagged(implicit hashTag: CryptoTag[T]): TaggedHasher[MessageDigest, T] =
         Hasher(MessageDigest.getInstance(hashTag.algorithm)).taggedWith[T]
 
-      def bytes(data: T): Array[Byte] = extract(data)
-
-      def fromHashedBytes(array: Array[Byte]): T = build(array)
-
       def hashToBytes(toHash: Array[Byte])(implicit hashTag: CryptoTag[T]): Array[Byte] =
         tagged.hasher.digest(toHash)
+
+      def hash(toHash: Array[Byte])(implicit hashTag: CryptoTag[T]): T = gen.from(hashToBytes(toHash)::HNil)
     }
 
 }

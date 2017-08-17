@@ -1,5 +1,11 @@
 package tsec.core
 
-private[tsec] abstract class ErrorConstruct[T](f: String => T) {
-  def fromThrowable(e: Throwable): T = f(e.getMessage)
+import shapeless.{::, Generic, HNil}
+
+object ErrorConstruct {
+  type ErrAux[A] = Generic[A] {
+    type Repr = String :: HNil
+  }
+
+  def fromThrowable[A](e: Throwable)(implicit aux: ErrAux[A]): A = aux.from(e.getMessage :: HNil)
 }

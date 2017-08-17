@@ -4,5 +4,6 @@ import tsec.cipher.common.JSpec
 import tsec.core.CryptoTag
 
 trait ModeKeySpec[T] extends CryptoTag[T] {
-  def buildAlgorithmSpec(specBytes: Array[Byte]): JSpec[T]
+  def buildIvFromBytes(specBytes: Array[Byte]): JSpec[T]
+  def genIv: JSpec[T]
 }

@@ -13,9 +13,6 @@ package object common {
   type JSpec[T] = AlgorithmParameterSpec @@ T
   def tagSpec[T](a: AlgorithmParameterSpec): JSpec[T] = a.taggedWith[T]
 
-  case object NoSuchInstanceError
-  type NoSuchInstanceError = NoSuchInstanceError.type
-
   sealed trait CipherPadding
   type Padding[T] = CryptoTag[T] @@ CipherPadding
 }

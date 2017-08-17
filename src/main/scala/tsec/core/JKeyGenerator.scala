@@ -10,11 +10,11 @@ import javax.crypto.KeyGenerator
  * @tparam A The algorithm to generate the key for
  * @tparam K the key type, i.e Symmetric cipher or Mac key
  */
-trait JKeyGenerator[A, K[_]] {
+trait JKeyGenerator[A, K[_], KE] {
   def keyLength: Int
   def generator: KeyGenerator
-  def generateKey(): Either[KeyBuilderError, K[A]]
+  def generateKey(): Either[KE, K[A]]
   def generateKeyUnsafe(): K[A]
-  def buildKey(key: Array[Byte]): Either[KeyBuilderError, K[A]]
+  def buildKey(key: Array[Byte]): Either[KE, K[A]]
   def buildKeyUnsafe(key: Array[Byte]): K[A]
 }
