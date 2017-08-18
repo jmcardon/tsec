@@ -1,4 +1,8 @@
+import java.util.concurrent.CountDownLatch
 import javax.crypto.Cipher
+
+import cats.Monad
+import cats.effect.IO
 import cats.implicits._
 import tsec.cipher.common.mode.{GCM, ModeKeySpec}
 import tsec.cipher.common.padding.NoPadding
@@ -6,53 +10,114 @@ import tsec.cipher.symmetric.instances._
 import tsec.cipher.common._
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
 
+import scala.util.Random
+
+/**
+  * Ugly as shit but effective benchmarking code
+  */
 object PoorMansBenchmark extends App {
+  val totalIterLen = 100000
 
-  val key: SecretKey[JEncryptionKey[AES128]] = AES128.keyGen.generateKeyUnsafe()
+  val keys: Array[SecretKey[JEncryptionKey[AES128]]] = Array.fill(totalIterLen)(AES128.keyGen.generateKeyUnsafe())
 
-  val p                                                  = PlainText[AES128, GCM, NoPadding]("hellop".getBytes)
-  val insOld: JCASymmetricCipher[AES128, GCM, NoPadding] = JCASymmetricCipher.getCipherUnsafe[AES128, GCM, NoPadding]
+  val rand = new Random()
 
-  val ins: JCAThreadLocal[AES128, GCM, NoPadding] = JCAThreadLocal.getCipherUnsafe[AES128, GCM, NoPadding](10)
+  val plaintexts: Array[PlainText[AES128, GCM, NoPadding]] =
+    Array.fill(totalIterLen)(PlainText[AES128, GCM, NoPadding](("hellop" + rand.nextInt(1000)).getBytes()))
 
-  val th = ichi.bench.Thyme.warmed(verbose = print)
+  val eitherInterpreter: JCASymmetricCipher[AES128, GCM, NoPadding] =
+    JCASymmetricCipher.getCipherUnsafe[AES128, GCM, NoPadding]
 
-  th.pbench(testJCAInstance(),title = "One instance jvm mutable")
+  val eThreadLocalInterpreter: JCAThreadLocal[AES128, GCM, NoPadding] =
+    JCAThreadLocal.getCipherUnsafe[AES128, GCM, NoPadding](10)
+
+  val ioThreadLocalInterpreter: JCAThreadLocalIO[AES128, GCM, NoPadding] =
+    JCAThreadLocalIO.getCipher[AES128, GCM, NoPadding]().unsafeRunSync()
+  val jcaInstance: Cipher = Cipher.getInstance("AES/GCM/NoPadding")
+  val th                  = ichi.bench.Thyme.warmed(verbose = print)
+
+  /*
+  Our first two arrays are for JCA plain output, unboxed, untyped
+   */
+  val regularTest = new Array[Array[Byte]](totalIterLen)
+  val gmreg       = new Array[Array[Byte]](totalIterLen)
+
+  /*
+  Our next two, for Our boxed, effect-handled computations
+   */
+  val bench1Array = new Array[Either[CipherError, CipherText[AES128, GCM, NoPadding]]](totalIterLen)
+  val bench2Array = new Array[Either[CipherError, CipherText[AES128, GCM, NoPadding]]](totalIterLen)
+
+  /*
+  How the hell to bench IO?
+   */
+//  val bench3Array = new Array[CipherText[AES128, GCM, NoPadding]](totalIterLen)
+//  val ioseq: List[IO[Unit]] = (0 until totalIterLen).map(i => insN.encrypt(p(i), keys(i)).map(c => bench3Array(i) = c)).toList
+//  val replicatedIo: IO[List[Unit]] = Monad[IO].sequence(ioseq)
+
+  th.pbenchOff(title = "JCA one mutable instance vs threadLocal")(
+    testJCAInstance()
+  )({
+    var i = 0
+    while (i < totalIterLen) {
+      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+      i += 1
+    }
+  })
+
+  th.pbench(testJCAInstance(), title = "One instance jvm mutable")
 
   th.pbench(testGCMReg(), title = "Usual library methods")
 
-  th.pbench(testRegular(insOld, p, key), title = "Regular Either interpreter")
-
-  th.pbench(testRegular(ins, p, key), title = "ThreadLocal interpreter")
-
-  def testJCAInstance(): Unit = {
-  val jcaIns: Cipher = Cipher.getInstance("AES/GCM/NoPadding")
+  th.pbench({
     var i = 0
-    while (i < 1000000) {
-      jcaIns.init(Cipher.ENCRYPT_MODE, key.key)
-      jcaIns.doFinal(p.content)
+    while (i < totalIterLen) {
+      bench1Array(i) = eitherInterpreter.encrypt(plaintexts(i), keys(i))
+      i += 1
+    }
+  }, title = "Regular Either interpreter")
+
+  th.pbench({
+    var i = 0
+    while (i < totalIterLen) {
+      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+      i += 1
+    }
+  }, title = "ThreadLocal interpreter")
+
+  /**
+    * This is an ideal scenario, wherein you'd have only _one_ instance of
+    * your cipher, wherein you save the expensive alloc
+    *
+    */
+  def testJCAInstance(): Unit = {
+    var i = 0
+    while (i < totalIterLen) {
+      jcaInstance.init(Cipher.ENCRYPT_MODE, keys(i).key)
+      regularTest(i) = jcaInstance.doFinal(plaintexts(i).content)
       i += 1
     }
   }
 
+  /**
+    *
+    * This is similar to what security libraries on the JVM abstract away
+    * from you
+    */
   def testGCMReg(): Unit = {
     var i = 0
-    while (i < 1000000) {
+    while (i < totalIterLen) {
       val kk = Cipher.getInstance("AES/GCM/NoPadding")
-      kk.init(Cipher.ENCRYPT_MODE, key.key)
-      kk.doFinal(p.content)
+      kk.init(Cipher.ENCRYPT_MODE, keys(i).key)
+      gmreg(i) = kk.doFinal(plaintexts(i).content)
       i += 1
     }
   }
 
-  def testRegular[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
-      instance: SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, JEncryptionKey],
-    plaintext: PlainText[A, M, P],
-    key: SecretKey[JEncryptionKey[A]]): Unit = {
-    var i = 0
-    while (i < 1000000) {
-      instance.encrypt(plaintext, key)
-      i += 1
-    }
-  }
+  /*
+  WIP. Jesus christ this is hard
+   */
+//  def testIO = {
+//    replicatedIo.unsafeRunSync()
+//  }
 }
