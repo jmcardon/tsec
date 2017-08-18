@@ -51,9 +51,7 @@ object PoorMansBenchmark extends App {
   /*
   How the hell to bench IO?
    */
-//  val bench3Array = new Array[CipherText[AES128, GCM, NoPadding]](totalIterLen)
-//  val ioseq: List[IO[Unit]] = (0 until totalIterLen).map(i => insN.encrypt(p(i), keys(i)).map(c => bench3Array(i) = c)).toList
-//  val replicatedIo: IO[List[Unit]] = Monad[IO].sequence(ioseq)
+  val bench3Array = new Array[CipherText[AES128, GCM, NoPadding]](totalIterLen)
 
   th.pbenchOff(title = "JCA one mutable instance vs threadLocal")(
     testJCAInstance()
@@ -85,6 +83,9 @@ object PoorMansBenchmark extends App {
     }
   }, title = "ThreadLocal interpreter")
 
+  th.pbench(testIO(),title = "Symmetric IO interpreter")
+
+
   /**
     * This is an ideal scenario, wherein you'd have only _one_ instance of
     * your cipher, wherein you save the expensive alloc
@@ -114,10 +115,20 @@ object PoorMansBenchmark extends App {
     }
   }
 
-  /*
-  WIP. Jesus christ this is hard
+  /**
+   * We test each io action
+   * to view the related overhead, but we do not care about sequencing them
+   *
    */
-//  def testIO = {
-//    replicatedIo.unsafeRunSync()
-//  }
+  def testIO(): Unit = {
+    var i = 0
+    while (i < totalIterLen){
+      ioThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+          .map(f => {
+            bench3Array(i) = f
+          })
+        .unsafeRunSync()
+      i +=1
+    }
+  }
 }

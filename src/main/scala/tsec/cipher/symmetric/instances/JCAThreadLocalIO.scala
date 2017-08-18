@@ -11,7 +11,7 @@ import java.util.{ArrayDeque => JQueue}
 
 import cats.effect.IO
 
-abstract class JCAThreadLocalIO[A, M, P](queue: JQueue[JCipher])(
+sealed abstract class JCAThreadLocalIO[A, M, P](queue: JQueue[JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
@@ -20,44 +20,39 @@ abstract class JCAThreadLocalIO[A, M, P](queue: JQueue[JCipher])(
   type C = JCipher
 
   /*
-  This is a stateful optimization
-  `.getInstance` is expensive as all hell. There's almost no point in doing this constantly.
+  This is our local optimization.
+  Using threadLocal + fixed thread pool,
+  you can abstract over
    */
-
   protected val local: ThreadLocal[JQueue[JCipher]]
 
-  private def catchGen: IO[JCipher] =
-    IO(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
-
-  def genInstance: IO[JCipher] = {
+  def genInstance: IO[JCipher] = IO {
     val threadLocal = local.get()
     val inst        = threadLocal.poll()
-    if (inst == null)
-      catchGen
+    if (inst != null)
+      inst
     else
-      IO.pure(inst)
+      JCAThreadLocalIO.getJCipherUnsafe[A, M, P]
   }
 
   def replace(instance: JCipher): IO[Unit] =
     IO(local.get().addLast(instance))
 
   /*
-  Stateful operations for internal use
-  Made private so as to not encourage any use of stateful operations
-  The only other option would be to defer these operations with something like IO, given they are stateful
+  We defer the effects of the encryption/decryption initialization
    */
   protected[symmetric] def initEncryptor(
-      e: JCipher,
+      instance: JCipher,
       secretKey: SecretKey[JEncryptionKey[A]]
-  ) =
-    IO(e.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
+  ): IO[Unit] =
+    IO(instance.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
 
   protected[symmetric] def initDecryptor(
-      decryptor: JCipher,
+      instance: JCipher,
       key: SecretKey[JEncryptionKey[A]],
       iv: Array[Byte]
   ): IO[Unit] =
-    IO(decryptor.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
+    IO(instance.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): IO[Unit] =
     IO(e.updateAAD(aad.aad))
@@ -178,7 +173,6 @@ object JCAThreadLocalIO {
     q
   }
 
-
   /**
     * Attempt to initialize an instance of the cipher with the given type parameters
     * All processing is done on threadlocal, to guarantee no leaked instances
@@ -189,7 +183,7 @@ object JCAThreadLocalIO {
     * @return
     */
   def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
-      queueLen: Int = 15
+      queueLen: Int = 5
   ): IO[JCAThreadLocalIO[A, M, P]] =
     for {
       q <- IO(genQueueUnsafe(queueLen))
