@@ -1,35 +1,30 @@
-package tsec.cipher.symmetric.instances
+package tsec.cipher.symmetric.instances.experimental
+
+import javax.crypto.{Cipher => JCipher}
 
 import cats._
+import cats.implicits._
+import fs2.Stream
+import fs2.async.mutable.Queue
+import fs2.util.Async
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-import javax.crypto.{Cipher => JCipher}
-import cats.data.EitherT
-import fs2.Stream
-import cats.implicits._
-import fs2.util.Async
-import java.util.{ArrayDeque => Queue}
+import tsec.cipher.symmetric.instances.{JEncryptionKey, SymmetricAlgorithm}
 
-import fs2.async.mutable.Semaphore
-
-class JCAFs2Semaphore[F[_]: Monad: Async, A, M, P](
-    cipherQueue: Queue[JCipher],
-    s: Semaphore[F],
-    queueSize: Int
-)(
+class JCAMonadicQueue[F[_]: Monad: Async, A, M, P](cipherQueue: Queue[F, JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
 ) extends SymmetricCipherAlgebra[F, A, M, P, JEncryptionKey] {
   type C = JCipher
 
-  def genInstance: F[JCipher] = s.decrementBy(1).as(cipherQueue.poll())
+  def genInstance: F[JCipher] = cipherQueue.dequeue1
 
-  def replaceInstance(instance: JCipher): F[Unit] = s.incrementBy(1).as(cipherQueue.addLast(instance))
+  def replaceInstance(instance: JCipher): F[Unit] = cipherQueue.enqueue1(instance)
 
   protected[symmetric] def initEncryptor(e: JCipher, secretKey: SecretKey[JEncryptionKey[A]]): F[Unit] =
-    Async[F].pure(e.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
+    Async[F].delay(e.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
 
   protected[symmetric] def initDecryptor(
       decryptor: JCipher,
@@ -112,27 +107,27 @@ class JCAFs2Semaphore[F[_]: Monad: Async, A, M, P](
     } yield PlainText(decrypted)
 }
 
-object JCAFs2Semaphore {
-  def genInstance[F[_]:Monad: Async, A, M, P](queueSize: Int)(
-      implicit algoTag: SymmetricAlgorithm[A],
-      modeSpec: ModeKeySpec[M],
-      paddingTag: Padding[P]
-  ): F[JCAFs2Semaphore[F, A, M, P]] = {
-    val mkqueue: F[Queue[JCipher]] = {
-      val nq: Queue[JCipher] = new Queue[JCipher](queueSize)
-      Stream
-        .repeatEval[F, JCipher](
-          Async[F].pure(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
-        )
-        .take(queueSize)
-        .map(f => nq.add(f))
-        .map(_ => nq)
+object JCAMonadicQueue {
+  def genInstance[F[_]: Monad: Async, A, M, P](queueSize: Int)(
+    implicit algoTag: SymmetricAlgorithm[A],
+    modeSpec: ModeKeySpec[M],
+    paddingTag: Padding[P]
+  ): F[JCAMonadicQueue[F, A, M, P]] = {
+    val mkqueue: F[Queue[F, JCipher]] = Stream
+        .eval(Queue.bounded[F, JCipher](queueSize))
+        .flatMap { queue =>
+          Stream
+            .repeatEval(
+              Async[F].pure(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
+            )
+            .take(queueSize)
+            .through(queue.enqueue)
+            .map(_ => queue)
+        }
         .runLog
         .map(_.head)
-    }
     for {
-      q   <- mkqueue
-      sem <- Semaphore[F](queueSize)
-    } yield new JCAFs2Semaphore[F, A, M, P](q, sem, queueSize)
+      q <- mkqueue
+    } yield new JCAMonadicQueue[F, A, M, P](q)
   }
 }

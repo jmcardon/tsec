@@ -1,14 +1,15 @@
-package tsec.cipher.symmetric.instances
+package tsec.cipher.symmetric.instances.experimental
 
-import java.util.{ArrayDeque => JQueue}
+import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 import javax.crypto.{Cipher => JCipher}
 
 import cats.effect.IO
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.instances.{JEncryptionKey, SymmetricAlgorithm}
 
-sealed abstract class JCAThreadLocalIO[A, M, P](
+sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
@@ -21,19 +22,17 @@ sealed abstract class JCAThreadLocalIO[A, M, P](
   Using threadLocal + fixed thread pool,
   you can abstract over
    */
-  protected val local: ThreadLocal[JQueue[JCipher]]
 
   def genInstance: IO[JCipher] = IO {
-    val threadLocal = local.get()
-    val inst        = threadLocal.poll()
+    val inst = queue.poll()
     if (inst != null)
       inst
     else
-      JCAThreadLocalIO.getJCipherUnsafe[A, M, P]
+      JCASymmPureCAS.getJCipherUnsafe[A, M, P]
   }
 
   def replace(instance: JCipher): IO[Unit] =
-    IO(local.get().addLast(instance))
+    IO(queue.add(instance))
 
   /*
   We defer the effects of the encryption/decryption initialization
@@ -142,7 +141,7 @@ sealed abstract class JCAThreadLocalIO[A, M, P](
     } yield PlainText(decrypted)
 }
 
-object JCAThreadLocalIO {
+object JCASymmPureCAS {
 
   protected[instances] def getJCipherUnsafe[A, M, P](
       implicit algoTag: SymmetricAlgorithm[A],
@@ -181,20 +180,9 @@ object JCAThreadLocalIO {
     */
   def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
       queueLen: Int = 15
-  ): IO[JCAThreadLocalIO[A, M, P]] =
+  ): IO[JCASymmPureCAS[A, M, P]] =
     for {
       q <- IO(genQueueUnsafe(queueLen))
-      tL <- IO({
-        val t = new ThreadLocal[JQueue[JCipher]] {
-          override def initialValue(): JQueue[JCipher] =
-            q
-        }
-        t.set(q)
-        t
-      })
-    } yield
-      new JCAThreadLocalIO[A, M, P] {
-        protected val local: ThreadLocal[JQueue[JCipher]] = tL
-      }
+    } yield new JCASymmPureCAS[A, M, P](q) {}
 
 }

@@ -8,14 +8,12 @@ import tsec.cipher.common.mode.{GCM, ModeKeySpec}
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric.instances._
 import tsec.cipher.common._
-import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-
 import scala.util.Random
 
 /**
   * Ugly as shit but effective benchmarking code
   */
-object PoorMansBenchmark extends App {
+object PoorMansBenchmark extends App{
   val totalIterLen = 100000
 
   val keys: Array[SecretKey[JEncryptionKey[AES128]]] = Array.fill(totalIterLen)(AES128.keyGen.generateKeyUnsafe())
@@ -28,8 +26,8 @@ object PoorMansBenchmark extends App {
   val eitherInterpreter: JCASymmetricCipher[AES128, GCM, NoPadding] =
     JCASymmetricCipher.getCipherUnsafe[AES128, GCM, NoPadding]
 
-  val eThreadLocalInterpreter: JCAThreadLocal[AES128, GCM, NoPadding] =
-    JCAThreadLocal.getCipherUnsafe[AES128, GCM, NoPadding](10)
+  val eThreadLocalInterpreter: JCASymmetricImpure[AES128, GCM, NoPadding] =
+    JCASymmetricImpure.getCipherUnsafe[AES128, GCM, NoPadding](10)
 
   val ioThreadLocalInterpreter: JCAThreadLocalIO[AES128, GCM, NoPadding] =
     JCAThreadLocalIO.getCipher[AES128, GCM, NoPadding]().unsafeRunSync()
@@ -53,15 +51,15 @@ object PoorMansBenchmark extends App {
    */
   val bench3Array = new Array[CipherText[AES128, GCM, NoPadding]](totalIterLen)
 
-  th.pbenchOff(title = "JCA one mutable instance vs threadLocal")(
-    testJCAInstance()
-  )({
-    var i = 0
-    while (i < totalIterLen) {
-      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
-      i += 1
-    }
-  })
+//  th.pbenchOff(title = "JCA one mutable instance vs threadLocal")(
+//    testJCAInstance()
+//  )({
+//    var i = 0
+//    while (i < totalIterLen) {
+//      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+//      i += 1
+//    }
+//  })
 
   th.pbench(testJCAInstance(), title = "One instance jvm mutable")
 
