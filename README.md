@@ -85,3 +85,6 @@ HMac
 https://tools.ietf.org/html/rfc2104
 https://tools.ietf.org/html/rfc4868
 NOTE: Hmac keys should not be smaller than the output length
+
+JWT
+https://medium.facilelogin.com/jwt-jws-and-jwe-for-not-so-dummies-b63310d201a3

@@ -1,4 +1,3 @@
-import java.util.concurrent.CountDownLatch
 import javax.crypto.Cipher
 
 import cats.Monad

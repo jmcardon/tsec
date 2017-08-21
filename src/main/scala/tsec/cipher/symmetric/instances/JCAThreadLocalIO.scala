@@ -7,8 +7,9 @@ import cats.effect.IO
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
+import tsec.core.QueueAlloc
 
-sealed abstract class JCAThreadLocalIO[A, M, P](
+sealed abstract class JCAThreadLocalIO[A, M, P](queueAlloc: QueueAlloc[JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
@@ -16,16 +17,8 @@ sealed abstract class JCAThreadLocalIO[A, M, P](
 
   type C = JCipher
 
-  /*
-  This is our local optimization.
-  Using threadLocal + fixed thread pool,
-  you can abstract over
-   */
-  protected val local: ThreadLocal[JQueue[JCipher]]
-
   def genInstance: IO[JCipher] = IO {
-    val threadLocal = local.get()
-    val inst        = threadLocal.poll()
+    val inst = queueAlloc.dequeue
     if (inst != null)
       inst
     else
@@ -33,7 +26,7 @@ sealed abstract class JCAThreadLocalIO[A, M, P](
   }
 
   def replace(instance: JCipher): IO[Unit] =
-    IO(local.get().addLast(instance))
+    IO(queueAlloc.enqueue(instance))
 
   /*
   We defer the effects of the encryption/decryption initialization
@@ -183,18 +176,7 @@ object JCAThreadLocalIO {
       queueLen: Int = 15
   ): IO[JCAThreadLocalIO[A, M, P]] =
     for {
-      q <- IO(genQueueUnsafe(queueLen))
-      tL <- IO({
-        val t = new ThreadLocal[JQueue[JCipher]] {
-          override def initialValue(): JQueue[JCipher] =
-            q
-        }
-        t.set(q)
-        t
-      })
-    } yield
-      new JCAThreadLocalIO[A, M, P] {
-        protected val local: ThreadLocal[JQueue[JCipher]] = tL
-      }
+      tL <- IO(QueueAlloc(List.fill(queueLen)(JCAThreadLocalIO.getJCipherUnsafe[A, M, P])))
+    } yield new JCAThreadLocalIO[A, M, P](tL) {}
 
 }

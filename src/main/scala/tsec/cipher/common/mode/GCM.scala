@@ -16,7 +16,7 @@ object GCM {
   Iv length of 96 bits is recommended as per the spec on page 8
    */
   val GCMTagLength = 128
-  val GCMIvOptiomalLength = 12
+  val GCMIvOptionalLength = 12
   implicit lazy val spec = new ModeKeySpec[GCM] {
     /**
      * Cache our random, and seed it properly as per

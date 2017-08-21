@@ -2,10 +2,11 @@ name := "fucc"
 
 version := "0.0.1"
 
+val circeV = "0.8.0"
 scalaVersion := "2.12.3"
 
-resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats" % "0.9.0",
@@ -19,7 +20,12 @@ libraryDependencies ++= Seq(
   "co.fs2" %% "fs2-cats" % "0.3.0",
   "co.fs2" %% "fs2-core" % "0.9.6",
   "org.bitbucket.b_c" % "jose4j" % "0.6.0",
-  "com.github.ichoran" %% "thyme" % "0.1.2-SNAPSHOT"
+  "org.bouncycastle" % "bcprov-jdk15on" % "1.52",
+  "com.github.ichoran" %% "thyme" % "0.1.2-SNAPSHOT",
+  "io.circe" %% "circe-core" % circeV,
+  "io.circe" %% "circe-generic" % circeV,
+  "io.circe" %% "circe-generic-extras" % circeV,
+  "io.circe" %% "circe-parser" % circeV
 )
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
 
