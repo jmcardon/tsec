@@ -1,19 +1,15 @@
 package tsec.jws.header
 
 import cats.data.NonEmptyList
-import io.circe.Decoder.Result
-import io.circe.generic.decoding.DerivedDecoder
-import io.circe.{generic, Decoder, DecodingFailure, Encoder, Error, HCursor, Json, JsonBigDecimal}
 import io.circe.syntax._
-import tsec.jws._
+import io.circe.{Decoder, DecodingFailure, Encoder, Error, HCursor, Json}
+import tsec.jws.{JWSSerializer, _}
 import tsec.jws.algorithms.{JWTAlgorithm, JWTMacAlgo}
-import tsec.jws.body.JWSSerializer
 import tsec.jwt
 import tsec.jwt.header.JWTHeader
 import tsec.mac.MacKey
 import tsec.mac.core.MacSigningKey
 import tsec.mac.instance.MacTag
-import io.circe.generic.semiauto._
 
 sealed trait JWSJOSE[A, K[_]] extends JWTHeader {
   def algorithm: JWTAlgorithm[A]

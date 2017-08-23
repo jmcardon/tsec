@@ -1,4 +1,4 @@
-package tsec.jws.body
+package tsec.jws.signature
 
 import org.apache.commons.codec.binary.Base64
 import tsec.mac.core.MacPrograms.MacAux

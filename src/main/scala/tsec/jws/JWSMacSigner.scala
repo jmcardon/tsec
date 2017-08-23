@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets
 
 import cats.{Functor, Monad}
 import tsec.jws._
-import tsec.jws.body.{JWSSerializer, JWSSignature}
+import tsec.jws.signature.JWSSignature
 import tsec.jws.header.{JWSJOSE, JWSJOSEMAC}
 import tsec.jwt.claims.JWTClaims
 import cats.implicits._
@@ -14,10 +14,10 @@ import tsec.jws.header.JWSJOSEMAC.MK
 import tsec.mac.core.MacPrograms.MacAux
 import tsec.mac.core.{MacPrograms, MacSigningKey}
 
-abstract class JWSMacSigner[F[_]: Monad, A, K[_]](
+sealed abstract class JWSMacSigner[F[_]: Monad, A, K[_]](
     implicit hs: JWSSerializer[JWSJOSEMAC[A]],
-    val alg: MacPrograms[F, A, K],
-    val aux: MacAux[A]
+    alg: MacPrograms[F, A, K],
+    aux: MacAux[A]
 ) {
   def sign(header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[K[A]]): F[JWSSignature[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
@@ -46,9 +46,18 @@ abstract class JWSMacSigner[F[_]: Monad, A, K[_]](
     }
   }
 
-  def toEncodedString(jwt: JWSJWT.JWSMAC[A])(implicit ev: JWSJOSE[A, MK] =:= JWSJOSEMAC[A]): String =
+  def toEncodedString(jwt: JWSJWT.JWTMAC[A])(implicit ev: JWSJOSE[A, MK] =:= JWSJOSEMAC[A]): String =
     hs.toB64URL(ev(jwt.header)) + "." + JWTClaims.jwsSerializer.toB64URL(jwt.body) + "." + aux
       .to(jwt.signature.body)
       .head
       .toB64UrlString
+}
+
+object JWSMacSigner {
+  implicit def genSigner[F[_]: Monad, A: MacAux, K[_]](
+    implicit hs: JWSSerializer[JWSJOSEMAC[A]],
+    alg: MacPrograms[F, A, K]
+  ): JWSMacSigner[F, A, K] = {
+    new JWSMacSigner[F, A, K]() {}
+  }
 }

@@ -7,7 +7,7 @@ import io.circe.{Encoder, Error, Json}
 import io.circe.syntax._
 import io.circe.parser.decode
 import io.circe.generic.auto._
-import tsec.jws.body.JWSSerializer
+import tsec.jws.JWSSerializer
 
 case class JWTClaims(
   issuer: Option[String] = None, //Case insensitive
