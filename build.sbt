@@ -4,6 +4,7 @@ version := "0.0.1"
 
 val circeV = "0.8.0"
 scalaVersion := "2.12.3"
+val http4sVersion = "0.17.0-RC1"
 
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -25,7 +26,11 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-core" % circeV,
   "io.circe" %% "circe-generic" % circeV,
   "io.circe" %% "circe-generic-extras" % circeV,
-  "io.circe" %% "circe-parser" % circeV
+  "io.circe" %% "circe-parser" % circeV,
+  "org.http4s" %% "http4s-dsl" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+  "org.http4s" %% "http4s-circe" % http4sVersion
 )
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
 
