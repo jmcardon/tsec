@@ -9,6 +9,7 @@ package object jws {
   implicit class JerryStringer(val s: String) extends AnyVal {
     def utf8Bytes: Array[Byte]  = s.getBytes(StandardCharsets.UTF_8)
     def asciiBytes: Array[Byte] = s.getBytes(StandardCharsets.US_ASCII)
+    def base64Bytes: Array[Byte] = Base64.decodeBase64(s)
   }
 
   implicit class BytesToStr(val s: Array[Byte]) extends AnyVal {

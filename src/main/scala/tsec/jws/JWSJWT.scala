@@ -11,32 +11,34 @@ import tsec.mac.core.MacPrograms.MacAux
 import tsec.mac.core.MacSigningKey
 import tsec.mac.instance.MacTag
 
-case class JWSJWT[A, K[_]](header: JWSJOSE[A, K], body: JWTClaims, signature: JWSSignature[A])
+sealed trait JWSJWT[A, K[_]]{
+  def header: JWSJOSE[A, K]
+  def body: JWTClaims
+  def signature: JWSSignature[A]
+}
 
-object JWSJWT {
+case class JWTMAC[A](header: JWSJOSEMAC[A], body: JWTClaims, signature: JWSSignature[A]) extends JWSJWT[A, JWSJOSEMAC.MK]
 
-  type JWTMAC[A] = JWSJWT[A, JWSJOSEMAC.MK]
-
-  def signMac[F[_]: Monad, A: MacAux: MacTag, K[_]](header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[K[A]])(
-      implicit s: JWSMacSigner[F, A, K]
+object JWTMAC {
+  def signMac[F[_]: Monad, A: MacAux: MacTag](header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[MacKey[A]])(
+    implicit s: JWSMacSigner[F, A, MacKey]
   ): F[JWSSignature[A]] = s.sign(header, body, key)
 
-  def signMacToString[F[_]: Monad, A: MacAux: MacTag, K[_]](
-      header: JWSJOSEMAC[A],
-      body: JWTClaims,
-      key: MacSigningKey[K[A]]
-  )(implicit s: JWSMacSigner[F, A, K]): F[String] = s.signToString(header, body, key)
+  def signMacToString[F[_]: Monad, A: MacAux: MacTag](
+    header: JWSJOSEMAC[A],
+    body: JWTClaims,
+    key: MacSigningKey[MacKey[A]]
+  )(implicit s: JWSMacSigner[F, A, MacKey]): F[String] = s.signToString(header, body, key)
 
-  def buildJWT[F[_]: Monad, A: MacAux: MacTag,K[_]](header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[K[A]])(
-      implicit s: JWSMacSigner[F, A, K]
-  ): F[JWSJWT[A, MK]] = s.buildJWT(header, body, key)
+  def buildJWT[F[_]: Monad, A: MacAux: MacTag](header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[MacKey[A]])(
+    implicit s: JWSMacSigner[F, A, MacKey]
+  ): F[JWTMAC[A]] = s.buildJWT(header, body, key)
 
-  def verify[F[_]: Monad, A: MacAux: MacTag, K[_]](jwt: String, key: MacSigningKey[K[A]])(
-      implicit s: JWSMacSigner[F, A, K]
+  def verifyMac[F[_]: Monad, A: MacAux: MacTag](jwt: String, key: MacSigningKey[MacKey[A]])(
+    implicit s: JWSMacSigner[F, A, MacKey]
   ): F[Boolean] = s.verify(jwt, key)
 
-  def macToEncodedString[F[_]: Monad, A: MacAux: MacTag,K[_]](
-      jwt: JWSJWT.JWTMAC[A]
-  )(implicit ev: JWSJOSE[A, MK] =:= JWSJOSEMAC[A], s: JWSMacSigner[F, A, K]): String = s.toEncodedString(jwt)
-
+  def macToEncodedString[F[_]: Monad, A: MacAux: MacTag](
+    jwt: JWTMAC[A]
+  )(implicit s: JWSMacSigner[F, A, MacKey]): String = s.toEncodedString(jwt)
 }

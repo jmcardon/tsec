@@ -10,4 +10,6 @@ sealed abstract class JMac[A: MacTag: MacAux](algebra: JMacPureI[A]) extends Mac
 
 object JMac {
   def apply[A: MacTag: MacAux](queueSize: Int = 5) = new JMac[A](JMacPureI(queueSize)) {}
+
+  implicit def getJMac[A: MacTag: MacAux]: JMac[A] = new JMac[A](JMacPureI()) {}
 }
