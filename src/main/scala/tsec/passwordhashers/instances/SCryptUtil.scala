@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.LongAdder
 import com.lambdaworks.codec.Base64
 import com.lambdaworks.crypto.{SCrypt => JSCrypt, SCryptUtil => JSCryptUtil}
 import cats.syntax.either._
+import tsec.core.ByteUtils
 
 import scala.annotation.tailrec
 
@@ -28,8 +29,6 @@ import scala.annotation.tailrec
  * </dl>
  *
  * <code>s0</code> identifies version 0 of the scrypt format, using a 128-bit salt and 256-bit derived key.
- *
- *
  *
  */
 object SCryptUtil {
@@ -89,7 +88,7 @@ object SCryptUtil {
       case Right(derived1) =>
         if (derived0.length != derived1.length) false
         else
-          tailrecCheck(0, derived0, derived1, derived0.length)
+          ByteUtils.constantTimeEquals(derived0, derived1)
     }
   }
 

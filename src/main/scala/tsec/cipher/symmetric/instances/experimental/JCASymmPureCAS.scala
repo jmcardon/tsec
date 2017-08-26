@@ -177,7 +177,7 @@ object JCASymmPureCAS {
     * @tparam P Padding mode
     * @return
     */
-  def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
       queueLen: Int = 15
   ): IO[JCASymmPureCAS[A, M, P]] =
     for {

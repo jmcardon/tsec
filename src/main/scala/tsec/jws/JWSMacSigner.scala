@@ -49,7 +49,7 @@ sealed abstract class JWSMacSigner[F[_], A](
           _ =>
             alg.algebra
               .sign((split(0) + "." + split(1)).asciiBytes, key)
-              .map(b => ByteUtils.arraysEqual(b, providedBytes))
+              .map(b => ByteUtils.constantTimeEquals(b, providedBytes))
         )
     }
   }

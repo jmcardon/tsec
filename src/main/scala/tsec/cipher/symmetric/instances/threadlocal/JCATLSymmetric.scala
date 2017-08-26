@@ -204,7 +204,7 @@ object JCATLSymmetric {
     * @tparam P Padding mode
     * @return
     */
-  def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
       queueLen: Int = 15
   ): Either[NoSuchInstanceError.type, JCATLSymmetric[A, M, P]] =
     for {
@@ -221,6 +221,9 @@ object JCATLSymmetric {
       new JCATLSymmetric[A, M, P] {
         protected val local: ThreadLocal[JQueue[JCipher]] = tl
       }
+
+  def genInstance[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
+    : Either[NoSuchInstanceError.type, JCATLSymmetric[A, M, P]] = apply[A, M, P]()
 
   /**
     * ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"

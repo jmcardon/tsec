@@ -6,11 +6,11 @@
 
 JCA:
 - [x] MessageDigests
-- [ ] Symmetric ciphers (Missing PBE, blowfish and ARCFOUR)
+- [X] Symmetric ciphers
 - [ ] Asymmetric Ciphers
 - [ ] KeyGenerators and key construction in general (WIP, partly)
-- [ ] KeySpec
-- [ ] Mac
+- [X] Signatures
+- [X] Mac
 - [ ] AlgorithmParameter and generators
 - [ ] Other digital signature and ssl related stuff (backburner, low uses cases)
 
@@ -88,3 +88,6 @@ NOTE: Hmac keys should not be smaller than the output length
 
 JWT
 https://medium.facilelogin.com/jwt-jws-and-jwe-for-not-so-dummies-b63310d201a3
+
+Signatures:
+https://crypto.stackexchange.com/questions/1795/how-can-i-convert-a-der-ecdsa-signature-to-asn-1/1797#1797

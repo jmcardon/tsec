@@ -153,11 +153,14 @@ object JCASymmetricCipher {
     * @tparam P Padding mode
     * @return
     */
-  def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
+  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
     : Either[NoSuchInstanceError.type, JCASymmetricCipher[A, M, P]] = {
     val c = new JCASymmetricCipher[A, M, P]
     c.genInstance.map(_ => c).leftMap(_ => NoSuchInstanceError)
   }
+
+  implicit def genSym[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
+    : Either[NoSuchInstanceError.type, JCASymmetricCipher[A, M, P]] = apply[A, M, P]
 
   /**
     * ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
