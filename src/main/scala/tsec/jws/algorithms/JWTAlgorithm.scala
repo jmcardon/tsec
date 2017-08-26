@@ -29,10 +29,6 @@ object JWTAlgorithm {
     val jwtRepr: String = "none"
   }
 
-  /**
-   * Currently not compiling, needs fix
-   */
-
   implicit case object ES256 extends JWTSigAlgo[SHA256withECDSA]{
     val jwtRepr: String = "ES256"
   }
