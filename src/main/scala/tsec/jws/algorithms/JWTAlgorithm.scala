@@ -2,6 +2,8 @@ package tsec.jws.algorithms
 
 import tsec.mac.instance._
 import tsec.mac.core.MacPrograms
+import tsec.signature.core.{SignatureAlgorithm, SignerDSL}
+import tsec.signature.instance.{SHA256withECDSA, SHA384withECDSA, SHA512withECDSA}
 
 
 
@@ -27,9 +29,23 @@ object JWTAlgorithm {
     val jwtRepr: String = "none"
   }
 
+  implicit case object ES256 extends JWTSigAlgo[SHA256withECDSA]{
+    val jwtRepr: String = "ES256"
+  }
+
+  implicit case object ES384 extends JWTSigAlgo[SHA384withECDSA]{
+    val jwtRepr: String = "ES384"
+  }
+
+  implicit case object ES512 extends JWTSigAlgo[SHA512withECDSA]{
+    val jwtRepr: String = "ES512"
+  }
+
 }
 
 abstract class JWTMacAlgo[A: MacTag](implicit gen: MacPrograms.MacAux[A]) extends JWTAlgorithm[A]
+
+abstract class JWTSigAlgo[A: SignatureAlgorithm](implicit gen: SignerDSL.Aux[A]) extends JWTAlgorithm[A]
 
 object JWTMacAlgo {
   def fromString[A](alg: String)(implicit o: JWTMacAlgo[A]): Option[JWTMacAlgo[A]] = alg match {
