@@ -4,6 +4,8 @@ import shapeless._
 
 sealed trait CipherError extends Throwable with Product with Serializable {
   def cause: String
+
+  override def fillInStackTrace(): Throwable = this
 }
 
 /**

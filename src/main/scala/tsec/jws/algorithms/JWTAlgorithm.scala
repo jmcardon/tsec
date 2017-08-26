@@ -25,7 +25,6 @@ object JWTAlgorithm {
 
   implicit case object NoAlg extends JWTAlgorithm[NoSigningAlgorithm]{
     val jwtRepr: String = "none"
-
   }
 
 }

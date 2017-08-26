@@ -1,4 +1,4 @@
-package tsec.cipher.symmetric.instances
+package tsec.cipher.symmetric.instances.threadlocal
 
 import java.util.{ArrayDeque => JQueue}
 import javax.crypto.{Cipher => JCipher}
@@ -7,9 +7,10 @@ import cats.effect.IO
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.instances.{JEncryptionKey, SymmetricAlgorithm}
 import tsec.core.QueueAlloc
 
-sealed abstract class JCAThreadLocalIO[A, M, P](queueAlloc: QueueAlloc[JCipher])(
+sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
@@ -17,12 +18,12 @@ sealed abstract class JCAThreadLocalIO[A, M, P](queueAlloc: QueueAlloc[JCipher])
 
   type C = JCipher
 
-  def genInstance: IO[JCipher] = IO {
+  def genInstance: IO[JCipher] =  IO {
     val inst = queueAlloc.dequeue
     if (inst != null)
       inst
     else
-      JCAThreadLocalIO.getJCipherUnsafe[A, M, P]
+      JCATLSymmetricPure.getJCipherUnsafe[A, M, P]
   }
 
   def replace(instance: JCipher): IO[Unit] =
@@ -83,7 +84,7 @@ sealed abstract class JCAThreadLocalIO[A, M, P](queueAlloc: QueueAlloc[JCipher])
       plainText: PlainText[A, M, P],
       key: SecretKey[JEncryptionKey[A]],
       aad: AAD
-  ): IO[CipherText[A, M, P]] =
+  ) =
     for {
       instance  <- genInstance
       _         <- initEncryptor(instance, key)
@@ -125,7 +126,7 @@ sealed abstract class JCAThreadLocalIO[A, M, P](queueAlloc: QueueAlloc[JCipher])
       cipherText: CipherText[A, M, P],
       key: SecretKey[JEncryptionKey[A]],
       aad: AAD
-  ): IO[PlainText[A, M, P]] =
+  ) =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
@@ -135,7 +136,7 @@ sealed abstract class JCAThreadLocalIO[A, M, P](queueAlloc: QueueAlloc[JCipher])
     } yield PlainText(decrypted)
 }
 
-object JCAThreadLocalIO {
+object JCATLSymmetricPure {
 
   protected[instances] def getJCipherUnsafe[A, M, P](
       implicit algoTag: SymmetricAlgorithm[A],
@@ -172,11 +173,12 @@ object JCAThreadLocalIO {
     * @tparam P Padding mode
     * @return
     */
-  def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
       queueLen: Int = 15
-  ): IO[JCAThreadLocalIO[A, M, P]] =
+  ): IO[JCATLSymmetricPure[A, M, P]] =
     for {
-      tL <- IO(QueueAlloc(List.fill(queueLen)(JCAThreadLocalIO.getJCipherUnsafe[A, M, P])))
-    } yield new JCAThreadLocalIO[A, M, P](tL) {}
+      tL <- IO(QueueAlloc(List.fill(queueLen)(JCATLSymmetricPure.getJCipherUnsafe[A, M, P])))
+    } yield new JCATLSymmetricPure[A, M, P](tL) {}
+
 
 }

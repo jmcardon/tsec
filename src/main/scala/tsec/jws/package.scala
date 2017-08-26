@@ -16,5 +16,6 @@ package object jws {
     def toUtf8String  = new String(s, StandardCharsets.UTF_8)
     def toAsciiString = new String(s, StandardCharsets.US_ASCII)
     def toB64UrlString: String = Base64.encodeBase64URLSafeString(s)
+    def toB64String: String = Base64.encodeBase64String(s)
   }
 }

@@ -1,4 +1,4 @@
-package tsec.mac.instance
+package tsec.mac.instance.threadlocal
 
 import javax.crypto.Mac
 
@@ -6,7 +6,7 @@ import cats.effect.IO
 import tsec.core.QueueAlloc
 import tsec.mac.MacKey
 import tsec.mac.core.{MacAlgebra, MacSigningKey}
-import cats.implicits._
+import tsec.mac.instance.MacTag
 
 sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[A]) extends MacAlgebra[IO, A, MacKey] {
   type M = Mac

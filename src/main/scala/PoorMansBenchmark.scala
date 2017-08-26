@@ -7,6 +7,8 @@ import tsec.cipher.common.mode.{GCM, ModeKeySpec}
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric.instances._
 import tsec.cipher.common._
+import tsec.cipher.symmetric.instances.threadlocal.{JCATLSymmetric, JCATLSymmetricPure}
+
 import scala.util.Random
 
 /**
@@ -25,11 +27,11 @@ object PoorMansBenchmark extends App{
   val eitherInterpreter: JCASymmetricCipher[AES128, GCM, NoPadding] =
     JCASymmetricCipher.getCipherUnsafe[AES128, GCM, NoPadding]
 
-  val eThreadLocalInterpreter: JCASymmetricImpure[AES128, GCM, NoPadding] =
-    JCASymmetricImpure.getCipherUnsafe[AES128, GCM, NoPadding](10)
+  val eThreadLocalInterpreter: JCATLSymmetric[AES128, GCM, NoPadding] =
+    JCATLSymmetric.getCipherUnsafe[AES128, GCM, NoPadding](10)
 
-  val ioThreadLocalInterpreter: JCAThreadLocalIO[AES128, GCM, NoPadding] =
-    JCAThreadLocalIO.getCipher[AES128, GCM, NoPadding]().unsafeRunSync()
+  val ioThreadLocalInterpreter: JCATLSymmetricPure[AES128, GCM, NoPadding] =
+    JCATLSymmetricPure[AES128, GCM, NoPadding]().unsafeRunSync()
   val jcaInstance: Cipher = Cipher.getInstance("AES/GCM/NoPadding")
   val th                  = ichi.bench.Thyme.warmed(verbose = print)
 

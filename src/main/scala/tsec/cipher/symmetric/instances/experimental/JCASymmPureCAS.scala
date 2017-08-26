@@ -22,7 +22,6 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
   Using threadLocal + fixed thread pool,
   you can abstract over
    */
-
   def genInstance: IO[JCipher] = IO {
     val inst = queue.poll()
     if (inst != null)

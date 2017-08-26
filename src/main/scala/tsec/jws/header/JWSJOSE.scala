@@ -11,7 +11,7 @@ import tsec.mac.MacKey
 import tsec.mac.core.MacSigningKey
 import tsec.mac.instance.MacTag
 
-sealed trait JWSJOSE[A, K[_]] extends JWTHeader {
+sealed trait JWSJOSE[A] extends JWTHeader {
   def algorithm: JWTAlgorithm[A]
 }
 
@@ -20,11 +20,10 @@ sealed abstract case class JWSJOSEMAC[A: MacTag](
     algorithm: JWTMacAlgo[A], //Algorithm, in this case a MAC
     contentType: Option[String] = None, // Optional header, preferably not used
     critical: Option[NonEmptyList[String]] = None //Headers not to ignore, they must be understood by the JWT implementation
-) extends JWSJOSE[A, JWSJOSEMAC.MK]
+) extends JWSJOSE[A]
 
 object JWSJOSEMAC {
-  type MK[A]  = MacSigningKey[MacKey[A]]
-
+  type MK[A] = MacSigningKey[MacKey[A]]
 
   def jwtHeader[A: MacTag](implicit jwtMacAlgo: JWTMacAlgo[A]) =
     new JWSJOSEMAC[A](
@@ -67,9 +66,12 @@ object JWSJOSEMAC {
       }
   }
 
-  implicit def genSerializer[A: MacTag](implicit d: Decoder[JWSJOSEMAC[A]], e: Encoder[JWSJOSEMAC[A]]): JWSSerializer[JWSJOSEMAC[A]] =
+  implicit def genSerializer[A: MacTag](
+      implicit d: Decoder[JWSJOSEMAC[A]],
+      e: Encoder[JWSJOSEMAC[A]]
+  ): JWSSerializer[JWSJOSEMAC[A]] =
     new JWSSerializer[JWSJOSEMAC[A]] {
-      def serializeUtf8(body: JWSJOSEMAC[A]): Array[Byte] = jwt.JWTPrinter.pretty(body.asJson).utf8Bytes
+      def serializeToUtf8(body: JWSJOSEMAC[A]): Array[Byte] = jwt.JWTPrinter.pretty(body.asJson).utf8Bytes
 
       def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWSJOSEMAC[A]] =
         io.circe.parser.decode[JWSJOSEMAC[A]](array.toUtf8String)

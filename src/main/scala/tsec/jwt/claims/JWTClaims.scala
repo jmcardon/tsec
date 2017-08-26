@@ -12,11 +12,12 @@ import tsec.jws.JWSSerializer
 case class JWTClaims(
   issuer: Option[String] = None, //Case insensitive
   subject: Option[String] = None, //Case-sensitive
-  audience: Option[Either[String, List[String]]] = None, //
+  audience: Option[Either[String, List[String]]] = None, //case-sensitive
   expiration: Option[Long] = None,
   notBefore: Option[Long] = None,
   issuedAt: Option[Long] = None,
-  jwtId: Option[String] = None
+  jwtId: Option[String] = None, //Case sensitive
+  custom: Json = Json.Null // non standard. I copped out. Other things are most likely too inefficient to use
 )
 
 object JWTClaims {
@@ -31,12 +32,13 @@ object JWTClaims {
       ("exp", a.expiration.asJson),
       ("nbf", a.notBefore.asJson),
       ("iat", a.issuedAt.asJson),
-      ("jti", a.jwtId.asJson)
+      ("jti", a.jwtId.asJson),
+      ("custom", a.custom)
     )
   }
 
   implicit val jwsSerializer = new JWSSerializer[JWTClaims] {
-    def serializeUtf8(body: JWTClaims): Array[Byte] = JWTPrinter.pretty(this.asJson).getBytes(StandardCharsets.UTF_8)
+    def serializeToUtf8(body: JWTClaims): Array[Byte] = JWTPrinter.pretty(body.asJson).getBytes(StandardCharsets.UTF_8)
     def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWTClaims] = decode[JWTClaims](new String(array, StandardCharsets.UTF_8))
   }
 }

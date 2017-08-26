@@ -1,15 +1,16 @@
-package tsec.cipher.symmetric.instances
+package tsec.cipher.symmetric.instances.threadlocal
 
+import java.util.{ArrayDeque => JQueue}
 import javax.crypto.{Cipher => JCipher}
 
 import cats.syntax.either._
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.instances.{JEncryptionKey, SymmetricAlgorithm}
 import tsec.core.ErrorConstruct
-import java.util.{ArrayDeque => JQueue}
 
-abstract class JCASymmetricImpure[A, M, P](
+abstract class JCATLSymmetric[A, M, P](
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
@@ -166,7 +167,7 @@ abstract class JCASymmetricImpure[A, M, P](
     } yield PlainText(decrypted)
 }
 
-object JCASymmetricImpure {
+object JCATLSymmetric {
 
   protected[instances] def getJCipherUnsafe[A, M, P](
       implicit algoTag: SymmetricAlgorithm[A],
@@ -205,7 +206,7 @@ object JCASymmetricImpure {
     */
   def getCipher[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
       queueLen: Int = 15
-  ): Either[NoSuchInstanceError.type, JCASymmetricImpure[A, M, P]] =
+  ): Either[NoSuchInstanceError.type, JCATLSymmetric[A, M, P]] =
     for {
       q <- Either.catchNonFatal(genQueueUnsafe(queueLen)).leftMap(_ => NoSuchInstanceError)
       tl <- Either
@@ -217,7 +218,7 @@ object JCASymmetricImpure {
         }
         .leftMap(_ => NoSuchInstanceError)
     } yield
-      new JCASymmetricImpure[A, M, P] {
+      new JCATLSymmetric[A, M, P] {
         protected val local: ThreadLocal[JQueue[JCipher]] = tl
       }
 
@@ -231,9 +232,9 @@ object JCASymmetricImpure {
     * @tparam P Padding mode
     * @return
     */
-  def getCipherUnsafe[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](queueLen: Int): JCASymmetricImpure[A, M, P] = {
+  def getCipherUnsafe[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](queueLen: Int): JCATLSymmetric[A, M, P] = {
     val queue = genQueueUnsafe(queueLen)
-    new JCASymmetricImpure[A, M, P] {
+    new JCATLSymmetric[A, M, P] {
       protected val local: ThreadLocal[JQueue[JCipher]] = new ThreadLocal[JQueue[JCipher]] {
         override def initialValue(): JQueue[JCipher] = queue
       }
