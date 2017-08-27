@@ -10,16 +10,15 @@ trait SignatureAlgebra[F[_], A] {
 
   def genSignatureInstance: F[S]
 
-  def initSign(p: SigPrivateKey[PrivK @@ A], instance: S): F[Unit]
+  def initSign(instance: S, p: SigPrivateKey[PrivK @@ A]): F[Unit]
 
-  def initVerifyK(p: SigPublicKey[PubK @@ A], instance: S): F[Unit]
+  def initVerifyK(instance: S, p: SigPublicKey[PubK @@ A]): F[Unit]
 
-  def initVerifyC(c: SigCertificate[Cert @@ A], instance: S): F[Unit]
+  def initVerifyC(instance: S, c: SigCertificate[Cert @@ A]): F[Unit]
 
   def loadBytes(bytes: Array[Byte], instance: S): F[Unit]
 
   def sign(instance: S): F[Array[Byte]]
 
   def verify(sig: Array[Byte], instance: S): F[Boolean]
-
 }

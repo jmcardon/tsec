@@ -1,6 +1,12 @@
 package tsec.core
 
+import shapeless.{Generic, HNil, ::}
+
 object ByteUtils {
+
+  type ByteAux[A] = Generic[A] {
+    type Repr = Array[Byte] :: HNil
+  }
 
   def constantTimeEquals(a: Array[Byte], b: Array[Byte]): Boolean =
     if (a.length != b.length) false

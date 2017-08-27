@@ -5,15 +5,14 @@ import tsec.jws.algorithms.JWTSigAlgo.MErrThrowable
 import tsec.jws.signature.ParseEncodedKeySpec
 import tsec.mac.instance._
 import tsec.mac.core.MacPrograms
-import tsec.signature.core.{SignatureAlgorithm, SignerDSL}
+import tsec.signature.core.{SigAlgoTag, SignerDSL}
 import tsec.signature.instance._
 
-sealed trait JWTAlgorithm[A] {
+sealed trait JWA[A] {
   val jwtRepr: String
-
 }
 
-object JWTAlgorithm {
+object JWA {
   implicit case object HS256 extends JWTMacAlgo[HMACSHA256] {
     val jwtRepr: String = "HS256"
   }
@@ -26,7 +25,7 @@ object JWTAlgorithm {
     val jwtRepr: String = "HS512"
   }
 
-  implicit case object NoAlg extends JWTAlgorithm[NoSigningAlgorithm] {
+  implicit case object NoAlg extends JWA[NoSigningAlgorithm] {
     val jwtRepr: String = "none"
   }
 
@@ -56,19 +55,19 @@ object JWTAlgorithm {
 
 }
 
-abstract class JWTMacAlgo[A: MacTag](implicit gen: MacPrograms.MacAux[A]) extends JWTAlgorithm[A]
+abstract class JWTMacAlgo[A: MacTag](implicit gen: MacPrograms.MacAux[A]) extends JWA[A]
 
-abstract class JWTSigAlgo[A: SignatureAlgorithm](implicit gen: SignerDSL.Aux[A]) extends JWTAlgorithm[A] {
+abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: SignerDSL.Aux[A]) extends JWA[A] {
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
 }
 
-abstract class JWTECSig[A: SignatureAlgorithm: ECKFTag](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
+abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.derToConcat[F, A](bytes)
 }
 
-abstract class JWTRSASig[A: SignatureAlgorithm](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
+abstract class JWTRSASig[A: SigAlgoTag](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
 }

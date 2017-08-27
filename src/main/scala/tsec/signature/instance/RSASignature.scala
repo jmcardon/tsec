@@ -1,15 +1,15 @@
 package tsec.signature.instance
 
-import tsec.signature.core.SignatureAlgorithm
+import tsec.signature.core.SigAlgoTag
 
 abstract class GeneralSignature[A](signature: String){
-  implicit val sig = new SignatureAlgorithm[A] {
+  implicit val sig = new SigAlgoTag[A] {
     override lazy val algorithm: String = signature
   }
 }
 
 abstract class RSASignature[A](signature: String){
-  implicit val sig = new SignatureAlgorithm[A] {
+  implicit val sig = new SigAlgoTag[A] {
     override lazy val algorithm: String = signature
   }
 
@@ -19,7 +19,7 @@ abstract class RSASignature[A](signature: String){
 }
 
 abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int){
-  implicit val sig = new SignatureAlgorithm[A] {
+  implicit val sig = new SigAlgoTag[A] {
     override lazy val algorithm: String = signature
   }
 

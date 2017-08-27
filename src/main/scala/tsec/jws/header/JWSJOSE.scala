@@ -4,16 +4,16 @@ import cats.data.NonEmptyList
 import io.circe.syntax._
 import io.circe.{Decoder, DecodingFailure, Encoder, Error, HCursor, Json}
 import tsec.jws.{JWSSerializer, _}
-import tsec.jws.algorithms.{JWTAlgorithm, JWTMacAlgo, JWTSigAlgo}
+import tsec.jws.algorithms.{JWA, JWTMacAlgo, JWTSigAlgo}
 import tsec.jwt
 import tsec.jwt.header.JWTHeader
 import tsec.mac.MacKey
 import tsec.mac.core.MacSigningKey
 import tsec.mac.instance.MacTag
-import tsec.signature.core.SignatureAlgorithm
+import tsec.signature.core.SigAlgoTag
 
 sealed trait JWSJOSE[A] extends JWTHeader {
-  def algorithm: JWTAlgorithm[A]
+  def algorithm: JWA[A]
 }
 
 sealed abstract case class JWSJOSEMAC[A: MacTag](
@@ -79,7 +79,7 @@ object JWSJOSEMAC {
     }
 }
 
-sealed abstract case class JWSJOSESig[A: SignatureAlgorithm](
+sealed abstract case class JWSJOSESig[A: SigAlgoTag](
     `type`: Option[String] = Some("JWT"), //Type, which will almost always default to "JWT"
     algorithm: JWTSigAlgo[A], //Algorithm, in this case a MAC
     contentType: Option[String] = None, // Optional header, preferably not used
@@ -93,7 +93,7 @@ sealed abstract case class JWSJOSESig[A: SignatureAlgorithm](
 ) extends JWSJOSE[A]
 
 object JWSJOSESig {
-  implicit def encoder[A: SignatureAlgorithm] = new Encoder[JWSJOSESig[A]] {
+  implicit def encoder[A: SigAlgoTag] = new Encoder[JWSJOSESig[A]] {
     def apply(a: JWSJOSESig[A]): Json = Json.obj(
       ("typ", a.`type`.asJson),
       ("alg", a.algorithm.jwtRepr.asJson),
@@ -107,7 +107,7 @@ object JWSJOSESig {
     )
   }
 
-  implicit def decoder[A: SignatureAlgorithm: JWTSigAlgo]: Decoder[JWSJOSESig[A]] = new Decoder[JWSJOSESig[A]] {
+  implicit def decoder[A: SigAlgoTag: JWTSigAlgo]: Decoder[JWSJOSESig[A]] = new Decoder[JWSJOSESig[A]] {
     def apply(c: HCursor): Either[DecodingFailure, JWSJOSESig[A]] =
       c.downField("alg")
         .as[Option[String]]
@@ -142,4 +142,15 @@ object JWSJOSESig {
         case Left(d) => Left(d)
       }
   }
+
+  def genDeserializer[A: SigAlgoTag](
+      implicit encoder: Encoder[JWSJOSESig[A]],
+      decoder: Decoder[JWSJOSESig[A]]
+  ): JWSSerializer[JWSJOSESig[A]] = new JWSSerializer[JWSJOSESig[A]] {
+    def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWSJOSESig[A]] =
+      io.circe.parser.decode[JWSJOSESig[A]](array.toUtf8String)
+
+    def serializeToUtf8(body: JWSJOSESig[A]): Array[Byte] = jwt.JWTPrinter.pretty(body.asJson).utf8Bytes
+  }
+
 }

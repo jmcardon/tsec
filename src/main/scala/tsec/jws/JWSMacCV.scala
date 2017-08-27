@@ -1,11 +1,10 @@
 package tsec.jws
 
-import java.nio.charset.StandardCharsets
-
+import cats.data.EitherT
 import cats.effect.IO
 import cats.{Functor, Monad}
 import tsec.jws._
-import tsec.jws.signature.JWSSignature
+import tsec.jws.signature.{JWSSignature, SigVerificationError}
 import tsec.jws.header.{JWSJOSE, JWSJOSEMAC}
 import tsec.jwt.claims.JWTClaims
 import cats.implicits._
@@ -15,26 +14,29 @@ import tsec.mac.MacKey
 import tsec.mac.core.MacPrograms.MacAux
 import tsec.mac.core.{MacPrograms, MacSigningKey}
 import tsec.mac.instance.threadlocal.JCATLMacPure
+import io.circe.Error
 
-sealed abstract class JWSMacSigner[F[_], A](
+sealed abstract class JWSMacCV[F[_], A](
     implicit hs: JWSSerializer[JWSJOSEMAC[A]],
     alg: MacPrograms[F, A, MacKey],
     aux: MacAux[A],
     M: Monad[F]
 ) {
-  def sign(header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[MacKey[A]]): F[JWSSignature[A]] = {
+
+  /*
+  Generic Error.
+  Any mishandling of the errors could leak information to an attacker.
+   */
+  private def defaultError: SigVerificationError = SigVerificationError("Could not verify signature")
+
+  def signAndBuild(header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[MacKey[A]]): F[JWTMAC[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
-    alg.sign(toSign.asciiBytes, key).map(JWSSignature.apply)
+    alg.sign(toSign.asciiBytes, key).map(s => JWTMAC(header, body, JWSSignature(s)))
   }
 
   def signToString(header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[MacKey[A]]): F[String] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
     alg.sign(toSign.asciiBytes, key).map(s => toSign + "." + aux.to(s).head.toB64UrlString)
-  }
-
-  def buildJWT(header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[MacKey[A]]): F[JWTMAC[A]] = {
-    val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
-    alg.sign(toSign.asciiBytes, key).map(s => JWTMAC(header, body, JWSSignature(s)))
   }
 
   def verify(jwt: String, key: MacSigningKey[MacKey[A]]): F[Boolean] = {
@@ -54,6 +56,31 @@ sealed abstract class JWSMacSigner[F[_], A](
     }
   }
 
+  /*
+  Todo: Cleanup
+   */
+  def verifyAndParse(jwt: String, key: MacSigningKey[MacKey[A]]): EitherT[F, SigVerificationError, JWTMAC[A]] = {
+    val split: Array[String] = jwt.split("\\.", 3)
+    if (split.length != 3)
+      EitherT.left(M.pure(defaultError))
+    else {
+      val signedBytes: Array[Byte] = split(2).base64Bytes
+      for {
+        header <- EitherT
+          .fromEither[F](hs.fromUtf8Bytes(split(0).base64Bytes))
+          .leftMap(_ => defaultError)
+        bytes <- EitherT.liftT(alg.sign((split(0) + "." + split(1)).asciiBytes, key))
+        _ <- EitherT
+          .cond[F](ByteUtils.constantTimeEquals(aux.to(bytes).head, signedBytes), (), defaultError)
+        body <- EitherT
+          .fromEither[F](
+            JWTClaims.jwsSerializer
+              .fromB64URL(split(1)))
+          .leftMap(_ => defaultError)
+      } yield JWTMAC(header, body, JWSSignature(bytes))
+    }
+  }
+
   def toEncodedString(jwt: JWTMAC[A]): String =
     hs.toB64URL(jwt.header) + "." + JWTClaims.jwsSerializer.toB64URL(jwt.body) + "." + aux
       .to(jwt.signature.body)
@@ -61,17 +88,17 @@ sealed abstract class JWSMacSigner[F[_], A](
       .toB64UrlString
 }
 
-object JWSMacSigner {
+object JWSMacCV {
   implicit def genSigner[F[_]: Monad, A: MacAux](
       implicit hs: JWSSerializer[JWSJOSEMAC[A]],
       alg: MacPrograms[F, A, MacKey]
-  ): JWSMacSigner[F, A] =
-    new JWSMacSigner[F, A]() {}
+  ): JWSMacCV[F, A] =
+    new JWSMacCV[F, A]() {}
 
   implicit def genSignerIO[F[_]: Monad, A: MacAux](
       implicit hs: JWSSerializer[JWSJOSEMAC[A]],
       alg: JCATLMacPure[A]
-  ): JWSMacSigner[IO, A] =
-    new JWSMacSigner[IO, A]() {}
+  ): JWSMacCV[IO, A] =
+    new JWSMacCV[IO, A]() {}
 
 }

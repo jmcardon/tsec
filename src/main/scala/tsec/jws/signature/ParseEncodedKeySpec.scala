@@ -37,12 +37,12 @@ object ParseEncodedKeySpec {
    */
   def derToConcat[F[_], A](derSignature: Array[Byte])(implicit ecTag: ECKFTag[A], me: MonadError[F, Throwable]): F[Array[Byte]] = {
     if (derSignature.length < 8 || derSignature(0) != 48)
-      me.raiseError(SignatureVerificationError("Invalid ECDSA signature format"))
+      me.raiseError(SigVerificationError("Invalid ECDSA signature format"))
 
     var offset: Int = 0
     if (derSignature(1) > 0) offset = 2
     else if (derSignature(1) == 0x81.toByte) offset = 3
-    else me.raiseError(SignatureVerificationError("Invalid ECDSA signature format"))
+    else me.raiseError(SigVerificationError("Invalid ECDSA signature format"))
 
     val rLength: Byte = derSignature(offset + 1)
     var i: Int = rLength
@@ -62,7 +62,7 @@ object ParseEncodedKeySpec {
     if ((derSignature(offset - 1) & 0xff) != derSignature.length - offset
         || (derSignature(offset - 1) & 0xff) != 2 + rLength + 2 + sLength
         || derSignature(offset) != 2 || derSignature(offset + 2 + rLength) != 2)
-      me.raiseError(SignatureVerificationError("Invalid ECDSA signature format"))
+      me.raiseError(SigVerificationError("Invalid ECDSA signature format"))
 
     val concatSignature: Array[Byte] = new Array[Byte](2 * rawLen)
     System.arraycopy(derSignature, (offset + 2 + rLength) - i, concatSignature, rawLen - i, i)
@@ -96,7 +96,7 @@ object ParseEncodedKeySpec {
 
     val signatureLength = 2 + r.length + 2 + s.length
     if (signatureLength > 255)
-      me.raiseError(SignatureVerificationError("Invalid ECDSA signature format"))
+      me.raiseError(SigVerificationError("Invalid ECDSA signature format"))
 
     var signatureDER = scala.collection.mutable.ListBuffer.empty[Byte]
     signatureDER += 48

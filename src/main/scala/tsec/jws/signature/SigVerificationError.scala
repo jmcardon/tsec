@@ -1,5 +1,5 @@
 package tsec.jws.signature
 
-case class SignatureVerificationError(message: String) extends Throwable {
+case class SigVerificationError(message: String) extends Exception {
   override def fillInStackTrace(): Throwable = this
 }
