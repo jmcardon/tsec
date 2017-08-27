@@ -82,7 +82,7 @@ object ParseEncodedKeySpec {
    * @tparam A
    * @return
    */
-  def concatSignatureToDER[F[_], A](signature: Array[Byte])(implicit me: MonadError[F, Throwable]): Array[Byte] = {
+  def concatSignatureToDER[F[_], A](signature: Array[Byte])(implicit me: MonadError[F, Throwable]): F[Array[Byte]] = {
     var (r,s) = signature.splitAt(signature.length / 2)
     r = r.dropWhile(_ == 0)
     if (r.length > 0 && r(0) < 0)
@@ -106,6 +106,6 @@ object ParseEncodedKeySpec {
     signatureDER += 2.toByte += r.length.toByte ++= r
     signatureDER += 2.toByte += s.length.toByte ++= s
 
-    signatureDER.toArray
+    me.pure(signatureDER.toArray)
   }
 }
