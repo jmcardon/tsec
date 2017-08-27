@@ -18,6 +18,7 @@ object JAsymmetricKeyGenerator {
         Either
           .catchNonFatal({
             val gen   = generator
+            gen.initialize(tag.keySize)
             val kpair = gen.generateKeyPair()
             KeyPair(PrivateKey(kpair.getPrivate), PublicKey(kpair.getPublic)).taggedWith[T]
           })
@@ -25,6 +26,7 @@ object JAsymmetricKeyGenerator {
 
       override def generateKeyPairUnsafe(): @@[KeyPair[JPrivateKey, JPublicKey], T] = {
         val gen   = generator
+        gen.initialize(tag.keySize)
         val kpair = gen.generateKeyPair()
         KeyPair(PrivateKey(kpair.getPrivate), PublicKey(kpair.getPublic)).taggedWith[T]
       }
