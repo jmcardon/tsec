@@ -17,8 +17,6 @@ libraryDependencies ++= Seq(
   "de.svenkubiak" % "jBCrypt" % "0.4.1",
   "com.lambdaworks" % "scrypt" % "1.4.0",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-  "co.fs2" %% "fs2-cats" % "0.3.0",
-  "co.fs2" %% "fs2-core" % "0.9.6",
   "org.bouncycastle" % "bcprov-jdk15on" % "1.52",
   "com.github.ichoran" %% "thyme" % "0.1.2-SNAPSHOT",
   "io.circe" %% "circe-core" % circeV,
