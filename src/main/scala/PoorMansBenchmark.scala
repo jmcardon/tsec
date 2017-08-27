@@ -54,100 +54,83 @@ object PoorMansBenchmark extends App{
    */
   val bench3Array = new Array[CipherText[AES128, GCM, NoPadding]](totalIterLen)
 
-//  th.pbenchOff(title = "JCA one mutable instance vs threadLocal")(
-//    testJCAInstance()
-//  )({
-//    var i = 0
-//    while (i < totalIterLen) {
-//      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
-//      i += 1
-//    }
-//  })
+  th.pbenchOff(title = "JCA one mutable instance vs threadLocal")(
+    testJCAInstance()
+  )({
+    var i = 0
+    while (i < totalIterLen) {
+      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+      i += 1
+    }
+  })
 
-//  th.pbench(testJCAInstance(), title = "One instance jvm mutable")
-//
-//  th.pbench(testGCMReg(), title = "Usual library methods")
-//
-//  th.pbench({
-//    var i = 0
-//    while (i < totalIterLen) {
-//      bench1Array(i) = eitherInterpreter.encrypt(plaintexts(i), keys(i))
-//      i += 1
-//    }
-//  }, title = "Regular Either interpreter")
-//
-//  th.pbench({
-//    var i = 0
-//    while (i < totalIterLen) {
-//      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
-//      i += 1
-//    }
-//  }, title = "ThreadLocal interpreter")
-//
-//  th.pbench(testIO(),title = "Symmetric IO interpreter")
-//
-//
-//  /**
-//    * This is an ideal scenario, wherein you'd have only _one_ instance of
-//    * your cipher, wherein you save the expensive alloc
-//    *
-//    */
-//  def testJCAInstance(): Unit = {
-//    var i = 0
-//    while (i < totalIterLen) {
-//      jcaInstance.init(Cipher.ENCRYPT_MODE, keys(i).key)
-//      regularTest(i) = jcaInstance.doFinal(plaintexts(i).content)
-//      i += 1
-//    }
-//  }
-//
-//  /**
-//    *
-//    * This is similar to what security libraries on the JVM abstract away
-//    * from you
-//    */
-//  def testGCMReg(): Unit = {
-//    var i = 0
-//    while (i < totalIterLen) {
-//      val kk = Cipher.getInstance("AES/GCM/NoPadding")
-//      kk.init(Cipher.ENCRYPT_MODE, keys(i).key)
-//      gmreg(i) = kk.doFinal(plaintexts(i).content)
-//      i += 1
-//    }
-//  }
-//
-//  /**
-//   * We test each io action
-//   * to view the related overhead, but we do not care about sequencing them
-//   *
-//   */
-//  def testIO(): Unit = {
-//    var i = 0
-//    while (i < totalIterLen){
-//      ioThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
-//          .map(f => {
-//            bench3Array(i) = f
-//          })
-//        .unsafeRunSync()
-//      i +=1
-//    }
-//  }
-  import tsec.passwordhashers.instances._
-  import tsec.passwordhashers.syntax._
-  val hash1: Array[Byte] = "helloHi".hashPassword[SCrypt].right.get.hashed.getBytes("UTF-8")
-  val hash2: Array[Byte] = "helloHa".hashPassword[SCrypt].right.get.hashed.getBytes("UTF-8")
+  th.pbench(testJCAInstance(), title = "One instance jvm mutable")
 
-  th.pbenchOff(title = "LET'S GET READY TO RRRRRRRRUMBLEEEEEEEEEEEE"){
-    ByteUtils.constantTimeEquals(hash1, hash1)
-  }{
-    ByteUtils.arraysEqual2(hash1, hash1)
+  th.pbench(testGCMReg(), title = "Usual library methods")
+
+  th.pbench({
+    var i = 0
+    while (i < totalIterLen) {
+      bench1Array(i) = eitherInterpreter.encrypt(plaintexts(i), keys(i))
+      i += 1
+    }
+  }, title = "Regular Either interpreter")
+
+  th.pbench({
+    var i = 0
+    while (i < totalIterLen) {
+      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+      i += 1
+    }
+  }, title = "ThreadLocal interpreter")
+
+  th.pbench(testIO(),title = "Symmetric IO interpreter")
+
+
+  /**
+    * This is an ideal scenario, wherein you'd have only _one_ instance of
+    * your cipher, wherein you save the expensive alloc
+    *
+    */
+  def testJCAInstance(): Unit = {
+    var i = 0
+    while (i < totalIterLen) {
+      jcaInstance.init(Cipher.ENCRYPT_MODE, keys(i).key)
+      regularTest(i) = jcaInstance.doFinal(plaintexts(i).content)
+      i += 1
+    }
   }
 
-  th.pbenchOff(title = "LET'S GET READY TO RRRRRRRRUMBLEEEEEEEEEEEE2"){
-    ByteUtils.constantTimeEquals(hash1, hash2)
-  }{
-    ByteUtils.arraysEqual2(hash1, hash2)
+  /**
+    *
+    * This is similar to what security libraries on the JVM abstract away
+    * from you
+    */
+  def testGCMReg(): Unit = {
+    var i = 0
+    while (i < totalIterLen) {
+      val kk = Cipher.getInstance("AES/GCM/NoPadding")
+      kk.init(Cipher.ENCRYPT_MODE, keys(i).key)
+      gmreg(i) = kk.doFinal(plaintexts(i).content)
+      i += 1
+    }
   }
 
+  /**
+   * We test each io action
+   * to view the related overhead, but we do not care about sequencing them
+   *
+   */
+  def testIO(): Unit = {
+    var i = 0
+    while (i < totalIterLen){
+      ioThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+          .map(f => {
+            bench3Array(i) = f
+          })
+        .unsafeRunSync()
+      i +=1
+    }
+  }
 
 }
