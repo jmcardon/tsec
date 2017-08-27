@@ -1,11 +1,14 @@
 package tsec.messagedigests.core
 
 import cats.data.{NonEmptyList, State}
+import shapeless._
 
-abstract class HashingPrograms[K, T](algebra: HashAlgebra[T])(implicit val p: PureHasher[K, T]) {
+abstract class HashingPrograms[K, T](
+    algebra: HashAlgebra[T]
+)(implicit val p: PureHasher[K, T], gen: HashingPrograms.HashAux[T]) {
 
   def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): T =
-    (algebra.hash _).andThen(p.fromHashedBytes)(cryptoPickler.pickle(toHash))
+    (algebra.hash _).andThen(f => gen.from(f::HNil))(cryptoPickler.pickle(toHash))
 
   def hashBatch[C](toHash: List[C])(implicit cryptoPickler: CryptoPickler[C]): List[T] =
     algebra
@@ -15,13 +18,13 @@ abstract class HashingPrograms[K, T](algebra: HashAlgebra[T])(implicit val p: Pu
             .map(cryptoPickler.pickle)
         )
       )
-      .map(p.fromHashedBytes)
+      .map(f => gen.from(f :: HNil))
 
   def combineAndHash[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): T =
-    (algebra.hash _).andThen(p.fromHashedBytes)(toHash.map(cryptoPickler.pickle).reduceLeft(_ ++ _))
+    (algebra.hash _).andThen(HashingPrograms.fromBytes[T])(toHash.map(cryptoPickler.pickle).reduceLeft(_ ++ _))
 
   def consumeAndLift(state: algebra.S): T =
-    (algebra.consume _).andThen(p.fromHashedBytes)(state)
+    (algebra.consume _).andThen(HashingPrograms.fromBytes[T])(state)
 
   def hashCumulative[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): List[T] = {
     def appendAndHash(newState: algebra.S): State[algebra.S, T] =
@@ -42,5 +45,13 @@ abstract class HashingPrograms[K, T](algebra: HashAlgebra[T])(implicit val p: Pu
       .runA(lifted.head)
       .value
   }
+}
+
+object HashingPrograms {
+  type HashAux[A] = Generic[A] {
+    type Repr = Array[Byte] :: HNil
+  }
+
+  def fromBytes[C](bytes: Array[Byte])(implicit gen: HashAux[C]): C = gen.from(bytes :: HNil)
 
 }

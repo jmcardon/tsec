@@ -6,11 +6,11 @@
 
 JCA:
 - [x] MessageDigests
-- [ ] Symmetric ciphers (Missing PBE, blowfish and ARCFOUR)
+- [X] Symmetric ciphers
 - [ ] Asymmetric Ciphers
 - [ ] KeyGenerators and key construction in general (WIP, partly)
-- [ ] KeySpec
-- [ ] Mac
+- [X] Signatures
+- [X] Mac
 - [ ] AlgorithmParameter and generators
 - [ ] Other digital signature and ssl related stuff (backburner, low uses cases)
 
@@ -50,6 +50,8 @@ BouncyCastle:
 
 #### More resources:
 
+http://www.fi.muni.cz/~xsvenda/docs/AE_comparison_ipics04.pdf
+
 
  JCA: https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html
  https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
@@ -60,6 +62,8 @@ BouncyCastle:
  http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-spec.pdf
  https://crypto.stackexchange.com/questions/6842/how-to-choose-between-aes-ccm-and-aes-gcm-for-storage-volume-encryption
  https://tools.ietf.org/html/rfc5116
+ https://security.stackexchange.com/questions/2202/lessons-learned-and-misconceptions-regarding-encryption-and-cryptology/2213#2213
+ https://blog.cryptographyengineering.com/2012/05/19/how-to-choose-authenticated-encryption/
  
  
  Passwords:
@@ -72,3 +76,18 @@ BouncyCastle:
 Padding schemes: 
   https://security.stackexchange.com/questions/52665/which-is-the-best-cipher-mode-and-padding-mode-for-aes-encryption
   https://crypto.stackexchange.com/questions/10775/practical-disadvantages-of-gcm-mode-encryption
+  
+SecureRandom:
+https://www.synopsys.com/blogs/software-security/proper-use-of-javas-securerandom/
+https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
+
+HMac
+https://tools.ietf.org/html/rfc2104
+https://tools.ietf.org/html/rfc4868
+NOTE: Hmac keys should not be smaller than the output length
+
+JWT
+https://medium.facilelogin.com/jwt-jws-and-jwe-for-not-so-dummies-b63310d201a3
+
+Signatures:
+https://crypto.stackexchange.com/questions/1795/how-can-i-convert-a-der-ecdsa-signature-to-asn-1/1797#1797
