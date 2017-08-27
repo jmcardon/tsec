@@ -33,6 +33,7 @@ object ParseEncodedKeySpec {
   /**
    * ASN.1/DER to the concat required by https://tools.ietf.org/html/rfc7518#section-3.4
    * Adapted from scala-jwt, itself adapted from jose4j
+   * TODO: Optimize
    */
   def derToConcat[F[_], A](derSignature: Array[Byte])(implicit ecTag: ECKFTag[A], me: MonadError[F, Throwable]): F[Array[Byte]] = {
     if (derSignature.length < 8 || derSignature(0) != 48)
@@ -74,6 +75,7 @@ object ParseEncodedKeySpec {
    * Adapted from the implementation in scala-jwt, which itself was adapted from
    * jose4j, which itself was adapted from from org.apache.xml.security.algorithms.implementations.SignatureECDSA in the
    * (Apache 2 licensed) Apache Santuario XML Security library.
+   * TODO: Optimize
    *
    *
    * @param signature the signature to conver to DER
@@ -93,7 +95,6 @@ object ParseEncodedKeySpec {
       s +:= 0.toByte
 
     val signatureLength = 2 + r.length + 2 + s.length
-
     if (signatureLength > 255)
       me.raiseError(SignatureVerificationError("Invalid ECDSA signature format"))
 
