@@ -14,7 +14,7 @@ object ParseEncodedKeySpec {
     val spec = new X509EncodedKeySpec(keyBytes)
     SigPublicKey(
       KeyFactory
-        .getInstance(kt.keyTransformerAlgorithm, "BC")
+        .getInstance(kt.keyFactoryAlgo, "BC")
         .generatePublic(spec)
         .taggedWith[A]
     )
@@ -24,7 +24,7 @@ object ParseEncodedKeySpec {
     val spec = new PKCS8EncodedKeySpec(keyBytes)
     SigPrivateKey(
       KeyFactory
-        .getInstance(kt.keyTransformerAlgorithm, "BC")
+        .getInstance(kt.keyFactoryAlgo, "BC")
         .generatePrivate(spec)
         .taggedWith[A]
     )

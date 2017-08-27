@@ -59,27 +59,30 @@ object JWTAlgorithm {
 abstract class JWTMacAlgo[A: MacTag](implicit gen: MacPrograms.MacAux[A]) extends JWTAlgorithm[A]
 
 abstract class JWTSigAlgo[A: SignatureAlgorithm](implicit gen: SignerDSL.Aux[A]) extends JWTAlgorithm[A] {
-  def byteReprToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
-  def derBytesToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
+  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
+  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
 }
 
 abstract class JWTECSig[A: SignatureAlgorithm: ECKFTag](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
-  def byteReprToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
-  def derBytesToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.derToConcat[F, A](bytes)
+  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
+  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.derToConcat[F, A](bytes)
 }
 
 abstract class JWTRSASig[A: SignatureAlgorithm](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
-  def byteReprToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
-  def derBytesToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
+  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
+  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
 }
 
 object JWTSigAlgo {
   type MErrThrowable[F[_]] = MonadError[F, Throwable]
+  def fromString[A](alg: String)(implicit o: JWTSigAlgo[A]): Option[JWTSigAlgo[A]] = alg match {
+    case o.jwtRepr => Some(o)
+    //While we work on signatures, this can be none.
+    case _ => None
+  }
 }
 
 object JWTMacAlgo {
-
-
   def fromString[A](alg: String)(implicit o: JWTMacAlgo[A]): Option[JWTMacAlgo[A]] = alg match {
     case o.jwtRepr => Some(o)
     //While we work on signatures, this can be none.

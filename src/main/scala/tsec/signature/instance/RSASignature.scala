@@ -14,7 +14,7 @@ abstract class RSASignature[A](signature: String){
   }
 
   implicit val kt = new KFTag[A] {
-    val keyTransformerAlgorithm: String = "RSA"
+    val keyFactoryAlgo: String = "RSA"
   }
 }
 
@@ -28,7 +28,7 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
   }
 
   implicit val kt = new ECKFTag[A] {
-    val keyTransformerAlgorithm: String = "ECDSA"
+    val keyFactoryAlgo: String = "ECDSA"
     val outputLen: Int = outLen
   }
 
