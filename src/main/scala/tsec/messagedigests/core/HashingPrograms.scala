@@ -2,10 +2,11 @@ package tsec.messagedigests.core
 
 import cats.data.{NonEmptyList, State}
 import shapeless._
+import tsec.core.ByteUtils.ByteAux
 
 abstract class HashingPrograms[K, T](
     algebra: HashAlgebra[T]
-)(implicit val p: PureHasher[K, T], gen: HashingPrograms.HashAux[T]) {
+)(implicit val p: PureHasher[K, T], gen: ByteAux[T]) {
 
   def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): T =
     (algebra.hash _).andThen(f => gen.from(f::HNil))(cryptoPickler.pickle(toHash))
@@ -48,10 +49,7 @@ abstract class HashingPrograms[K, T](
 }
 
 object HashingPrograms {
-  type HashAux[A] = Generic[A] {
-    type Repr = Array[Byte] :: HNil
-  }
 
-  def fromBytes[C](bytes: Array[Byte])(implicit gen: HashAux[C]): C = gen.from(bytes :: HNil)
+  def fromBytes[C](bytes: Array[Byte])(implicit gen: ByteAux[C]): C = gen.from(bytes :: HNil)
 
 }

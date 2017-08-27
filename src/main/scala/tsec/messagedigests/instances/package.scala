@@ -8,6 +8,7 @@ import com.softwaremill.tagging._
 import tsec.core.CryptoTag
 import org.apache.commons.codec.binary.{Base64 => ApacheB}
 import shapeless._
+import tsec.core.ByteUtils.ByteAux
 
 package object instances {
 
@@ -17,16 +18,16 @@ package object instances {
     CryptoPickler.stringPickle[UTF8](Charset.forName("UTF-8").taggedWith[UTF8])
 
   implicit class HasherOps[T](val hasher: JHasher[T]) extends AnyVal {
-    def hashStringToBase64(s: String)(implicit gen: HashingPrograms.HashAux[T]): String =
+    def hashStringToBase64(s: String)(implicit gen: ByteAux[T]): String =
       ApacheB.encodeBase64String(gen.to(hasher.hash[String](s)(defaultStringEncoder)).head)
   }
 
   implicit class HashedOps[T](val hashed: T) extends AnyVal {
-    def toBase64String(implicit p: PureHasher[MessageDigest, T],gen: HashingPrograms.HashAux[T]): String =
+    def toBase64String(implicit p: PureHasher[MessageDigest, T],gen: ByteAux[T]): String =
       ApacheB.encodeBase64String(gen.to(hashed).head)
   }
 
-  def pureJavaHasher[T](implicit gen: HashingPrograms.HashAux[T]) =
+  def pureJavaHasher[T](implicit gen: ByteAux[T]) =
     new PureHasher[MessageDigest, T] {
 
       def tagged(implicit hashTag: CryptoTag[T]): TaggedHasher[MessageDigest, T] =

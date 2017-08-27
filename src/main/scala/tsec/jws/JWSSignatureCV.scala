@@ -17,7 +17,7 @@ import tsec.core.ByteUtils
 import tsec.core.ByteUtils.ByteAux
 import shapeless._
 
-class JWSSignatureCV[F[_], A: SigAlgoTag](
+final class JWSSignatureCV[F[_], A: SigAlgoTag](
     implicit hs: JWSSerializer[JWSJOSESig[A]],
     aux: ByteAux[A],
     jwsSigAlgo: JWTSigAlgo[A],
@@ -95,4 +95,14 @@ class JWSSignatureCV[F[_], A: SigAlgoTag](
       } yield JWTSig(h, body, JWSSignature(aux.from(providedBytes :: HNil)))
     }
   }
+}
+
+object JWSSignatureCV {
+  implicit def genCV[F[_], A: SigAlgoTag](
+    implicit hs: JWSSerializer[JWSJOSESig[A]],
+    aux: ByteAux[A],
+    jwsSigAlgo: JWTSigAlgo[A],
+    sigDSL: SignerDSL[F, A],
+    M: Sync[F]
+  ) = new JWSSignatureCV[F, A]()
 }

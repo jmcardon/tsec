@@ -31,12 +31,6 @@ sealed abstract class JCASigInterpreter[F[_], A](implicit M: Sync[F], signatureA
 }
 
 object JCASigInterpreter {
-  type SigAlgAux[F[_],A] = SignatureAlgebra[F, A]{
-    type S = Signature
-    type PrivK = PrivateKey
-    type PubK = PublicKey
-    type Cert = Certificate
-  }
 
   def apply[F[_]: Sync, A: SigAlgoTag] = new JCASigInterpreter[F, A]() {}
 

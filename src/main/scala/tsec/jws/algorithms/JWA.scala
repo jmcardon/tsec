@@ -1,10 +1,10 @@
 package tsec.jws.algorithms
 
 import cats.MonadError
+import tsec.core.ByteUtils.ByteAux
 import tsec.jws.algorithms.JWTSigAlgo.MErrThrowable
 import tsec.jws.signature.ParseEncodedKeySpec
 import tsec.mac.instance._
-import tsec.mac.core.MacPrograms
 import tsec.signature.core.{SigAlgoTag, SignerDSL}
 import tsec.signature.instance._
 
@@ -55,19 +55,19 @@ object JWA {
 
 }
 
-abstract class JWTMacAlgo[A: MacTag](implicit gen: MacPrograms.MacAux[A]) extends JWA[A]
+abstract class JWTMacAlgo[A: MacTag](implicit gen: ByteAux[A]) extends JWA[A]
 
-abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: SignerDSL.Aux[A]) extends JWA[A] {
+abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWA[A] {
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
 }
 
-abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
+abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A]{
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.derToConcat[F, A](bytes)
 }
 
-abstract class JWTRSASig[A: SigAlgoTag](implicit gen: SignerDSL.Aux[A]) extends JWTSigAlgo[A]{
+abstract class JWTRSASig[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A]{
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
 }

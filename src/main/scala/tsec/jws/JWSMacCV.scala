@@ -11,15 +11,15 @@ import cats.implicits._
 import shapeless.{::, HNil}
 import tsec.core.ByteUtils
 import tsec.mac.MacKey
-import tsec.mac.core.MacPrograms.MacAux
 import tsec.mac.core.{MacPrograms, MacSigningKey}
 import tsec.mac.instance.threadlocal.JCATLMacPure
 import io.circe.Error
+import tsec.core.ByteUtils.ByteAux
 
 sealed abstract class JWSMacCV[F[_], A](
     implicit hs: JWSSerializer[JWSJOSEMAC[A]],
     alg: MacPrograms[F, A, MacKey],
-    aux: MacAux[A],
+    aux: ByteAux[A],
     M: Monad[F]
 ) {
 
@@ -89,13 +89,13 @@ sealed abstract class JWSMacCV[F[_], A](
 }
 
 object JWSMacCV {
-  implicit def genSigner[F[_]: Monad, A: MacAux](
+  implicit def genSigner[F[_]: Monad, A: ByteAux](
       implicit hs: JWSSerializer[JWSJOSEMAC[A]],
       alg: MacPrograms[F, A, MacKey]
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
-  implicit def genSignerIO[F[_]: Monad, A: MacAux](
+  implicit def genSignerIO[F[_]: Monad, A: ByteAux](
       implicit hs: JWSSerializer[JWSJOSEMAC[A]],
       alg: JCATLMacPure[A]
   ): JWSMacCV[IO, A] =
