@@ -1,6 +1,6 @@
 package tsec.mac.instance
 
-sealed trait MacError extends Throwable with Product with Serializable{
+sealed trait MacError extends Exception with Product with Serializable{
   def cause: String
 
   override def fillInStackTrace(): Throwable = this

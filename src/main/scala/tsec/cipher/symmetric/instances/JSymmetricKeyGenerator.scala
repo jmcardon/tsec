@@ -5,19 +5,24 @@ import javax.crypto.{Cipher => JCipher, KeyGenerator => KG, SecretKey => JSecret
 
 import cats.syntax.either._
 import com.softwaremill.tagging._
-import tsec.cipher.common.{CipherError, SecretKey, CipherKeyBuildError}
+import tsec.cipher.common.{CipherError, CipherKeyBuildError, SecretKey}
 import tsec.core.{ErrorConstruct, JKeyGenerator}
 
 object JSymmetricKeyGenerator {
+
   /**
-   * Construct our Key Generator abstracted over Symmetric
-   *
-   * @param tag
-   * @tparam T
-   * @return
-   */
+    * Construct our Key Generator abstracted over Symmetric
+    *
+    * @param tag
+    * @tparam T
+    * @return
+    */
   def fromType[T](tag: SymmetricAlgorithm[T]): JKeyGenerator[JEncryptionKey[T], SecretKey, CipherKeyBuildError] =
     new JKeyGenerator[JEncryptionKey[T], SecretKey, CipherKeyBuildError] {
+      /*
+      For key generators, we can restrict some keylengths using the underscore such as
+      AES_128. If it is present, remove the remainder.
+       */
       val tagAlgorithm: String = {
         val underscoreIndex = tag.algorithm.indexOf("_")
         if (underscoreIndex < 0)
@@ -26,10 +31,9 @@ object JSymmetricKeyGenerator {
           tag.algorithm.substring(0, underscoreIndex)
       }
 
-      def keyLength: Int = tag.keylength
+      def keyLength: Int = tag.keyLength
 
       def generator: KG = KG.getInstance(tagAlgorithm)
-
 
       def generateKeyUnsafe(): SecretKey[JEncryptionKey[T]] = {
         val gen = generator
@@ -48,20 +52,34 @@ object JSymmetricKeyGenerator {
 
       //Note: JCipher.getMaxAllowedKeyLength(tag.algorithm) returns a length in bits. for an array of bytes
       //This means dividing by 8 to get the number of elements in bytes
-      def buildKeyUnsafe(key: Array[Byte]): SecretKey[JEncryptionKey[T]] =
-        SecretKey(
-          new SecretKeySpec(key.slice(0, tag.keylength / 8), tagAlgorithm)
-            .taggedWith[T]
-        )
+      def buildKeyUnsafe(key: Array[Byte]): SecretKey[JEncryptionKey[T]] = {
+        val kLBytes = tag.keyLength / 8
+        if (key.length != kLBytes)
+          throw CipherKeyBuildError("Incorrect key length")
+        else
+          SecretKey[JEncryptionKey[T]](
+            new SecretKeySpec(key, tagAlgorithm)
+              .taggedWith[T]
+          )
+      }
 
-      def buildKey(key: Array[Byte]): Either[CipherKeyBuildError, SecretKey[JSecretKey @@ T]] =
-        Either
-          .catchNonFatal(
+      /**
+       * Only accept keys of the proper length
+       *
+       * @param key
+       * @return
+       */
+      def buildKey(key: Array[Byte]): Either[CipherKeyBuildError, SecretKey[JSecretKey @@ T]] = {
+        val kLBytes = tag.keyLength / 8
+        if (key.length != kLBytes)
+          Left(CipherKeyBuildError("Incorrect key length"))
+        else
+          Right(
             SecretKey[JEncryptionKey[T]](
-              new SecretKeySpec(key.slice(0, tag.keylength / 8), tagAlgorithm)
+              new SecretKeySpec(key, tagAlgorithm)
                 .taggedWith[T]
             )
           )
-          .leftMap(ErrorConstruct.fromThrowable[CipherKeyBuildError])
+      }
     }
 }

@@ -2,4 +2,12 @@ package tsec.cipher.symmetric.instances
 
 import tsec.core.CryptoTag
 
-case class SymmetricAlgorithm[T](algorithm: String, keylength: Int) extends CryptoTag[T]
+/**
+ * Typeclass for symmetrix key algorithms
+ * Note: Keylength is in bits
+ *
+ * @param algorithm
+ * @param keyLength
+ * @tparam T
+ */
+case class SymmetricAlgorithm[T](algorithm: String, keyLength: Int) extends CryptoTag[T]

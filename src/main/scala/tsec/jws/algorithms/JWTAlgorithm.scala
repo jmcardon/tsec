@@ -5,39 +5,37 @@ import tsec.mac.core.MacPrograms
 import tsec.signature.core.{SignatureAlgorithm, SignerDSL}
 import tsec.signature.instance.{SHA256withECDSA, SHA384withECDSA, SHA512withECDSA}
 
-
-
 sealed trait JWTAlgorithm[A] {
   val jwtRepr: String
 
 }
 
 object JWTAlgorithm {
-  implicit case object HS256 extends JWTMacAlgo[HMACSHA256]{
+  implicit case object HS256 extends JWTMacAlgo[HMACSHA256] {
     val jwtRepr: String = "HS256"
   }
 
-  implicit case object HS384 extends JWTMacAlgo[HMACSHA384]{
+  implicit case object HS384 extends JWTMacAlgo[HMACSHA384] {
     val jwtRepr: String = "HS384"
   }
 
-  implicit case object HS512 extends JWTMacAlgo[HMACSHA512]{
+  implicit case object HS512 extends JWTMacAlgo[HMACSHA512] {
     val jwtRepr: String = "HS512"
   }
 
-  implicit case object NoAlg extends JWTAlgorithm[NoSigningAlgorithm]{
+  implicit case object NoAlg extends JWTAlgorithm[NoSigningAlgorithm] {
     val jwtRepr: String = "none"
   }
 
-  implicit case object ES256 extends JWTSigAlgo[SHA256withECDSA]{
+  implicit case object ES256 extends JWTSigAlgo[SHA256withECDSA] {
     val jwtRepr: String = "ES256"
   }
 
-  implicit case object ES384 extends JWTSigAlgo[SHA384withECDSA]{
+  implicit case object ES384 extends JWTSigAlgo[SHA384withECDSA] {
     val jwtRepr: String = "ES384"
   }
 
-  implicit case object ES512 extends JWTSigAlgo[SHA512withECDSA]{
+  implicit case object ES512 extends JWTSigAlgo[SHA512withECDSA] {
     val jwtRepr: String = "ES512"
   }
 

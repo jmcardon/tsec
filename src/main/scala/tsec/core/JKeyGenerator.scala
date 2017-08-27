@@ -17,12 +17,7 @@ trait JKeyGenerator[A, K[_], KE] {
   def keyLength: Int
   def generator: KeyGenerator
   def generateKey(): Either[KE, K[A]]
-  def generateLift[F[_]](implicit err: ApplicativeError[F, Throwable], ev: KE <:< Throwable): F[K[A]] =
-    generateKey() match {
-      case Left(e)  => err.raiseError(e)
-      case Right(k) => err.pure(k)
-    }
-
+  def generateLift[F[_]](implicit err: ApplicativeError[F, Throwable]): F[K[A]] = err.catchNonFatal(generateKeyUnsafe())
   def generateKeyUnsafe(): K[A]
   def buildKey(key: Array[Byte]): Either[KE, K[A]]
   def buildKeyUnsafe(key: Array[Byte]): K[A]
