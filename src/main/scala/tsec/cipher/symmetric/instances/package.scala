@@ -4,9 +4,9 @@ import javax.crypto.{SecretKey => JSecretKey}
 
 import cats.effect.IO
 import com.softwaremill.tagging._
-import fs2.util.NonFatal
 
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 package object instances {
   type JEncryptionKey[T] = JSecretKey @@ T
