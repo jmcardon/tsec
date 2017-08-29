@@ -7,9 +7,7 @@ import tsec.jws.{JWSSerializer, _}
 import tsec.jws.algorithms.{JWA, JWTMacAlgo, JWTSigAlgo}
 import tsec.jwt
 import tsec.jwt.header.JWTHeader
-import tsec.mac.MacKey
-import tsec.mac.core.MacSigningKey
-import tsec.mac.instance.MacTag
+import tsec.mac.instance.{MacSigningKey, MacTag}
 import tsec.signature.core.SigAlgoTag
 
 sealed trait JWSJOSE[A] extends JWTHeader {
@@ -24,7 +22,6 @@ sealed abstract case class JWSJOSEMAC[A: MacTag](
 ) extends JWSJOSE[A]
 
 object JWSJOSEMAC {
-  type MK[A] = MacSigningKey[MacKey[A]]
 
   def jwtHeader[A: MacTag](implicit jwtMacAlgo: JWTMacAlgo[A]) =
     new JWSJOSEMAC[A](

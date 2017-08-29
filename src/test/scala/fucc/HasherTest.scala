@@ -51,7 +51,7 @@ class HasherTest extends TestSpec {
   }
 
   "Batch hashing and sequential hashing" should "be the same for SHA1" in {
-    val batchList = SHA1.jHasher.hashBatch(strList)
+    val batchList = JHasher[SHA1].hashBatch(strList)
     val seqList = strList.map(_.digestHash[SHA1])
 
     assert(
@@ -59,7 +59,7 @@ class HasherTest extends TestSpec {
   }
 
   it should "be the same for MD5" in {
-    val batchList = MD5.jHasher.hashBatch(strList)
+    val batchList = JHasher[MD5].hashBatch(strList)
     val seqList = strList.map(_.digestHash[MD5])
 
     assert(
@@ -67,7 +67,7 @@ class HasherTest extends TestSpec {
   }
 
   it should "be the same for SHA256" in {
-    val batchList = SHA256.jHasher.hashBatch(strList)
+    val batchList = JHasher[SHA256].hashBatch(strList)
     val seqList = strList.map(_.digestHash[SHA256])
 
     assert(
@@ -75,7 +75,7 @@ class HasherTest extends TestSpec {
   }
 
   it should "be the same for SHA512" in {
-    val batchList = SHA512.jHasher.hashBatch(strList)
+    val batchList = JHasher[SHA512].hashBatch(strList)
     val seqList = strList.map(_.digestHash[SHA512])
 
     assert(
@@ -88,10 +88,10 @@ class HasherTest extends TestSpec {
     val list2 = List("a", "b")
 
     assert(
-      list0.length == SHA1.jHasher.hashBatch(list0).length &&
-        list1.length == SHA1.jHasher.hashBatch(list1).length &&
-        list2.length == SHA1.jHasher.hashBatch(list2).length &&
-        list2.length == SHA1.jHasher.hashBatch(list2).length
+      list0.length == JHasher[SHA1].hashBatch(list0).length &&
+        list1.length == JHasher[SHA1].hashBatch(list1).length &&
+        list2.length == JHasher[SHA1].hashBatch(list2).length &&
+        list2.length == JHasher[SHA1].hashBatch(list2).length
     )
   }
 

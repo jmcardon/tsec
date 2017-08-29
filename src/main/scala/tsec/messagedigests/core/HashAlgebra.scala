@@ -4,7 +4,11 @@ import cats.Monoid
 
 trait HashAlgebra[T] {
   type S
+  type H
   implicit def monoid: Monoid[S]
+
+  def genInstance(): H
+
   def liftS(s: Array[Byte]): S
 
   def lift(s: List[Array[Byte]]): S

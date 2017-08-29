@@ -1,7 +1,7 @@
 package tsec.cipher.symmetric.core
 
-import tsec.cipher.common.SecretKey
 import tsec.cipher.common._
+import tsec.cipher.symmetric.instances.SecretKey
 
 trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
   type C
@@ -12,11 +12,11 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
   Stateful operations for internal use
   We can choose to defer them or catch the effect somehow
    */
-  protected[symmetric] def initEncryptor(e: C, secretKey: SecretKey[K[A]]): F[Unit]
+  protected[symmetric] def initEncryptor(e: C, secretKey: K[A]): F[Unit]
 
   protected[symmetric] def initDecryptor(
       decryptor: C,
-      key: SecretKey[K[A]],
+      key: K[A],
       iv: Array[Byte]
   ): F[Unit]
 
@@ -32,7 +32,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param key the SecretKey to use
     * @return
     */
-  def encrypt(plainText: PlainText[A, M, P], key: SecretKey[K[A]]): F[CipherText[A, M, P]]
+  def encrypt(plainText: PlainText[A, M, P], key: K[A]): F[CipherText[A, M, P]]
 
   /**
     * Encrypt our plaintext using additional authentication parameters,
@@ -44,7 +44,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param aad The additional authentication information
     * @return
     */
-  def encryptAAD(plainText: PlainText[A, M, P], key: SecretKey[K[A]], aad: AAD): F[CipherText[A, M, P]]
+  def encryptAAD(plainText: PlainText[A, M, P], key: K[A], aad: AAD): F[CipherText[A, M, P]]
 
   /**
     * Decrypt our ciphertext
@@ -53,7 +53,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param key the SecretKey to use
     * @return
     */
-  def decrypt(cipherText: CipherText[A, M, P], key: SecretKey[K[A]]): F[PlainText[A, M, P]]
+  def decrypt(cipherText: CipherText[A, M, P], key: K[A]): F[PlainText[A, M, P]]
 
   /**
     * Decrypt our ciphertext using additional authentication parameters,
@@ -65,6 +65,6 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param aad The additional authentication information
     * @return
     */
-  def decryptAAD(cipherText: CipherText[A, M, P], key: SecretKey[K[A]], aad: AAD): F[PlainText[A, M, P]]
+  def decryptAAD(cipherText: CipherText[A, M, P], key: K[A], aad: AAD): F[PlainText[A, M, P]]
 
 }

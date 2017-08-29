@@ -5,6 +5,6 @@ trait MacAlgebra[F[_], A, K[_]] {
 
   def genInstance: F[M]
 
-  def sign(content: Array[Byte], key: MacSigningKey[K[A]]): F[Array[Byte]]
+  def sign(content: Array[Byte], key: K[A]): F[Array[Byte]]
 
 }

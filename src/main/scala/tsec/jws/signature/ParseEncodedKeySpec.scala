@@ -5,12 +5,11 @@ import java.security.{KeyFactory, PrivateKey, PublicKey}
 
 import cats.MonadError
 import com.softwaremill.tagging._
-import tsec.signature.core.{SigPrivateKey, SigPublicKey}
-import tsec.signature.instance.{ECKFTag, KFTag}
+import tsec.signature.instance.{ECKFTag, KFTag, SigPrivateKey, SigPublicKey}
 
 object ParseEncodedKeySpec {
 
-  def pubKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[@@[PublicKey, A]] = {
+  def pubKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
     val spec = new X509EncodedKeySpec(keyBytes)
     SigPublicKey(
       KeyFactory
@@ -20,7 +19,7 @@ object ParseEncodedKeySpec {
     )
   }
 
-  def privKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[@@[PrivateKey, A]] = {
+  def privKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
     val spec = new PKCS8EncodedKeySpec(keyBytes)
     SigPrivateKey(
       KeyFactory

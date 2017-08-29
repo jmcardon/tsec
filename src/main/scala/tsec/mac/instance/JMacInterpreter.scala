@@ -4,8 +4,7 @@ import javax.crypto.Mac
 
 import cats.syntax.either._
 import tsec.core.ErrorConstruct
-import tsec.mac.MacKey
-import tsec.mac.core.{MacAlgebra, MacSigningKey}
+import tsec.mac.core.MacAlgebra
 
 /**
   * Our interpreter over the JCA mac
@@ -13,7 +12,7 @@ import tsec.mac.core.{MacAlgebra, MacSigningKey}
   * @param macTag
   * @tparam A
   */
-class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[Either[MacError, ?], A, MacKey] {
+class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[Either[MacError, ?], A, MacSigningKey] {
   type M = Mac
 
   def genInstance: Either[MacInstanceError, Mac] =
@@ -21,7 +20,7 @@ class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[Either[M
       .catchNonFatal(Mac.getInstance(macTag.algorithm))
       .leftMap(ErrorConstruct.fromThrowable[MacInstanceError])
 
-  def sign(content: Array[Byte], key: MacSigningKey[MacKey[A]]): Either[MacError, Array[Byte]] =
+  def sign(content: Array[Byte], key: MacSigningKey[A]): Either[MacError, Array[Byte]] =
     for {
       instance <- genInstance
       _        <- Either.catchNonFatal(instance.init(key.key)).leftMap(ErrorConstruct.fromThrowable[MacInitError])

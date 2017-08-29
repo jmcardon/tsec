@@ -1,12 +1,5 @@
 package tsec.signature.instance
 
-import java.security.{PrivateKey, PublicKey}
-import javax.crypto.KeyGenerator
-
-import com.softwaremill.tagging.@@
-import tsec.signature.core.{SigKeyPair, SigPrivateKey, SigPublicKey}
-import cats.implicits._
-
 case class MD2withRSA(content: Array[Byte])
 
 object MD2withRSA extends GeneralSignature[MD2withRSA]("MD2withRSA")

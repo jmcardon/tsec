@@ -1,9 +1,9 @@
 package tsec.messagedigests.instances
 
-import tsec.core.CryptoTag
+import tsec.messagedigests.core.DigestTag
 
 protected[instances] abstract class DeriveHashTag[T](repr: String){
-  implicit lazy val hashTag: CryptoTag[T] = CryptoTag.fromString[T](repr)
-  implicit def jPureHasher: JPureHasher[T]
-  implicit def jHasher: JHasher[T]
+  implicit lazy val hashTag: DigestTag[T] = new DigestTag[T] {
+    override lazy val algorithm =  repr
+  }
 }

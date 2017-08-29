@@ -4,42 +4,41 @@ import java.security.SecureRandom
 import java.util.concurrent.atomic.LongAdder
 
 import com.lambdaworks.codec.Base64
-import com.lambdaworks.crypto.{SCrypt => JSCrypt, SCryptUtil => JSCryptUtil}
+import com.lambdaworks.crypto.{SCrypt => JSCrypt}
 import cats.syntax.either._
 import tsec.core.ByteUtils
 
-import scala.annotation.tailrec
-
 /**
- * SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,
- * improving on SHA1PRNGs, bad security in particular.
- *
- * SCrypt described here: http://www.tarsnap.com/scrypt.html
- *
- * The hashed output is an
- * extended implementation of the Modular Crypt Format that also includes the scrypt
- * algorithm parameters.
- *
- * Format: <code>$s0$PARAMS$SALT$KEY</code>.
- *
- * <dl>
- * <dd>PARAMS</dd><dt>32-bit hex integer containing log2(N) (16 bits), r (8 bits), and p (8 bits)</dt>
- * <dd>SALT</dd><dt>base64-encoded salt</dt>
- * <dd>KEY</dd><dt>base64-encoded derived key</dt>
- * </dl>
- *
- * <code>s0</code> identifies version 0 of the scrypt format, using a 128-bit salt and 256-bit derived key.
- *
- */
+  * SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,
+  * improving on SHA1PRNGs, bad security in particular.
+  *
+  * SCrypt described here: http://www.tarsnap.com/scrypt.html
+  *
+  * The hashed output is an
+  * extended implementation of the Modular Crypt Format that also includes the scrypt
+  * algorithm parameters.
+  *
+  * Format: <code>$s0$PARAMS$SALT$KEY</code>.
+  *
+  * <dl>
+  * <dd>PARAMS</dd><dt>32-bit hex integer containing log2(N) (16 bits), r (8 bits), and p (8 bits)</dt>
+  * <dd>SALT</dd><dt>base64-encoded salt</dt>
+  * <dd>KEY</dd><dt>base64-encoded derived key</dt>
+  * </dl>
+  *
+  * <code>s0</code> identifies version 0 of the scrypt format, using a 128-bit salt and 256-bit derived key.
+  *
+  */
 object SCryptUtil {
 
   private val SCryptPrepend = "$s0$"
   private val DerivedKeyLen = 32
+
   /**
-   * Cache our random, and seed it properly as per
-   * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-   *
-   */
+    * Cache our random, and seed it properly as per
+    * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
+    *
+    */
   private val cachedRand: SecureRandom = {
     val r = new SecureRandom()
     r.nextBytes(new Array[Byte](20))
@@ -47,14 +46,15 @@ object SCryptUtil {
   }
 
   /**
-   * We will keep a reference to how many times our random is utilized
-   * After a sensible Integer.MaxValue/2 times, we should reseed
-   *
-   */
+    * We will keep a reference to how many times our random is utilized
+    * After a sensible Integer.MaxValue/2 times, we should reseed
+    *  TODO: longadder vs atomicInteger/long comparison performance wise
+    *
+    */
   private val adder: LongAdder = new LongAdder
-  private val MaxBeforeReseed = (Integer.MAX_VALUE / 2).toLong
+  private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong
 
-  private def reSeed(): Unit =  {
+  private def reSeed(): Unit = {
     adder.reset()
     cachedRand.nextBytes(new Array[Byte](20))
   }
@@ -67,39 +67,29 @@ object SCryptUtil {
     * @return true if passwd matches hashed value.
     */
   def check(passwd: String, hashed: String): Boolean = {
-    @tailrec def tailrecCheck(i: Int, pwd: Array[Byte], hashed: Array[Byte], len: Int): Boolean =
-      if (i >= len)
-        true
-      else if (i < len && (pwd(i) ^ hashed(i)) == 0)
-        tailrecCheck(i + 1, pwd, hashed, len)
-      else
-        false
-
     val parts = hashed.split("\\$")
     if (parts.length != 5 || !(parts(1) == "s0")) return false
-    val params = java.lang.Long.parseLong(parts(2), 16)
-    val salt         = Base64.decode(parts(3).toCharArray)
-    val derived0     = Base64.decode(parts(4).toCharArray)
-    val N            = Math.pow(2, params >> 16 & 0xffff).toInt
-    val r            = params.toInt >> 8 & 0xff
-    val p            = params.toInt & 0xff
+    val params   = java.lang.Long.parseLong(parts(2), 16)
+    val salt     = Base64.decode(parts(3).toCharArray)
+    val derived0 = Base64.decode(parts(4).toCharArray)
+    val N        = Math.pow(2, params >> 16 & 0xffff).toInt
+    val r        = params.toInt >> 8 & 0xff
+    val p        = params.toInt & 0xff
     Either.catchNonFatal(JSCrypt.scrypt(passwd.getBytes("UTF-8"), salt, N, r, p, 32)) match {
       case Left(_) => false
       case Right(derived1) =>
-        if (derived0.length != derived1.length) false
-        else
-          ByteUtils.constantTimeEquals(derived0, derived1)
+        ByteUtils.constantTimeEquals(derived0, derived1)
     }
   }
 
   /**
-   * Scala fast log2
-   *
-   * @param k
-   * @return
-   */
+    * Scala fast log2
+    *
+    * @param k
+    * @return
+    */
   private def log2(k: Int) = {
-    var n = k
+    var n   = k
     var log = 0
     if ((n & 0xffff0000) != 0) {
       n >>>= 16
@@ -121,29 +111,29 @@ object SCryptUtil {
   }
 
   /**
-   *
-   *
-   * Hash the supplied plaintext password and generate output in the format described
-   * in
-   *
-   * @param passwd Password.
-   * @param N      CPU cost parameter.
-   * @param r      Memory cost parameter.
-   * @param p      Parallelization parameter.
-   * @return The hashed password.
-   */
+    *
+    *
+    * Hash the supplied plaintext password and generate output in the format described
+    * in
+    *
+    * @param passwd Password.
+    * @param N      CPU cost parameter.
+    * @param r      Memory cost parameter.
+    * @param p      Parallelization parameter.
+    * @return The hashed password.
+    */
   def scrypt(passwd: String, N: Int, r: Int, p: Int): String = {
     val salt = new Array[Byte](16)
     adder.increment()
     /*
     Set a sensible time for max amount of times SHA1PRNG can be used
      */
-    if(adder.longValue() < MaxBeforeReseed)
+    if (adder.longValue() < MaxBeforeReseed)
       reSeed()
 
     cachedRand.nextBytes(salt)
     val derived = JSCrypt.scrypt(passwd.getBytes("UTF-8"), salt, N, r, p, DerivedKeyLen)
-    val params = java.lang.Long.toString(log2(N) << 16L | r << 8 | p, 16)
+    val params  = java.lang.Long.toString(log2(N) << 16L | r << 8 | p, 16)
 
     val sb = new java.lang.StringBuilder((salt.length + derived.length) * 2)
     sb.append(SCryptPrepend).append(params).append('$')
