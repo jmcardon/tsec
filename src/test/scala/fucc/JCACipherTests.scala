@@ -27,7 +27,7 @@ class JCACipherTests extends TestSpec with MustMatchers {
     keyGen: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
   ): Unit = {
     val testMessage                       = "The Moose is Loose"
-    val testPlainText: PlainText[A, M, P] = PlainText[A, M, P](testMessage.getBytes("UTF-8"))
+    val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
 
     val spec = s"""${symm.algorithm}/${mode.algorithm}/${p.algorithm}"""
 

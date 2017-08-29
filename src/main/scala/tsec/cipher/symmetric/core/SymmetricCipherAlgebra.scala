@@ -32,7 +32,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param key the SecretKey to use
     * @return
     */
-  def encrypt(plainText: PlainText[A, M, P], key: K[A]): F[CipherText[A, M, P]]
+  def encrypt(plainText: PlainText, key: K[A]): F[CipherText[A, M, P]]
 
   /**
     * Encrypt our plaintext using additional authentication parameters,
@@ -44,7 +44,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param aad The additional authentication information
     * @return
     */
-  def encryptAAD(plainText: PlainText[A, M, P], key: K[A], aad: AAD): F[CipherText[A, M, P]]
+  def encryptAAD(plainText: PlainText, key: K[A], aad: AAD): F[CipherText[A, M, P]]
 
   /**
     * Decrypt our ciphertext
@@ -53,7 +53,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param key the SecretKey to use
     * @return
     */
-  def decrypt(cipherText: CipherText[A, M, P], key: K[A]): F[PlainText[A, M, P]]
+  def decrypt(cipherText: CipherText[A, M, P], key: K[A]): F[PlainText]
 
   /**
     * Decrypt our ciphertext using additional authentication parameters,
@@ -65,6 +65,6 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @param aad The additional authentication information
     * @return
     */
-  def decryptAAD(cipherText: CipherText[A, M, P], key: K[A], aad: AAD): F[PlainText[A, M, P]]
+  def decryptAAD(cipherText: CipherText[A, M, P], key: K[A], aad: AAD): F[PlainText]
 
 }

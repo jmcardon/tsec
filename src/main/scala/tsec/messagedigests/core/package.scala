@@ -1,14 +1,12 @@
 package tsec.messagedigests
 
 import java.nio.charset.Charset
-
-import com.softwaremill.tagging._
+import shapeless.tag.@@
 
 package object core {
 
   type BytePickler[T]     = T => Array[Byte]
   type PickledLift[T]     = Array[Byte] => T
-  type CharEncoder[T]     = Charset @@ T
   type HashErr[T]         = Either[Throwable, T]
 
   sealed trait StringEncoding
@@ -19,7 +17,7 @@ package object core {
   final case class CryptoPickler[T](pickle: BytePickler[T]) extends AnyVal
 
   object CryptoPickler {
-    def stringPickle[S <: StringEncoding](charEncoder: CharEncoder[S]): CryptoPickler[String] =
+    def stringPickle[S <: StringEncoding](charEncoder: Charset @@ S): CryptoPickler[String] =
       CryptoPickler[String](_.getBytes(charEncoder))
   }
 }

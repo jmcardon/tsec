@@ -59,7 +59,7 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
     * @return
     */
   def encrypt(
-      plainText: PlainText[A, M, P],
+      plainText: PlainText,
       key: SecretKey[A]
   ): IO[CipherText[A, M, P]] =
     for {
@@ -81,7 +81,7 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
     * @return
     */
   def encryptAAD(
-      plainText: PlainText[A, M, P],
+      plainText: PlainText,
       key: SecretKey[A],
       aad: AAD
   ) =
@@ -104,7 +104,7 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
   def decrypt(
       cipherText: CipherText[A, M, P],
       key: SecretKey[A]
-  ): IO[PlainText[A, M, P]] =
+  ): IO[PlainText] =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)

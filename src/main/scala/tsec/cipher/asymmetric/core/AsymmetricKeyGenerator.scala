@@ -1,6 +1,6 @@
 package tsec.cipher.asymmetric.core
 
-import com.softwaremill.tagging.@@
+import shapeless.tag.@@
 import tsec.cipher.common.{CipherKeyError, KeyPair}
 
 

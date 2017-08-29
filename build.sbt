@@ -17,7 +17,6 @@ libraryDependencies ++= Seq(
   "com.chuusai"             %% "shapeless"            % shapelessV,
   "org.typelevel"           %% "cats-effect"          % catsEffV,
   "commons-codec"           % "commons-codec"         % "1.10",
-  "com.softwaremill.common" %% "tagging"              % smTaggingV,
   "de.svenkubiak"           % "jBCrypt"               % "0.4.1",
   "com.lambdaworks"         % "scrypt"                % "1.4.0",
   "org.scalatest"           %% "scalatest"            % "3.0.1" % "test",

@@ -1,18 +1,16 @@
 package tsec.messagedigests
 
 import java.nio.charset.Charset
-import java.security.MessageDigest
 import java.util.Base64
 
+import shapeless._
 import tsec.messagedigests.core._
-import com.softwaremill.tagging._
-import tsec.core.CryptoTag
 import tsec.core.ByteUtils.ByteAux
 
 package object instances {
 
   implicit val defaultStringEncoder: CryptoPickler[String] =
-    CryptoPickler.stringPickle[UTF8](Charset.forName("UTF-8").taggedWith[UTF8])
+    CryptoPickler.stringPickle[UTF8](tag[UTF8](Charset.forName("UTF-8")))
 
   implicit class HasherOps[T](val hasher: JHasher[T]) extends AnyVal {
     def hashStringToBase64(s: String)(implicit gen: ByteAux[T]): String =

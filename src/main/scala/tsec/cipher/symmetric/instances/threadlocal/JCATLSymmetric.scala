@@ -82,7 +82,7 @@ abstract class JCATLSymmetric[A, M, P](
     * @return
     */
   def encrypt(
-      plainText: PlainText[A, M, P],
+      plainText: PlainText,
       key: SecretKey[A]
   ): Either[CipherError, CipherText[A, M, P]] =
     for {
@@ -106,7 +106,7 @@ abstract class JCATLSymmetric[A, M, P](
     * @return
     */
   def encryptAAD(
-      plainText: PlainText[A, M, P],
+      plainText: PlainText,
       key: SecretKey[A],
       aad: AAD
   ): Either[CipherError, CipherText[A, M, P]] =
@@ -131,7 +131,7 @@ abstract class JCATLSymmetric[A, M, P](
   def decrypt(
       cipherText: CipherText[A, M, P],
       key: SecretKey[A]
-  ): Either[CipherError, PlainText[A, M, P]] =
+  ): Either[CipherError, PlainText] =
     for {
       instance <- genInstance
       _        <- initDecryptor(instance, key, cipherText.iv)
@@ -155,7 +155,7 @@ abstract class JCATLSymmetric[A, M, P](
       cipherText: CipherText[A, M, P],
       key: SecretKey[A],
       aad: AAD
-  ): Either[CipherError, PlainText[A, M, P]] =
+  ): Either[CipherError, PlainText] =
     for {
       instance <- genInstance
       _        <- initDecryptor(instance, key, cipherText.iv)

@@ -1,8 +1,11 @@
 package tsec.mac.instance
 
 import javax.crypto.{SecretKey => JSecretKey}
-import com.softwaremill.tagging._
+
+import shapeless.tag
+import shapeless.tag.@@
+
 sealed abstract case class MacSigningKey[T](key: JSecretKey @@ T)
 object MacSigningKey {
-  def apply[T: MacTag](key: JSecretKey) = new MacSigningKey[T](key.taggedWith[T]){}
+  def apply[T: MacTag](key: JSecretKey) = new MacSigningKey[T](tag[T](key)){}
 }

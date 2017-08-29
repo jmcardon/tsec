@@ -1,11 +1,12 @@
 package tsec.cipher.common.mode
 
 import java.security.SecureRandom
+import java.security.spec.AlgorithmParameterSpec
 import java.util.concurrent.atomic.LongAdder
 import javax.crypto.spec.GCMParameterSpec
 
-import com.sun.beans.editors.ByteEditor
 import tsec.cipher.common._
+import shapeless.tag.@@
 
 sealed trait GCM
 object GCM {
@@ -43,10 +44,10 @@ object GCM {
     }
 
     def algorithm: String = "GCM"
-    def buildIvFromBytes(specBytes: Array[Byte]): JSpec[GCM] =
+    def buildIvFromBytes(specBytes: Array[Byte]): AlgorithmParameterSpec @@ GCM =
       tagSpec[GCM](new GCMParameterSpec(GCMTagLength, specBytes))
 
-    def genIv: JSpec[GCM] = {
+    def genIv: AlgorithmParameterSpec @@ GCM = {
       adder.increment()
       if(adder.sum() >= MaxBeforeReseed)
         reSeed()

@@ -23,8 +23,8 @@ object PoorMansBenchmark extends App{
 
   val rand = new Random()
 
-  val plaintexts: Array[PlainText[AES128, GCM, NoPadding]] =
-    Array.fill(totalIterLen)(PlainText[AES128, GCM, NoPadding](("hellop" + rand.nextInt(1000)).getBytes()))
+  val plaintexts: Array[PlainText] =
+    Array.fill(totalIterLen)(PlainText(("hellop" + rand.nextInt(1000)).getBytes()))
 
   val eitherInterpreter: JCASymmetricCipher[AES128, GCM, NoPadding] =
     JCASymmetricCipher.getCipherUnsafe[AES128, GCM, NoPadding]

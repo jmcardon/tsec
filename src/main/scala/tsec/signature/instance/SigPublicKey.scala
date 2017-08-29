@@ -1,7 +1,7 @@
 package tsec.signature.instance
 
 import java.security.PublicKey
+import shapeless.tag.@@
 
-import com.softwaremill.tagging.@@
 
 final case class SigPublicKey[B](key: PublicKey @@ B)

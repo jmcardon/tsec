@@ -1,10 +1,8 @@
 package tsec.signature.instance
 
-import java.security.cert.Certificate
 import java.security.{PrivateKey, PublicKey, Signature}
 
 import cats.effect.{Async, Sync}
-import com.softwaremill.tagging.@@
 import tsec.signature.core._
 
 sealed abstract class JCASigInterpreter[F[_], A](implicit M: Sync[F], signatureAlgorithm: SigAlgoTag[A])
