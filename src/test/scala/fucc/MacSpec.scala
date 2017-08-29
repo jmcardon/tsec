@@ -50,8 +50,8 @@ class MacSpec extends TestSpec with MustMatchers {
     }
   }
 
-  macTest[HMACSHA256]
   macTest[HMACSHA1]
+  macTest[HMACSHA256]
   macTest[HMACSHA384]
   macTest[HMACSHA512]
 
