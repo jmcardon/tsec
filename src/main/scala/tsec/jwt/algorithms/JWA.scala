@@ -1,8 +1,8 @@
-package tsec.jws.algorithms
+package tsec.jwt.algorithms
 
 import cats.MonadError
 import tsec.core.ByteUtils.ByteAux
-import tsec.jws.algorithms.JWTSigAlgo.MErrThrowable
+import tsec.jwt.algorithms.JWTSigAlgo.MErrThrowable
 import tsec.jws.signature.ParseEncodedKeySpec
 import tsec.mac.instance._
 import tsec.signature.core.{SigAlgoTag, SignerDSL}

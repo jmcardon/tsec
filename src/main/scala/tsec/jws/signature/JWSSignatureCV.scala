@@ -1,16 +1,16 @@
-package tsec.jws
+package tsec.jws.signature
 
 import cats.data.EitherT
-import cats.effect.{Async, Sync}
-import tsec.jws.algorithms.JWTSigAlgo
+import cats.effect.Sync
+import cats.syntax.all._
+import shapeless._
+import tsec.core.ByteUtils._
 import tsec.jws.header.JWSSignedHeader
-import tsec.jws.signature.{JWSSignature, SigVerificationError}
+import tsec.jws.{JWSSerializer}
+import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.jwt.claims.JWTClaims
 import tsec.signature.core._
-import tsec.signature.instance.{JCASigner, SigCertificate, SigPrivateKey, SigPublicKey}
-import cats.syntax.all._
-import tsec.core.ByteUtils._
-import shapeless._
+import tsec.signature.instance.{SigCertificate, SigPrivateKey, SigPublicKey}
 
 final class JWSSignatureCV[F[_], A: SigAlgoTag](
                                                  implicit hs: JWSSerializer[JWSSignedHeader[A]],

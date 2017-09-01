@@ -1,20 +1,17 @@
-package tsec.jws
+package tsec.jws.mac
 
+import cats.Monad
 import cats.data.EitherT
 import cats.effect.IO
-import cats.{Functor, Monad}
+import cats.implicits._
+import tsec.core.ByteUtils
+import tsec.core.ByteUtils._
 import tsec.jws._
 import tsec.jws.signature.{JWSSignature, SigVerificationError}
-import tsec.jws.header.{JWSHeader, JWSMacHeader}
 import tsec.jwt.claims.JWTClaims
-import cats.implicits._
-import shapeless.{::, HNil}
-import tsec.core.ByteUtils
 import tsec.mac.core.MacPrograms
-import tsec.mac.instance.threadlocal.JCATLMacPure
-import io.circe.Error
-import tsec.core.ByteUtils._
 import tsec.mac.instance.MacSigningKey
+import tsec.mac.instance.threadlocal.JCATLMacPure
 
 sealed abstract class JWSMacCV[F[_], A](
                                          implicit hs: JWSSerializer[JWSMacHeader[A]],
@@ -29,9 +26,9 @@ sealed abstract class JWSMacCV[F[_], A](
    */
   private def defaultError: SigVerificationError = SigVerificationError("Could not verify signature")
 
-  def signAndBuild(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWTMAC[A]] = {
+  def signAndBuild(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWTMac[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
-    alg.sign(toSign.asciiBytes, key).map(s => JWTMAC(header, body, JWSSignature(s)))
+    alg.sign(toSign.asciiBytes, key).map(s => JWTMac(header, body, JWSSignature(s)))
   }
 
   def signToString(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[String] = {
@@ -59,7 +56,7 @@ sealed abstract class JWSMacCV[F[_], A](
   /*
   Todo: Cleanup
    */
-  def verifyAndParse(jwt: String, key: MacSigningKey[A]): EitherT[F, SigVerificationError, JWTMAC[A]] = {
+  def verifyAndParse(jwt: String, key: MacSigningKey[A]): EitherT[F, SigVerificationError, JWTMac[A]] = {
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length != 3)
       EitherT.left(M.pure(defaultError))
@@ -77,11 +74,11 @@ sealed abstract class JWSMacCV[F[_], A](
             JWTClaims.jwsSerializer
               .fromB64URL(split(1)))
           .leftMap(_ => defaultError)
-      } yield JWTMAC(header, body, JWSSignature(bytes))
+      } yield JWTMac(header, body, JWSSignature(bytes))
     }
   }
 
-  def toEncodedString(jwt: JWTMAC[A]): String =
+  def toEncodedString(jwt: JWTMac[A]): String =
     hs.toB64URL(jwt.header) + "." + JWTClaims.jwsSerializer.toB64URL(jwt.body) + "." + aux
       .to(jwt.signature.body)
       .head
