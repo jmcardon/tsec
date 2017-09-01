@@ -2,6 +2,7 @@ package tsec.jwt.algorithms
 
 import cats.MonadError
 import tsec.core.ByteUtils.ByteAux
+import tsec.core.JKeyGenerator
 import tsec.jwt.algorithms.JWTSigAlgo.MErrThrowable
 import tsec.jws.signature.ParseEncodedKeySpec
 import tsec.mac.instance._
@@ -55,7 +56,10 @@ object JWA {
 
 }
 
-abstract class JWTMacAlgo[A: MacTag](implicit gen: ByteAux[A]) extends JWA[A]
+abstract class JWTMacAlgo[A: MacTag](implicit gen: ByteAux[A],
+                                     val keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError]) extends JWA[A]{
+
+}
 
 abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWA[A] {
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]

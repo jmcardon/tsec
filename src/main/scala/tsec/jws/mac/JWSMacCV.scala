@@ -13,6 +13,16 @@ import tsec.mac.core.MacPrograms
 import tsec.mac.instance.MacSigningKey
 import tsec.mac.instance.threadlocal.JCATLMacPure
 
+/**
+  * TODO: This most likely needs an instance of monadError
+  *
+  * @param hs
+  * @param alg
+  * @param aux
+  * @param M
+  * @tparam F
+  * @tparam A
+  */
 sealed abstract class JWSMacCV[F[_], A](
                                          implicit hs: JWSSerializer[JWSMacHeader[A]],
                                          alg: MacPrograms[F, A, MacSigningKey],
@@ -26,9 +36,9 @@ sealed abstract class JWSMacCV[F[_], A](
    */
   private def defaultError: SigVerificationError = SigVerificationError("Could not verify signature")
 
-  def signAndBuild(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWTMac[A]] = {
+  def signAndBuild(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWSSignature[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
-    alg.sign(toSign.asciiBytes, key).map(s => JWTMac(header, body, JWSSignature(s)))
+    alg.sign(toSign.asciiBytes, key).map(s => JWSSignature(s))
   }
 
   def signToString(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[String] = {
@@ -67,14 +77,9 @@ sealed abstract class JWSMacCV[F[_], A](
           .fromEither[F](hs.fromUtf8Bytes(split(0).base64Bytes))
           .leftMap(_ => defaultError)
         bytes <- EitherT.liftT(alg.sign((split(0) + "." + split(1)).asciiBytes, key))
-        _ <- EitherT
-          .cond[F](ByteUtils.constantTimeEquals(aux.to(bytes).head, signedBytes), (), defaultError)
-        body <- EitherT
-          .fromEither[F](
-            JWTClaims.jwsSerializer
-              .fromB64URL(split(1)))
-          .leftMap(_ => defaultError)
-      } yield JWTMac(header, body, JWSSignature(bytes))
+        _ <- EitherT.cond[F](ByteUtils.constantTimeEquals(aux.to(bytes).head, signedBytes), (), defaultError)
+        body <- EitherT.fromEither[F](JWTClaims.jwsSerializer.fromB64URL(split(1))).leftMap(_ => defaultError)
+      } yield JWTMac.build[A](header, body, JWSSignature(bytes))
     }
   }
 

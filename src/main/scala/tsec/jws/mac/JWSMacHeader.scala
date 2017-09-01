@@ -30,10 +30,10 @@ sealed abstract case class JWSMacHeader[A: MacTag](
 
 object JWSMacHeader {
 
-  def apply[A: MacTag](implicit jwtMacAlgo: JWTMacAlgo[A]) =
+  def apply[A: MacTag: JWTMacAlgo] =
     new JWSMacHeader[A](
-      algorithm = jwtMacAlgo
-    ) {}
+      algorithm = implicitly[JWTMacAlgo[A]]
+    ) { }
 
 
   implicit def encoder[A: MacTag]: Encoder[JWSMacHeader[A]] {
