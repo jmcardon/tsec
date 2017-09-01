@@ -18,7 +18,7 @@ package object instances {
   }
 
   implicit class HashedOps[T](hashed: T)(implicit gen: ByteAux[T]) {
-    def toBase64String(implicit p: JHasher[T]): String =
+    def toBase64String: String =
       Base64.getEncoder.encodeToString(gen.to(hashed).head)
   }
 

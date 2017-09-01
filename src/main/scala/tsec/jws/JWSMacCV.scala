@@ -5,7 +5,7 @@ import cats.effect.IO
 import cats.{Functor, Monad}
 import tsec.jws._
 import tsec.jws.signature.{JWSSignature, SigVerificationError}
-import tsec.jws.header.{JWSJOSE, JWSJOSEMAC}
+import tsec.jws.header.{JWSHeader, JWSMacHeader}
 import tsec.jwt.claims.JWTClaims
 import cats.implicits._
 import shapeless.{::, HNil}
@@ -13,14 +13,14 @@ import tsec.core.ByteUtils
 import tsec.mac.core.MacPrograms
 import tsec.mac.instance.threadlocal.JCATLMacPure
 import io.circe.Error
-import tsec.core.ByteUtils.ByteAux
+import tsec.core.ByteUtils._
 import tsec.mac.instance.MacSigningKey
 
 sealed abstract class JWSMacCV[F[_], A](
-    implicit hs: JWSSerializer[JWSJOSEMAC[A]],
-    alg: MacPrograms[F, A, MacSigningKey],
-    aux: ByteAux[A],
-    M: Monad[F]
+                                         implicit hs: JWSSerializer[JWSMacHeader[A]],
+                                         alg: MacPrograms[F, A, MacSigningKey],
+                                         aux: ByteAux[A],
+                                         M: Monad[F]
 ) {
 
   /*
@@ -29,12 +29,12 @@ sealed abstract class JWSMacCV[F[_], A](
    */
   private def defaultError: SigVerificationError = SigVerificationError("Could not verify signature")
 
-  def signAndBuild(header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[A]): F[JWTMAC[A]] = {
+  def signAndBuild(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWTMAC[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
     alg.sign(toSign.asciiBytes, key).map(s => JWTMAC(header, body, JWSSignature(s)))
   }
 
-  def signToString(header: JWSJOSEMAC[A], body: JWTClaims, key: MacSigningKey[A]): F[String] = {
+  def signToString(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[String] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
     alg.sign(toSign.asciiBytes, key).map(s => toSign + "." + aux.to(s).head.toB64UrlString)
   }
@@ -90,14 +90,14 @@ sealed abstract class JWSMacCV[F[_], A](
 
 object JWSMacCV {
   implicit def genSigner[F[_]: Monad, A: ByteAux](
-      implicit hs: JWSSerializer[JWSJOSEMAC[A]],
-      alg: MacPrograms[F, A, MacSigningKey]
+                                                   implicit hs: JWSSerializer[JWSMacHeader[A]],
+                                                   alg: MacPrograms[F, A, MacSigningKey]
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
   implicit def genSignerIO[F[_]: Monad, A: ByteAux](
-      implicit hs: JWSSerializer[JWSJOSEMAC[A]],
-      alg: JCATLMacPure[A]
+                                                     implicit hs: JWSSerializer[JWSMacHeader[A]],
+                                                     alg: JCATLMacPure[A]
   ): JWSMacCV[IO, A] =
     new JWSMacCV[IO, A]() {}
 

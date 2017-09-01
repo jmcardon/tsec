@@ -1,6 +1,6 @@
 package tsec.jwt.header
 
 trait JWTHeader {
-  def `type`: Option[String]
+  def `type`: Option[JWTtyp]
   def contentType: Option[String] // Not Recommended
 }
