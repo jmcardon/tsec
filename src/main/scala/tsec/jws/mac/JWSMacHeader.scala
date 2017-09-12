@@ -26,7 +26,9 @@ sealed abstract case class JWSMacHeader[A: MacTag](
                                                     algorithm: JWTMacAlgo[A], //Algorithm, in this case a MAC
                                                     contentType: Option[String] = None, // Optional header, preferably not used
                                                     critical: Option[NonEmptyList[String]] = None //Headers not to ignore, they must be understood by the JWT implementation
-                                                  ) extends JWSHeader[A]
+                                                  ) extends JWSHeader[A] {
+  def toJsonString: String = jwt.JWTPrinter.pretty(this.asJson)
+}
 
 object JWSMacHeader {
 

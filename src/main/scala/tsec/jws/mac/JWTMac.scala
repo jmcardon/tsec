@@ -1,5 +1,7 @@
 package tsec.jws.mac
 
+import java.util.UUID
+
 import cats.Monad
 import tsec.core.ByteUtils._
 import tsec.jws.{JWSJWT, JWSSerializer}
@@ -7,6 +9,7 @@ import tsec.jws.signature.JWSSignature
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.claims.JWTClaims
 import cats.syntax.all._
+import io.circe.Json
 import tsec.mac.instance.{MacSigningKey, MacTag}
 
 sealed abstract case class JWTMac[A](header: JWSMacHeader[A], body: JWTClaims, signature: JWSSignature[A]) extends JWSJWT[A]
@@ -16,10 +19,10 @@ object JWTMac {
                                    (implicit s: JWSMacCV[F, A],
                                     algo: JWTMacAlgo[A]): F[JWTMac[A]] = {
     val header = JWSMacHeader[A]
-    sign[F, A](header, claims, key).map(sig => build[A](header, claims, sig))
+    sign[F, A](header, claims, key).map(sig => buildToken[A](header, claims, sig))
   }
 
-  private[mac] def build[A](header: JWSMacHeader[A], claims: JWTClaims, signature: JWSSignature[A]) = new JWTMac[A](header, claims, signature) {}
+  private[mac] def buildToken[A](header: JWSMacHeader[A], claims: JWTClaims, signature: JWSSignature[A]) = new JWTMac[A](header, claims, signature) {}
 
 
   def sign[F[_]: Monad, A: ByteAux: MacTag](header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A])(
@@ -48,4 +51,5 @@ object JWTMac {
       .to(jwt.signature.body)
       .head
       .toB64UrlString
+
 }

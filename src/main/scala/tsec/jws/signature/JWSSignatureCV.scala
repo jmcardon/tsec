@@ -6,18 +6,18 @@ import cats.syntax.all._
 import shapeless._
 import tsec.core.ByteUtils._
 import tsec.jws.header.JWSSignedHeader
-import tsec.jws.{JWSSerializer}
+import tsec.jws.JWSSerializer
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.jwt.claims.JWTClaims
 import tsec.signature.core._
 import tsec.signature.instance.{SigCertificate, SigPrivateKey, SigPublicKey}
 
 final class JWSSignatureCV[F[_], A: SigAlgoTag](
-                                                 implicit hs: JWSSerializer[JWSSignedHeader[A]],
-                                                 aux: ByteAux[A],
-                                                 jwsSigAlgo: JWTSigAlgo[A],
-                                                 sigDSL: SignerDSL.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
-                                                 M: Sync[F]
+    implicit hs: JWSSerializer[JWSSignedHeader[A]],
+    aux: ByteAux[A],
+    jwsSigAlgo: JWTSigAlgo[A],
+    sigDSL: SignerDSL.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
+    M: Sync[F]
 ) {
 
   /*
@@ -67,8 +67,8 @@ final class JWSSignatureCV[F[_], A: SigAlgoTag](
   }
 
   def verifyC(
-    jwt: String,
-    extract: JWSSignedHeader[A] => SigCertificate[A]
+      jwt: String,
+      extract: JWSSignedHeader[A] => SigCertificate[A]
   ): EitherT[F, SigVerificationError, JWTSig[A]] = {
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length != 3)
@@ -93,10 +93,10 @@ final class JWSSignatureCV[F[_], A: SigAlgoTag](
 
 object JWSSignatureCV {
   implicit def genCV[F[_], A: SigAlgoTag](
-                                           implicit hs: JWSSerializer[JWSSignedHeader[A]],
-                                           aux: ByteAux[A],
-                                           jwsSigAlgo: JWTSigAlgo[A],
-                                           sigDSL: SignerDSL.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
-                                           M: Sync[F]
+      implicit hs: JWSSerializer[JWSSignedHeader[A]],
+      aux: ByteAux[A],
+      jwsSigAlgo: JWTSigAlgo[A],
+      sigDSL: SignerDSL.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
+      M: Sync[F]
   ): JWSSignatureCV[F, A] = new JWSSignatureCV[F, A]()
 }

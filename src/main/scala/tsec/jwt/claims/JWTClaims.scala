@@ -15,7 +15,7 @@ case class JWTClaims(
   audience: Option[Either[String, List[String]]] = None, //case-sensitive
   expiration: Option[Long] = None,
   notBefore: Option[Long] = None,
-  issuedAt: Option[Long] = None,
+  issuedAt: Option[Long] = Some(System.currentTimeMillis()),
   jwtId: Option[String] = None, //Case sensitive
   custom: Json = Json.Null // non standard. I copped out. Other things are most likely too inefficient to use
 )
