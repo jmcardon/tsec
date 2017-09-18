@@ -18,7 +18,7 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
 
   type C = JCipher
 
-  def genInstance: IO[JCipher] =  IO {
+  def genInstance: IO[JCipher] = IO {
     val inst = queueAlloc.dequeue
     if (inst != null)
       inst
@@ -179,6 +179,5 @@ object JCATLSymmetricPure {
     for {
       tL <- IO(QueueAlloc(List.fill(queueLen)(JCATLSymmetricPure.getJCipherUnsafe[A, M, P])))
     } yield new JCATLSymmetricPure[A, M, P](tL) {}
-
 
 }

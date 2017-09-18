@@ -12,27 +12,33 @@ object ParseEncodedKeySpec {
   def pubKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
     val spec = new X509EncodedKeySpec(keyBytes)
     SigPublicKey(
-      tag[A](KeyFactory
-        .getInstance(kt.keyFactoryAlgo, "BC")
-        .generatePublic(spec))
+      tag[A](
+        KeyFactory
+          .getInstance(kt.keyFactoryAlgo, "BC")
+          .generatePublic(spec)
+      )
     )
   }
 
   def privKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
     val spec = new PKCS8EncodedKeySpec(keyBytes)
     SigPrivateKey(
-      tag[A](KeyFactory
-        .getInstance(kt.keyFactoryAlgo, "BC")
-        .generatePrivate(spec))
+      tag[A](
+        KeyFactory
+          .getInstance(kt.keyFactoryAlgo, "BC")
+          .generatePrivate(spec)
+      )
     )
   }
 
   /**
-   * ASN.1/DER to the concat required by https://tools.ietf.org/html/rfc7518#section-3.4
-   * Adapted from scala-jwt, itself adapted from jose4j
-   * TODO: Optimize
-   */
-  def derToConcat[F[_], A](derSignature: Array[Byte])(implicit ecTag: ECKFTag[A], me: MonadError[F, Throwable]): F[Array[Byte]] = {
+    * ASN.1/DER to the concat required by https://tools.ietf.org/html/rfc7518#section-3.4
+    * Adapted from scala-jwt, itself adapted from jose4j
+    * TODO: Optimize
+    */
+  def derToConcat[F[_], A](
+      derSignature: Array[Byte]
+  )(implicit ecTag: ECKFTag[A], me: MonadError[F, Throwable]): F[Array[Byte]] = {
     if (derSignature.length < 8 || derSignature(0) != 48)
       me.raiseError(SigVerificationError("Invalid ECDSA signature format"))
 
@@ -42,13 +48,13 @@ object ParseEncodedKeySpec {
     else me.raiseError(SigVerificationError("Invalid ECDSA signature format"))
 
     val rLength: Byte = derSignature(offset + 1)
-    var i: Int = rLength
+    var i: Int        = rLength
     while ((i > 0) && (derSignature((offset + 2 + rLength) - i) == 0)) {
       i -= 1
     }
 
     val sLength: Byte = derSignature(offset + 2 + rLength + 1)
-    var j: Int = sLength
+    var j: Int        = sLength
     while ((j > 0) && (derSignature((offset + 2 + rLength + 2 + sLength) - j) == 0)) {
       j -= 1
     }
@@ -68,21 +74,21 @@ object ParseEncodedKeySpec {
   }
 
   /**
-   * Signature transcode to der as required by the JCA.
-   * Adapted from the implementation in scala-jwt, which itself was adapted from
-   * jose4j, which itself was adapted from from org.apache.xml.security.algorithms.implementations.SignatureECDSA in the
-   * (Apache 2 licensed) Apache Santuario XML Security library.
-   * TODO: Optimize
-   *
-   *
-   * @param signature the signature to conver to DER
-   * @param me MonadError Instance
-   * @tparam F
-   * @tparam A
-   * @return
-   */
+    * Signature transcode to der as required by the JCA.
+    * Adapted from the implementation in scala-jwt, which itself was adapted from
+    * jose4j, which itself was adapted from from org.apache.xml.security.algorithms.implementations.SignatureECDSA in the
+    * (Apache 2 licensed) Apache Santuario XML Security library.
+    * TODO: Optimize
+    *
+    *
+    * @param signature the signature to conver to DER
+    * @param me MonadError Instance
+    * @tparam F
+    * @tparam A
+    * @return
+    */
   def concatSignatureToDER[F[_], A](signature: Array[Byte])(implicit me: MonadError[F, Throwable]): F[Array[Byte]] = {
-    var (r,s) = signature.splitAt(signature.length / 2)
+    var (r, s) = signature.splitAt(signature.length / 2)
     r = r.dropWhile(_ == 0)
     if (r.length > 0 && r(0) < 0)
       r +:= 0.toByte

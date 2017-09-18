@@ -1,5 +1,3 @@
 package tsec
 
-package object mac {
-
-}
+package object mac {}

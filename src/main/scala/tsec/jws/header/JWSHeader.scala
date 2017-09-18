@@ -16,16 +16,17 @@ trait JWSHeader[A] extends JWTHeader {
   def algorithm: JWA[A]
 }
 
-sealed abstract case class JWSSignedHeader[A: SigAlgoTag](`type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
-                                                           algorithm: JWTSigAlgo[A], //Algorithm, in this case a MAC
-                                                           contentType: Option[String] = None, // Optional header, preferably not used
-                                                           critical: Option[NonEmptyList[String]] = None, //Headers not to ignore, they must be understood by the JWT implementation
-                                                           jku: Option[String] = None, //Resource set for JWK
-                                                           jwk: Option[String] = None, //JWK, eventually not a string,
-                                                           kid: Option[String] = None, //JWK key hint
-                                                           x5u: Option[String] = None, //The "x5c" (X.509 certificate chain) Header Parameter
-                                                           x5t: Option[SHA1] = None, //sha1 hash
-                                                           `x5t#S256`: Option[SHA256] = None //sha256 hash
+sealed abstract case class JWSSignedHeader[A: SigAlgoTag](
+    `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
+    algorithm: JWTSigAlgo[A], //Algorithm, in this case a MAC
+    contentType: Option[String] = None, // Optional header, preferably not used
+    critical: Option[NonEmptyList[String]] = None, //Headers not to ignore, they must be understood by the JWT implementation
+    jku: Option[String] = None, //Resource set for JWK
+    jwk: Option[String] = None, //JWK, eventually not a string,
+    kid: Option[String] = None, //JWK key hint
+    x5u: Option[String] = None, //The "x5c" (X.509 certificate chain) Header Parameter
+    x5t: Option[SHA1] = None, //sha1 hash
+    `x5t#S256`: Option[SHA256] = None //sha256 hash
 ) extends JWSHeader[A]
 
 object JWSSignedHeader {
@@ -83,8 +84,8 @@ object JWSSignedHeader {
   }
 
   def genDeserializer[A: SigAlgoTag](
-                                      implicit encoder: Encoder[JWSSignedHeader[A]],
-                                      decoder: Decoder[JWSSignedHeader[A]]
+      implicit encoder: Encoder[JWSSignedHeader[A]],
+      decoder: Decoder[JWSSignedHeader[A]]
   ): JWSSerializer[JWSSignedHeader[A]] = new JWSSerializer[JWSSignedHeader[A]] {
     def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWSSignedHeader[A]] =
       io.circe.parser.decode[JWSSignedHeader[A]](array.toUtf8String)

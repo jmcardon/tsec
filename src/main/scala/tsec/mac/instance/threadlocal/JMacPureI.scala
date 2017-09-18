@@ -7,7 +7,8 @@ import tsec.core.QueueAlloc
 import tsec.mac.core.MacAlgebra
 import tsec.mac.instance.{MacSigningKey, MacTag}
 
-sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[A]) extends MacAlgebra[IO, A, MacSigningKey] {
+sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[A])
+    extends MacAlgebra[IO, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: IO[Mac] =

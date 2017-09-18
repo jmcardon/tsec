@@ -14,9 +14,9 @@ package object header {
     }
 
     implicit val decoder: Decoder[JWTtyp] = new Decoder[JWTtyp] {
-      def apply(c: HCursor):Decoder.Result[JWTtyp] = c.as[String].flatMap{
+      def apply(c: HCursor): Decoder.Result[JWTtyp] = c.as[String].flatMap {
         case JWTtyp.repr => Right(JWTtyp)
-        case _ => Left(DecodingFailure("invalid mime type for jwt", Nil))
+        case _           => Left(DecodingFailure("invalid mime type for jwt", Nil))
       }
     }
 

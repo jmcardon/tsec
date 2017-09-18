@@ -1,5 +1,3 @@
 package tsec.signature
 
-package object instance {
-
-}
+package object instance {}

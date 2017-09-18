@@ -29,9 +29,8 @@ object QueueAlloc {
     elems.foreach(q.add)
     new QueueAlloc[A] {
       val local: ThreadLocal[Q[A]] = new ThreadLocal[Q[A]] {
-        override def initialValue(): Q[A] = {
+        override def initialValue(): Q[A] =
           q
-        }
       }
     }
   }

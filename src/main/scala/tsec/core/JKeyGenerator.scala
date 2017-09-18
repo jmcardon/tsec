@@ -15,55 +15,57 @@ import cats.implicits._
   * @tparam KE the key error type
   */
 trait JKeyGenerator[A, K[_], KE] {
+
   /**
-   * The generator key length
-   * @return
-   */
+    * The generator key length
+    * @return
+    */
   def keyLength: Int
 
   /**
-   * The generator to return
-   * @return
-   */
+    * The generator to return
+    * @return
+    */
   def generator: KeyGenerator
 
   /**
-   * Generate a Key, or return a key error for a missing provider
-   * @return Either the Key, or an error
-   */
+    * Generate a Key, or return a key error for a missing provider
+    * @return Either the Key, or an error
+    */
   def generateKey(): Either[KE, K[A]]
 
   /**
-   * Lift our generation code into an F[_]
-   *
-   * @param err ApplicativeError instance
-   * @tparam F
-   * @return
-   */
-  def generateLift[F[_]](implicit err: ApplicativeError[F, Throwable]): F[K[A]] = err.catchNonFatal(generateKeyUnsafe())
+    * Lift our generation code into an F[_]
+    *
+    * @param err ApplicativeError instance
+    * @tparam F
+    * @return
+    */
+  def generateLift[F[_]](implicit err: ApplicativeError[F, Throwable]): F[K[A]] =
+    err.catchNonFatal(generateKeyUnsafe())
 
   /**
-   * Generate key, but with errors uncaught
-   * This does not shield you from JCA exceptions
-   *
-   * @return
-   */
+    * Generate key, but with errors uncaught
+    * This does not shield you from JCA exceptions
+    *
+    * @return
+    */
   def generateKeyUnsafe(): K[A]
 
   /**
-   * Build a key for the particular cipher from the provided bytes,
-   * based on the key length
-   *
-   * @param key
-   * @return
-   */
+    * Build a key for the particular cipher from the provided bytes,
+    * based on the key length
+    *
+    * @param key
+    * @return
+    */
   def buildKey(key: Array[Byte]): Either[KE, K[A]]
 
   /**
-   * Same as prior, except yolo out the exceptions.
-   *
-   * @param key
-   * @return
-   */
+    * Same as prior, except yolo out the exceptions.
+    *
+    * @param key
+    * @return
+    */
   def buildKeyUnsafe(key: Array[Byte]): K[A]
 }

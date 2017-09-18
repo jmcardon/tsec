@@ -22,11 +22,11 @@ import tsec.core.ByteUtils._
   * @tparam A
   */
 sealed abstract case class JWSMacHeader[A: MacTag](
-                                                    `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
-                                                    algorithm: JWTMacAlgo[A], //Algorithm, in this case a MAC
-                                                    contentType: Option[String] = None, // Optional header, preferably not used
-                                                    critical: Option[NonEmptyList[String]] = None //Headers not to ignore, they must be understood by the JWT implementation
-                                                  ) extends JWSHeader[A] {
+    `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
+    algorithm: JWTMacAlgo[A], //Algorithm, in this case a MAC
+    contentType: Option[String] = None, // Optional header, preferably not used
+    critical: Option[NonEmptyList[String]] = None //Headers not to ignore, they must be understood by the JWT implementation
+) extends JWSHeader[A] {
   def toJsonString: String = jwt.JWTPrinter.pretty(this.asJson)
 }
 
@@ -35,8 +35,7 @@ object JWSMacHeader {
   def apply[A: MacTag: JWTMacAlgo] =
     new JWSMacHeader[A](
       algorithm = implicitly[JWTMacAlgo[A]]
-    ) { }
-
+    ) {}
 
   implicit def encoder[A: MacTag]: Encoder[JWSMacHeader[A]] {
     def apply(a: JWSMacHeader[A]): Json
@@ -85,8 +84,10 @@ object JWSMacHeader {
       }
   }
 
-  implicit def genSerializer[A: MacTag](implicit d: Decoder[JWSMacHeader[A]],
-                                        e: Encoder[JWSMacHeader[A]]): JWSSerializer[JWSMacHeader[A]] =
+  implicit def genSerializer[A: MacTag](
+      implicit d: Decoder[JWSMacHeader[A]],
+      e: Encoder[JWSMacHeader[A]]
+  ): JWSSerializer[JWSMacHeader[A]] =
     new JWSSerializer[JWSMacHeader[A]] {
       def serializeToUtf8(body: JWSMacHeader[A]): Array[Byte] = jwt.JWTPrinter.pretty(body.asJson).utf8Bytes
 

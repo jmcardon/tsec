@@ -9,6 +9,6 @@ sealed class JCAMacImpure[A: MacTag: ByteAux](
 ) extends MacPrograms[Either[MacError, ?], A, MacSigningKey](algebra)
 
 object JCAMacImpure {
-    def apply[A: MacTag: ByteAux]: JCAMacImpure[A] = new JCAMacImpure[A](new JMacInterpreter[A]) {}
-    implicit def getInstance[A: MacTag: ByteAux] = new JCAMacImpure[A](new JMacInterpreter[A]) {}
+  def apply[A: MacTag: ByteAux]: JCAMacImpure[A] = new JCAMacImpure[A](new JMacInterpreter[A]) {}
+  implicit def getInstance[A: MacTag: ByteAux]   = new JCAMacImpure[A](new JMacInterpreter[A]) {}
 }

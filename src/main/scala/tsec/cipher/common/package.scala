@@ -13,4 +13,6 @@ package object common {
 
   def tagSpec[T](a: AlgorithmParameterSpec): AlgorithmParameterSpec @@ T = tag[T](a)
 
+  type NoSuchInstanceError = NoSuchInstanceError.type
+
 }

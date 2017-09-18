@@ -16,14 +16,15 @@ object GCM {
 
   Iv length of 96 bits is recommended as per the spec on page 8
    */
-  val GCMTagLength = 128
+  val GCMTagLength        = 128
   val GCMIvOptionalLength = 12
   implicit lazy val spec = new ModeKeySpec[GCM] {
+
     /**
-     * Cache our random, and seed it properly as per
-     * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-     *
-     */
+      * Cache our random, and seed it properly as per
+      * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
+      *
+      */
     private val cachedRand: SecureRandom = {
       val r = new SecureRandom()
       r.nextBytes(new Array[Byte](20))
@@ -31,14 +32,14 @@ object GCM {
     }
 
     /**
-     * We will keep a reference to how many times our random is utilized
-     * After a sensible Integer.MaxValue/2 times, we should reseed
-     *
-     */
+      * We will keep a reference to how many times our random is utilized
+      * After a sensible Integer.MaxValue/2 times, we should reseed
+      *
+      */
     private val adder: LongAdder = new LongAdder
-    private val MaxBeforeReseed = (Integer.MAX_VALUE / 2).toLong
+    private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong
 
-    private def reSeed(): Unit =  {
+    private def reSeed(): Unit = {
       adder.reset()
       cachedRand.nextBytes(new Array[Byte](20))
     }
@@ -49,7 +50,7 @@ object GCM {
 
     def genIv: AlgorithmParameterSpec @@ GCM = {
       adder.increment()
-      if(adder.sum() >= MaxBeforeReseed)
+      if (adder.sum() >= MaxBeforeReseed)
         reSeed()
 
       val newBytes = new Array[Byte](12)

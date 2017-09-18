@@ -54,11 +54,11 @@ object SHA224withECDSA extends GeneralSignature[SHA224withECDSA]("SHA224withECDS
 
 case class SHA256withECDSA(content: Array[Byte])
 
-object SHA256withECDSA extends ECDSASignature[SHA256withECDSA]("SHA256withECDSA","P-256", 64)
+object SHA256withECDSA extends ECDSASignature[SHA256withECDSA]("SHA256withECDSA", "P-256", 64)
 
 case class SHA384withECDSA(content: Array[Byte])
 
-object SHA384withECDSA extends ECDSASignature[SHA384withECDSA]("SHA384withECDSA","P-384", 96)
+object SHA384withECDSA extends ECDSASignature[SHA384withECDSA]("SHA384withECDSA", "P-384", 96)
 
 case class SHA512withECDSA(content: Array[Byte])
 

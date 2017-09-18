@@ -62,8 +62,8 @@ object JSymmetricKeyGenerator {
       }
 
       /**
-       * Only accept keys of the proper length
-       */
+        * Only accept keys of the proper length
+        */
       def buildKey(key: Array[Byte]): Either[CipherKeyBuildError, SecretKey[T]] = {
         val kLBytes = tag.keyLength / 8
         if (key.length != kLBytes)

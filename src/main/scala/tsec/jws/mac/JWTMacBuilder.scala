@@ -19,8 +19,7 @@ object JWTMacBuilder {
       issuedAt: Option[Long] = Some(System.currentTimeMillis()),
       jwtId: Option[String] = Some(UUID.randomUUID().toString),
       custom: Json = Json.Null
-  )(key: MacSigningKey[A])(implicit s: JWSMacCV[F, A], algo: JWTMacAlgo[A]) = {
-    JWTMac[F, A](JWTClaims(issuer, subject,audience, expiration,notBefore,issuedAt,jwtId,custom),key)
-  }
+  )(key: MacSigningKey[A])(implicit s: JWSMacCV[F, A], algo: JWTMacAlgo[A]) =
+    JWTMac[F, A](JWTClaims(issuer, subject, audience, expiration, notBefore, issuedAt, jwtId, custom), key)
 
 }

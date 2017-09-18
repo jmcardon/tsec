@@ -15,7 +15,7 @@ object JAsymmetricKeyGenerator {
 
       def generator: KeyPairGenerator = KeyPairGenerator.getInstance(t.algorithm)
 
-      override def generateKeyPair(): Either[CipherKeyError,KeyPair[JPrivateKey, JPublicKey] @@ T] =
+      override def generateKeyPair(): Either[CipherKeyError, KeyPair[JPrivateKey, JPublicKey] @@ T] =
         Either
           .catchNonFatal({
             val gen   = generator

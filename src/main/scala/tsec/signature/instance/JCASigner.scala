@@ -7,11 +7,11 @@ import tsec.signature.core.{SigAlgoTag, SignatureAlgebra, SignerDSL}
 sealed abstract case class JCASigner[F[_]: Sync, A: SigAlgoTag](
     alg: JCASigInterpreter[F, A]
 )(implicit aux: ByteAux[A])
-    extends SignerDSL[F, A]{
+    extends SignerDSL[F, A] {
 
-  type PubK = SigPublicKey[A]
+  type PubK  = SigPublicKey[A]
   type PrivK = SigPrivateKey[A]
-  type Cert = SigCertificate[A]
+  type Cert  = SigCertificate[A]
   val algebra: JCASigInterpreter[F, A] = alg
 }
 
