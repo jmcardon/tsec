@@ -1,6 +1,5 @@
 package tsec.api
 
-import tsec.cipher.common
 import tsec.cipher.common._
 import tsec.cipher.common.mode.GCM
 import tsec.cipher.common.padding.NoPadding
@@ -25,4 +24,5 @@ abstract class DefaultEncryptor[A: SymmetricAlgorithm] {
 object DefaultEncryptor {
   object Default extends DefaultEncryptor[AES128]
   object Strong  extends DefaultEncryptor[AES256]
+
 }
