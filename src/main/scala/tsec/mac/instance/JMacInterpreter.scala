@@ -12,7 +12,7 @@ import tsec.mac.core.MacAlgebra
   * @param macTag
   * @tparam A
   */
-class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[Either[MacError, ?], A, MacSigningKey] {
+class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[MacErrorM, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: Either[MacInstanceError, Mac] =

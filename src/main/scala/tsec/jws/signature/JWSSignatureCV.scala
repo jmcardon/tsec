@@ -5,14 +5,13 @@ import cats.effect.Sync
 import cats.syntax.all._
 import shapeless._
 import tsec.core.ByteUtils._
-import tsec.jws.header.JWSSignedHeader
-import tsec.jws.JWSSerializer
+import tsec.jws.{JWSSerializer, JWSSignature}
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.jwt.claims.JWTClaims
 import tsec.signature.core._
 import tsec.signature.instance.{SigCertificate, SigPrivateKey, SigPublicKey}
 
-final class JWSSignatureCV[F[_], A: SigAlgoTag](
+protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
     aux: ByteAux[A],
     jwsSigAlgo: JWTSigAlgo[A],
@@ -27,7 +26,7 @@ final class JWSSignatureCV[F[_], A: SigAlgoTag](
   private def defaultError: SigVerificationError = SigVerificationError("Could not verify signature")
 
   def signAndBuild(header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A]): F[JWTSig[A]] = {
-    val toSign = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
+    val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
     for {
       signature <- sigDSL.sign(toSign.asciiBytes, sigPrivateKey)
       concat    <- jwsSigAlgo.jcaToConcat(aux.to(signature).head)
@@ -35,7 +34,7 @@ final class JWSSignatureCV[F[_], A: SigAlgoTag](
   }
 
   def signToString(header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A]): F[String] = {
-    val toSign = hs.toB64URL(header) + "." + JWTClaims.jwsSerializer.toB64URL(body)
+    val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
     for {
       signature <- sigDSL.sign(toSign.asciiBytes, sigPrivateKey)
       concat    <- jwsSigAlgo.jcaToConcat(aux.to(signature).head)
@@ -60,7 +59,7 @@ final class JWSSignatureCV[F[_], A: SigAlgoTag](
         bool <- EitherT.liftT(sigDSL.verifyK(sigExtract, publicKey))
         _    <- EitherT.cond[F](bool, (), defaultError)
         body <- EitherT
-          .fromEither(JWTClaims.jwsSerializer.fromB64URL(split(1)))
+          .fromEither(JWTClaims.fromB64URL(split(1)))
           .leftMap(_ => defaultError)
       } yield JWTSig(h, body, JWSSignature(aux.from(providedBytes :: HNil)))
     }
@@ -84,7 +83,7 @@ final class JWSSignatureCV[F[_], A: SigAlgoTag](
         bool <- EitherT.liftT(sigDSL.verifyC(sigExtract, certificate))
         _    <- EitherT.cond[F](bool, (), defaultError)
         body <- EitherT
-          .fromEither(JWTClaims.jwsSerializer.fromB64URL(split(1)))
+          .fromEither(JWTClaims.fromB64URL(split(1)))
           .leftMap(_ => defaultError)
       } yield JWTSig(h, body, JWSSignature(aux.from(providedBytes :: HNil)))
     }

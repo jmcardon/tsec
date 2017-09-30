@@ -6,7 +6,6 @@ val circeV     = "0.9.0-M1"
 val catsV      = "1.0.0-MF"
 val catsEffV   = "0.4"
 val shapelessV = "2.3.2"
-val smTaggingV = "2.1.0"
 
 scalaVersion := "2.12.3"
 

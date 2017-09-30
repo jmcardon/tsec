@@ -27,6 +27,7 @@ object ByteUtils {
     def utf8Bytes: Array[Byte]   = s.getBytes(StandardCharsets.UTF_8)
     def asciiBytes: Array[Byte]  = s.getBytes(StandardCharsets.US_ASCII)
     def base64Bytes: Array[Byte] = Base64.getDecoder.decode(s)
+    def base64UrlBytes: Array[Byte] = Base64.getUrlDecoder.decode(s)
   }
 
   implicit class BytesToStr(val s: Array[Byte]) extends AnyVal {

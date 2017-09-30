@@ -12,3 +12,5 @@ case class MacInitError(cause: String) extends MacError
 case class MacSigningError(cause: String) extends MacError
 
 case class MacKeyBuildError(cause: String) extends MacError
+
+case class MacVerificationError(cause: String) extends MacError

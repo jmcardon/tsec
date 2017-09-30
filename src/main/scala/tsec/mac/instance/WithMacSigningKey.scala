@@ -6,7 +6,7 @@ import javax.crypto.spec.SecretKeySpec
 import cats.syntax.either._
 import tsec.core.{ErrorConstruct, JKeyGenerator}
 
-abstract class WithMacSigningKey[A](algorithm: String, keyLen: Int) {
+protected [tsec] abstract class WithMacSigningKey[A](algorithm: String, keyLen: Int) {
 
   implicit val macTag: MacTag[A] = MacTag[A](algorithm, keyLen)
   implicit val keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError] =

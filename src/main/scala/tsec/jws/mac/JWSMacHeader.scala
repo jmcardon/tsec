@@ -16,28 +16,25 @@ import tsec.core.ByteUtils._
   * TODO: Crit logic on verification
   *
   * @param `type` the type of the content. in a less opininated library, it could signal json serialization
-  * @param algorithm the specified json web algorithm
   * @param contentType The contentType, a non-recommended header
   * @param critical The fields that _must_ be present
   * @tparam A
   */
-sealed abstract case class JWSMacHeader[A: MacTag](
+sealed abstract case class JWSMacHeader[A](
     `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
-    algorithm: JWTMacAlgo[A], //Algorithm, in this case a MAC
     contentType: Option[String] = None, // Optional header, preferably not used
     critical: Option[NonEmptyList[String]] = None //Headers not to ignore, they must be understood by the JWT implementation
-) extends JWSHeader[A] {
-  def toJsonString: String = jwt.JWTPrinter.pretty(this.asJson)
+)(implicit val algorithm: JWTMacAlgo[A])
+    extends JWSHeader[A] {
+  def toJsonString: String     = jwt.JWTPrinter.pretty(this.asJson)
 }
 
 object JWSMacHeader {
 
-  def apply[A: MacTag: JWTMacAlgo] =
-    new JWSMacHeader[A](
-      algorithm = implicitly[JWTMacAlgo[A]]
-    ) {}
+  def apply[A](implicit algo: JWTMacAlgo[A]): JWSMacHeader[A] =
+    new JWSMacHeader[A]() {}
 
-  implicit def encoder[A: MacTag]: Encoder[JWSMacHeader[A]] {
+  implicit def encoder[A: JWTMacAlgo]: Encoder[JWSMacHeader[A]] {
     def apply(a: JWSMacHeader[A]): Json
   } = new Encoder[JWSMacHeader[A]] {
     def apply(a: JWSMacHeader[A]): Json = Json.obj(
@@ -60,11 +57,11 @@ object JWSMacHeader {
   implicit def decoder[A: MacTag: JWTMacAlgo]: Decoder[JWSMacHeader[A]] = new Decoder[JWSMacHeader[A]] {
     def apply(c: HCursor): Either[DecodingFailure, JWSMacHeader[A]] =
       c.downField("alg")
-        .as[Option[String]]
-        .map(f => JWTMacAlgo.fromString[A](f.getOrElse(""))) match {
+        .as[String]
+        .map(JWTMacAlgo.fromString[A]) match {
         case Right(opt) =>
           opt match {
-            case Some(o) =>
+            case Some(_) =>
               for {
                 t     <- c.downField("typ").as[Option[JWTtyp]]
                 cType <- c.downField("cty").as[Option[String]]
@@ -72,7 +69,6 @@ object JWSMacHeader {
               } yield
                 new JWSMacHeader[A](
                   `type` = t,
-                  algorithm = o,
                   contentType = cType,
                   critical = crit
                 ) {}
@@ -84,7 +80,7 @@ object JWSMacHeader {
       }
   }
 
-  implicit def genSerializer[A: MacTag](
+  implicit def genSerializer[A: JWTMacAlgo](
       implicit d: Decoder[JWSMacHeader[A]],
       e: Encoder[JWSMacHeader[A]]
   ): JWSSerializer[JWSMacHeader[A]] =

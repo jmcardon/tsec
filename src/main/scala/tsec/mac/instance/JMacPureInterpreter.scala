@@ -6,8 +6,8 @@ import cats.effect.IO
 import tsec.core.ByteUtils.ByteAux
 import tsec.mac.core.MacAlgebra
 
-sealed abstract class JCAMacPureInterpreter[A: ByteAux](implicit macTag: MacTag[A])
-    extends MacAlgebra[IO, A, MacSigningKey] {
+sealed protected[tsec] abstract class JMacPureInterpreter[A: ByteAux](implicit macTag: MacTag[A])
+  extends MacAlgebra[IO, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: IO[Mac] = IO(Mac.getInstance(macTag.algorithm))
@@ -20,8 +20,8 @@ sealed abstract class JCAMacPureInterpreter[A: ByteAux](implicit macTag: MacTag[
     } yield result
 }
 
-object JCAMacPureInterpreter {
-  def apply[A: ByteAux: MacTag] = new JCAMacPureInterpreter[A] {}
+object JMacPureInterpreter {
+  def apply[A: ByteAux: MacTag] = new JMacPureInterpreter[A] {}
 
-  implicit def gen[A: ByteAux: MacTag]: JCAMacPureInterpreter[A] = apply[A]
+  implicit def gen[A: ByteAux: MacTag]: JMacPureInterpreter[A] = apply[A]
 }

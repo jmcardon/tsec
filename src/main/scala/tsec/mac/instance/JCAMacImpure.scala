@@ -6,7 +6,7 @@ import tsec.mac.core.MacPrograms
 
 sealed class JCAMacImpure[A: MacTag: ByteAux](
     algebra: JMacInterpreter[A]
-) extends MacPrograms[Either[MacError, ?], A, MacSigningKey](algebra)
+) extends MacPrograms[MacErrorM, A, MacSigningKey](algebra)
 
 object JCAMacImpure {
   def apply[A: MacTag: ByteAux]: JCAMacImpure[A] = new JCAMacImpure[A](new JMacInterpreter[A]) {}

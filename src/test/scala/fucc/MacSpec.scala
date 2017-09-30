@@ -25,7 +25,7 @@ class MacSpec extends TestSpec with MustMatchers {
       res mustBe Right(true)
     }
 
-    it should "sign and verify independently" in {
+    it should "sign to the same message" in {
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
 
       val res: Either[MacError, Boolean] = for {
@@ -47,6 +47,21 @@ class MacSpec extends TestSpec with MustMatchers {
       } yield cond
 
       res mustBe Right(false)
+    }
+
+    it should "not verify for different keys" in {
+
+      val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
+
+      val res: Either[MacError, Boolean] = for {
+        k <- keyGen.generateKey()
+        k2 <- keyGen.generateKey()
+        signed1 <- instance.sign(dataToSign, k)
+        cond <- instance.verify(dataToSign,signed1, k2)
+      } yield cond
+
+      res mustBe Right(false)
+
     }
   }
 
