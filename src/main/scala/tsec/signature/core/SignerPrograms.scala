@@ -5,7 +5,7 @@ import cats.implicits._
 import shapeless.{::, Generic, HNil}
 import tsec.core.ByteUtils.ByteAux
 
-abstract class SignerDSL[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[A]) {
+abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[A]) {
   type PubK
   type PrivK
   type Cert
@@ -35,8 +35,8 @@ abstract class SignerDSL[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[A]) {
 
 }
 
-object SignerDSL {
-  type Aux[F[_], A, PbK, PrK, C] = SignerDSL[F, A] {
+object SignerPrograms {
+  type Aux[F[_], A, PbK, PrK, C] = SignerPrograms[F, A] {
     type PubK  = PbK
     type PrivK = PrK
     type Cert  = C

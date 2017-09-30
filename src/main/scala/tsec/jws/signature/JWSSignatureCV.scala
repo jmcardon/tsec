@@ -9,13 +9,14 @@ import tsec.jws.{JWSSerializer, JWSSignature}
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.jwt.claims.JWTClaims
 import tsec.signature.core._
-import tsec.signature.instance.{SigCertificate, SigPrivateKey, SigPublicKey}
+import tsec.signature.instance._
+import java.time.Instant
 
 protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
     aux: ByteAux[A],
     jwsSigAlgo: JWTSigAlgo[A],
-    sigDSL: SignerDSL.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
+    sigDSL: SignerPrograms.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
     M: Sync[F]
 ) {
 
@@ -23,7 +24,7 @@ protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
   Generic Error.
   Any mishandling of the errors could leak information to an attacker.
    */
-  private def defaultError: SigVerificationError = SigVerificationError("Could not verify signature")
+  private def defaultError: SignatureError = SignatureError("Could not verify signature")
 
   def signAndBuild(header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A]): F[JWTSig[A]] = {
     val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
@@ -44,48 +45,40 @@ protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
   def verifyK(
       jwt: String,
       extract: JWSSignedHeader[A] => SigPublicKey[A]
-  ): EitherT[F, SigVerificationError, JWTSig[A]] = {
+  ): F[JWTSig[A]] = {
+    val now = Instant.now()
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length != 3)
-      EitherT.left(M.pure(defaultError))
+      M.raiseError[JWTSig[A]](defaultError)
     else {
-      val providedBytes: Array[Byte] = split(2).base64Bytes
+      val providedBytes: Array[Byte] = split(2).base64UrlBytes
       for {
-        sigExtract <- EitherT.liftT(jwsSigAlgo.concatToJCA(providedBytes))
-        h <- EitherT
-          .fromEither(hs.fromUtf8Bytes(split(0).base64Bytes))
-          .leftMap(_ => defaultError)
-        publicKey = extract(h)
-        bool <- EitherT.liftT(sigDSL.verifyK(sigExtract, publicKey))
-        _    <- EitherT.cond[F](bool, (), defaultError)
-        body <- EitherT
-          .fromEither(JWTClaims.fromB64URL(split(1)))
-          .leftMap(_ => defaultError)
-      } yield JWTSig(h, body, JWSSignature(aux.from(providedBytes :: HNil)))
+        sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
+        header <-M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
+        bool <- sigDSL.verifyK(sigExtract, extract(header))
+        body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(claims =>
+        bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now))
+      } yield JWTSig(header, body, JWSSignature(providedBytes))
     }
   }
 
   def verifyC(
       jwt: String,
       extract: JWSSignedHeader[A] => SigCertificate[A]
-  ): EitherT[F, SigVerificationError, JWTSig[A]] = {
+  ): F[JWTSig[A]] = {
+    val now = Instant.now()
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length != 3)
-      EitherT.left(M.pure(defaultError))
+      M.raiseError[JWTSig[A]](defaultError)
     else {
-      val providedBytes: Array[Byte] = split(2).base64Bytes
+      val providedBytes: Array[Byte] = split(2).base64UrlBytes
       for {
-        sigExtract <- EitherT.liftT(jwsSigAlgo.concatToJCA(providedBytes))
-        h <- EitherT
-          .fromEither(hs.fromUtf8Bytes(split(0).base64Bytes))
-          .leftMap(_ => defaultError)
-        certificate = extract(h)
-        bool <- EitherT.liftT(sigDSL.verifyC(sigExtract, certificate))
-        _    <- EitherT.cond[F](bool, (), defaultError)
-        body <- EitherT
-          .fromEither(JWTClaims.fromB64URL(split(1)))
-          .leftMap(_ => defaultError)
-      } yield JWTSig(h, body, JWSSignature(aux.from(providedBytes :: HNil)))
+        sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
+        header <-M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
+        bool <- sigDSL.verifyC(sigExtract, extract(header))
+        body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(claims =>
+          bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now))
+      } yield JWTSig(header, body, JWSSignature(providedBytes))
     }
   }
 }
@@ -95,7 +88,7 @@ object JWSSignatureCV {
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
       aux: ByteAux[A],
       jwsSigAlgo: JWTSigAlgo[A],
-      sigDSL: SignerDSL.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
+      sigDSL: SignerPrograms.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
       M: Sync[F]
   ): JWSSignatureCV[F, A] = new JWSSignatureCV[F, A]()
 }

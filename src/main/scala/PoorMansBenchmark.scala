@@ -19,7 +19,7 @@ import scala.util.Random
 object PoorMansBenchmark extends App {
   val totalIterLen = 100000
 
-  val keys: Array[SecretKey[AES128]] = Array.fill(totalIterLen)(AES128.keyGen.generateKeyUnsafe())
+  val keys: Array[SecretKey[AES128]] = Array.fill(totalIterLen)(AES128.generateKeyUnsafe())
 
   val rand = new Random()
 

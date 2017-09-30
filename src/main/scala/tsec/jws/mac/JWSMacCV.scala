@@ -73,26 +73,21 @@ sealed abstract class JWSMacCV[F[_], A](
   }
 
   def verifyAndParse(jwt: String, key: MacSigningKey[A]): F[JWTMac[A]] = {
-    val now                  = Instant.now
-    val split: Array[String] = jwt.split("\\.", 3)
+    val now   = Instant.now
+    val split = jwt.split("\\.", 3)
     if (split.length != 3)
       M.raiseError(defaultError)
     else {
       val signedBytes: Array[Byte] = split(2).base64UrlBytes
       for {
-        header <- M.fromEither(
-          hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError)
-        )
-        claims <- M.fromEither(
-          JWTClaims
-            .fromB64URL(split(1))
-            .left
-            .map(_ => defaultError)
-        )
-        bytes <- M.ensure[A](programs.sign((split(0) + "." + split(1)).asciiBytes, key))(defaultError)(
+        header <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
+        claims <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
+        bytes <- M.ensure(programs.algebra.sign((split(0) + "." + split(1)).asciiBytes, key))(defaultError)(
           signed =>
-            ByteUtils.constantTimeEquals(aux.to(signed).head, signedBytes) && claims.isNotExpired(now) && claims
-              .isAfterNBF(now) && claims.isValidIssued(now)
+            ByteUtils.constantTimeEquals(signed, signedBytes)
+              && claims.isNotExpired(now)
+              && claims.isAfterNBF(now)
+              && claims.isValidIssued(now)
         )
       } yield JWTMac.buildToken[A](header, claims, JWSSignature(bytes))
     }

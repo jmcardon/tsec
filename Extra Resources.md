@@ -4,14 +4,12 @@
 
 https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html
 https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
-https://paragonie.com/blog/2017/03/jwt-json-web-tokens-is-bad-standard-that-everyone-should-avoid
 https://developer.android.com/reference/javax/crypto/Cipher.html <- good resource for common combinations
 https://tools.ietf.org/html/rfc5116
 
 ###### On galois counter mode:
 http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38c.pdf
 http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-spec.pdf
-
 https://crypto.stackexchange.com/questions/6842/how-to-choose-between-aes-ccm-and-aes-gcm-for-storage-volume-encryption
 https://tools.ietf.org/html/rfc5116
 https://security.stackexchange.com/questions/2202/lessons-learned-and-misconceptions-regarding-encryption-and-cryptology/2213#2213

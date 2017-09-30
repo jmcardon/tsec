@@ -22,7 +22,7 @@ object JSymmetricKeyGenerator {
       For key generators, we can restrict some keylengths using the underscore such as
       AES_128. If it is present, remove the remainder.
        */
-      val tagAlgorithm: String = {
+      private val tagAlgorithm: String = {
         val underscoreIndex = tag.algorithm.indexOf("_")
         if (underscoreIndex < 0)
           tag.algorithm

@@ -6,7 +6,7 @@ import tsec.core.JKeyGenerator
 import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jws.signature.ParseEncodedKeySpec
 import tsec.mac.instance._
-import tsec.signature.core.{SigAlgoTag, SignerDSL}
+import tsec.signature.core.{SigAlgoTag, SignerPrograms}
 import tsec.signature.instance._
 
 sealed trait JWA[A] {
