@@ -15,21 +15,22 @@ abstract class GeneralSignature[A](signature: String) {
   }
 }
 
-abstract class RSASignature[A](signature: String) {
-  implicit val sig = new SigAlgoTag[A] {
-    override lazy val algorithm: String = signature
-  }
+abstract class RSASignature[A](signature: String) extends KFTag[A] with SigAlgoTag[A] {
 
-  implicit val kt = new KFTag[A] {
-    val keyFactoryAlgo: String = "RSA"
-  }
+  override lazy val algorithm: String = signature
+
+  val keyFactoryAlgo: String = "RSA"
+
+  implicit val sig: SigAlgoTag[A] = this
+
+  implicit val kt: KFTag[A] = this
 
   def generateKeyPair: Either[SignatureKeyError, SigKeyPair[A]] =
     Either.catchNonFatal(generateKeyPairUnsafe).mapError[SignatureKeyError]
 
   def generateKeyPairUnsafe: SigKeyPair[A] =
     SigKeyPair.fromKeyPair[A](KeyPairGenerator.getInstance(kt.keyFactoryAlgo).generateKeyPair())
-  
+
   def buildPrivateKey(keyBytes: Array[Byte]): Either[SignatureKeyError, SigPrivateKey[A]] =
     Either.catchNonFatal(buildPrivateKeyUnsafe(keyBytes)).mapError[SignatureKeyError]
 
