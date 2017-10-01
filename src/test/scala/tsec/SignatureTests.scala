@@ -19,7 +19,7 @@ class SignatureTests extends TestSpec with MustMatchers {
 
   def sigIOTests[A](
       implicit algoTag: SigAlgoTag[A],
-      interp: JCASigner[IO, A],
+      interp: JCASignerPure[IO, A],
       gen: ByteAux[A],
       ecKFTag: KFTag[A]
   ): Unit = {
@@ -31,7 +31,7 @@ class SignatureTests extends TestSpec with MustMatchers {
       val expression: IO[Boolean] = for {
         keyPair <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         signed  <- interp.sign(toSign, keyPair.privateKey)
-        verify  <- interp.verifyKI(signed, keyPair.publicKey)
+        verify  <- interp.verifyKI(toSign,signed, keyPair.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe true
@@ -42,7 +42,7 @@ class SignatureTests extends TestSpec with MustMatchers {
         keyPair1 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         keyPair2 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         signed   <- interp.sign(toSign, keyPair1.privateKey)
-        verify   <- interp.verifyKI(signed, keyPair2.publicKey)
+        verify   <- interp.verifyKI(toSign,signed, keyPair2.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe false

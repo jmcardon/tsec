@@ -19,23 +19,25 @@ abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[
       signed   <- algebra.sign(instance)
     } yield aux.from(signed :: HNil)
 
-  def verifyK(content: Array[Byte], k: PubK): F[Boolean] =
+  def verifyK(toSign: Array[Byte], signed: Array[Byte], k: PubK): F[Boolean] =
     for {
       instance <- algebra.genSignatureInstance
       _        <- algebra.initVerifyK(instance, k)
-      verified <- algebra.verify(content, instance)
+      _        <- algebra.loadBytes(toSign, instance)
+      verified <- algebra.verify(signed, instance)
     } yield verified
 
-  def verifyKI(signed: A, k: PubK): F[Boolean] = verifyK(aux.to(signed).head,k)
+  def verifyKI(toSign: Array[Byte], signed: A, k: PubK): F[Boolean] = verifyK(toSign, aux.to(signed).head, k)
 
-  def verifyC(content: Array[Byte], c: Cert): F[Boolean] =
+  def verifyC(toSign: Array[Byte], signed: Array[Byte], c: Cert): F[Boolean] =
     for {
       instance <- algebra.genSignatureInstance
       _        <- algebra.initVerifyC(instance, c)
-      verified <- algebra.verify(content, instance)
+      _        <- algebra.loadBytes(toSign, instance)
+      verified <- algebra.verify(signed, instance)
     } yield verified
 
-  def verifyCI(signed: A, c: Cert): F[Boolean] = verifyC(aux.to(signed).head, c)
+  def verifyCI(toSign: Array[Byte], signed: A, c: Cert): F[Boolean] = verifyC(toSign, aux.to(signed).head, c)
 
 }
 

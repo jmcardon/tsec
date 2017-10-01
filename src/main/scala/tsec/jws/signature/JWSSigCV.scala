@@ -1,6 +1,5 @@
 package tsec.jws.signature
 
-import cats.effect.Sync
 import cats.syntax.all._
 import tsec.core.ByteUtils._
 import tsec.jws.{JWSSerializer, JWSSignature}
@@ -9,26 +8,29 @@ import tsec.jwt.claims.JWTClaims
 import tsec.signature.core._
 import tsec.signature.instance._
 import java.time.Instant
+import cats.instances.either._
+
+import cats.MonadError
 
 sealed abstract class JWSSigCV[F[_], A](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
     aux: ByteAux[A],
     jwsSigAlgo: JWTSigAlgo[A],
     sigDSL: SignerPrograms.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
-    M: Sync[F]
+    M: MonadError[F, Throwable]
 ) {
 
   /*
   Generic Error.
   Any mishandling of the errors could leak information to an attacker.
    */
-  private def defaultError: SignatureError = SignatureError("Could not verify signature")
+  private def defaultError: GeneralSignatureError = GeneralSignatureError("Could not verify signature")
 
   def signAndBuild(header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A]): F[JWTSig[A]] = {
     val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
     for {
       signature <- sigDSL.sign(toSign.asciiBytes, sigPrivateKey)
-      concat    <- jwsSigAlgo.jcaToConcat(aux.to(signature).head)
+      concat    <- jwsSigAlgo.jcaToConcat[F](aux.to(signature).head)
     } yield JWTSig(header, body, JWSSignature[A](concat))
   }
 
@@ -36,7 +38,7 @@ sealed abstract class JWSSigCV[F[_], A](
     val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
     for {
       signature <- sigDSL.sign(toSign.asciiBytes, sigPrivateKey)
-      concat    <- jwsSigAlgo.jcaToConcat(aux.to(signature).head)
+      concat    <- jwsSigAlgo.jcaToConcat[F](aux.to(signature).head)
     } yield toSign + "." + concat.toB64UrlString
   }
 
@@ -50,10 +52,11 @@ sealed abstract class JWSSigCV[F[_], A](
       M.raiseError[JWTSig[A]](defaultError)
     else {
       val providedBytes: Array[Byte] = split(2).base64UrlBytes
+      val toSign                     = (split(0) + "." + split(1)).asciiBytes
       for {
-        sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
+        sigExtract <- jwsSigAlgo.concatToJCA[F](providedBytes)
         header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool       <- sigDSL.verifyK(sigExtract, extract(header))
+        bool       <- sigDSL.verifyK(toSign, sigExtract, extract(header))
         body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
           claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
         )
@@ -71,10 +74,11 @@ sealed abstract class JWSSigCV[F[_], A](
       M.raiseError[JWTSig[A]](defaultError)
     else {
       val providedBytes: Array[Byte] = split(2).base64UrlBytes
+      val toSign                     = (split(0) + "." + split(1)).asciiBytes
       for {
-        sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
+        sigExtract <- jwsSigAlgo.concatToJCA[F](providedBytes)
         header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool       <- sigDSL.verifyK(sigExtract, pubKey)
+        bool       <- sigDSL.verifyK(toSign, sigExtract, pubKey)
         body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
           claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
         )
@@ -92,10 +96,11 @@ sealed abstract class JWSSigCV[F[_], A](
       M.raiseError[JWTSig[A]](defaultError)
     else {
       val providedBytes: Array[Byte] = split(2).base64UrlBytes
+      val toSign                     = (split(0) + "." + split(1)).asciiBytes
       for {
-        sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
+        sigExtract <- jwsSigAlgo.concatToJCA[F](providedBytes)
         header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool       <- sigDSL.verifyC(sigExtract, extract(header))
+        bool       <- sigDSL.verifyC(toSign, sigExtract, extract(header))
         body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
           claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
         )
@@ -113,10 +118,11 @@ sealed abstract class JWSSigCV[F[_], A](
       M.raiseError[JWTSig[A]](defaultError)
     else {
       val providedBytes: Array[Byte] = split(2).base64UrlBytes
+      val toSign                     = (split(0) + "." + split(1)).asciiBytes
       for {
-        sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
+        sigExtract <- jwsSigAlgo.concatToJCA[F](providedBytes)
         header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool       <- sigDSL.verifyC(sigExtract, cert)
+        bool       <- sigDSL.verifyC(toSign, sigExtract, cert)
         body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
           claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
         )
@@ -126,11 +132,18 @@ sealed abstract class JWSSigCV[F[_], A](
 }
 
 object JWSSigCV {
-  implicit def genCV[F[_], A: SigAlgoTag](
+  implicit def genCVPure[F[_], A: SigAlgoTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
       aux: ByteAux[A],
       jwsSigAlgo: JWTSigAlgo[A],
-      sigDSL: JCASigner[F, A],
-      M: Sync[F]
+      sigDSL: JCASignerPure[F, A],
+      M: MonadError[F, Throwable]
   ): JWSSigCV[F, A] = new JWSSigCV[F, A]() {}
+
+  implicit def genCVImpure[A: SigAlgoTag](
+      implicit hs: JWSSerializer[JWSSignedHeader[A]],
+      aux: ByteAux[A],
+      jwsSigAlgo: JWTSigAlgo[A],
+      sigDSL: JCASigner[A]
+  ): JWSSigCV[SigErrorM, A] = new JWSSigCV[SigErrorM, A]() {}
 }
