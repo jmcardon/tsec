@@ -17,7 +17,7 @@ abstract class DefaultModeKeySpec[T](repr: String, ivLen: Int) {
       *
       */
     private val cachedRand: SecureRandom = {
-      val r = SecureRandom.getInstance("SHA1PRNG")
+      val r = new SecureRandom()
       r.nextBytes(new Array[Byte](20))
       r
     }
