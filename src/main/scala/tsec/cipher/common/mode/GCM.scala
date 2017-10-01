@@ -1,11 +1,12 @@
 package tsec.cipher.common.mode
 
 import java.security.SecureRandom
+import java.security.spec.AlgorithmParameterSpec
 import java.util.concurrent.atomic.LongAdder
 import javax.crypto.spec.GCMParameterSpec
 
-import com.sun.beans.editors.ByteEditor
 import tsec.cipher.common._
+import shapeless.tag.@@
 
 sealed trait GCM
 object GCM {
@@ -15,14 +16,15 @@ object GCM {
 
   Iv length of 96 bits is recommended as per the spec on page 8
    */
-  val GCMTagLength = 128
+  val GCMTagLength        = 128
   val GCMIvOptionalLength = 12
   implicit lazy val spec = new ModeKeySpec[GCM] {
+
     /**
-     * Cache our random, and seed it properly as per
-     * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-     *
-     */
+      * Cache our random, and seed it properly as per
+      * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
+      *
+      */
     private val cachedRand: SecureRandom = {
       val r = new SecureRandom()
       r.nextBytes(new Array[Byte](20))
@@ -30,25 +32,25 @@ object GCM {
     }
 
     /**
-     * We will keep a reference to how many times our random is utilized
-     * After a sensible Integer.MaxValue/2 times, we should reseed
-     *
-     */
+      * We will keep a reference to how many times our random is utilized
+      * After a sensible Integer.MaxValue/2 times, we should reseed
+      *
+      */
     private val adder: LongAdder = new LongAdder
-    private val MaxBeforeReseed = (Integer.MAX_VALUE / 2).toLong
+    private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong
 
-    private def reSeed(): Unit =  {
+    private def reSeed(): Unit = {
       adder.reset()
       cachedRand.nextBytes(new Array[Byte](20))
     }
 
     def algorithm: String = "GCM"
-    def buildIvFromBytes(specBytes: Array[Byte]): JSpec[GCM] =
+    def buildIvFromBytes(specBytes: Array[Byte]): AlgorithmParameterSpec @@ GCM =
       tagSpec[GCM](new GCMParameterSpec(GCMTagLength, specBytes))
 
-    def genIv: JSpec[GCM] = {
+    def genIv: AlgorithmParameterSpec @@ GCM = {
       adder.increment()
-      if(adder.sum() >= MaxBeforeReseed)
+      if (adder.sum() >= MaxBeforeReseed)
         reSeed()
 
       val newBytes = new Array[Byte](12)

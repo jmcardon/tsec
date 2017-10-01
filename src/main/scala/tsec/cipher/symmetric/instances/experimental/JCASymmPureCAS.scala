@@ -7,13 +7,13 @@ import cats.effect.IO
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-import tsec.cipher.symmetric.instances.{JEncryptionKey, SymmetricAlgorithm}
+import tsec.cipher.symmetric.instances.{SecretKey, SymmetricAlgorithm}
 
 sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[IO, A, M, P, JEncryptionKey] {
+) extends SymmetricCipherAlgebra[IO, A, M, P, SecretKey] {
 
   type C = JCipher
 
@@ -38,13 +38,13 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
    */
   protected[symmetric] def initEncryptor(
       instance: JCipher,
-      secretKey: SecretKey[JEncryptionKey[A]]
+      secretKey: SecretKey[A]
   ): IO[Unit] =
     IO(instance.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
 
   protected[symmetric] def initDecryptor(
       instance: JCipher,
-      key: SecretKey[JEncryptionKey[A]],
+      key: SecretKey[A],
       iv: Array[Byte]
   ): IO[Unit] =
     IO(instance.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
@@ -63,8 +63,8 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
     * @return
     */
   def encrypt(
-      plainText: PlainText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]]
+      plainText: PlainText,
+      key: SecretKey[A]
   ): IO[CipherText[A, M, P]] =
     for {
       instance  <- genInstance
@@ -85,8 +85,8 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
     * @return
     */
   def encryptAAD(
-      plainText: PlainText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]],
+      plainText: PlainText,
+      key: SecretKey[A],
       aad: AAD
   ): IO[CipherText[A, M, P]] =
     for {
@@ -107,8 +107,8 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
     */
   def decrypt(
       cipherText: CipherText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]]
-  ): IO[PlainText[A, M, P]] =
+      key: SecretKey[A]
+  ): IO[PlainText] =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
@@ -128,9 +128,9 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
     */
   def decryptAAD(
       cipherText: CipherText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]],
+      key: SecretKey[A],
       aad: AAD
-  ): IO[PlainText[A, M, P]] =
+  ): IO[PlainText] =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)

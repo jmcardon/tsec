@@ -16,7 +16,7 @@ object HardenedSCrypt {
         SCryptUtil.check(pass.pass, hashed.hashed)
     }
 
-  object Hardened extends ImplAlgebra[HardenedSCrypt]
+  object Hardened extends PWHashInterpreter[HardenedSCrypt]
 
   implicit object SCryptPasswordHasher
       extends PWHashPrograms[PasswordValidated, HardenedSCrypt](Hardened, Rounds(SCryptHardenedN))(

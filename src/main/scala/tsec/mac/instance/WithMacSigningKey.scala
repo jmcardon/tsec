@@ -5,32 +5,30 @@ import javax.crypto.spec.SecretKeySpec
 
 import cats.syntax.either._
 import tsec.core.{ErrorConstruct, JKeyGenerator}
-import tsec.mac.core.MacSigningKey
-import tsec.mac.{tagKey, MacKey}
 
-abstract class WithMacSigningKey[A](algorithm: String, keyLen: Int) {
+protected[tsec] abstract class WithMacSigningKey[A](algorithm: String, keyLen: Int)
+    extends JKeyGenerator[A, MacSigningKey, MacKeyBuildError] {
 
   implicit val macTag: MacTag[A] = MacTag[A](algorithm, keyLen)
-  implicit val keyGen = new JKeyGenerator[MacKey[A], MacSigningKey, MacKeyBuildError] {
 
-    def generator: KeyGenerator = KeyGenerator.getInstance(algorithm)
+  def generator: KeyGenerator = KeyGenerator.getInstance(algorithm)
 
-    def keyLength: Int = keyLen
+  def keyLength: Int = keyLen
 
-    def generateKey(): Either[MacKeyBuildError, MacSigningKey[MacKey[A]]] =
-      Either
-        .catchNonFatal(MacSigningKey(tagKey[A](generator.generateKey())))
-        .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
+  def generateKey(): Either[MacKeyBuildError, MacSigningKey[A]] =
+    Either
+      .catchNonFatal(MacSigningKey(generator.generateKey()))
+      .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
 
-    def generateKeyUnsafe(): MacSigningKey[MacKey[A]] = MacSigningKey(tagKey[A](generator.generateKey()))
+  def generateKeyUnsafe(): MacSigningKey[A] = MacSigningKey(generator.generateKey())
 
-    def buildKey(key: Array[Byte]): Either[MacKeyBuildError, MacSigningKey[MacKey[A]]] =
-      Either
-        .catchNonFatal(MacSigningKey(tagKey[A](new SecretKeySpec(key.slice(0, keyLen), algorithm))))
-        .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
+  def buildKey(key: Array[Byte]): Either[MacKeyBuildError, MacSigningKey[A]] =
+    Either
+      .catchNonFatal(MacSigningKey(new SecretKeySpec(key.slice(0, keyLen), algorithm)))
+      .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
 
-    def buildKeyUnsafe(key: Array[Byte]): MacSigningKey[MacKey[A]] =
-      MacSigningKey(tagKey[A](new SecretKeySpec(key.slice(0, keyLen), algorithm)))
-  }
+  def buildKeyUnsafe(key: Array[Byte]): MacSigningKey[A] =
+    MacSigningKey(new SecretKeySpec(key.slice(0, keyLen), algorithm))
 
+  implicit def keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError] = this
 }

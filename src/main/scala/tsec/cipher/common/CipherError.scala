@@ -37,8 +37,8 @@ case class CipherKeyError(cause: String) extends CipherError
 case class DecryptError(cause: String) extends CipherError
 
 /**
- * Error during key construction/generation
- */
+  * Error during key construction/generation
+  */
 case class CipherKeyBuildError(cause: String) extends CipherError
 
 case object NoSuchInstanceError extends CipherError {

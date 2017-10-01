@@ -1,12 +1,5 @@
 package tsec.signature.instance
 
-import java.security.{PrivateKey, PublicKey}
-import javax.crypto.KeyGenerator
-
-import com.softwaremill.tagging.@@
-import tsec.signature.core.{SigKeyPair, SigPrivateKey, SigPublicKey}
-import cats.implicits._
-
 case class MD2withRSA(content: Array[Byte])
 
 object MD2withRSA extends GeneralSignature[MD2withRSA]("MD2withRSA")
@@ -61,11 +54,11 @@ object SHA224withECDSA extends GeneralSignature[SHA224withECDSA]("SHA224withECDS
 
 case class SHA256withECDSA(content: Array[Byte])
 
-object SHA256withECDSA extends ECDSASignature[SHA256withECDSA]("SHA256withECDSA","P-256", 64)
+object SHA256withECDSA extends ECDSASignature[SHA256withECDSA]("SHA256withECDSA", "P-256", 64)
 
 case class SHA384withECDSA(content: Array[Byte])
 
-object SHA384withECDSA extends ECDSASignature[SHA384withECDSA]("SHA384withECDSA","P-384", 96)
+object SHA384withECDSA extends ECDSASignature[SHA384withECDSA]("SHA384withECDSA", "P-384", 96)
 
 case class SHA512withECDSA(content: Array[Byte])
 

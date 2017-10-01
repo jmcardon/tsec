@@ -35,7 +35,7 @@ class JCAAsymmetricCipher[A, M, P](
       .leftMap(ErrorConstruct.fromThrowable[InstanceInitError])
 
   def encrypt(
-      plainText: PlainText[A, M, P],
+      plainText: PlainText,
       key: PrivateKey[JPrivateKey]
   ): Either[CipherError, CipherText[A, M, P]] =
     for {
@@ -49,7 +49,7 @@ class JCAAsymmetricCipher[A, M, P](
   override def decrypt(
       cipherText: CipherText[A, M, P],
       key: PublicKey[JPublicKey]
-  ): Either[CipherError, PlainText[A, M, P]] =
+  ): Either[CipherError, PlainText] =
     for {
       instance <- genInstance
       _        <- initDecrypter(instance, key)

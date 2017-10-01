@@ -1,18 +1,18 @@
 package tsec.messagedigests.instances
 
-import java.security.MessageDigest
-
 import tsec.core.ByteUtils.ByteAux
 import tsec.core.CryptoTag
 import tsec.messagedigests.core._
 
-class JHasher[T: CryptoTag](
+class JHasher[T: DigestTag](
     algebra: JHashAlgebra[T]
-)(implicit pureHasher: JPureHasher[T], gen: ByteAux[T])
-    extends HashingPrograms[MessageDigest, T](algebra)
+)(implicit gen: ByteAux[T])
+    extends HashingPrograms[T](algebra)
 
 object JHasher {
 
-  def apply[T: CryptoTag](implicit p: JPureHasher[T], gen: ByteAux[T]) =
+  def apply[T: DigestTag](implicit gen: ByteAux[T]) =
     new JHasher[T](new JHashAlgebra[T])
+
+  implicit def genHasher[T: DigestTag: ByteAux] = apply[T]
 }

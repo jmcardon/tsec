@@ -7,14 +7,14 @@ import cats.syntax.either._
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-import tsec.cipher.symmetric.instances.{JEncryptionKey, SymmetricAlgorithm}
+import tsec.cipher.symmetric.instances.{SecretKey, SymmetricAlgorithm}
 import tsec.core.ErrorConstruct
 
 abstract class JCATLSymmetric[A, M, P](
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, JEncryptionKey] {
+) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
 
   type C = JCipher
 
@@ -49,7 +49,7 @@ abstract class JCATLSymmetric[A, M, P](
    */
   protected[symmetric] def initEncryptor(
       e: JCipher,
-      secretKey: SecretKey[JEncryptionKey[A]]
+      secretKey: SecretKey[A]
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
@@ -59,7 +59,7 @@ abstract class JCATLSymmetric[A, M, P](
 
   protected[symmetric] def initDecryptor(
       decryptor: JCipher,
-      key: SecretKey[JEncryptionKey[A]],
+      key: SecretKey[A],
       iv: Array[Byte]
   ): Either[CipherKeyError, Unit] =
     Either
@@ -82,8 +82,8 @@ abstract class JCATLSymmetric[A, M, P](
     * @return
     */
   def encrypt(
-      plainText: PlainText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]]
+      plainText: PlainText,
+      key: SecretKey[A]
   ): Either[CipherError, CipherText[A, M, P]] =
     for {
       instance <- genInstance
@@ -106,8 +106,8 @@ abstract class JCATLSymmetric[A, M, P](
     * @return
     */
   def encryptAAD(
-      plainText: PlainText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]],
+      plainText: PlainText,
+      key: SecretKey[A],
       aad: AAD
   ): Either[CipherError, CipherText[A, M, P]] =
     for {
@@ -130,8 +130,8 @@ abstract class JCATLSymmetric[A, M, P](
     */
   def decrypt(
       cipherText: CipherText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]]
-  ): Either[CipherError, PlainText[A, M, P]] =
+      key: SecretKey[A]
+  ): Either[CipherError, PlainText] =
     for {
       instance <- genInstance
       _        <- initDecryptor(instance, key, cipherText.iv)
@@ -153,9 +153,9 @@ abstract class JCATLSymmetric[A, M, P](
     */
   def decryptAAD(
       cipherText: CipherText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]],
+      key: SecretKey[A],
       aad: AAD
-  ): Either[CipherError, PlainText[A, M, P]] =
+  ): Either[CipherError, PlainText] =
     for {
       instance <- genInstance
       _        <- initDecryptor(instance, key, cipherText.iv)

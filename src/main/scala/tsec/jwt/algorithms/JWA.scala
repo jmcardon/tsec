@@ -1,11 +1,12 @@
-package tsec.jws.algorithms
+package tsec.jwt.algorithms
 
 import cats.MonadError
 import tsec.core.ByteUtils.ByteAux
-import tsec.jws.algorithms.JWTSigAlgo.MErrThrowable
+import tsec.core.JKeyGenerator
+import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jws.signature.ParseEncodedKeySpec
 import tsec.mac.instance._
-import tsec.signature.core.{SigAlgoTag, SignerDSL}
+import tsec.signature.core.{SigAlgoTag, SignerPrograms}
 import tsec.signature.instance._
 
 sealed trait JWA[A] {
@@ -13,6 +14,7 @@ sealed trait JWA[A] {
 }
 
 object JWA {
+
   implicit case object HS256 extends JWTMacAlgo[HMACSHA256] {
     val jwtRepr: String = "HS256"
   }
@@ -41,39 +43,41 @@ object JWA {
     val jwtRepr: String = "ES512"
   }
 
-  implicit case object RS256 extends JWTRSASig[SHA256withRSA]{
+  implicit case object RS256 extends JWTRSASig[SHA256withRSA] {
     val jwtRepr: String = "RS256"
   }
 
-  implicit case object RS384 extends JWTRSASig[SHA384withRSA]{
+  implicit case object RS384 extends JWTRSASig[SHA384withRSA] {
     val jwtRepr: String = "RS384"
   }
 
-  implicit case object RS512 extends JWTRSASig[SHA512withRSA]{
+  implicit case object RS512 extends JWTRSASig[SHA512withRSA] {
     val jwtRepr: String = "RS512"
   }
 
 }
 
-abstract class JWTMacAlgo[A: MacTag](implicit gen: ByteAux[A]) extends JWA[A]
+abstract class JWTMacAlgo[A](implicit val keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError]) extends JWA[A]
 
-abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWA[A] {
-  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
-  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]]
+abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWA[A] { //todo: Get rid of this tire fire
+  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]]
+  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]]
 }
 
-abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A]{
-  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
-  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = ParseEncodedKeySpec.derToConcat[F, A](bytes)
+abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A] {
+  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] =
+    ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
+  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] =
+    ParseEncodedKeySpec.derToConcat[F, A](bytes)
 }
 
-abstract class JWTRSASig[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A]{
-  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
-  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MErrThrowable[F]): F[Array[Byte]] = me.pure(bytes)
+abstract class JWTRSASig[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A] {
+  def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
+  def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
 }
 
 object JWTSigAlgo {
-  type MErrThrowable[F[_]] = MonadError[F, Throwable]
+  type MT[F[_]] = MonadError[F, Throwable]
   def fromString[A](alg: String)(implicit o: JWTSigAlgo[A]): Option[JWTSigAlgo[A]] = alg match {
     case o.jwtRepr => Some(o)
     //While we work on signatures, this can be none.

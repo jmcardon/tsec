@@ -1,9 +1,11 @@
 package tsec.cipher.common.mode
 
-import tsec.cipher.common.JSpec
+import java.security.spec.AlgorithmParameterSpec
+
 import tsec.core.CryptoTag
+import shapeless.tag.@@
 
 trait ModeKeySpec[T] extends CryptoTag[T] {
-  def buildIvFromBytes(specBytes: Array[Byte]): JSpec[T]
-  def genIv: JSpec[T]
+  def buildIvFromBytes(specBytes: Array[Byte]): AlgorithmParameterSpec @@ T
+  def genIv: AlgorithmParameterSpec @@ T
 }

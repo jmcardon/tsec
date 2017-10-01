@@ -4,95 +4,39 @@ import java.security.MessageDigest
 
 import tsec.messagedigests.instances._
 import tsec.messagedigests.syntax._
-import org.apache.commons.codec.binary.Base64
+import org.scalatest.MustMatchers
+import tsec.messagedigests.core.DigestTag
+import tsec.core.ByteUtils._
 
-class HasherTest extends TestSpec {
-  val str = "hello World"
+class HasherTest extends TestSpec with MustMatchers {
+  val str     = "hello World"
   val strList = List("a", "a", "bcd")
 
-  "A (base64 encoded) digitalHash and MessageDigest" should "be equal for SHA1" in {
-    assert(
-      str.digestHash[SHA1].toBase64String ==
-        Base64.encodeBase64String(
-          MessageDigest
-            .getInstance(SHA1.hashTag.algorithm)
-            .digest(str.getBytes("UTF-8")))
-    )
+  def hashTests[A: ByteAux](implicit tag: DigestTag[A], hasher: JHasher[A]): Unit = {
+
+    "A (base64 encoded) digitalHash and MessageDigest" should s"be equal for ${tag.algorithm}" in {
+      str.digestHash[A].toBase64String mustBe MessageDigest.getInstance(tag.algorithm).digest(str.utf8Bytes).toB64String
+    }
+
+    "Batch hashing and sequential hashing" should s"be the same for ${tag.algorithm}" in {
+      val batchList = hasher.hashBatch(strList).map(_.toBase64String)
+      val seqList   = strList.map(_.digestHash[A].toBase64String)
+      batchList must contain theSameElementsInOrderAs seqList
+    }
+
+    "Batch hashing" should s"return same size for ${tag.algorithm}" in {
+      val list0 = List.empty[String]
+      val list1 = List("a")
+      val list2 = List("a", "b")
+
+      list0.length mustBe hasher.hashBatch(list0).length
+      list1.length mustBe hasher.hashBatch(list1).length
+      list2.length mustBe hasher.hashBatch(list2).length
+    }
   }
 
-  it should "be equal for MD5" in {
-    assert(
-      str.digestHash[MD5].toBase64String ==
-        Base64.encodeBase64String(
-          MessageDigest
-            .getInstance(MD5.hashTag.algorithm)
-            .digest(str.getBytes("UTF-8")))
-    )
-  }
-
-  it should "be equal for SHA256" in {
-    assert(
-      str.digestHash[SHA256].toBase64String ==
-        Base64.encodeBase64String(
-          MessageDigest
-            .getInstance(SHA256.hashTag.algorithm)
-            .digest(str.getBytes("UTF-8")))
-    )
-  }
-
-  it should "be equal for SHA512" in {
-    assert(
-      str.digestHash[SHA512].toBase64String ==
-        Base64.encodeBase64String(
-          MessageDigest
-            .getInstance(SHA512.hashTag.algorithm)
-            .digest(str.getBytes("UTF-8")))
-    )
-  }
-
-  "Batch hashing and sequential hashing" should "be the same for SHA1" in {
-    val batchList = SHA1.jHasher.hashBatch(strList)
-    val seqList = strList.map(_.digestHash[SHA1])
-
-    assert(
-      (batchList zip seqList).forall(p => p._1.array.sameElements(p._2.array)))
-  }
-
-  it should "be the same for MD5" in {
-    val batchList = MD5.jHasher.hashBatch(strList)
-    val seqList = strList.map(_.digestHash[MD5])
-
-    assert(
-      (batchList zip seqList).forall(p => p._1.array.sameElements(p._2.array)))
-  }
-
-  it should "be the same for SHA256" in {
-    val batchList = SHA256.jHasher.hashBatch(strList)
-    val seqList = strList.map(_.digestHash[SHA256])
-
-    assert(
-      (batchList zip seqList).forall(p => p._1.array.sameElements(p._2.array)))
-  }
-
-  it should "be the same for SHA512" in {
-    val batchList = SHA512.jHasher.hashBatch(strList)
-    val seqList = strList.map(_.digestHash[SHA512])
-
-    assert(
-      (batchList zip seqList).forall(p => p._1.array.sameElements(p._2.array)))
-  }
-
-  "Batch hashing" should "return same size" in {
-    val list0 = List.empty[String]
-    val list1 = List("a")
-    val list2 = List("a", "b")
-
-    assert(
-      list0.length == SHA1.jHasher.hashBatch(list0).length &&
-        list1.length == SHA1.jHasher.hashBatch(list1).length &&
-        list2.length == SHA1.jHasher.hashBatch(list2).length &&
-        list2.length == SHA1.jHasher.hashBatch(list2).length
-    )
-  }
-
+  hashTests[MD5]
+  hashTests[SHA1]
+  hashTests[SHA256]
+  hashTests[SHA512]
 }

@@ -1,5 +1,3 @@
 package tsec.cipher.symmetric
 
-package object core {
-
-}
+package object core {}
