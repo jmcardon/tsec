@@ -4,11 +4,11 @@ import javax.crypto.Mac
 
 import cats.effect.IO
 import tsec.core.QueueAlloc
-import tsec.mac.MacKey
-import tsec.mac.core.{MacAlgebra, MacSigningKey}
-import tsec.mac.instance.MacTag
+import tsec.mac.core.MacAlgebra
+import tsec.mac.instance.{MacSigningKey, MacTag}
 
-sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[A]) extends MacAlgebra[IO, A, MacKey] {
+sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[A])
+    extends MacAlgebra[IO, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: IO[Mac] =
@@ -20,7 +20,7 @@ sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[
         Mac.getInstance(macTag.algorithm)
     })
 
-  def sign(content: Array[Byte], key: MacSigningKey[MacKey[A]]): IO[Array[Byte]] =
+  def sign(content: Array[Byte], key: MacSigningKey[A]): IO[Array[Byte]] =
     for {
       instance <- genInstance
       _        <- IO(instance.init(key.key))

@@ -17,7 +17,7 @@ object SCrypt {
         JSCrypt.check(pass.pass, hashed.hashed)
     }
 
-  object SCryptAlgebra extends ImplAlgebra[SCrypt]
+  object SCryptAlgebra extends PWHashInterpreter[SCrypt]
 
   implicit object SCryptPasswordHasher
       extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(DefaultSCryptN))(

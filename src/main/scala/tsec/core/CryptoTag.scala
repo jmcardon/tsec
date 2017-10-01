@@ -1,6 +1,7 @@
 package tsec.core
 
-import com.softwaremill.tagging._
+import shapeless.tag
+import shapeless.tag.@@
 
 trait CryptoTag[T] {
   def algorithm: String
@@ -11,7 +12,7 @@ object CryptoTag {
     override lazy val algorithm: String = repr
   }
 
-  def fromStringTagged[T, K](repr: String): CryptoTag[T] @@ K = fromString[T](repr).taggedWith[K]
+  def fromStringTagged[T, K](repr: String): CryptoTag[T] @@ K = tag[K](fromString[T](repr))
 }
 
 abstract class WithCryptoTag[T](repr: String) {

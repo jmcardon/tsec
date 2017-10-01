@@ -1,20 +1,25 @@
 package tsec.signature.instance
 
-import cats.effect.{Async, Sync}
 import tsec.core.ByteUtils.ByteAux
-import tsec.signature.core.{SigAlgoTag, SignatureAlgebra, SignerDSL}
+import tsec.signature.core.{SigAlgoTag, SignerPrograms}
+import cats.instances.either._
 
-sealed abstract class JCASigner[F[_]: Sync, A: SigAlgoTag](
-    algebra: JCASigInterpreter[F, A]
+sealed abstract case class JCASigner[A: SigAlgoTag](
+    alg: JCASigInterpreterImpure[A]
 )(implicit aux: ByteAux[A])
-    extends SignerDSL[F, A](algebra)
+    extends SignerPrograms[SigErrorM, A] {
+
+  type PubK  = SigPublicKey[A]
+  type PrivK = SigPrivateKey[A]
+  type Cert  = SigCertificate[A]
+  val algebra: JCASigInterpreterImpure[A] = alg
+}
 
 object JCASigner {
 
-  def apply[F[_]: Sync, A: SigAlgoTag: ByteAux](implicit s: JCASigInterpreter[F, A]) =
-    new JCASigner[F, A](s) {}
+  def apply[A: SigAlgoTag: ByteAux](implicit s: JCASigInterpreterImpure[A]): JCASigner[A] =
+    new JCASigner[A](s) {}
 
-  implicit def genSigner[F[_]: Sync, A: SigAlgoTag: ByteAux](
-      implicit s: JCASigInterpreter[F, A]
-  ): JCASigner[F, A] = apply[F, A]
+  implicit def genSigner[A: SigAlgoTag: ByteAux](implicit s: JCASigInterpreterImpure[A]): JCASigner[A] = apply[A]
+
 }

@@ -12,7 +12,7 @@ class JCASymmetricCipher[A, M, P](
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
     paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, JEncryptionKey] {
+) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
 
   type C = JCipher
 
@@ -28,7 +28,7 @@ class JCASymmetricCipher[A, M, P](
    */
   protected[symmetric] def initEncryptor(
       e: JCipher,
-      secretKey: SecretKey[JEncryptionKey[A]]
+      secretKey: SecretKey[A]
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
@@ -38,7 +38,7 @@ class JCASymmetricCipher[A, M, P](
 
   protected[symmetric] def initDecryptor(
       decryptor: JCipher,
-      key: SecretKey[JEncryptionKey[A]],
+      key: SecretKey[A],
       iv: Array[Byte]
   ): Either[CipherKeyError, Unit] =
     Either
@@ -61,8 +61,8 @@ class JCASymmetricCipher[A, M, P](
     * @return
     */
   def encrypt(
-      plainText: PlainText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]]
+      plainText: PlainText,
+      key: SecretKey[A]
   ): Either[CipherError, CipherText[A, M, P]] =
     for {
       instance <- genInstance
@@ -84,8 +84,8 @@ class JCASymmetricCipher[A, M, P](
     * @return
     */
   def encryptAAD(
-      plainText: PlainText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]],
+      plainText: PlainText,
+      key: SecretKey[A],
       aad: AAD
   ): Either[CipherError, CipherText[A, M, P]] =
     for {
@@ -107,8 +107,8 @@ class JCASymmetricCipher[A, M, P](
     */
   def decrypt(
       cipherText: CipherText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]]
-  ): Either[CipherError, PlainText[A, M, P]] =
+      key: SecretKey[A]
+  ): Either[CipherError, PlainText] =
     for {
       instance <- genInstance
       _        <- initDecryptor(instance, key, cipherText.iv)
@@ -129,9 +129,9 @@ class JCASymmetricCipher[A, M, P](
     */
   def decryptAAD(
       cipherText: CipherText[A, M, P],
-      key: SecretKey[JEncryptionKey[A]],
+      key: SecretKey[A],
       aad: AAD
-  ): Either[CipherError, PlainText[A, M, P]] =
+  ): Either[CipherError, PlainText] =
     for {
       instance <- genInstance
       _        <- initDecryptor(instance, key, cipherText.iv)

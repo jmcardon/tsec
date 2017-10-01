@@ -16,15 +16,15 @@ import scala.util.Random
 /**
   * Ugly as shit but effective benchmarking code
   */
-object PoorMansBenchmark extends App{
+object PoorMansBenchmark extends App {
   val totalIterLen = 100000
 
-  val keys: Array[SecretKey[JEncryptionKey[AES128]]] = Array.fill(totalIterLen)(AES128.keyGen.generateKeyUnsafe())
+  val keys: Array[SecretKey[AES128]] = Array.fill(totalIterLen)(AES128.generateKeyUnsafe())
 
   val rand = new Random()
 
-  val plaintexts: Array[PlainText[AES128, GCM, NoPadding]] =
-    Array.fill(totalIterLen)(PlainText[AES128, GCM, NoPadding](("hellop" + rand.nextInt(1000)).getBytes()))
+  val plaintexts: Array[PlainText] =
+    Array.fill(totalIterLen)(PlainText(("hellop" + rand.nextInt(1000)).getBytes()))
 
   val eitherInterpreter: JCASymmetricCipher[AES128, GCM, NoPadding] =
     JCASymmetricCipher.getCipherUnsafe[AES128, GCM, NoPadding]
@@ -84,8 +84,7 @@ object PoorMansBenchmark extends App{
     }
   }, title = "ThreadLocal interpreter")
 
-  th.pbench(testIO(),title = "Symmetric IO interpreter")
-
+  th.pbench(testIO(), title = "Symmetric IO interpreter")
 
   /**
     * This is an ideal scenario, wherein you'd have only _one_ instance of
@@ -117,19 +116,20 @@ object PoorMansBenchmark extends App{
   }
 
   /**
-   * We test each io action
-   * to view the related overhead, but we do not care about sequencing them
-   *
-   */
+    * We test each io action
+    * to view the related overhead, but we do not care about sequencing them
+    *
+    */
   def testIO(): Unit = {
     var i = 0
-    while (i < totalIterLen){
-      ioThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
-          .map(f => {
-            bench3Array(i) = f
-          })
+    while (i < totalIterLen) {
+      ioThreadLocalInterpreter
+        .encrypt(plaintexts(i), keys(i))
+        .map(f => {
+          bench3Array(i) = f
+        })
         .unsafeRunSync()
-      i +=1
+      i += 1
     }
   }
 

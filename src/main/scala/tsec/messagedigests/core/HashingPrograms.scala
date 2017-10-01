@@ -4,12 +4,12 @@ import cats.data.{NonEmptyList, State}
 import shapeless._
 import tsec.core.ByteUtils.ByteAux
 
-abstract class HashingPrograms[K, T](
+abstract class HashingPrograms[T](
     algebra: HashAlgebra[T]
-)(implicit val p: PureHasher[K, T], gen: ByteAux[T]) {
+)(implicit gen: ByteAux[T]) {
 
   def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): T =
-    (algebra.hash _).andThen(f => gen.from(f::HNil))(cryptoPickler.pickle(toHash))
+    (algebra.hash _).andThen(f => gen.from(f :: HNil))(cryptoPickler.pickle(toHash))
 
   def hashBatch[C](toHash: List[C])(implicit cryptoPickler: CryptoPickler[C]): List[T] =
     algebra
