@@ -2,6 +2,6 @@ package tsec.mac
 
 package object imports {
 
-  type MacErrorM[A] = Either[MacError, A]
+  type MacErrorM[A] = Either[Throwable, A]
 
 }

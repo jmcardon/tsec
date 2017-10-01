@@ -26,7 +26,7 @@ sealed abstract class JWSMacCV[F[_], A](
     implicit hs: JWSSerializer[JWSMacHeader[A]],
     programs: MacPrograms[F, A, MacSigningKey],
     aux: ByteAux[A],
-    M: MonadError[F, MacError]
+    M: MonadError[F, Throwable]
 ) {
 
   /*
@@ -99,16 +99,11 @@ sealed abstract class JWSMacCV[F[_], A](
 }
 
 object JWSMacCV {
-  /*
-  This will simply coerce the type narrowing for MonadError. Particularly useful for cats-effect
-   */
-  private implicit def MonadErrorCoerce[F[_]](implicit M: MonadError[F, Throwable]): MonadError[F, MacError] =
-    M.asInstanceOf[MonadError[F, MacError]]
 
   implicit def genSigner[F[_], A: ByteAux](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       alg: MacPrograms[F, A, MacSigningKey],
-      monadError: MonadError[F, MacError]
+      monadError: MonadError[F, Throwable]
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
