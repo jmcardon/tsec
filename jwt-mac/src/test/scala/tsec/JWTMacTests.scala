@@ -6,11 +6,11 @@ import org.scalatest.MustMatchers
 import tsec.core.ByteUtils.ByteAux
 import tsec.jws.JWSSerializer
 import tsec.jws.mac._
+import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
 
 import scala.concurrent.duration._
-import tsec.jwt.claims.JWTClaims
-import tsec.mac.instance._
+import tsec.mac.imports._
 
 class JWTMacTests extends TestSpec with MustMatchers {
 

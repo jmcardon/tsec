@@ -1,8 +1,8 @@
 package tsec
 
 import cats.Eq
+import tsec.passwordhashers._
 import tsec.passwordhashers.core._
-import tsec.passwordhashers.syntax._
 import tsec.passwordhashers.instances._
 import cats.syntax.either._
 

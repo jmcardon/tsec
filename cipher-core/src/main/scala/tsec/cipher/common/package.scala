@@ -11,7 +11,7 @@ package object common {
   final case class CipherText[A, M, P](content: Array[Byte], iv: Array[Byte])
   final case class AAD(aad: Array[Byte]) extends AnyVal
 
-  def tagSpec[T](a: AlgorithmParameterSpec): AlgorithmParameterSpec @@ T = tag[T](a)
+  protected [tsec] def tagSpec[T](a: AlgorithmParameterSpec): AlgorithmParameterSpec @@ T = tag[T](a)
 
   type NoSuchInstanceError = NoSuchInstanceError.type
 

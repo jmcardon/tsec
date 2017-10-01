@@ -2,8 +2,8 @@ package tsec
 
 import java.security.MessageDigest
 
-import tsec.messagedigests.instances._
-import tsec.messagedigests.syntax._
+import tsec.messagedigests._
+import tsec.messagedigests.imports._
 import org.scalatest.MustMatchers
 import tsec.messagedigests.core.DigestTag
 import tsec.core.ByteUtils._

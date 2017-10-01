@@ -4,13 +4,13 @@ import cats.syntax.all._
 import tsec.core.ByteUtils._
 import tsec.jws.{JWSSerializer, JWSSignature}
 import tsec.jwt.algorithms.JWTSigAlgo
-import tsec.jwt.claims.JWTClaims
 import tsec.signature.core._
-import tsec.signature.instance._
+import tsec.signature.imports._
 import java.time.Instant
-import cats.instances.either._
 
+import cats.instances.either._
 import cats.MonadError
+import tsec.jwt.JWTClaims
 
 sealed abstract class JWSSigCV[F[_], A](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],

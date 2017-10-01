@@ -4,9 +4,9 @@ import cats.Monad
 import tsec.core.ByteUtils._
 import tsec.jws.{JWSJWT, JWSSerializer, JWSSignature}
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.jwt.claims.JWTClaims
-import tsec.mac.instance.{MacErrorM, MacSigningKey}
+import tsec.mac.imports.{MacErrorM, MacSigningKey}
 import cats.syntax.functor._
+import tsec.jwt.JWTClaims
 
 sealed abstract case class JWTMac[A](header: JWSMacHeader[A], body: JWTClaims, signature: JWSSignature[A])
     extends JWSJWT[A] {

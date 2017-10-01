@@ -3,17 +3,16 @@ package tsec
 import java.security.Security
 
 import cats.effect.IO
-
 import tsec.jws.signature.{JWSSigCV, JWSSignedHeader, JWTSig, JWTSigSync}
 import tsec.jwt.algorithms.JWTSigAlgo
-import tsec.jwt.claims.JWTClaims
-import tsec.signature.instance._
+import tsec.signature.imports._
 
 import scala.concurrent.duration._
 import java.time.Instant
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
+import tsec.jwt.JWTClaims
 
 
 

@@ -5,7 +5,7 @@ import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
 
 import cats.MonadError
 import shapeless.tag
-import tsec.signature.instance._
+import tsec.signature.imports._
 
 object ParseEncodedKeySpec {
 

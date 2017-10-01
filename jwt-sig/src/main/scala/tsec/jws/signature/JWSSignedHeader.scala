@@ -10,7 +10,7 @@ import tsec.jwt.header._
 import tsec.signature.core.SigAlgoTag
 import tsec.core.ByteUtils._
 import tsec.jws.header.JWSHeader
-import tsec.messagedigests.instances.{SHA1, SHA256}
+import tsec.messagedigests.imports.{SHA1, SHA256}
 
 case class JWSSignedHeader[A](
     `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"

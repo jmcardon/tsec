@@ -5,9 +5,9 @@ import tsec.core.ByteUtils.ByteAux
 import tsec.core.JKeyGenerator
 import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jwt.util.ParseEncodedKeySpec
-import tsec.mac.instance._
+import tsec.mac.imports._
 import tsec.signature.core.{SigAlgoTag, SignerPrograms}
-import tsec.signature.instance._
+import tsec.signature.imports._
 
 sealed trait JWA[A] {
   val jwtRepr: String

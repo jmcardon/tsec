@@ -5,8 +5,8 @@ import javax.crypto.Cipher
 import tsec.cipher.common._
 import tsec.cipher.common.mode.GCM
 import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.symmetric.instances._
-import tsec.cipher.symmetric.instances.threadlocal.{JCATLSymmetric, JCATLSymmetricPure}
+import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.imports.threadlocal.{JCATLSymmetric, JCATLSymmetricPure}
 
 import scala.util.Random
 

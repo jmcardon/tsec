@@ -6,10 +6,11 @@ import cats.implicits._
 import tsec.core.ByteUtils
 import tsec.core.ByteUtils._
 import tsec.jws._
-import tsec.jwt.claims.JWTClaims
 import tsec.mac.core.MacPrograms
-import tsec.mac.instance._
+import tsec.mac.imports._
 import java.time.Instant
+
+import tsec.jwt.JWTClaims
 
 /**
   * Our JWS Compressor, Signer and verifier (CV = Compressor and Verifier)

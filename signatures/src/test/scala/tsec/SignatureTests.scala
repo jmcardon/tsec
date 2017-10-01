@@ -7,7 +7,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
 import tsec.core.ByteUtils._
 import tsec.signature.core.SigAlgoTag
-import tsec.signature.instance._
+import tsec.signature.imports._
 
 class SignatureTests extends TestSpec with MustMatchers {
 

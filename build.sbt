@@ -87,7 +87,7 @@ lazy val cipherCore = Project(id = "cipher-core", base = file("cipher-core"))
   .settings(commonSettings)
   .dependsOn(common % "compile->compile;test->test")
 
-lazy val symmetricCipher = Project(id = "tsec-symmetric-cipher", base = file("symmetric-cipher"))
+lazy val symmetricCipher = Project(id = "tsec-symmetric-cipher", base = file("cipher-symmetric"))
   .settings(commonSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
