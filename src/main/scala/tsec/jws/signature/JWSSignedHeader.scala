@@ -12,21 +12,20 @@ import tsec.core.ByteUtils._
 import tsec.jws.header.JWSHeader
 import tsec.messagedigests.instances.{SHA1, SHA256}
 
-sealed abstract case class JWSSignedHeader[A: SigAlgoTag](
+case class JWSSignedHeader[A](
   `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
-  algorithm: JWTSigAlgo[A], //Algorithm, in this case a MAC
   contentType: Option[String] = None, // Optional header, preferably not used
   critical: Option[NonEmptyList[String]] = None, //Headers not to ignore, they must be understood by the JWT implementation
   jku: Option[String] = None, //Resource set for JWK
-  jwk: Option[String] = None, //JWK, eventually not a string,
+  jwk: Option[String] = None, //JWK
   kid: Option[String] = None, //JWK key hint
   x5u: Option[String] = None, //The "x5c" (X.509 certificate chain) Header Parameter
   x5t: Option[SHA1] = None, //sha1 hash
   `x5t#S256`: Option[SHA256] = None //sha256 hash
-) extends JWSHeader[A]
+)(implicit val algorithm: JWTSigAlgo[A]) extends JWSHeader[A]
 
 object JWSSignedHeader {
-  implicit def encoder[A: SigAlgoTag] = new Encoder[JWSSignedHeader[A]] {
+  implicit def encoder[A: JWTSigAlgo]: Encoder[JWSSignedHeader[A]] = new Encoder[JWSSignedHeader[A]] {
     def apply(a: JWSSignedHeader[A]): Json = Json.obj(
       ("typ", a.`type`.asJson),
       ("alg", a.algorithm.jwtRepr.asJson),
@@ -41,14 +40,14 @@ object JWSSignedHeader {
     )
   }
 
-  implicit def decoder[A: SigAlgoTag: JWTSigAlgo]: Decoder[JWSSignedHeader[A]] = new Decoder[JWSSignedHeader[A]] {
+  implicit def decoder[A: JWTSigAlgo]: Decoder[JWSSignedHeader[A]] = new Decoder[JWSSignedHeader[A]] {
     def apply(c: HCursor): Either[DecodingFailure, JWSSignedHeader[A]] =
       c.downField("alg")
         .as[Option[String]]
         .map(f => JWTSigAlgo.fromString[A](f.getOrElse(""))) match {
         case Right(opt) =>
           opt match {
-            case Some(o) =>
+            case Some(_) =>
               for {
                 t      <- c.downField("typ").as[Option[JWTtyp]]
                 cType  <- c.downField("cty").as[Option[String]]
@@ -62,7 +61,6 @@ object JWSSignedHeader {
               } yield
                 new JWSSignedHeader[A](
                   `type` = t,
-                  algorithm = o,
                   contentType = cType,
                   critical = crit,
                   jku = jku,
@@ -79,7 +77,7 @@ object JWSSignedHeader {
       }
   }
 
-  def genDeserializer[A: SigAlgoTag](
+  implicit def genDeserializer[A: JWTSigAlgo](
     implicit encoder: Encoder[JWSSignedHeader[A]],
     decoder: Decoder[JWSSignedHeader[A]]
   ): JWSSerializer[JWSSignedHeader[A]] = new JWSSerializer[JWSSignedHeader[A]] {

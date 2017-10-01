@@ -23,4 +23,5 @@ object JCASigner {
   implicit def genSigner[F[_]: Sync, A: SigAlgoTag: ByteAux](
       implicit s: JCASigInterpreter[F, A]
   ): JCASigner[F, A] = apply[F, A]
+
 }

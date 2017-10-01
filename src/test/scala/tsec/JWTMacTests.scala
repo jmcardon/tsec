@@ -1,6 +1,5 @@
 package tsec
 
-import java.time
 import java.time.Instant
 
 import org.scalatest.MustMatchers
@@ -13,7 +12,7 @@ import scala.concurrent.duration._
 import tsec.jwt.claims.JWTClaims
 import tsec.mac.instance._
 
-class JWTMacSpec extends TestSpec with MustMatchers {
+class JWTMacTests extends TestSpec with MustMatchers {
 
   def jwtBehavior[A: ByteAux](
       implicit algo: JWTMacAlgo[A],

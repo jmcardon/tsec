@@ -5,7 +5,7 @@ import tsec.core.ByteUtils._
 import tsec.core.JKeyGenerator
 import tsec.mac.instance.{MacSigningKey, _}
 
-class MacSpec extends TestSpec with MustMatchers {
+class MacTests extends TestSpec with MustMatchers {
 
 
   def macTest[T: ByteAux](implicit keyGen: JKeyGenerator[T, MacSigningKey, MacKeyBuildError], tag: MacTag[T]): Unit = {
