@@ -31,7 +31,7 @@ protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
     for {
       signature <- sigDSL.sign(toSign.asciiBytes, sigPrivateKey)
       concat    <- jwsSigAlgo.jcaToConcat(aux.to(signature).head)
-    } yield JWTSig(header, body, JWSSignature(aux.from(concat :: HNil)))
+    } yield JWTSig(header, body, JWSSignature[A](concat))
   }
 
   def signToString(header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A]): F[String] = {
@@ -46,7 +46,7 @@ protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
       jwt: String,
       extract: JWSSignedHeader[A] => SigPublicKey[A]
   ): F[JWTSig[A]] = {
-    val now = Instant.now()
+    val now                  = Instant.now()
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length != 3)
       M.raiseError[JWTSig[A]](defaultError)
@@ -54,10 +54,11 @@ protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
       val providedBytes: Array[Byte] = split(2).base64UrlBytes
       for {
         sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
-        header <-M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool <- sigDSL.verifyK(sigExtract, extract(header))
-        body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(claims =>
-        bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now))
+        header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
+        bool       <- sigDSL.verifyK(sigExtract, extract(header))
+        body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
+          claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
+        )
       } yield JWTSig(header, body, JWSSignature(providedBytes))
     }
   }
@@ -66,7 +67,7 @@ protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
       jwt: String,
       extract: JWSSignedHeader[A] => SigCertificate[A]
   ): F[JWTSig[A]] = {
-    val now = Instant.now()
+    val now                  = Instant.now()
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length != 3)
       M.raiseError[JWTSig[A]](defaultError)
@@ -74,10 +75,11 @@ protected[tsec] final class JWSSignatureCV[F[_], A: SigAlgoTag](
       val providedBytes: Array[Byte] = split(2).base64UrlBytes
       for {
         sigExtract <- jwsSigAlgo.concatToJCA(providedBytes)
-        header <-M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool <- sigDSL.verifyC(sigExtract, extract(header))
-        body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(claims =>
-          bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now))
+        header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
+        bool       <- sigDSL.verifyC(sigExtract, extract(header))
+        body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
+          claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
+        )
       } yield JWTSig(header, body, JWSSignature(providedBytes))
     }
   }
