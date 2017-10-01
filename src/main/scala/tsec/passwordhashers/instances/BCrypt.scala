@@ -18,7 +18,7 @@ object BCrypt {
         JBCrypt.checkpw(pass.pass, hashed.hashed)
     }
 
-  object BCryptAlgebra extends ImplAlgebra[BCrypt]
+  object BCryptAlgebra extends PWHashInterpreter[BCrypt]
 
   implicit object BCryptPasswordHasher
       extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, Rounds(DefaultBcryptRounds))(

@@ -13,21 +13,9 @@ protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: I
 
   implicit val keyGen: JKeyGenerator[T, SecretKey, CipherKeyBuildError] = this // useful for testing
 
-  /*
-     For key generators, we can restrict some keylengths using the underscore such as
-     AES_128. If it is present, remove the remainder.
-   */
-  private val tagAlgorithm: String = {
-    val underscoreIndex = tag.algorithm.indexOf("_")
-    if (underscoreIndex < 0)
-      tag.algorithm
-    else
-      tag.algorithm.substring(0, underscoreIndex)
-  }
-
   def keyLength: Int = tag.keyLength
 
-  def generator: KG = KG.getInstance(tagAlgorithm)
+  def generator: KG = KG.getInstance(tag.algorithm)
 
   def generateKeyUnsafe(): SecretKey[T] = {
     val gen = generator
@@ -52,7 +40,7 @@ protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: I
       throw CipherKeyBuildError("Incorrect key length")
     else
       SecretKey[T](
-        new SecretKeySpec(key, tagAlgorithm)
+        new SecretKeySpec(key, tag.algorithm)
       )
   }
 
@@ -66,7 +54,7 @@ protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: I
     else
       Right(
         SecretKey[T](
-          new SecretKeySpec(key, tagAlgorithm)
+          new SecretKeySpec(key, tag.algorithm)
         )
       )
   }
