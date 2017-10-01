@@ -1,4 +1,4 @@
-package fucc
+package tsec
 
 import java.security.MessageDigest
 

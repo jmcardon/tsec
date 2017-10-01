@@ -1,4 +1,4 @@
-package fucc
+package tsec
 
 import cats.Eq
 import tsec.passwordhashers.core.PasswordError

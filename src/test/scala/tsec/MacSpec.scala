@@ -1,4 +1,4 @@
-package fucc
+package tsec
 
 import org.scalatest.MustMatchers
 import tsec.core.ByteUtils._

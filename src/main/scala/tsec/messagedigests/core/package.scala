@@ -6,8 +6,6 @@ import shapeless.tag.@@
 package object core {
 
   type BytePickler[T] = T => Array[Byte]
-  type PickledLift[T] = Array[Byte] => T
-  type HashErr[T]     = Either[Throwable, T]
 
   sealed trait StringEncoding
   sealed trait UTF8  extends StringEncoding

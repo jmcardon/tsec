@@ -1,4 +1,4 @@
-package fucc
+package tsec
 
 import tsec.cipher.common.mode._
 import tsec.cipher.common.padding._

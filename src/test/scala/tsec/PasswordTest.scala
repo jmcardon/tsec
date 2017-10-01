@@ -1,4 +1,4 @@
-package fucc
+package tsec
 
 import tsec.passwordhashers.core._
 import tsec.passwordhashers.syntax._

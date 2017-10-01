@@ -10,4 +10,4 @@ import tsec.core.CryptoTag
   * @param keyLength key length in bits
   * @tparam T Parametrized cipher type
   */
-case class SymmetricAlgorithm[T](algorithm: String, keyLength: Int) extends CryptoTag[T]
+protected[tsec] case class SymmetricAlgorithm[T](algorithm: String, keyLength: Int) extends CryptoTag[T]
