@@ -9,7 +9,8 @@ sealed abstract class DefaultAuthEncryptor[A: SymmetricAlgorithm] {
   def getInstance: Either[NoSuchInstanceError, JCASymmetricCipher[A, GCM, NoPadding]] =
     JCASymmetricCipher[A, GCM, NoPadding]
 
-  @inline def keyGen(
+  @inline
+  def keyGen(
       implicit keyGenerator: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
   ): JKeyGenerator[A, SecretKey, CipherKeyBuildError] = keyGenerator
 }

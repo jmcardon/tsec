@@ -46,7 +46,7 @@ abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAl
   val keyFactoryAlgo: String = "RSA"
 
   private val defaultKeySize = 2048
-  private val strongKeySize = 4096
+  private val strongKeySize  = 4096
 
   implicit val sig: SigAlgoTag[A] = this
 
@@ -64,7 +64,7 @@ abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAl
   def generateKeyPairStrong: Either[SignatureKeyError, SigKeyPair[A]] =
     Either.catchNonFatal(generateKeyPairStrongUnsafe).mapError[SignatureKeyError]
 
-  def generateKeyPairStrongUnsafe: SigKeyPair[A] =  {
+  def generateKeyPairStrongUnsafe: SigKeyPair[A] = {
     val instance = KeyPairGenerator.getInstance(kt.keyFactoryAlgo)
     instance.initialize(strongKeySize)
     SigKeyPair.fromKeyPair[A](instance.generateKeyPair())

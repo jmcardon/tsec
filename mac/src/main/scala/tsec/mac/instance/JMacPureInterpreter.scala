@@ -7,7 +7,7 @@ import tsec.core.ByteUtils.ByteAux
 import tsec.mac.core.MacAlgebra
 
 sealed protected[tsec] abstract class JMacPureInterpreter[A: ByteAux](implicit macTag: MacTag[A])
-  extends MacAlgebra[IO, A, MacSigningKey] {
+    extends MacAlgebra[IO, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: IO[Mac] = IO(Mac.getInstance(macTag.algorithm))

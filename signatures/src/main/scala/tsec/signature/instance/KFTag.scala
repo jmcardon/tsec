@@ -22,7 +22,7 @@ trait KFTag[A] {
   def buildPublicKeyUnsafe(keyBytes: Array[Byte]): SigPublicKey[A]
 }
 
-trait RSAKFTag[A] extends KFTag[A]{
+trait RSAKFTag[A] extends KFTag[A] {
   def generateKeyPairStrong: Either[SignatureKeyError, SigKeyPair[A]]
 
   def generateKeyPairStrongUnsafe: SigKeyPair[A]

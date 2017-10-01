@@ -48,8 +48,8 @@ object JWTMac {
     s.sign(JWSMacHeader[A], body, key)
 
   def signToString[A: ByteAux: JWTMacAlgo](
-    body: JWTClaims,
-    key: MacSigningKey[A]
+      body: JWTClaims,
+      key: MacSigningKey[A]
   )(implicit s: JWSMacCV[MacErrorM, A]): MacErrorM[String] = s.signToString(JWSMacHeader[A], body, key)
 
   def signToString[A: ByteAux: JWTMacAlgo](

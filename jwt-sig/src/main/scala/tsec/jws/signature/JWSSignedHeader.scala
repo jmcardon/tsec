@@ -13,16 +13,17 @@ import tsec.jws.header.JWSHeader
 import tsec.messagedigests.instances.{SHA1, SHA256}
 
 case class JWSSignedHeader[A](
-  `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
-  contentType: Option[String] = None, // Optional header, preferably not used
-  critical: Option[NonEmptyList[String]] = None, //Headers not to ignore, they must be understood by the JWT implementation
-  jku: Option[String] = None, //Resource set for JWK
-  jwk: Option[String] = None, //JWK
-  kid: Option[String] = None, //JWK key hint
-  x5u: Option[String] = None, //The "x5c" (X.509 certificate chain) Header Parameter
-  x5t: Option[SHA1] = None, //sha1 hash
-  `x5t#S256`: Option[SHA256] = None //sha256 hash
-)(implicit val algorithm: JWTSigAlgo[A]) extends JWSHeader[A]
+    `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
+    contentType: Option[String] = None, // Optional header, preferably not used
+    critical: Option[NonEmptyList[String]] = None, //Headers not to ignore, they must be understood by the JWT implementation
+    jku: Option[String] = None, //Resource set for JWK
+    jwk: Option[String] = None, //JWK
+    kid: Option[String] = None, //JWK key hint
+    x5u: Option[String] = None, //The "x5c" (X.509 certificate chain) Header Parameter
+    x5t: Option[SHA1] = None, //sha1 hash
+    `x5t#S256`: Option[SHA256] = None //sha256 hash
+)(implicit val algorithm: JWTSigAlgo[A])
+    extends JWSHeader[A]
 
 object JWSSignedHeader {
   implicit def encoder[A: JWTSigAlgo]: Encoder[JWSSignedHeader[A]] = new Encoder[JWSSignedHeader[A]] {
@@ -78,8 +79,8 @@ object JWSSignedHeader {
   }
 
   implicit def genDeserializer[A: JWTSigAlgo](
-    implicit encoder: Encoder[JWSSignedHeader[A]],
-    decoder: Decoder[JWSSignedHeader[A]]
+      implicit encoder: Encoder[JWSSignedHeader[A]],
+      decoder: Decoder[JWSSignedHeader[A]]
   ): JWSSerializer[JWSSignedHeader[A]] = new JWSSerializer[JWSSignedHeader[A]] {
     def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWSSignedHeader[A]] =
       io.circe.parser.decode[JWSSignedHeader[A]](array.toUtf8String)
