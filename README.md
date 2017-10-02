@@ -80,3 +80,8 @@ Follow the instructions [here](http://tipsonubuntu.com/2016/07/31/install-oracle
 then use:
 
  `sudo apt-get install oracle-java8-unlimited-jce-policy` 
+ 
+## Big Thank you to:
+[Robert Soeldner](https://github.com/rsoeldner) (Contributor)
+[Edmund Noble](https://github.com/edmundnoble) (For the dank tagless)
+[Fabio Labella](https://github.com/systemfw) (For the great FP help)
