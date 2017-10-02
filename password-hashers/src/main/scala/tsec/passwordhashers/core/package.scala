@@ -15,6 +15,8 @@ package object core {
 
   type PasswordValidated[A] = Either[PasswordError, A]
   trait PasswordHasher[T] {
+    protected val defaultRounds: Rounds
+    def hashPw(pass: Password): T = hashPw(pass, defaultRounds)
     def hashPw(pass: Password, opt: Rounds): T
     def checkPassword(pass: Password, hashed: T): Boolean
   }

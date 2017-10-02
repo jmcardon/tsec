@@ -4,10 +4,10 @@ abstract class PWHashPrograms[F[_], A](algebra: PWHasherAlgebra[F, A], val defau
     implicit hasher: PasswordHasher[A]
 ) {
 
-  def hash(password: String): F[A] = algebra.hashPass(Password(password), default)
+  def hash(password: String): A = algebra.hashPassword(Password(password))
 
-  def setRoundsAndHash(password: String, rounds: Rounds): F[A] =
-    algebra.hashPass(Password(password), rounds)
+  def hassPassUnsafe(password: String, rounds: Rounds): F[A] =
+    algebra.hashPassUnsafe(Password(password), rounds)
 
-  def checkHashed(password: String, hashed: A): F[Boolean] = algebra.checkPass(Password(password), hashed)
+  def checkHashed(password: String, hashed: A): Boolean = algebra.checkPass(Password(password), hashed)
 }

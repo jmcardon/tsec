@@ -14,6 +14,10 @@ case class JWTSig[A](header: JWSSignedHeader[A], body: JWTClaims, signature: JWS
 
 object JWTSig {
 
+  def signAndBuild[A: JWTSigAlgo](body: JWTClaims, sigPrivateKey: SigPrivateKey[A])(
+    implicit sigCV: JWSSigCV[SigErrorM, A]
+  ): SigErrorM[JWTSig[A]] = sigCV.signAndBuild(JWSSignedHeader[A](), body, sigPrivateKey)
+
   def signAndBuild[A: JWTSigAlgo](header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A])(
       implicit sigCV: JWSSigCV[SigErrorM, A]
   ): SigErrorM[JWTSig[A]] = sigCV.signAndBuild(header, body, sigPrivateKey)
@@ -21,6 +25,10 @@ object JWTSig {
   def signToString[A: JWTSigAlgo](header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A])(
       implicit sigCV: JWSSigCV[SigErrorM, A]
   ): SigErrorM[String] = sigCV.signToString(header, body, sigPrivateKey)
+
+  def signToString[A: JWTSigAlgo](body: JWTClaims, sigPrivateKey: SigPrivateKey[A])(
+    implicit sigCV: JWSSigCV[SigErrorM, A]
+  ): SigErrorM[String] = sigCV.signToString(JWSSignedHeader[A](), body, sigPrivateKey)
 
   def verifyK[A: JWTSigAlgo](
       jwt: String,
@@ -45,6 +53,12 @@ object JWTSig {
   def verifyKI[A: JWTSigAlgo](
       jwt: JWTSig[A],
       extract: JWSSignedHeader[A] => SigPublicKey[A]
+  )(implicit sigCV: JWSSigCV[SigErrorM, A], hs: JWSSerializer[JWSSignedHeader[A]]): SigErrorM[JWTSig[A]] =
+    verifyK[A](jwt.toEncodedString, extract)
+
+  def verifyKI[A: JWTSigAlgo](
+    jwt: JWTSig[A],
+    extract: SigPublicKey[A]
   )(implicit sigCV: JWSSigCV[SigErrorM, A], hs: JWSSerializer[JWSSignedHeader[A]]): SigErrorM[JWTSig[A]] =
     verifyK[A](jwt.toEncodedString, extract)
 

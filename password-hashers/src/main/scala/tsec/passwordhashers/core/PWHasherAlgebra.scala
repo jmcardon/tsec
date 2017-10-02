@@ -2,7 +2,9 @@ package tsec.passwordhashers.core
 
 trait PWHasherAlgebra[F[_], A] {
 
-  def hashPass(p: Password, passwordOpt: Rounds): F[A]
+  def hashPassUnsafe(p: Password, passwordOpt: Rounds): F[A]
 
-  def checkPass(p: Password, hash: A): F[Boolean]
+  def hashPassword(p: Password): A
+
+  def checkPass(p: Password, hash: A): Boolean
 }

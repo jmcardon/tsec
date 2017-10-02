@@ -1,12 +1,14 @@
-package tsec.passwordhashers.instances
+package tsec.passwordhashers.imports
 
 import tsec.passwordhashers.core._
 
 case class HardenedSCrypt(hashed: String)
 
 object HardenedSCrypt {
-  implicit lazy val HardenedSCryptPasswordHasher =
+  implicit lazy val HardenedSCryptPasswordHasher: PasswordHasher[HardenedSCrypt] =
     new PasswordHasher[HardenedSCrypt] {
+      protected val defaultRounds: Rounds = Rounds(SCryptHardnedR)
+
       def hashPw(pass: Password, opt: Rounds): HardenedSCrypt =
         HardenedSCrypt(
           SCryptUtil.scrypt(pass.pass, math.pow(2, opt.rounds).toInt, SCryptHardnedR, SCryptHardenedP)

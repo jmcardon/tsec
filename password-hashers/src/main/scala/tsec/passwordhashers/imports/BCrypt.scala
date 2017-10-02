@@ -1,4 +1,4 @@
-package tsec.passwordhashers.instances
+package tsec.passwordhashers.imports
 
 import cats.syntax.either._
 import tsec.passwordhashers.core._
@@ -9,6 +9,9 @@ final case class BCrypt(hashed: String)
 object BCrypt {
   implicit lazy val BCryptHasher: PasswordHasher[BCrypt] =
     new PasswordHasher[BCrypt] {
+
+      protected val defaultRounds: Rounds = Rounds(DefaultBcryptRounds)
+
       def hashPw(pass: Password, opt: Rounds): BCrypt =
         BCrypt(
           JBCrypt.hashpw(pass.pass, JBCrypt.gensalt(opt.rounds))

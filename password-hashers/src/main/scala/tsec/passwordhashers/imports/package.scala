@@ -2,7 +2,7 @@ package tsec.passwordhashers
 
 import tsec.passwordhashers.core.{PWHashPrograms, PasswordValidated}
 
-package object instances {
+package object imports {
 
   /**
     * https://security.stackexchange.com/questions/17207/recommended-of-rounds-for-bcrypt

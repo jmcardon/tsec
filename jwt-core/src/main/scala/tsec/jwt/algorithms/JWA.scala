@@ -69,11 +69,15 @@ abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: ByteAux[A]) extend
     ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] =
     ParseEncodedKeySpec.derToConcat[F, A](bytes)
+
+  @inline def keyGen(implicit keyGen: ECKFTag[A]): ECKFTag[A] = keyGen
 }
 
 abstract class JWTRSASig[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A] {
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
+
+  @inline def keyGen(implicit keyGen: RSAKFTag[A]): RSAKFTag[A] = keyGen
 }
 
 object JWTSigAlgo {

@@ -1,4 +1,4 @@
-package tsec.passwordhashers.instances
+package tsec.passwordhashers.imports
 
 import java.security.SecureRandom
 import java.util.concurrent.atomic.LongAdder

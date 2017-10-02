@@ -1,6 +1,6 @@
 import cats.effect.IO
 
-class JWTMacExamples {
+object JWTMacExamples {
 
   import tsec.jwt._
   import tsec.jws.mac._
