@@ -1,6 +1,6 @@
 package tsec.cipher.symmetric.imports
 
-import tsec.core.CryptoTag
+import tsec.common.CryptoTag
 
 /**
   * Typeclass for propagating symmetric key algorithm information

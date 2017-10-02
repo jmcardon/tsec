@@ -3,8 +3,8 @@ package tsec.jws.mac
 import cats.{Monad, MonadError}
 import cats.effect.{Effect, IO}
 import cats.implicits._
-import tsec.core.ByteUtils
-import tsec.core.ByteUtils._
+import tsec.common.ByteUtils
+import tsec.common.ByteUtils._
 import tsec.jws._
 import tsec.mac.core.MacPrograms
 import tsec.mac.imports._

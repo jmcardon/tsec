@@ -1,7 +1,7 @@
 package tsec.jws.mac
 
 import cats.Monad
-import tsec.core.ByteUtils._
+import tsec.common.ByteUtils._
 import tsec.jws.{JWSJWT, JWSSerializer, JWSSignature}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.imports.{MacErrorM, MacSigningKey}

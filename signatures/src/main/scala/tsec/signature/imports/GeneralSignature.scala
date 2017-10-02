@@ -6,7 +6,7 @@ import java.security.{KeyFactory, KeyPairGenerator}
 import cats.syntax.either._
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
-import tsec.core.ErrorConstruct._
+import tsec.common.ErrorConstruct._
 import tsec.signature.core.SigAlgoTag
 
 abstract class GeneralSignature[A](signature: String, keyFactoryRepr: String) extends SigAlgoTag[A] with KFTag[A] {

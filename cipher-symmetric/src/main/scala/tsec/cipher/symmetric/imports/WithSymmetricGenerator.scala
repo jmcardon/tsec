@@ -3,7 +3,7 @@ package tsec.cipher.symmetric.imports
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator => KG, SecretKey => JSecretKey}
 import tsec.cipher.common.{CipherError, CipherKeyBuildError}
-import tsec.core.{ErrorConstruct, JKeyGenerator}
+import tsec.common.{ErrorConstruct, JKeyGenerator}
 import cats.syntax.either._
 
 protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: Int)

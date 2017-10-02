@@ -6,21 +6,25 @@ import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import org.scalatest.MustMatchers
 import tsec.messagedigests.core.DigestTag
-import tsec.core.ByteUtils._
+import tsec.common.ByteUtils._
 
 class HasherTest extends TestSpec with MustMatchers {
-  val str     = "hello World"
-  val strList = List("a", "a", "bcd")
+  val str              = "hello World"
+  val strList          = List("a", "a", "bcd")
+  implicit val pickler = defaultStringPickler
 
-  def hashTests[A: ByteAux](implicit tag: DigestTag[A], hasher: JHasher[A]): Unit = {
+  def hashTests[A](implicit tag: DigestTag[A], hasher: JHasher[A], aux: ByteAux[A]): Unit = {
 
     "A (base64 encoded) digitalHash and MessageDigest" should s"be equal for ${tag.algorithm}" in {
-      str.digestHash[A].toBase64String mustBe MessageDigest.getInstance(tag.algorithm).digest(str.utf8Bytes).toB64String
+      aux
+        .to(str.pickleAndHash[A])
+        .head
+        .toB64String mustBe MessageDigest.getInstance(tag.algorithm).digest(str.utf8Bytes).toB64String
     }
 
     "Batch hashing and sequential hashing" should s"be the same for ${tag.algorithm}" in {
-      val batchList = hasher.hashBatch(strList).map(_.toBase64String)
-      val seqList   = strList.map(_.digestHash[A].toBase64String)
+      val batchList = hasher.hashBatch(strList).map(h => aux.to(h).head.toB64String)
+      val seqList   = strList.map(b => aux.to(b.pickleAndHash[A]).head.toB64String)
       batchList must contain theSameElementsInOrderAs seqList
     }
 

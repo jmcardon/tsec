@@ -3,7 +3,7 @@ package tsec.mac.imports.threadlocal
 import javax.crypto.Mac
 
 import cats.effect.IO
-import tsec.core.QueueAlloc
+import tsec.common.QueueAlloc
 import tsec.mac.core.MacAlgebra
 import tsec.mac.imports.{MacSigningKey, MacTag}
 

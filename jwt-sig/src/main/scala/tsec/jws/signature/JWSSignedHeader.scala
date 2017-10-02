@@ -7,8 +7,7 @@ import tsec.jwt
 import tsec.jws._
 import tsec.jwt.algorithms._
 import tsec.jwt.header._
-import tsec.signature.core.SigAlgoTag
-import tsec.core.ByteUtils._
+import tsec.common.ByteUtils._
 import tsec.jws.header.JWSHeader
 import tsec.messagedigests.imports.{SHA1, SHA256}
 
@@ -36,8 +35,8 @@ object JWSSignedHeader {
       ("jwk", a.jwk.asJson),
       ("kid", a.kid.asJson),
       ("x5u", a.x5u.asJson),
-      ("x5t", a.x5t.map(_.toBase64String).asJson),
-      ("x5t#s256", a.`x5t#S256`.map(_.toBase64String).asJson)
+      ("x5t", a.x5t.map(_.array.toB64String).asJson),
+      ("x5t#s256", a.`x5t#S256`.map(_.array.toB64String).asJson)
     )
   }
 

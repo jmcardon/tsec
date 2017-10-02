@@ -7,7 +7,7 @@ import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-import tsec.core.ErrorConstruct
+import tsec.common.ErrorConstruct
 
 class JCASymmetricCipher[A, M, P](
     implicit algoTag: SymmetricAlgorithm[A],

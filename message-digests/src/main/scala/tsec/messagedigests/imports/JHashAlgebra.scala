@@ -3,7 +3,9 @@ package tsec.messagedigests.imports
 import java.security.MessageDigest
 
 import cats.Monoid
+import tsec.messagedigests.DigestLift
 import tsec.messagedigests.core._
+
 import scala.annotation.tailrec
 
 /**

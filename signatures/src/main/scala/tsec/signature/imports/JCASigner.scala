@@ -1,7 +1,7 @@
 package tsec.signature.imports
 
 import cats.instances.either._
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 import tsec.signature.core.{SigAlgoTag, SignerPrograms}
 
 sealed abstract case class JCASigner[A: SigAlgoTag](

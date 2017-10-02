@@ -1,4 +1,4 @@
-package tsec.core
+package tsec.common
 
 import shapeless.{::, Generic, HNil}
 import cats.syntax.either._

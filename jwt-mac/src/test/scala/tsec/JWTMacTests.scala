@@ -3,7 +3,7 @@ package tsec
 import java.time.Instant
 
 import org.scalatest.MustMatchers
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 import tsec.jws.JWSSerializer
 import tsec.jws.mac._
 import tsec.jwt.JWTClaims

@@ -9,7 +9,7 @@ import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
 import tsec.cipher.symmetric.imports.{SecretKey, SymmetricAlgorithm}
-import tsec.core.ErrorConstruct
+import tsec.common.ErrorConstruct
 
 abstract class JCATLSymmetric[A, M, P](
     implicit algoTag: SymmetricAlgorithm[A],

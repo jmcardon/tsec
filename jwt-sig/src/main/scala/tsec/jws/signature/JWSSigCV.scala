@@ -1,7 +1,7 @@
 package tsec.jws.signature
 
 import cats.syntax.all._
-import tsec.core.ByteUtils._
+import tsec.common.ByteUtils._
 import tsec.jws.{JWSSerializer, JWSSignature}
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature.core._

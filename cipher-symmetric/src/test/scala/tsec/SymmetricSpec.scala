@@ -5,8 +5,8 @@ import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.imports.{JCASymmetricCipher, SecretKey, SymmetricAlgorithm}
-import tsec.core.ByteUtils._
-import tsec.core.JKeyGenerator
+import tsec.common.ByteUtils._
+import tsec.common.JKeyGenerator
 
 import scala.annotation.tailrec
 import scala.util.Random

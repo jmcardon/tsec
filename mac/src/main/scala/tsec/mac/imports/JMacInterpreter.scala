@@ -3,7 +3,7 @@ package tsec.mac.imports
 import javax.crypto.Mac
 
 import cats.syntax.either._
-import tsec.core.ErrorConstruct
+import tsec.common.ErrorConstruct
 import tsec.mac.core.MacAlgebra
 
 /**

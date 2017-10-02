@@ -3,7 +3,7 @@ package tsec.mac.imports
 import javax.crypto.Mac
 
 import cats.effect.IO
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 import tsec.mac.core.MacAlgebra
 
 sealed protected[tsec] abstract class JMacPureInterpreter[A: ByteAux](implicit macTag: MacTag[A])

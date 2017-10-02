@@ -3,7 +3,7 @@ package tsec.jws.signature
 import cats.effect.Sync
 import tsec.jws.{JWSJWT, JWSSerializer, JWSSignature}
 import tsec.signature.imports.{SigCertificate, SigErrorM, SigPrivateKey, SigPublicKey}
-import tsec.core.ByteUtils._
+import tsec.common.ByteUtils._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
 

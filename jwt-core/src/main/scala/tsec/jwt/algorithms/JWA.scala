@@ -1,8 +1,8 @@
 package tsec.jwt.algorithms
 
 import cats.MonadError
-import tsec.core.ByteUtils.ByteAux
-import tsec.core.JKeyGenerator
+import tsec.common.ByteUtils.ByteAux
+import tsec.common.JKeyGenerator
 import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jwt.util.ParseEncodedKeySpec
 import tsec.mac.imports._

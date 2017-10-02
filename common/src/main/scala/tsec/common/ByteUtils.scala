@@ -1,4 +1,4 @@
-package tsec.core
+package tsec.common
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64

@@ -1,4 +1,4 @@
-package tsec.core
+package tsec.common
 
 import java.util.{ArrayDeque => Q}
 
@@ -8,7 +8,7 @@ import java.util.{ArrayDeque => Q}
   *
   * @tparam A
   */
-sealed trait QueueAlloc[A] {
+protected [tsec] sealed trait QueueAlloc[A] {
   protected[tsec] val local: ThreadLocal[Q[A]]
 
   /**

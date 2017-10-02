@@ -3,36 +3,34 @@ package tsec.cipher.symmetric.imports.experimental
 import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 import javax.crypto.{Cipher => JCipher}
 
-import cats.effect.IO
+import cats.effect.{IO, Sync}
+import cats.syntax.flatMap._
+import cats.syntax.functor._
 import tsec.cipher.common._
 import tsec.cipher.common.mode.ModeKeySpec
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
 import tsec.cipher.symmetric.imports.{SecretKey, SymmetricAlgorithm}
 
-sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
+sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
     implicit algoTag: SymmetricAlgorithm[A],
     modeSpec: ModeKeySpec[M],
-    paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[IO, A, M, P, SecretKey] {
+    paddingTag: Padding[P],
+    F: Sync[F]
+) extends SymmetricCipherAlgebra[F, A, M, P, SecretKey] {
 
   type C = JCipher
 
-  /*
-  This is our local optimization.
-  Using threadLocal + fixed thread pool,
-  you can abstract over
-   */
-  def genInstance: IO[JCipher] = IO {
+  def genInstance: F[JCipher] = F.delay {
     val inst = queue.poll()
     if (inst != null)
       inst
     else
-      JCASymmPureCAS.getJCipherUnsafe[A, M, P]
+      JCASymmPure.getJCipherUnsafe[A, M, P]
   }
 
-  def replace(instance: JCipher): IO[Unit] =
-    IO(queue.add(instance))
+  def replace(instance: JCipher): F[Boolean] =
+    F.delay(queue.add(instance))
 
   /*
   We defer the effects of the encryption/decryption initialization
@@ -40,18 +38,18 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
   protected[symmetric] def initEncryptor(
       instance: JCipher,
       secretKey: SecretKey[A]
-  ): IO[Unit] =
-    IO(instance.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
+  ): F[Unit] =
+    F.delay(instance.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
 
   protected[symmetric] def initDecryptor(
       instance: JCipher,
       key: SecretKey[A],
       iv: Array[Byte]
-  ): IO[Unit] =
-    IO(instance.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
+  ): F[Unit] =
+    F.delay(instance.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
 
-  protected[symmetric] def setAAD(e: JCipher, aad: AAD): IO[Unit] =
-    IO(e.updateAAD(aad.aad))
+  protected[symmetric] def setAAD(e: JCipher, aad: AAD): F[Unit] =
+    F.delay(e.updateAAD(aad.aad))
   /*
   End stateful ops
    */
@@ -66,12 +64,12 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
   def encrypt(
       plainText: PlainText,
       key: SecretKey[A]
-  ): IO[CipherText[A, M, P]] =
+  ) =
     for {
       instance  <- genInstance
       _         <- initEncryptor(instance, key)
-      encrypted <- IO(instance.doFinal(plainText.content))
-      iv        <- IO(instance.getIV)
+      encrypted <- F.delay(instance.doFinal(plainText.content))
+      iv        <- F.delay(instance.getIV)
       _         <- replace(instance)
     } yield CipherText(encrypted, iv)
 
@@ -89,13 +87,13 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
       plainText: PlainText,
       key: SecretKey[A],
       aad: AAD
-  ): IO[CipherText[A, M, P]] =
+  ): F[CipherText[A, M, P]] =
     for {
       instance  <- genInstance
       _         <- initEncryptor(instance, key)
       _         <- setAAD(instance, aad)
-      encrypted <- IO(instance.doFinal(plainText.content))
-      iv        <- IO(instance.getIV)
+      encrypted <- F.delay(instance.doFinal(plainText.content))
+      iv        <- F.delay(instance.getIV)
       _         <- replace(instance)
     } yield CipherText(encrypted, iv)
 
@@ -109,11 +107,11 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
   def decrypt(
       cipherText: CipherText[A, M, P],
       key: SecretKey[A]
-  ): IO[PlainText] =
+  ): F[PlainText] =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
-      decrypted <- IO(instance.doFinal(cipherText.content))
+      decrypted <- F.delay(instance.doFinal(cipherText.content))
       _         <- replace(instance)
     } yield PlainText(decrypted)
 
@@ -131,17 +129,17 @@ sealed abstract class JCASymmPureCAS[A, M, P](queue: JQueue[JCipher])(
       cipherText: CipherText[A, M, P],
       key: SecretKey[A],
       aad: AAD
-  ): IO[PlainText] =
+  ): F[PlainText] =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
       _         <- setAAD(instance, aad)
-      decrypted <- IO(instance.doFinal(cipherText.content))
+      decrypted <- F.delay(instance.doFinal(cipherText.content))
       _         <- replace(instance)
     } yield PlainText(decrypted)
 }
 
-object JCASymmPureCAS {
+object JCASymmPure {
 
   protected[imports] def getJCipherUnsafe[A, M, P](
       implicit algoTag: SymmetricAlgorithm[A],
@@ -178,11 +176,14 @@ object JCASymmPureCAS {
     * @tparam P Padding mode
     * @return
     */
-  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  def apply[F[_], A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
       queueLen: Int = 15
-  ): IO[JCASymmPureCAS[A, M, P]] =
+  )(implicit F: Sync[F]): F[JCASymmPure[F, A, M, P]] =
     for {
-      q <- IO(genQueueUnsafe(queueLen))
-    } yield new JCASymmPureCAS[A, M, P](q) {}
+      q <- F.delay(genQueueUnsafe(queueLen))
+    } yield new JCASymmPure[F, A, M, P](q) {}
+
+  implicit def genInstance[F[_]: Sync, A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]: F[JCASymmPure[F, A, M, P]] =
+    apply[F, A, M, P]()
 
 }

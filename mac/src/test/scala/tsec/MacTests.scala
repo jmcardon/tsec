@@ -1,8 +1,8 @@
 package tsec
 
 import org.scalatest.MustMatchers
-import tsec.core.ByteUtils._
-import tsec.core.JKeyGenerator
+import tsec.common.ByteUtils._
+import tsec.common.JKeyGenerator
 import tsec.mac.imports.{MacSigningKey, _}
 
 class MacTests extends TestSpec with MustMatchers {

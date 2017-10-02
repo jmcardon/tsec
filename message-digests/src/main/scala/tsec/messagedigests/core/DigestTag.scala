@@ -1,5 +1,5 @@
 package tsec.messagedigests.core
 
-import tsec.core.CryptoTag
+import tsec.common.CryptoTag
 
 trait DigestTag[T] extends CryptoTag[T]

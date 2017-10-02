@@ -1,4 +1,4 @@
-package tsec.core
+package tsec.common
 
 import javax.crypto.KeyGenerator
 
@@ -13,7 +13,7 @@ import cats.ApplicativeError
   * @tparam K the key type, i.e Symmetric cipher or Mac key
   * @tparam KE the key error type
   */
-trait JKeyGenerator[A, K[_], KE] {
+protected [tsec] trait JKeyGenerator[A, K[_], KE] {
 
   /**
     * The generator key length

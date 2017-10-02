@@ -4,7 +4,7 @@ import java.util.Base64
 
 import shapeless.tag
 import shapeless.tag.@@
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 
 sealed abstract case class JWSSignature[A](body: Array[Byte] @@ A)
 

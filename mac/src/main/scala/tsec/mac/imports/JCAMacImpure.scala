@@ -1,7 +1,7 @@
 package tsec.mac.imports
 
 import cats.implicits._
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 import tsec.mac.core.MacPrograms
 
 sealed class JCAMacImpure[A: MacTag: ByteAux](

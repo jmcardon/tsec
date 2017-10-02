@@ -1,5 +1,5 @@
 package tsec.cipher.common.padding
 
-import tsec.core.CryptoTag
+import tsec.common.CryptoTag
 
 trait Padding[T] extends CryptoTag[T]

@@ -3,7 +3,7 @@ package tsec.cipher.symmetric.imports
 import tsec.cipher.common.mode.CTR
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.common.{CipherKeyBuildError, NoSuchInstanceError}
-import tsec.core.JKeyGenerator
+import tsec.common.JKeyGenerator
 
 sealed abstract class DefaultEncryptor[A: SymmetricAlgorithm] {
   def getInstance: Either[NoSuchInstanceError, JCASymmetricCipher[A, CTR, NoPadding]] =

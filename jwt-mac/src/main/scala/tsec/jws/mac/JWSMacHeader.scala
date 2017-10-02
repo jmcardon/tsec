@@ -9,7 +9,7 @@ import tsec.jws.header.JWSHeader
 import tsec.jwt
 import tsec.jwt.header.JWTtyp
 import tsec.mac.imports.MacTag
-import tsec.core.ByteUtils._
+import tsec.common.ByteUtils._
 
 /**
   * A JWS header for JWT serialization.

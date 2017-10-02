@@ -1,7 +1,7 @@
 package tsec.messagedigests.imports
 
-import tsec.core.ByteUtils.ByteAux
-import tsec.core.CryptoTag
+import tsec.common.ByteUtils.ByteAux
+import tsec.common.CryptoTag
 import tsec.messagedigests.core._
 
 class JHasher[T: DigestTag](

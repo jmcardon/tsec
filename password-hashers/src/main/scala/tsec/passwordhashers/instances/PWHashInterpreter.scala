@@ -1,7 +1,7 @@
 package tsec.passwordhashers.instances
 
 import cats.implicits._
-import tsec.core.ErrorConstruct
+import tsec.common.ErrorConstruct
 import tsec.passwordhashers.core._
 
 class PWHashInterpreter[T](implicit hasher: PasswordHasher[T]) extends PWHasherAlgebra[PasswordValidated, T] {

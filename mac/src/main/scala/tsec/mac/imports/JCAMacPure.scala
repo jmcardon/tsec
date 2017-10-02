@@ -1,7 +1,7 @@
 package tsec.mac.imports
 
 import cats.effect.IO
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 import tsec.mac.core.MacPrograms
 
 class JCAMacPure[A: ByteAux: MacTag](algebra: JMacPureInterpreter[A])

@@ -1,7 +1,7 @@
 package tsec.mac.imports.threadlocal
 
 import cats.effect.IO
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 import tsec.mac.core.MacPrograms
 import tsec.mac.imports.{MacSigningKey, MacTag}
 

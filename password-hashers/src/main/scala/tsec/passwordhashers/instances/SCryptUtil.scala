@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.LongAdder
 import com.lambdaworks.codec.Base64
 import com.lambdaworks.crypto.{SCrypt => JSCrypt}
 import cats.syntax.either._
-import tsec.core.ByteUtils
+import tsec.common.ByteUtils
 
 /**
   * SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,

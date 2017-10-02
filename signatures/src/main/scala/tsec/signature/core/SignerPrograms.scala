@@ -3,7 +3,7 @@ package tsec.signature.core
 import cats.Monad
 import cats.implicits._
 import shapeless.HNil
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
 
 abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[A]) {
   type PubK

@@ -4,7 +4,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.spec.SecretKeySpec
 
 import cats.syntax.either._
-import tsec.core.{ErrorConstruct, JKeyGenerator}
+import tsec.common.{ErrorConstruct, JKeyGenerator}
 
 protected[tsec] abstract class WithMacSigningKey[A](algorithm: String, keyLen: Int)
     extends JKeyGenerator[A, MacSigningKey, MacKeyBuildError] {

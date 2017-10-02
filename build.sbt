@@ -77,7 +77,7 @@ lazy val root = Project(id = "tsec", base = file("."))
     passwordHashers
   )
 
-lazy val common = Project(id = "tsec-common", base = file("core"))
+lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
   .settings(publishSettings)
 
@@ -145,6 +145,21 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)
 
+lazy val examples = Project(id = "tsec-examples", base = file("examples"))
+  .settings(commonSettings)
+  .settings(jwtCommonLibs)
+  .settings(signatureLibs)
+  .settings(passwordHasherLibs)
+  .dependsOn(
+    symmetricCipher,
+    mac,
+    messageDigests,
+    signatures,
+    jwtMac,
+    jwtSig,
+    passwordHashers
+  )
+
 lazy val publishSettings = Seq(
   homepage := Some(url("https://github.com/jmcardon/tsec")),
   licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
@@ -153,7 +168,7 @@ lazy val publishSettings = Seq(
   apiURL := None,
   bintrayRepository := "tsec",
   pomExtra :=
-  <developers>
+    <developers>
     <developer>
       <id>jmcardon</id>
       <name>Jose Cardona</name>

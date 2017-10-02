@@ -3,7 +3,7 @@ package tsec.mac.core
 import cats.Monad
 import cats.syntax.all._
 import shapeless.HNil
-import tsec.core.ByteUtils
+import tsec.common.ByteUtils
 
 abstract class MacPrograms[F[_]: Monad, A, K[_]](val algebra: MacAlgebra[F, A, K])(implicit gen: ByteUtils.ByteAux[A]) {
 

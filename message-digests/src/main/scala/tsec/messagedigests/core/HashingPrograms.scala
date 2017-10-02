@@ -2,7 +2,8 @@ package tsec.messagedigests.core
 
 import cats.data.{NonEmptyList, State}
 import shapeless._
-import tsec.core.ByteUtils.ByteAux
+import tsec.common.ByteUtils.ByteAux
+import tsec.messagedigests._
 
 abstract class HashingPrograms[T](
     algebra: HashAlgebra[T]
@@ -10,6 +11,12 @@ abstract class HashingPrograms[T](
 
   def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): T =
     (algebra.hash _).andThen(f => gen.from(f :: HNil))(cryptoPickler.pickle(toHash))
+
+  def hashBytes(bytes: Array[Byte]): T =
+    gen.from(algebra.hash(bytes)::HNil)
+
+  def hashToByteArray(bytes: Array[Byte]): Array[Byte] =
+    algebra.hash(bytes)
 
   def hashBatch[C](toHash: List[C])(implicit cryptoPickler: CryptoPickler[C]): List[T] =
     algebra
@@ -24,7 +31,7 @@ abstract class HashingPrograms[T](
   def combineAndHash[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): T =
     (algebra.hash _).andThen(HashingPrograms.fromBytes[T])(toHash.map(cryptoPickler.pickle).reduceLeft(_ ++ _))
 
-  def consumeAndLift(state: algebra.S): T =
+  protected [tsec] def consumeAndLift(state: algebra.S): T =
     (algebra.consume _).andThen(HashingPrograms.fromBytes[T])(state)
 
   def hashCumulative[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): List[T] = {
