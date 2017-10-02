@@ -84,6 +84,7 @@ lazy val common = Project(id = "tsec-common", base = file("core"))
 lazy val passwordHashers = Project(id = "tsec-password", base = file("password-hashers"))
   .settings(commonSettings)
   .settings(passwordHasherLibs)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
 lazy val cipherCore = Project(id = "cipher-core", base = file("cipher-core"))
@@ -92,20 +93,24 @@ lazy val cipherCore = Project(id = "cipher-core", base = file("cipher-core"))
 
 lazy val symmetricCipher = Project(id = "tsec-symmetric-cipher", base = file("cipher-symmetric"))
   .settings(commonSettings)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
 
 lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(commonSettings)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
 lazy val messageDigests = Project(id = "tsec-messageDigests", base = file("message-digests"))
   .settings(commonSettings)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
 lazy val signatures = Project(id = "tsec-signatures", base = file("signatures"))
   .settings(commonSettings)
   .settings(signatureLibs)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
 lazy val jwtCore = Project(id = "tsec-jwt-core", base = file("jwt-core"))
@@ -118,6 +123,7 @@ lazy val jwtCore = Project(id = "tsec-jwt-core", base = file("jwt-core"))
 lazy val jwtMac = Project(id = "tsec-jwt-mac", base = file("jwt-mac"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(mac)
   .dependsOn(jwtCore)
@@ -126,6 +132,7 @@ lazy val jwtSig = Project(id = "tsec-jwt-sig", base = file("jwt-sig"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
   .settings(signatureLibs)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(jwtCore)
   .dependsOn(signatures)
@@ -146,16 +153,16 @@ lazy val publishSettings = Seq(
   apiURL := None,
   bintrayRepository := "tsec",
   pomExtra :=
-    <developers>
-      <developer>
-        <id>jmcardon</id>
-        <name>Jose Cardona</name>
-        <url>https://github.com/jmcardon/</url>
-      </developer>
-      <developer>
-        <id>rsoeldner</id>
-        <name>Robert Soeldner</name>
-        <url>https://github.com/rsoeldner/</url>
-      </developer>
-    </developers>
+  <developers>
+    <developer>
+      <id>jmcardon</id>
+      <name>Jose Cardona</name>
+      <url>https://github.com/jmcardon/</url>
+    </developer>
+    <developer>
+      <id>rsoeldner</id>
+      <name>Robert Soeldner</name>
+      <url>https://github.com/rsoeldner/</url>
+    </developer>
+  </developers>
 )
