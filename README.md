@@ -47,8 +47,6 @@ resolvers += "jmcardon at bintray" at "https://dl.bintray.com/jmcardon/tsec"
 | tsec-jwt-mac          | JWT implementation for Message Authentication signatures | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTMacExamples.scala)|
 | tsec-jwt-sig          | JWT implementation for Digital signatures                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTSignatureExamples.scala)|
 
-Examples coming soon.
-
 To include any of these packages in your project use:
 
 ```scala
