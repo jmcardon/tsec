@@ -68,7 +68,7 @@ object SymmetricCipherExamples {
 
   val advancedUsage2: IO[String] = for {
     instance  <- JCASymmPure[IO, AES128, GCM, NoPadding]()
-    key       <- Sync[IO].fromEither(AES128.generateKey())
+    key       <- AES128.generateLift[IO]
     encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
   } yield decrypted.content.toUtf8String

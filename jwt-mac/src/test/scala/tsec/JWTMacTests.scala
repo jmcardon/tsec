@@ -90,7 +90,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
     val res = for {
       key <- HMACSHA256.keyGen.generateKey()
       key2 <- HMACSHA384.keyGen.generateKey()
-      jwtString <- JWTMac.signToString[HMACSHA256](JWTClaims(), key)
+      jwtString <- JWTMac.buildToString[HMACSHA256](JWTClaims(), key)
       verif <- JWTMac.verifyFromString[HMACSHA384](jwtString, key2)
     } yield verif
 

@@ -22,17 +22,43 @@ case class JWTClaims(
     jwtId: Option[String] = None, //Case sensitive
     custom: Json = Json.Null // non standard. I copped out. Other things are most likely too inefficient to use
 ) {
-  def withExpiry(duration: FiniteDuration): JWTClaims = copy(expiration = Some(Instant.now.getEpochSecond + duration.toSeconds))
-  def withIAT(duration: FiniteDuration): JWTClaims = copy(issuedAt = Some(Instant.now.getEpochSecond + duration.toSeconds))
-  def withNBF(duration: FiniteDuration): JWTClaims = copy(notBefore = Some(Instant.now.getEpochSecond + duration.toSeconds))
-  def isNotExpired(now: Instant): Boolean = expiration.forall(e => now.isBefore(Instant.ofEpochSecond(e)))
-  def isExpired(now: Instant): Boolean = expiration.exists(e => now.isAfter(Instant.ofEpochSecond(e)))
-  def isAfterNBF(now: Instant): Boolean = notBefore.forall(e => now.isAfter(Instant.ofEpochSecond(e)))
+  def withExpiry(duration: FiniteDuration): JWTClaims =
+    copy(expiration = Some(Instant.now.getEpochSecond + duration.toSeconds))
+  def withIAT(duration: FiniteDuration): JWTClaims =
+    copy(issuedAt = Some(Instant.now.getEpochSecond + duration.toSeconds))
+  def withNBF(duration: FiniteDuration): JWTClaims =
+    copy(notBefore = Some(Instant.now.getEpochSecond + duration.toSeconds))
+  def isNotExpired(now: Instant): Boolean  = expiration.forall(e => now.isBefore(Instant.ofEpochSecond(e)))
+  def isExpired(now: Instant): Boolean     = expiration.exists(e => now.isAfter(Instant.ofEpochSecond(e)))
+  def isAfterNBF(now: Instant): Boolean    = notBefore.forall(e => now.isAfter(Instant.ofEpochSecond(e)))
   def isValidIssued(now: Instant): Boolean = issuedAt.forall(e => now.isAfter(Instant.ofEpochSecond(e)))
 
 }
 
-object JWTClaims extends JWSSerializer[JWTClaims]{
+object JWTClaims extends JWSSerializer[JWTClaims] {
+
+  def build(
+      issuer: Option[String] = None, //Case insensitive
+      subject: Option[String] = None, //Case-sensitive
+      audience: Option[Either[String, List[String]]] = None, //case-sensitive
+      expiration: Option[FiniteDuration],
+      notBefore: Option[FiniteDuration] = None,
+      jwtId: Option[String] = None, //Case sensitive
+      custom: Json = Json.Null
+  ): JWTClaims = {
+    val now = Instant.now().getEpochSecond
+    val iat = Some(now)
+    JWTClaims(
+      issuer,
+      subject,
+      audience,
+      expiration.map(_.toSeconds + now),
+      notBefore.map(_.toSeconds + now),
+      iat,
+      jwtId,
+      custom
+    )
+  }
 
   implicit val encoder: Encoder[JWTClaims] = new Encoder[JWTClaims] {
     def apply(a: JWTClaims): Json = Json.obj(
@@ -69,8 +95,8 @@ object JWTClaims extends JWSSerializer[JWTClaims]{
       } yield JWTClaims(iss, sub, aud, expiration, nbf, iat, jwtid, custom)
   }
 
-
   def serializeToUtf8(body: JWTClaims): Array[Byte] = JWTPrinter.pretty(body.asJson).getBytes(StandardCharsets.UTF_8)
 
-  def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWTClaims] = decode[JWTClaims](new String(array, StandardCharsets.UTF_8))
+  def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWTClaims] =
+    decode[JWTClaims](new String(array, StandardCharsets.UTF_8))
 }

@@ -38,21 +38,21 @@ object JWTMac {
     * @tparam A
     * @return
     */
-  def sign[A: ByteAux: JWTMacAlgo](header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A])(
+  def generateSignature[A: ByteAux: JWTMacAlgo](header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A])(
       implicit s: JWSMacCV[MacErrorM, A]
   ): MacErrorM[JWSSignature[A]] = s.sign(header, body, key)
 
-  def signDefault[A: ByteAux: JWTMacAlgo](body: JWTClaims, key: MacSigningKey[A])(
+  def generateSignature[A: ByteAux: JWTMacAlgo](body: JWTClaims, key: MacSigningKey[A])(
       implicit s: JWSMacCV[MacErrorM, A]
   ): MacErrorM[JWSSignature[A]] =
     s.sign(JWSMacHeader[A], body, key)
 
-  def signToString[A: ByteAux: JWTMacAlgo](
+  def buildToString[A: ByteAux: JWTMacAlgo](
       body: JWTClaims,
       key: MacSigningKey[A]
   )(implicit s: JWSMacCV[MacErrorM, A]): MacErrorM[String] = s.signToString(JWSMacHeader[A], body, key)
 
-  def signToString[A: ByteAux: JWTMacAlgo](
+  def buildToString[A: ByteAux: JWTMacAlgo](
       header: JWSMacHeader[A],
       body: JWTClaims,
       key: MacSigningKey[A]
@@ -81,26 +81,58 @@ object JWTMac {
   def toEncodedString[A: ByteAux: JWTMacAlgo](
       jwt: JWTMac[A]
   )(implicit s: JWSMacCV[MacErrorM, A]): String = s.toEncodedString(jwt)
+}
 
-  def liftF[F[_]: Monad, A: ByteAux: JWTMacAlgo](
+object JWTMacM {
+  /*
+ Methods abstracted over F[_]
+   */
+  def build[F[_]: Monad, A: ByteAux: JWTMacAlgo](
       claims: JWTClaims,
       key: MacSigningKey[A]
   )(implicit s: JWSMacCV[F, A]): F[JWTMac[A]] = {
     val header = JWSMacHeader[A]
-    signF[F, A](header, claims, key).map(sig => buildToken[A](header, claims, sig))
+    generateSignature[F, A](header, claims, key).map(sig => JWTMac.buildToken[A](header, claims, sig))
   }
 
-  def signF[F[_]: Monad, A: ByteAux: JWTMacAlgo](header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A])(
+  def generateSignature[F[_]: Monad, A: ByteAux: JWTMacAlgo](
+      header: JWSMacHeader[A],
+      body: JWTClaims,
+      key: MacSigningKey[A]
+  )(
       implicit s: JWSMacCV[F, A]
   ): F[JWSSignature[A]] = s.sign(header, body, key)
 
-  def signToStringF[F[_]: Monad, A: ByteAux: JWTMacAlgo](
+  def generateSignature[F[_]: Monad, A: ByteAux: JWTMacAlgo](body: JWTClaims, key: MacSigningKey[A])(
+      implicit s: JWSMacCV[F, A]
+  ): F[JWSSignature[A]] = s.sign(JWSMacHeader[A], body, key)
+
+  def buildToString[F[_]: Monad, A: ByteAux: JWTMacAlgo](
       header: JWSMacHeader[A],
       body: JWTClaims,
       key: MacSigningKey[A]
   )(implicit s: JWSMacCV[F, A]): F[String] = s.signToString(header, body, key)
 
-  def verifyF[F[_]: Monad, A: ByteAux: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
+  def buildToString[F[_]: Monad, A: ByteAux: JWTMacAlgo](
+      body: JWTClaims,
+      key: MacSigningKey[A]
+  )(implicit s: JWSMacCV[F, A]): F[String] = s.signToString(JWSMacHeader[A], body, key)
+
+  def verify[F[_]: Monad, A: ByteAux: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
       implicit s: JWSMacCV[F, A]
   ): F[Boolean] = s.verify(jwt, key)
+
+  def verifyAndParse[F[_]: Monad, A](jwt: String, key: MacSigningKey[A])(
+      implicit s: JWSMacCV[F, A]
+  ): F[JWTMac[A]] =
+    s.verifyAndParse(jwt, key)
+
+  def verifyFromString[F[_]: Monad, A: ByteAux: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
+      implicit s: JWSMacCV[F, A]
+  ): F[Boolean] = s.verify(jwt, key)
+
+  def verifyFromInstance[F[_]: Monad, A: ByteAux: JWTMacAlgo](jwt: JWTMac[A], key: MacSigningKey[A])(
+      implicit hs: JWSSerializer[JWSMacHeader[A]],
+      cv: JWSMacCV[F, A]
+  ): F[Boolean] = cv.verify(jwt.toEncodedString, key)
 }
