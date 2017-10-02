@@ -13,6 +13,9 @@ sealed abstract class DefaultAuthEncryptor[A: SymmetricAlgorithm] {
   def keyGen(
       implicit keyGenerator: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
   ): JKeyGenerator[A, SecretKey, CipherKeyBuildError] = keyGenerator
+
+  def fromSingleArray(bytes: Array[Byte]): Either[CipherTextError, CipherText[A, GCM, NoPadding]] =
+    CipherText.fromSingleArray[A, GCM, NoPadding](bytes)
 }
 
 object DefaultAuthEncryptor extends DefaultAuthEncryptor[AES128]

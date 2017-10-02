@@ -20,6 +20,8 @@ object GCM {
   val GCMIvOptionalLength = 12
   implicit lazy val spec = new ModeKeySpec[GCM] {
 
+
+    val ivLength: Int = GCMIvOptionalLength
     /**
       * Cache our random, and seed it properly as per
       * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/

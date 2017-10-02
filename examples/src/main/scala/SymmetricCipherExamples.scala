@@ -38,6 +38,18 @@ object SymmetricCipherExamples {
   } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
 
   /*
+  You can also turn it into a singlular array with the IV concatenated at the end
+   */
+  val onlyEncrypt2: Either[CipherError, String] = for {
+    instance  <- DefaultEncryptor.getInstance //Instances are unsafe! Some JVMs may not have particular instances
+    key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
+    encrypted <- instance.encrypt(PlainText(toEncrypt), key) //Encrypt our message
+    array = encrypted.toSingleArray
+    from      <- DefaultEncryptor.fromSingleArray(array)
+    decrypted <- instance.decrypt(from, key)
+  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+
+  /*
   An authenticated encryption and decryption
    */
   val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)

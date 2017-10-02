@@ -11,6 +11,8 @@ import tsec.cipher.common._
 abstract class DefaultModeKeySpec[T](repr: String, ivLen: Int) {
   implicit val spec = new ModeKeySpec[T] {
 
+    val ivLength: Int = ivLen
+
     /**
       * Cache our random, and seed it properly as per
       * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
