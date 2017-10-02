@@ -1,9 +1,11 @@
+```
 ________________________________________  
 \__    ___/   _____/\_   _____/\_   ___ \ 
   |    |  \_____  \  |    __)_ /    \  \/ 
   |    |  /        \ |        \\     \____
   |____| /_______  //_______  / \______  /
                  \/         \/         \/ 
+```
 # TSEC: A type-safe, functional, general purpose security and cryptography library.
 
 Latest Release: 0.0.1-M1
