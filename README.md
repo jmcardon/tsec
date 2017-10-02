@@ -8,21 +8,11 @@ ________________________________________
 ```
 # TSEC: A type-safe, functional, general purpose security and cryptography library.
 
-Latest Release: 0.0.1-M1
+### Latest Release: 0.0.1-M1
 
-Contains:
-- Symmetric Encryption
-- Asymmetric Encryption
-- Message Digests
-- Message Authentication (MAC)
-- Password Hashing BCrypt and SCrypt
-- Digital Signatures (RSA with SHA, ECDSA with SHA and DSA with SHA)
-- JWT (JWS with JWT serialization), both MAC and Signature (JWA spec is a WIP)
+For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
-For the current progress, please refer to the [roadmap](https://github.com/jmcardon/tsec/issues/7)
-
-
-V0.0.1-M1 is here for scala 2.12+ and Cats 1.0.0-MF!
+0.0.1-M1 is here for scala 2.12+ and Cats 1.0.0-MF!
 
 To get started, if you are on sbt 0.13.16+, add
 
@@ -83,5 +73,7 @@ then use:
  
 ## Big Thank you to:
 [Robert Soeldner](https://github.com/rsoeldner) (Contributor)
+
 [Edmund Noble](https://github.com/edmundnoble) (For the dank tagless)
+
 [Fabio Labella](https://github.com/systemfw) (For the great FP help)
