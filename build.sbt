@@ -68,7 +68,7 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
 lazy val root = Project(id = "tsec", base = file("."))
   .settings(commonSettings)
   .aggregate(
-  symmetricCipher,
+    symmetricCipher,
     mac,
     messageDigests,
     signatures,
@@ -77,7 +77,9 @@ lazy val root = Project(id = "tsec", base = file("."))
     passwordHashers
   )
 
-lazy val common = Project(id = "tsec-common", base = file("core")).settings(commonSettings)
+lazy val common = Project(id = "tsec-common", base = file("core"))
+  .settings(commonSettings)
+  .settings(publishSettings)
 
 lazy val passwordHashers = Project(id = "tsec-password", base = file("password-hashers"))
   .settings(commonSettings)
@@ -135,3 +137,25 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)
+
+lazy val publishSettings = Seq(
+  homepage := Some(url("https://github.com/jmcardon/tsec")),
+  licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
+  scmInfo := Some(ScmInfo(url("https://github.com/jmcardon/tsec"), "scm:git:git@github.com:jmcardon/tsec.git")),
+  autoAPIMappings := true,
+  apiURL := None,
+  bintrayRepository := "tsec",
+  pomExtra :=
+    <developers>
+      <developer>
+        <id>jmcardon</id>
+        <name>Jose Cardona</name>
+        <url>https://github.com/jmcardon/</url>
+      </developer>
+      <developer>
+        <id>rsoeldner</id>
+        <name>Robert Soeldner</name>
+        <url>https://github.com/rsoeldner/</url>
+      </developer>
+    </developers>
+)

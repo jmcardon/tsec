@@ -10,3 +10,5 @@ Contains:
 - JWT (JWS with JWT serialization), both MAC and Signature (JWA spec is a WIP)
 
 For the current progress, please refer to the [roadmap](https://github.com/jmcardon/tsec/issues/7)
+
+Rather close to release.
