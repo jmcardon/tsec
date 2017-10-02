@@ -36,16 +36,16 @@ or
 resolvers += "jmcardon at bintray" at "https://dl.bintray.com/jmcardon/tsec"
 ```
 
-| Name                  | Description                                              |
-| -----                 | ----------                                               |
-| tsec-common           | Common crypto utilities                                  |
-| tsec-password         | Password hashers: BCrypt and Scrypt                      |
-| tsec-symmetric-cipher | Symmetric encryption utilities!                          |
-| tsec-mac              | Message Authentication                                   |
-| tsec-signatures       | Digital signatures                                       |
-| tsec-messageDigests   | Message Digests (Hashing)                                |
-| tsec-jwt-mac          | JWT implementation for Message Authentication signatures |
-| tsec-jwt-sig          | JWT implementation for Digital signatures                |
+| Name                  | Description                                              | Examples |
+| -----                 | ----------                                               | -------- |
+| tsec-common           | Common crypto utilities                                  |          |
+| tsec-password         | Password hashers: BCrypt and Scrypt                      | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/PasswordHashingExamples.scala)|
+| tsec-symmetric-cipher | Symmetric encryption utilities!                          | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SymmetricCipherExamples.scala)|
+| tsec-mac              | Message Authentication                                   | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MacExamples.scala)|
+| tsec-signatures       | Digital signatures                                       | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SignatureExamples.scala)|
+| tsec-messageDigests   | Message Digests (Hashing)                                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala)|
+| tsec-jwt-mac          | JWT implementation for Message Authentication signatures | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTMacExamples.scala)|
+| tsec-jwt-sig          | JWT implementation for Digital signatures                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTSignatureExamples.scala)|
 
 Examples coming soon.
 
