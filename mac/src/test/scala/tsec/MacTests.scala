@@ -16,7 +16,7 @@ class MacTests extends TestSpec with MustMatchers {
     it should "Sign then verify the same encrypted data properly" in {
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
 
-      val res: Either[MacError, Boolean] = for {
+      val res: Either[Throwable, Boolean] = for {
         k <- keyGen.generateKey()
         signed <- instance.sign(dataToSign, k)
         verified <- instance.verify(dataToSign, signed, k)
@@ -28,7 +28,7 @@ class MacTests extends TestSpec with MustMatchers {
     it should "sign to the same message" in {
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
 
-      val res: Either[MacError, Boolean] = for {
+      val res: Either[Throwable, Boolean] = for {
         k <- keyGen.generateKey()
         signed1 <- instance.algebra.sign(dataToSign, k)
         signed2 <- instance.algebra.sign(dataToSign, k)
@@ -40,7 +40,7 @@ class MacTests extends TestSpec with MustMatchers {
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
       val incorrect = "hello my kekistanis".utf8Bytes
 
-      val res: Either[MacError, Boolean] = for {
+      val res: Either[Throwable, Boolean] = for {
         k <- keyGen.generateKey()
         signed1 <- instance.sign(dataToSign, k)
         cond <- instance.verify(incorrect,signed1, k)
@@ -53,7 +53,7 @@ class MacTests extends TestSpec with MustMatchers {
 
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
 
-      val res: Either[MacError, Boolean] = for {
+      val res: Either[Throwable, Boolean] = for {
         k <- keyGen.generateKey()
         k2 <- keyGen.generateKey()
         signed1 <- instance.sign(dataToSign, k)
