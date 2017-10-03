@@ -2,10 +2,9 @@ package tsec.signature.core
 
 import cats.Monad
 import cats.implicits._
-import shapeless.HNil
-import tsec.common.ByteUtils.ByteAux
+import tsec.common.ByteEV
 
-abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[A]) {
+abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteEV[A]) {
   type PubK
   type PrivK
   type Cert
@@ -17,7 +16,7 @@ abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[
       _        <- algebra.initSign(instance, p)
       _        <- algebra.loadBytes(content, instance)
       signed   <- algebra.sign(instance)
-    } yield aux.from(signed :: HNil)
+    } yield aux.fromArray(signed)
 
   def verifyK(toSign: Array[Byte], signed: Array[Byte], k: PubK): F[Boolean] =
     for {
@@ -27,7 +26,7 @@ abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[
       verified <- algebra.verify(signed, instance)
     } yield verified
 
-  def verifyKI(toSign: Array[Byte], signed: A, k: PubK): F[Boolean] = verifyK(toSign, aux.to(signed).head, k)
+  def verifyKI(toSign: Array[Byte], signed: A, k: PubK): F[Boolean] = verifyK(toSign, aux.toArray(signed), k)
 
   def verifyC(toSign: Array[Byte], signed: Array[Byte], c: Cert): F[Boolean] =
     for {
@@ -37,7 +36,7 @@ abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteAux[
       verified <- algebra.verify(signed, instance)
     } yield verified
 
-  def verifyCI(toSign: Array[Byte], signed: A, c: Cert): F[Boolean] = verifyC(toSign, aux.to(signed).head, c)
+  def verifyCI(toSign: Array[Byte], signed: A, c: Cert): F[Boolean] = verifyC(toSign, aux.toArray(signed), c)
 
 }
 

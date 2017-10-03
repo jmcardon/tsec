@@ -1,9 +1,9 @@
 package tsec.jws.signature
 
+import tsec.common._
 import cats.effect.Sync
 import tsec.jws.{JWSJWT, JWSSerializer, JWSSignature}
 import tsec.signature.imports.{SigCertificate, SigErrorM, SigPrivateKey, SigPublicKey}
-import tsec.common.ByteUtils._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
 
@@ -15,7 +15,7 @@ case class JWTSig[A](header: JWSSignedHeader[A], body: JWTClaims, signature: JWS
 object JWTSig {
 
   def signAndBuild[A: JWTSigAlgo](body: JWTClaims, sigPrivateKey: SigPrivateKey[A])(
-    implicit sigCV: JWSSigCV[SigErrorM, A]
+      implicit sigCV: JWSSigCV[SigErrorM, A]
   ): SigErrorM[JWTSig[A]] = sigCV.signAndBuild(JWSSignedHeader[A](), body, sigPrivateKey)
 
   def signAndBuild[A: JWTSigAlgo](header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A])(
@@ -27,7 +27,7 @@ object JWTSig {
   ): SigErrorM[String] = sigCV.signToString(header, body, sigPrivateKey)
 
   def signToString[A: JWTSigAlgo](body: JWTClaims, sigPrivateKey: SigPrivateKey[A])(
-    implicit sigCV: JWSSigCV[SigErrorM, A]
+      implicit sigCV: JWSSigCV[SigErrorM, A]
   ): SigErrorM[String] = sigCV.signToString(JWSSignedHeader[A](), body, sigPrivateKey)
 
   def verifyK[A: JWTSigAlgo](
@@ -57,8 +57,8 @@ object JWTSig {
     verifyK[A](jwt.toEncodedString, extract)
 
   def verifyKI[A: JWTSigAlgo](
-    jwt: JWTSig[A],
-    extract: SigPublicKey[A]
+      jwt: JWTSig[A],
+      extract: SigPublicKey[A]
   )(implicit sigCV: JWSSigCV[SigErrorM, A], hs: JWSSerializer[JWSSignedHeader[A]]): SigErrorM[JWTSig[A]] =
     verifyK[A](jwt.toEncodedString, extract)
 

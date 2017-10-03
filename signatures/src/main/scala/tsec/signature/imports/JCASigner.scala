@@ -1,12 +1,12 @@
 package tsec.signature.imports
 
+import tsec.common.ByteEV
 import cats.instances.either._
-import tsec.common.ByteUtils.ByteAux
 import tsec.signature.core.{SigAlgoTag, SignerPrograms}
 
 sealed abstract case class JCASigner[A: SigAlgoTag](
     alg: JCASigInterpreterImpure[A]
-)(implicit aux: ByteAux[A])
+)(implicit aux: ByteEV[A])
     extends SignerPrograms[SigErrorM, A] {
 
   type PubK  = SigPublicKey[A]
@@ -17,9 +17,9 @@ sealed abstract case class JCASigner[A: SigAlgoTag](
 
 object JCASigner {
 
-  def apply[A: SigAlgoTag: ByteAux](implicit s: JCASigInterpreterImpure[A]): JCASigner[A] =
+  def apply[A: SigAlgoTag: ByteEV](implicit s: JCASigInterpreterImpure[A]): JCASigner[A] =
     new JCASigner[A](s) {}
 
-  implicit def genSigner[A: SigAlgoTag: ByteAux](implicit s: JCASigInterpreterImpure[A]): JCASigner[A] = apply[A]
+  implicit def genSigner[A: SigAlgoTag: ByteEV](implicit s: JCASigInterpreterImpure[A]): JCASigner[A] = apply[A]
 
 }

@@ -3,7 +3,7 @@ package tsec
 import java.time.Instant
 
 import org.scalatest.MustMatchers
-import tsec.common.ByteUtils.ByteAux
+import tsec.common._
 import tsec.jws.JWSSerializer
 import tsec.jws.mac._
 import tsec.jwt.JWTClaims
@@ -14,7 +14,7 @@ import tsec.mac.imports._
 
 class JWTMacTests extends TestSpec with MustMatchers {
 
-  def jwtBehavior[A: ByteAux](
+  def jwtBehavior[A: ByteEV](
     implicit algo: JWTMacAlgo[A],
     cv: JWSMacCV[MacErrorM, A],
     hs: JWSSerializer[JWSMacHeader[A]]

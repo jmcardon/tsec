@@ -1,7 +1,6 @@
 package tsec.signature.imports
 
 import java.security.Signature
-
 import cats.syntax.either._
 import tsec.common.ErrorConstruct._
 import tsec.signature.core.{SigAlgoTag, SignatureAlgebra}

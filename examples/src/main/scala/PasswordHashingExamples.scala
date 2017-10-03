@@ -1,5 +1,3 @@
-import tsec.passwordhashers.core.PasswordValidated
-
 object PasswordHashingExamples {
 
   import tsec.passwordhashers._

@@ -24,7 +24,7 @@ object SymmetricCipherExamples {
    */
   import tsec.cipher.common._
   import tsec.cipher.symmetric.imports._
-  import tsec.common.ByteUtils._
+  import tsec.common._
 
   //Using the default Encryptor (note: Not authenticated. For most cases, you want some sort of authentication to it,
   //Either MAC or An AEAD cipher, as I'll show next

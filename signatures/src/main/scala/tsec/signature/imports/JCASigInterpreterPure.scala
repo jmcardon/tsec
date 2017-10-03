@@ -1,7 +1,6 @@
 package tsec.signature.imports
 
 import java.security.Signature
-
 import cats.effect.Sync
 import tsec.signature.core._
 

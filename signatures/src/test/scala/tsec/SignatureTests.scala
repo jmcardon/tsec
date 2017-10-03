@@ -2,10 +2,10 @@ package tsec
 
 import java.security.Security
 
+import tsec.common._
 import cats.effect.{Effect, IO}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
-import tsec.common.ByteUtils._
 import tsec.signature.core.SigAlgoTag
 import tsec.signature.imports._
 
@@ -20,7 +20,7 @@ class SignatureTests extends TestSpec with MustMatchers {
   def sigIOTests[A](
       implicit algoTag: SigAlgoTag[A],
       interp: JCASignerPure[IO, A],
-      gen: ByteAux[A],
+      gen: ByteEV[A],
       ecKFTag: KFTag[A]
   ): Unit = {
 
