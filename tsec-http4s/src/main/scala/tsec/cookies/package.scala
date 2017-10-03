@@ -42,6 +42,8 @@ package object cookies {
   sealed trait EVCookieMac[F[_]] {
     def from[A: MacTag: ByteEV](a: A, joined: String): F[A]
 
+    def fromRaw[A: MacTag](raw: String): F[A]
+
     def to[A: MacTag](a: F[A]): String
 
     def substitute[G[_], A: MacTag](a: G[F[A]]): G[String]
@@ -50,6 +52,8 @@ package object cookies {
   implicit object SignedCookie extends EVCookieMac[SignedCookie] {
     @inline def from[A: MacTag: ByteEV](a: A, joined: String): SignedCookie[A] =
       SignedCookie$$.is.flip.coerce(joined + "-" + a.toArray.toB64String)
+
+    @inline def fromRaw[A: MacTag](raw: String): SignedCookie[A] = SignedCookie$$.is.flip.coerce(raw)
 
     @inline def to[A: MacTag](a: SignedCookie[A]): String = SignedCookie$$.is.coerce(a)
 

@@ -5,6 +5,7 @@ import java.security.spec.AlgorithmParameterSpec
 import shapeless.tag
 import shapeless.tag.@@
 import tsec.cipher.common.mode.ModeKeySpec
+import tsec.common._
 
 package object common {
 
@@ -31,6 +32,10 @@ package object common {
   }
 
   final case class AAD(aad: Array[Byte]) extends AnyVal
+
+  object AAD {
+    def buildFromStringUTF8(string: String) = AAD(string.utf8Bytes)
+  }
 
   protected[tsec] def tagSpec[T](a: AlgorithmParameterSpec): AlgorithmParameterSpec @@ T = tag[T](a)
 

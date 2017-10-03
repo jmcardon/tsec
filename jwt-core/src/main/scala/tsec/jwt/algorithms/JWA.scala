@@ -56,7 +56,7 @@ object JWA {
 
 }
 
-abstract class JWTMacAlgo[A](implicit val keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError]) extends JWA[A]
+abstract class JWTMacAlgo[A](implicit val keyGen: MacKeyGenerator[A]) extends JWA[A]
 
 abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: ByteEV[A]) extends JWA[A] { //todo: Get rid of this tire fire
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]]

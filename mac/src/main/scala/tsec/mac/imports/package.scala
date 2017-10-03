@@ -63,4 +63,6 @@ package object imports {
     @inline def toArray(a: HMACSHA512): Array[Byte] = HMACSHA512$$.is.coerce(a)
   }
 
+ trait MacKeyGenerator[A] extends JKeyGenerator[A, MacSigningKey, MacKeyBuildError]
+
 }

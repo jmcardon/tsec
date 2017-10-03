@@ -14,6 +14,7 @@ object Dependencies {
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.1"
     val http4sV       = "0.18.0-M1"
+    val scalacheckV   = "1.13.4"
   }
 
   object Libraries {
@@ -30,6 +31,7 @@ object Dependencies {
     val circeGenericExtras = "io.circe"           %% "circe-generic-extras" % Versions.circeV
     val circeParser        = "io.circe"           %% "circe-parser"         % Versions.circeV
     val http4sdsl          = "org.http4s"         %% "http4s-dsl"           % Versions.http4sV
+    val scalaCheck         = "org.scalacheck"     %% "scalacheck"           % Versions.scalacheckV % "test"
   }
 
 }

@@ -24,7 +24,7 @@ class SymmetricSpec extends TestSpec with MustMatchers{
     implicit symm: SymmetricAlgorithm[A],
     mode: ModeKeySpec[M],
     p: Padding[P],
-    keyGen: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
+    keyGen: CipherKeyGen[A]
   ): Unit = {
     val testMessage                       = "The Moose is Loose"
     val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
@@ -39,6 +39,18 @@ class SymmetricSpec extends TestSpec with MustMatchers{
         instance  <- JCASymmetricCipher[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
         decrypted <- instance.decrypt(encrypted, key)
+      } yield utf8String(decrypted.content)
+      testEncryptionDecryption must equal(Right(testMessage))
+    }
+
+    it should "Be able to build a correct key from a repr" in {
+      val testEncryptionDecryption: Either[CipherError, String] = for {
+        key       <- keyGen.generateKey()
+        instance  <- JCASymmetricCipher[A, M, P]
+        encrypted <- instance.encrypt(testPlainText, key)
+        keyRepr = key.key.getEncoded
+        built <- keyGen.buildKey(keyRepr)
+        decrypted <- instance.decrypt(encrypted, built)
       } yield utf8String(decrypted.content)
       testEncryptionDecryption must equal(Right(testMessage))
     }
@@ -102,7 +114,7 @@ class SymmetricSpec extends TestSpec with MustMatchers{
     implicit symm: SymmetricAlgorithm[A],
     mode: ModeKeySpec[M],
     p: Padding[P],
-    keyGen: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
+    keyGen: CipherKeyGen[A]
   ): Unit = {
     val testMessage                       = "The Moose is Loose"
     val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
@@ -117,6 +129,18 @@ class SymmetricSpec extends TestSpec with MustMatchers{
         instance  <- JCASymmetricCipher[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
         decrypted <- instance.decrypt(encrypted, key)
+      } yield utf8String(decrypted.content)
+      testEncryptionDecryption must equal(Right(testMessage))
+    }
+
+    it should "Be able to build a correct key from a repr" in {
+      val testEncryptionDecryption: Either[CipherError, String] = for {
+        key       <- keyGen.generateKey()
+        instance  <- JCASymmetricCipher[A, M, P]
+        encrypted <- instance.encrypt(testPlainText, key)
+        keyRepr = key.key.getEncoded
+        built <- keyGen.buildKey(keyRepr)
+        decrypted <- instance.decrypt(encrypted, built)
       } yield utf8String(decrypted.content)
       testEncryptionDecryption must equal(Right(testMessage))
     }

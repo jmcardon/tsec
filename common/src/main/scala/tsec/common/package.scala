@@ -39,6 +39,10 @@ package object common {
     def toArray(implicit byteEV: ByteEV[A]): Array[Byte] = byteEV.toArray(repr)
   }
 
+  class TaggedStringSyntax[A](val repr: A) extends AnyVal {
+    def asString(implicit stringEV: StringEV[A]): String = stringEV.to(repr)
+  }
+
   final class JerryStringer(val s: String) extends AnyVal {
     def utf8Bytes: Array[Byte]   = s.getBytes(StandardCharsets.UTF_8)
     def asciiBytes: Array[Byte]  = s.getBytes(StandardCharsets.US_ASCII)
@@ -58,5 +62,6 @@ package object common {
   implicit final def byteSyntaxOps(array: Array[Byte]) = new ByteSyntaxHelpers(array)
   implicit final def costanzaOps(jerry: String) = new JerryStringer(jerry)
   implicit final def taggedByteOps[A: ByteEV](repr: A) = new TaggedByteSyntax[A](repr)
+  implicit final def taggedStringOps[A: StringEV](repr: A) = new TaggedStringSyntax[A](repr)
 
 }

@@ -4,11 +4,11 @@ import javax.crypto.KeyGenerator
 import javax.crypto.spec.SecretKeySpec
 
 import cats.syntax.either._
-import tsec.common.{ErrorConstruct, JKeyGenerator}
+import tsec.common._
 
 protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int)
     extends MacTag[A]
-    with JKeyGenerator[A, MacSigningKey, MacKeyBuildError] {
+    with MacKeyGenerator[A]{
 
   override val algorithm: String = algo
 
@@ -33,5 +33,5 @@ protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int)
   def buildKeyUnsafe(key: Array[Byte]): MacSigningKey[A] =
     MacSigningKey(new SecretKeySpec(key.slice(0, keyL), algo))
 
-  implicit def keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError] = this
+  implicit def keyGen: MacKeyGenerator[A] = this
 }

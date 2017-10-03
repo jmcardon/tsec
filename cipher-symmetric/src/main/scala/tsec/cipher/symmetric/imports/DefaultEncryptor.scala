@@ -1,9 +1,9 @@
 package tsec.cipher.symmetric.imports
 
+import tsec.cipher.common._
 import tsec.cipher.common.mode.CTR
 import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.common.{CipherKeyBuildError, CipherText, CipherTextError, NoSuchInstanceError}
-import tsec.common.JKeyGenerator
+
 
 sealed abstract class Encryptor[A: SymmetricAlgorithm] {
   def getInstance: Either[NoSuchInstanceError, JCASymmetricCipher[A, CTR, NoPadding]] =
@@ -11,8 +11,8 @@ sealed abstract class Encryptor[A: SymmetricAlgorithm] {
 
   @inline
   def keyGen(
-      implicit keyGenerator: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
-  ): JKeyGenerator[A, SecretKey, CipherKeyBuildError] = keyGenerator
+      implicit keyGenerator: CipherKeyGen[A]
+  ): CipherKeyGen[A] = keyGenerator
 
   def fromSingleArray(bytes: Array[Byte]): Either[CipherTextError, CipherText[A, CTR, NoPadding]] =
     CipherText.fromSingleArray[A, CTR, NoPadding](bytes)

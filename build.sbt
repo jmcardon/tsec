@@ -63,7 +63,7 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeParser
 )
 
-lazy val http4sDeps = libraryDependencies += Libraries.http4sdsl
+lazy val http4sDeps = libraryDependencies ++= Seq(Libraries.http4sdsl, Libraries.scalaCheck)
 
 lazy val root = Project(id = "tsec", base = file("."))
   .settings(commonSettings)
@@ -166,6 +166,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(jwtCommonLibs)
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
+  .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
     symmetricCipher,
     mac,

@@ -9,10 +9,13 @@ object AEADCookieEncryptor {
   def signAndEncrypt[A](message: String, aad: AAD, key: SecretKey[A])(
       implicit authEncryptor: AuthEncryptor[A]
   ): Either[CipherError, AEADCookie[A]] =
-    for {
-      instance  <- authEncryptor.instance
-      encrypted <- instance.encryptAAD(PlainText(message.utf8Bytes), key, aad)
-    } yield AEADCookie.fromEncrypted[A](encrypted, aad)
+    if (message.isEmpty)
+      Left(EncryptError("Cannot encrypt an empty string!"))
+    else
+      for {
+        instance  <- authEncryptor.instance
+        encrypted <- instance.encryptAAD(PlainText(message.utf8Bytes), key, aad)
+      } yield AEADCookie.fromEncrypted[A](encrypted, aad)
 
   def retrieveFromSigned[A](message: AEADCookie[A], key: SecretKey[A])(
       implicit authEncryptor: AuthEncryptor[A]
