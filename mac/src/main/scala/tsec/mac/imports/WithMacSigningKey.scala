@@ -2,9 +2,8 @@ package tsec.mac.imports
 
 import javax.crypto.KeyGenerator
 import javax.crypto.spec.SecretKeySpec
-
+import tsec.common.ErrorConstruct._
 import cats.syntax.either._
-import tsec.common._
 
 protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int)
     extends MacTag[A]
@@ -20,18 +19,18 @@ protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int)
 
   def generateKey(): Either[MacKeyBuildError, MacSigningKey[A]] =
     Either
-      .catchNonFatal(MacSigningKey[A](generator.generateKey()))
-      .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
+      .catchNonFatal(MacSigningKey.fromJavaKey[A](generator.generateKey()))
+      .mapError(MacKeyBuildError.apply)
 
-  def generateKeyUnsafe(): MacSigningKey[A] = MacSigningKey(generator.generateKey())
+  def generateKeyUnsafe(): MacSigningKey[A] = MacSigningKey.fromJavaKey[A](generator.generateKey())
 
   def buildKey(key: Array[Byte]): Either[MacKeyBuildError, MacSigningKey[A]] =
     Either
-      .catchNonFatal(MacSigningKey[A](new SecretKeySpec(key.slice(0, keyL), algo)))
-      .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
+      .catchNonFatal(MacSigningKey.fromJavaKey[A](new SecretKeySpec(key.slice(0, keyL), algo)))
+      .mapError(MacKeyBuildError.apply)
 
   def buildKeyUnsafe(key: Array[Byte]): MacSigningKey[A] =
-    MacSigningKey(new SecretKeySpec(key.slice(0, keyL), algo))
+    MacSigningKey.fromJavaKey[A](new SecretKeySpec(key.slice(0, keyL), algo))
 
   implicit def keyGen: MacKeyGenerator[A] = this
 }

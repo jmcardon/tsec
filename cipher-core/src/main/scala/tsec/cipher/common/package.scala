@@ -1,11 +1,8 @@
 package tsec.cipher
 
-import java.security.spec.AlgorithmParameterSpec
 
-import shapeless.tag
-import shapeless.tag.@@
-import tsec.cipher.common.mode.ModeKeySpec
 import tsec.common._
+import tsec.cipher.common.mode.ModeKeySpec
 
 package object common {
 
@@ -37,8 +34,7 @@ package object common {
     def buildFromStringUTF8(string: String) = AAD(string.utf8Bytes)
   }
 
-  protected[tsec] def tagSpec[T](a: AlgorithmParameterSpec): AlgorithmParameterSpec @@ T = tag[T](a)
+//  protected[tsec] def tagSpec[T](a: AlgorithmParameterSpec): AlgorithmParameterSpec @@ T = tag[T](a)
 
   type NoSuchInstanceError = NoSuchInstanceError.type
-
 }

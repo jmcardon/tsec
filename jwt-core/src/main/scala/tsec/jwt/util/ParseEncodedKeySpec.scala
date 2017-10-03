@@ -4,30 +4,26 @@ import java.security.KeyFactory
 import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
 
 import cats.MonadError
-import shapeless.tag
+import tsec.signature.core.SigAlgoTag
 import tsec.signature.imports._
 
 object ParseEncodedKeySpec {
 
-  def pubKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
+  def pubKeyFromBytes[A: SigAlgoTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
     val spec = new X509EncodedKeySpec(keyBytes)
-    SigPublicKey(
-      tag[A](
-        KeyFactory
-          .getInstance(kt.keyFactoryAlgo, "BC")
-          .generatePublic(spec)
-      )
+    SigPublicKey[A](
+      KeyFactory
+        .getInstance(kt.keyFactoryAlgo, "BC")
+        .generatePublic(spec)
     )
   }
 
-  def privKeyFromBytes[A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
+  def privKeyFromBytes[A: SigAlgoTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
     val spec = new PKCS8EncodedKeySpec(keyBytes)
-    SigPrivateKey(
-      tag[A](
-        KeyFactory
-          .getInstance(kt.keyFactoryAlgo, "BC")
-          .generatePrivate(spec)
-      )
+    SigPrivateKey[A](
+      KeyFactory
+        .getInstance(kt.keyFactoryAlgo, "BC")
+        .generatePrivate(spec)
     )
   }
 

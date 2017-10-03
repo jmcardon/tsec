@@ -36,9 +36,9 @@ package object imports {
   type BCrypt = BCrypt$$.I
 
   implicit object BCrypt extends PasswordHasher[BCrypt] with StringEV[BCrypt] {
-    @inline def from(a: String): BCrypt = BCrypt$$.is.flip.coerce(a)
+    @inline def fromString(a: String): BCrypt = BCrypt$$.is.flip.coerce(a)
 
-    @inline def to(a: BCrypt): String = BCrypt$$.is.coerce(a)
+    @inline def asString(a: BCrypt): String = BCrypt$$.is.coerce(a)
 
     protected val defaultRounds: Rounds = Rounds(DefaultBcryptRounds)
 
@@ -62,9 +62,9 @@ package object imports {
   type SCrypt = SCrypt$$.I
 
   implicit object SCrypt extends PasswordHasher[SCrypt] with StringEV[SCrypt] {
-    @inline def from(a: String): SCrypt = SCrypt$$.is.flip.coerce(a)
+    @inline def fromString(a: String): SCrypt = SCrypt$$.is.flip.coerce(a)
 
-    @inline def to(a: SCrypt): String = SCrypt$$.is.coerce(a)
+    @inline def asString(a: SCrypt): String = SCrypt$$.is.coerce(a)
 
     protected val defaultRounds: Rounds = Rounds(DefaultSCryptR)
 
@@ -90,9 +90,9 @@ package object imports {
 
   implicit object HardenedSCrypt extends PasswordHasher[HardenedSCrypt] with StringEV[HardenedSCrypt] {
 
-    @inline def from(a: String): HardenedSCrypt = HardenedSCrypt$$.is.flip.coerce(a)
+    @inline def fromString(a: String): HardenedSCrypt = HardenedSCrypt$$.is.flip.coerce(a)
 
-    @inline def to(a: HardenedSCrypt): String = HardenedSCrypt$$.is.coerce(a)
+    @inline def asString(a: HardenedSCrypt): String = HardenedSCrypt$$.is.coerce(a)
 
     protected val defaultRounds: Rounds = Rounds(SCryptHardnedR)
 

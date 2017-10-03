@@ -23,9 +23,9 @@ package object common {
 
   trait StringEV[A] {
 
-    def from(a: String): A
+    def fromString(a: String): A
 
-    def to(a: A): String
+    def asString(a: A): String
 
   }
 
@@ -40,7 +40,7 @@ package object common {
   }
 
   class TaggedStringSyntax[A](val repr: A) extends AnyVal {
-    def asString(implicit stringEV: StringEV[A]): String = stringEV.to(repr)
+    def asString(implicit stringEV: StringEV[A]): String = stringEV.asString(repr)
   }
 
   final class JerryStringer(val s: String) extends AnyVal {
@@ -48,7 +48,7 @@ package object common {
     def asciiBytes: Array[Byte]  = s.getBytes(StandardCharsets.US_ASCII)
     def base64Bytes: Array[Byte] = Base64.getDecoder.decode(s)
     def base64UrlBytes: Array[Byte] = Base64.getUrlDecoder.decode(s)
-    def toStringRepr[A](implicit stringEV: StringEV[A]): A = stringEV.from(s)
+    def toStringRepr[A](implicit stringEV: StringEV[A]): A = stringEV.fromString(s)
   }
 
   final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {

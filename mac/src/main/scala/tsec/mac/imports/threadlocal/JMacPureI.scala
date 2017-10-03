@@ -22,7 +22,7 @@ sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[
   def sign(content: Array[Byte], key: MacSigningKey[A]): IO[Array[Byte]] =
     for {
       instance <- genInstance
-      _        <- IO(instance.init(key.key))
+      _        <- IO(instance.init(MacSigningKey.toJavaKey[A](key)))
       fin      <- IO(instance.doFinal(content))
       _        <- IO(tl.enqueue(instance))
     } yield fin

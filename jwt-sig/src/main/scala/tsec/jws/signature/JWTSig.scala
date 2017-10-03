@@ -9,7 +9,7 @@ import tsec.jwt.algorithms.JWTSigAlgo
 
 case class JWTSig[A](header: JWSSignedHeader[A], body: JWTClaims, signature: JWSSignature[A]) extends JWSJWT[A] {
   def toEncodedString(implicit hs: JWSSerializer[JWSSignedHeader[A]]): String =
-    hs.toB64URL(header) + "." + JWTClaims.toB64URL(body) + "." + signature.body.toB64UrlString
+    hs.toB64URL(header) + "." + JWTClaims.toB64URL(body) + "." + signature.toB64UrlString
 }
 
 object JWTSig {

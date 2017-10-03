@@ -15,7 +15,7 @@ sealed protected[tsec] abstract class JMacPureInterpreter[A: ByteEV](implicit ma
   def sign(content: Array[Byte], key: MacSigningKey[A]): IO[Array[Byte]] =
     for {
       instance <- genInstance
-      _        <- IO(instance.init(key.key))
+      _        <- IO(instance.init(MacSigningKey.toJavaKey[A](key)))
       result   <- IO(instance.doFinal(content))
     } yield result
 }

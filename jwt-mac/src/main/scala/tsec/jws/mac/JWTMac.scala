@@ -11,7 +11,7 @@ import tsec.jwt.JWTClaims
 sealed abstract case class JWTMac[A](header: JWSMacHeader[A], body: JWTClaims, signature: JWSSignature[A])
     extends JWSJWT[A] {
   def toEncodedString(implicit hs: JWSSerializer[JWSMacHeader[A]]): String =
-    hs.toB64URL(header) + "." + JWTClaims.toB64URL(body) + "." + signature.body.toB64UrlString
+    hs.toB64URL(header) + "." + JWTClaims.toB64URL(body) + "." + signature.toB64UrlString
 }
 
 object JWTMac {

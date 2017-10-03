@@ -3,7 +3,7 @@ package tsec.cipher.symmetric.imports
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator => KG}
 import tsec.cipher.common._
-import tsec.common._
+import tsec.common.ErrorConstruct._
 import cats.syntax.either._
 
 protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: Int)
@@ -30,7 +30,7 @@ protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: I
         gen.init(keyLength)
         SecretKey[T](gen.generateKey())
       })
-      .leftMap(ErrorConstruct.fromThrowable[CipherKeyBuildError])
+      .mapError(CipherKeyBuildError.apply)
 
   //Note: JCipher.getMaxAllowedKeyLength(tag.algorithm) returns a length in bits. for an array of bytes
   //This means dividing by 8 to get the number of elements in bytes

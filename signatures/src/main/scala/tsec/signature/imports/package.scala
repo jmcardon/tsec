@@ -4,6 +4,7 @@ import java.security.KeyPairGenerator
 
 import tsec.common._
 import cats.evidence.Is
+import tsec.signature.core.SigAlgoTag
 
 package object imports {
   type SigErrorM[A] = Either[Throwable, A]
@@ -257,6 +258,66 @@ package object imports {
     @inline def fromArray(array: Array[Byte]): SHA512withECDSA = SHA512withECDSA$$.is.flip.coerce(array)
 
     @inline def toArray(a: SHA512withECDSA): Array[Byte] = SHA512withECDSA$$.is.coerce(a)
+  }
+
+  /*
+  End sig types
+   */
+  import java.security.cert.Certificate
+
+  import cats.evidence.Is
+  import java.security.PrivateKey
+  import java.security.PublicKey
+
+  sealed trait TaggedCertificate {
+    type Repr
+    val is: Is[Repr, Certificate]
+  }
+
+  protected val SigCertificate$$ : TaggedCertificate = new TaggedCertificate {
+    type Repr = Certificate
+    val is = Is.refl[Certificate]
+  }
+
+  type SigCertificate[A] = SigCertificate$$.Repr
+
+  object SigCertificate {
+    @inline def apply[A: SigAlgoTag](cert: Certificate): SigCertificate[A] = SigCertificate$$.is.flip.coerce(cert)
+    @inline def toJavaCertificate[A](cert: SigCertificate[A]): Certificate = SigCertificate$$.is.coerce(cert)
+  }
+
+  sealed trait TaggedSigPubKey {
+    type Repr
+    val is: Is[Repr, PublicKey]
+  }
+
+  protected val SigPubKey$$: TaggedSigPubKey = new TaggedSigPubKey {
+    type Repr = PublicKey
+    val is = Is.refl[PublicKey]
+  }
+
+  type SigPublicKey[A] = SigPubKey$$.Repr
+
+  object SigPublicKey {
+    @inline def apply[A: SigAlgoTag](key: PublicKey): SigPublicKey[A] = SigPubKey$$.is.flip.coerce(key)
+    @inline def toJavaPublicKey[A](key: SigPublicKey[A]): PublicKey = SigPubKey$$.is.coerce(key)
+  }
+
+  sealed trait TaggedSigPrivateKey {
+    type Repr
+    val is: Is[Repr, PrivateKey]
+  }
+
+  protected val SigPrivateKey$$: TaggedSigPrivateKey = new TaggedSigPrivateKey {
+    type Repr = PrivateKey
+    val is = Is.refl[PrivateKey]
+  }
+
+  type SigPrivateKey[A] = SigPrivateKey$$.Repr
+
+  object SigPrivateKey {
+    @inline def apply[A: SigAlgoTag](key: PrivateKey): SigPrivateKey[A] = SigPrivateKey$$.is.flip.coerce(key)
+    @inline def toJavaPrivateKey[A](key: SigPrivateKey[A]): PrivateKey = SigPrivateKey$$.is.coerce(key)
   }
 
 }

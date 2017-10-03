@@ -94,7 +94,7 @@ sealed abstract class JWSMacCV[F[_], A](
   }
 
   def toEncodedString(jwt: JWTMac[A]): String =
-    hs.toB64URL(jwt.header) + "." + JWTClaims.toB64URL(jwt.body) + "." + jwt.signature.body.toB64UrlString
+    hs.toB64URL(jwt.header) + "." + JWTClaims.toB64URL(jwt.body) + "." + jwt.signature.toB64UrlString
 }
 
 object JWSMacCV {

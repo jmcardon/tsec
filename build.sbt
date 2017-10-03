@@ -1,16 +1,6 @@
 import Dependencies._
 
-name := "fucc"
-
-val circeV        = "0.9.0-M1"
-val catsV         = "1.0.0-MF"
-val catsEffV      = "0.4"
-val shapelessV    = "2.3.2"
-val thymeV        = "0.1.2-SNAPSHOT"
-val bouncyCastleV = "1.52"
-val jBCryptV      = "0.4.1"
-val sCryptV       = "1.4.0"
-val scalaTestV    = "3.0.1"
+name := "tsec"
 
 scalaVersion := "2.12.3"
 
@@ -32,7 +22,6 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
     Libraries.catsEffect,
-    Libraries.shapeless,
     Libraries.scalaTest
   ),
   organization in ThisBuild := "io.github.jmcardon",

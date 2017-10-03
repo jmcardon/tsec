@@ -4,10 +4,10 @@ import javax.crypto.{Cipher => JCipher}
 
 import cats.syntax.either._
 import tsec.cipher.common._
-import tsec.cipher.common.mode.ModeKeySpec
+import tsec.cipher.common.mode._
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-import tsec.common.ErrorConstruct
+import tsec.common.ErrorConstruct._
 
 class JCASymmetricCipher[A, M, P](
     implicit algoTag: SymmetricAlgorithm[A],
@@ -20,7 +20,7 @@ class JCASymmetricCipher[A, M, P](
   def genInstance: Either[CipherError, JCipher] =
     Either
       .catchNonFatal(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
-      .leftMap(ErrorConstruct.fromThrowable[InstanceInitError])
+      .mapError(InstanceInitError.apply)
 
   /*
   Stateful operations for internal use
@@ -33,9 +33,9 @@ class JCASymmetricCipher[A, M, P](
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
-        e.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv)
+        e.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv))
       })
-      .leftMap(ErrorConstruct.fromThrowable[CipherKeyError])
+      .mapError(CipherKeyError.apply)
 
   protected[symmetric] def initDecryptor(
       decryptor: JCipher,
@@ -44,12 +44,12 @@ class JCASymmetricCipher[A, M, P](
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
-        decryptor.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv))
+        decryptor.init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv)))
       })
-      .leftMap(ErrorConstruct.fromThrowable[CipherKeyError])
+      .mapError(CipherKeyError.apply)
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): Either[CipherKeyError, Unit] =
-    Either.catchNonFatal(e.updateAAD(aad.aad)).leftMap(ErrorConstruct.fromThrowable[CipherKeyError])
+    Either.catchNonFatal(e.updateAAD(aad.aad)).mapError(CipherKeyError.apply)
   /*
   End stateful ops
    */
@@ -70,7 +70,7 @@ class JCASymmetricCipher[A, M, P](
       _        <- initEncryptor(instance, key)
       encrypted <- Either
         .catchNonFatal(instance.doFinal(plainText.content))
-        .leftMap(ErrorConstruct.fromThrowable[EncryptError])
+        .mapError(EncryptError.apply)
       iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
     } yield CipherText(encrypted, iv)
 
@@ -95,7 +95,7 @@ class JCASymmetricCipher[A, M, P](
       _        <- setAAD(instance, aad)
       encrypted <- Either
         .catchNonFatal(instance.doFinal(plainText.content))
-        .leftMap(ErrorConstruct.fromThrowable[EncryptError])
+        .mapError(EncryptError.apply)
       iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
     } yield CipherText(encrypted, iv)
 
@@ -115,7 +115,7 @@ class JCASymmetricCipher[A, M, P](
       _        <- initDecryptor(instance, key, cipherText.iv)
       decrypted <- Either
         .catchNonFatal(instance.doFinal(cipherText.content))
-        .leftMap(ErrorConstruct.fromThrowable[DecryptError])
+        .mapError(DecryptError.apply)
     } yield PlainText(decrypted)
 
   /**
@@ -139,7 +139,7 @@ class JCASymmetricCipher[A, M, P](
       _        <- setAAD(instance, aad)
       decrypted <- Either
         .catchNonFatal(instance.doFinal(cipherText.content))
-        .leftMap(ErrorConstruct.fromThrowable[DecryptError])
+        .mapError(DecryptError.apply)
     } yield PlainText(decrypted)
 }
 

@@ -48,7 +48,7 @@ class SymmetricSpec extends TestSpec with MustMatchers{
         key       <- keyGen.generateKey()
         instance  <- JCASymmetricCipher[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
-        keyRepr = key.key.getEncoded
+        keyRepr = SecretKey.toJavaKey[A](key).getEncoded
         built <- keyGen.buildKey(keyRepr)
         decrypted <- instance.decrypt(encrypted, built)
       } yield utf8String(decrypted.content)
@@ -104,7 +104,7 @@ class SymmetricSpec extends TestSpec with MustMatchers{
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
       val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
         k <- keyGen.buildKey(randomKey)
-      } yield k.key.getEncoded.length < randomKey.length
+      } yield SecretKey.toJavaKey[A](k).getEncoded.length < randomKey.length
 
       keyLenTest mustBe a[Left[_, _]]
     }
@@ -138,7 +138,7 @@ class SymmetricSpec extends TestSpec with MustMatchers{
         key       <- keyGen.generateKey()
         instance  <- JCASymmetricCipher[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
-        keyRepr = key.key.getEncoded
+        keyRepr = SecretKey.toJavaKey[A](key).getEncoded
         built <- keyGen.buildKey(keyRepr)
         decrypted <- instance.decrypt(encrypted, built)
       } yield utf8String(decrypted.content)
@@ -217,7 +217,7 @@ class SymmetricSpec extends TestSpec with MustMatchers{
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
       val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
         k <- keyGen.buildKey(randomKey)
-      } yield k.key.getEncoded.length < randomKey.length
+      } yield SecretKey.toJavaKey[A](k).getEncoded.length < randomKey.length
 
       keyLenTest mustBe a[Left[_, _]]
     }

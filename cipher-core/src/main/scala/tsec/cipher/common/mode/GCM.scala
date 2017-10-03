@@ -5,9 +5,6 @@ import java.security.spec.AlgorithmParameterSpec
 import java.util.concurrent.atomic.LongAdder
 import javax.crypto.spec.GCMParameterSpec
 
-import shapeless.tag.@@
-import tsec.cipher.common._
-
 sealed trait GCM
 object GCM {
   /*
@@ -18,7 +15,7 @@ object GCM {
    */
   val GCMTagLength        = 128
   val GCMIvOptionalLength = 12
-  implicit lazy val spec = new ModeKeySpec[GCM] {
+  implicit lazy val spec = new ModeKeySpec[GCM] { self =>
 
 
     val ivLength: Int = GCMIvOptionalLength
@@ -47,17 +44,17 @@ object GCM {
     }
 
     def algorithm: String = "GCM"
-    def buildIvFromBytes(specBytes: Array[Byte]): AlgorithmParameterSpec @@ GCM =
-      tagSpec[GCM](new GCMParameterSpec(GCMTagLength, specBytes))
+    def buildIvFromBytes(specBytes: Array[Byte]): ParameterSpec[GCM] =
+      ParameterSpec.fromSpec[GCM](new GCMParameterSpec(GCMTagLength, specBytes))(self)
 
-    def genIv: AlgorithmParameterSpec @@ GCM = {
+    def genIv: ParameterSpec[GCM] = {
       adder.increment()
       if (adder.sum() >= MaxBeforeReseed)
         reSeed()
 
       val newBytes = new Array[Byte](12)
       cachedRand.nextBytes(newBytes)
-      tagSpec[GCM](new GCMParameterSpec(GCMTagLength, newBytes))
+      ParameterSpec.fromSpec[GCM](new GCMParameterSpec(GCMTagLength, newBytes))(self)
     }
   }
 }
