@@ -4,7 +4,7 @@ import tsec.common._
 import cats.evidence.Is
 import tsec.cipher.common._
 import tsec.cipher.symmetric.imports._
-import tsec.mac.imports.MacTag
+import tsec.mac.imports.{MacTag, MacVerificationError}
 
 package object cookies {
 
@@ -56,6 +56,16 @@ package object cookies {
     @inline def fromRaw[A: MacTag](raw: String): SignedCookie[A] = SignedCookie$$.is.flip.coerce(raw)
 
     @inline def to[A: MacTag](a: SignedCookie[A]): String = SignedCookie$$.is.coerce(a)
+
+    def splitOriginal(original: String) = {
+      val originalsplit = original.split("-")
+      if(originalsplit.length != 2)
+        Left(MacVerificationError("String encoded improperly"))
+      else {
+        Right(originalsplit(0).base64Bytes.toUtf8String)
+      }
+
+    }
 
     @inline def substitute[G[_], A: MacTag](fa: G[SignedCookie[A]]): G[String] = SignedCookie$$.is.substitute[G](fa)
   }

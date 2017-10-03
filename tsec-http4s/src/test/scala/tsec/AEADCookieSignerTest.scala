@@ -9,7 +9,7 @@ import tsec.cookies.AEADCookieEncryptor
 class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyChecks {
 
   def aeadCookieTest[A: CipherKeyGen](implicit authE: AuthEncryptor[A], s: SymmetricAlgorithm[A]) = {
-    behavior of s"Cookie encrypting with ${s.algorithm}"
+    behavior of s"AEAD Cookie encrypting with ${s.algorithm}${s.keyLength}"
 
     it should "Encrypt and decrypt properly" in {
       val now = java.time.Instant.now().toString
@@ -46,4 +46,6 @@ class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyCheck
   }
 
   aeadCookieTest[AES128]
+  aeadCookieTest[AES192]
+  aeadCookieTest[AES256]
 }

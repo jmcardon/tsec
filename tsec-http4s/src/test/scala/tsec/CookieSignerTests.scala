@@ -11,18 +11,37 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
   def signerTests[A : ByteEV](implicit tag: MacTag[A], keyGen: MacKeyGenerator[A]) = {
     behavior of "CookieSigner for algo " + tag.algorithm
 
-    it should "Sign and verify any cookie properly" in {
+    it should "Sign and verify any cookie properly with coercion" in {
       forAll { (s: String) =>
         val verified = for {
           key <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          verify <- CookieSigner.verify[A](signed, key)
+          stringer = SignedCookie.to[A](signed)
+          recoerced = SignedCookie.fromRaw[A](stringer)
+          verify <- CookieSigner.verify[A](recoerced, key)
         } yield verify
 
         if(s.isEmpty)
           verified mustBe Left(MacSigningError("Cannot sign an empty string"))
         else
           verified mustBe Right(true)
+      }
+    }
+
+    it should "Sign and retrieve properly for any properly signed message" in {
+      forAll { (s: String) =>
+        val verified = for {
+          key <- keyGen.generateKey()
+          signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
+          stringer = SignedCookie.to[A](signed)
+          recoerced = SignedCookie.fromRaw[A](stringer)
+          verify <- CookieSigner.verifyAndRetrieve[A](recoerced, key)
+        } yield verify
+
+        if(s.isEmpty)
+          verified mustBe Left(MacSigningError("Cannot sign an empty string"))
+        else
+          verified mustBe Right(s)
       }
     }
 
@@ -39,23 +58,6 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
           verified mustBe Left(MacSigningError("Cannot sign an empty string"))
         else
           verified mustBe Right(false)
-      }
-    }
-
-    it should "coerce from string and back properly" in {
-      forAll { (s: String) =>
-        val verified = for {
-          key <- keyGen.generateKey()
-          signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          stringer = SignedCookie.to[A](signed)
-          recoerced = SignedCookie.fromRaw[A](stringer)
-          verify <- CookieSigner.verify[A](recoerced, key)
-        } yield verify
-
-        if(s.isEmpty)
-          verified mustBe Left(MacSigningError("Cannot sign an empty string"))
-        else
-          verified mustBe Right(true)
       }
     }
   }
