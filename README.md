@@ -8,6 +8,8 @@ ________________________________________
 ```
 # TSEC: A type-safe, functional, general purpose security and cryptography library.
 
+[![Join the chat at https://gitter.im/tsecc/Lobby](https://badges.gitter.im/tsecc/Lobby.svg)](https://gitter.im/tsecc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ### Latest Release: 0.0.1-M1
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
