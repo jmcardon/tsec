@@ -8,7 +8,7 @@ object AEADCookieEncryptor {
 
   def signAndEncrypt[A](message: String, aad: AAD, key: SecretKey[A])(
       implicit authEncryptor: AuthEncryptor[A]
-  ): Either[CipherError, String] =
+  ): Either[CipherError, AEADCookie[A]] =
     for {
       instance  <- authEncryptor.instance
       encrypted <- instance.encryptAAD(PlainText(message.utf8Bytes), key, aad)
