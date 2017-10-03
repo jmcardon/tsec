@@ -21,6 +21,20 @@ package object common {
     val is: Is[I, Array[Byte]]
   }
 
+  trait StringEV[A] {
+
+    def from(a: String): A
+
+    def to(a: A): String
+
+  }
+
+  trait IsString {
+    type I <: String
+
+    val is: Is[I, String]
+  }
+
   class TaggedByteSyntax[A](val repr: A) extends AnyVal {
     def toArray(implicit byteEV: ByteEV[A]): Array[Byte] = byteEV.toArray(repr)
   }
