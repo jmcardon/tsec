@@ -5,8 +5,8 @@ import tsec.cipher.common.mode.GCM
 import tsec.cipher.common.padding.NoPadding
 import tsec.common.JKeyGenerator
 
-sealed abstract class DefaultAuthEncryptor[A: SymmetricAlgorithm] {
-  def getInstance: Either[NoSuchInstanceError, JCASymmetricCipher[A, GCM, NoPadding]] =
+sealed abstract class AuthEncryptor[A: SymmetricAlgorithm] {
+  lazy val instance: Either[NoSuchInstanceError, JCASymmetricCipher[A, GCM, NoPadding]] =
     JCASymmetricCipher[A, GCM, NoPadding]
 
   @inline
@@ -18,6 +18,14 @@ sealed abstract class DefaultAuthEncryptor[A: SymmetricAlgorithm] {
     CipherText.fromSingleArray[A, GCM, NoPadding](bytes)
 }
 
-object DefaultAuthEncryptor extends DefaultAuthEncryptor[AES128]
+object DefaultAuthEncryptor extends AuthEncryptor[AES128] {
+  implicit val encryptor: AuthEncryptor[AES128] = this
+}
 
-object StrongAuthEncryptor extends DefaultAuthEncryptor[AES256]
+object MediumAuthEncryptor extends AuthEncryptor[AES192] {
+  implicit val encryptor: AuthEncryptor[AES192] = this
+}
+
+object StrongAuthEncryptor extends AuthEncryptor[AES256] {
+  implicit val encryptor: AuthEncryptor[AES256] = this
+}

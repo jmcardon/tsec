@@ -54,7 +54,7 @@ object SymmetricCipherExamples {
    */
   val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)
   val encryptAAD: Either[CipherError, String] = for {
-    instance  <- DefaultAuthEncryptor.getInstance //Instances are unsafe! Some JVMs may not have particular instances
+    instance  <- DefaultAuthEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
     key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
     encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD

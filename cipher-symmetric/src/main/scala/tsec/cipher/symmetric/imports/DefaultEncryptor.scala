@@ -5,7 +5,7 @@ import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.common.{CipherKeyBuildError, CipherText, CipherTextError, NoSuchInstanceError}
 import tsec.common.JKeyGenerator
 
-sealed abstract class DefaultEncryptor[A: SymmetricAlgorithm] {
+sealed abstract class Encryptor[A: SymmetricAlgorithm] {
   def getInstance: Either[NoSuchInstanceError, JCASymmetricCipher[A, CTR, NoPadding]] =
     JCASymmetricCipher[A, CTR, NoPadding]
 
@@ -18,6 +18,10 @@ sealed abstract class DefaultEncryptor[A: SymmetricAlgorithm] {
     CipherText.fromSingleArray[A, CTR, NoPadding](bytes)
 }
 
-object DefaultEncryptor extends DefaultEncryptor[AES128]
+object DefaultEncryptor extends Encryptor[AES128] {
+  implicit val defaultEncryptor: Encryptor[AES128] = this
+}
 
-object StrongEncryptor extends DefaultEncryptor[AES128]
+object StrongEncryptor extends Encryptor[AES256]{
+  implicit val defaultEncryptor: Encryptor[AES256] = this
+}

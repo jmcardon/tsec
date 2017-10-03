@@ -30,6 +30,7 @@ package object common {
     def asciiBytes: Array[Byte]  = s.getBytes(StandardCharsets.US_ASCII)
     def base64Bytes: Array[Byte] = Base64.getDecoder.decode(s)
     def base64UrlBytes: Array[Byte] = Base64.getUrlDecoder.decode(s)
+    def toStringRepr[A](implicit stringEV: StringEV[A]): A = stringEV.from(s)
   }
 
   final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {

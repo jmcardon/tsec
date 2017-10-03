@@ -1,4 +1,4 @@
-package tsec.passwordhashers
+package tsec.common
 
 import cats.evidence.Is
 

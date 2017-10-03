@@ -2,8 +2,6 @@ import Dependencies._
 
 name := "fucc"
 
-version := "0.0.1"
-
 val circeV        = "0.9.0-M1"
 val catsV         = "1.0.0-MF"
 val catsEffV      = "0.4"
@@ -65,6 +63,8 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeParser
 )
 
+lazy val http4sDeps = libraryDependencies += Libraries.http4sdsl
+
 lazy val root = Project(id = "tsec", base = file("."))
   .settings(commonSettings)
   .aggregate(
@@ -74,7 +74,8 @@ lazy val root = Project(id = "tsec", base = file("."))
     signatures,
     jwtMac,
     jwtSig,
-    passwordHashers
+    passwordHashers,
+    http4s
   )
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
@@ -158,6 +159,17 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     jwtMac,
     jwtSig,
     passwordHashers
+  )
+
+lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
+  .settings(commonSettings)
+  .settings(jwtCommonLibs)
+  .settings(passwordHasherLibs)
+  .settings(http4sDeps)
+  .dependsOn(
+    symmetricCipher,
+    mac,
+    jwtMac
   )
 
 lazy val publishSettings = Seq(
