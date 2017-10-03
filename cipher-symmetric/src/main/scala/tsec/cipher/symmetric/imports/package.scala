@@ -38,5 +38,12 @@ package object imports{
     @inline def toJavaKey[A: SymmetricAlgorithm](key: SecretKey[A]): JSecretKey = SecretKey$$.is.coerce(key)
   }
 
+  final class SecretKeySyntax[A](val key: SecretKey[A]) extends AnyVal {
+    @inline def toJavaKey: JSecretKey = SecretKey$$.is.coerce(key)
+    def getEncoded: Array[Byte] = SecretKey$$.is.coerce(key).getEncoded
+  }
+
+  implicit final def _secretKeySyntax[A](key: SecretKey[A]) = new SecretKeySyntax[A](key)
+
   trait CipherKeyGen[A] extends JKeyGenerator[A, SecretKey, CipherKeyBuildError]
 }
