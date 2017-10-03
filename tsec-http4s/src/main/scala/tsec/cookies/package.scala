@@ -8,7 +8,7 @@ import tsec.mac.imports.MacTag
 
 package object cookies {
 
-  protected val AEADCookie$$ : IsString = new IsString {
+  protected val AEADCookie$$ : TaggedString = new TaggedString {
     type I = String
     val is = Is.refl[String]
   }
@@ -32,7 +32,7 @@ package object cookies {
     @inline def subst[G[_], A: AuthEncryptor](fa: G[AEADCookie[A]]): G[String] = AEADCookie$$.is.substitute[G](fa)
   }
 
-  protected val SignedCookie$$ : IsString = new IsString {
+  protected val SignedCookie$$ : TaggedString = new TaggedString {
     type I = String
     val is = Is.refl[String]
   }

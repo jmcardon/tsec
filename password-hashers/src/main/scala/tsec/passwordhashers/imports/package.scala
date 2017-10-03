@@ -4,7 +4,7 @@ import cats.evidence.Is
 import tsec.passwordhashers.core._
 import org.mindrot.jbcrypt.{BCrypt => JBCrypt}
 import com.lambdaworks.crypto.{SCryptUtil => JSCrypt}
-import tsec.common.{IsString, StringEV}
+import tsec.common.{TaggedString, StringEV}
 
 package object imports {
 
@@ -28,7 +28,7 @@ package object imports {
   val SCryptHardnedR  = 8
   val SCryptHardenedP = 2
 
-  protected val BCrypt$$ : IsString = new IsString {
+  protected val BCrypt$$ : TaggedString = new TaggedString {
     type I = String
     val is = Is.refl[String]
   }
@@ -54,7 +54,7 @@ package object imports {
   implicit object BCryptPasswordHasher
       extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, Rounds(DefaultBcryptRounds))(BCrypt)
 
-  protected val SCrypt$$ : IsString = new IsString {
+  protected val SCrypt$$ : TaggedString = new TaggedString {
     type I = String
     val is = Is.refl[String]
   }
@@ -81,7 +81,7 @@ package object imports {
   implicit object SCryptPasswordHasher
       extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(DefaultSCryptN))(SCrypt)
 
-  val HardenedSCrypt$$ : IsString = new IsString {
+  val HardenedSCrypt$$ : TaggedString = new TaggedString {
     type I = String
     val is = Is.refl[String]
   }

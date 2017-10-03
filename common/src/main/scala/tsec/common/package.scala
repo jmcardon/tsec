@@ -29,7 +29,7 @@ package object common {
 
   }
 
-  trait IsString {
+  trait TaggedString {
     type I <: String
 
     val is: Is[I, String]
