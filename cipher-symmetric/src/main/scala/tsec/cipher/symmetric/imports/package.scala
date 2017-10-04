@@ -6,7 +6,6 @@ import tsec.cipher.common.padding.NoPadding
 import tsec.common.{CryptoTag, JKeyGenerator}
 import javax.crypto.{SecretKey => JSecretKey}
 
-import cats.Id
 import cats.evidence.Is
 
 package object imports{
@@ -28,7 +27,7 @@ package object imports{
   }
 
   protected val SecretKey$$: TaggedSecretKey = new TaggedSecretKey {
-    type KeyRepr[A] = Id[JSecretKey]
+    type KeyRepr[A] = JSecretKey
     @inline def is[A]: Is[KeyRepr[A], JSecretKey] = Is.refl[JSecretKey]
   }
 

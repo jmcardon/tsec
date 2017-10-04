@@ -4,8 +4,6 @@ import cats.evidence.Is
 import tsec.common._
 import javax.crypto.{SecretKey => JSecretKey}
 
-import cats.Id
-
 package object imports {
 
   type MacErrorM[A] = Either[Throwable, A]
@@ -74,7 +72,7 @@ package object imports {
   }
 
   protected val MacSigningKey$$: TaggedMacKey = new TaggedMacKey {
-    type Repr[A] = Id[JSecretKey]
+    type Repr[A] = JSecretKey
     @inline def is[A]: Is[Repr[A], JSecretKey] = Is.refl[JSecretKey]
   }
 

@@ -2,7 +2,6 @@ package tsec.signature
 
 import java.security.KeyPairGenerator
 
-import cats.Id
 import tsec.common._
 import cats.evidence.Is
 import tsec.signature.core.SigAlgoTag
@@ -276,7 +275,7 @@ package object imports {
   }
 
   protected val SigCertificate$$ : TaggedCertificate = new TaggedCertificate {
-    type Repr[A] = Id[Certificate]
+    type Repr[A] = Certificate
     @inline def is[A]: Is[Repr[A], Certificate] = Is.refl[Certificate]
   }
 
@@ -293,7 +292,7 @@ package object imports {
   }
 
   protected val SigPubKey$$: TaggedSigPubKey = new TaggedSigPubKey {
-    type Repr[A] = Id[PublicKey]
+    type Repr[A] = PublicKey
     def is[A]: Is[Repr[A], PublicKey] = Is.refl[PublicKey]
   }
 
@@ -310,7 +309,7 @@ package object imports {
   }
 
   protected val SigPrivateKey$$: TaggedSigPrivateKey = new TaggedSigPrivateKey {
-    type Repr[A] = Id[PrivateKey]
+    type Repr[A] = PrivateKey
     @inline def is[A]: Is[Repr[A], PrivateKey] = Is.refl[PrivateKey]
   }
 
