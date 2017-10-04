@@ -88,4 +88,6 @@ package object imports {
   final class SigningKeyOps[A](val key: MacSigningKey[A]) extends AnyVal {
     def toJavaKey: JSecretKey = MacSigningKey$$.is.coerce(key)
   }
+
+  implicit final def _macSigningOps[A](key: MacSigningKey[A]) = new SigningKeyOps[A](key)
 }

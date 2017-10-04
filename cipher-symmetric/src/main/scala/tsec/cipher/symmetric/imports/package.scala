@@ -1,7 +1,5 @@
 package tsec.cipher.symmetric
 
-import javax.crypto
-
 import tsec.cipher.common._
 import tsec.cipher.common.mode.GCM
 import tsec.cipher.common.padding.NoPadding
