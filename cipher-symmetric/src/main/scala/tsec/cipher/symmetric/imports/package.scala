@@ -1,11 +1,14 @@
 package tsec.cipher.symmetric
 
+import javax.crypto
+
 import tsec.cipher.common._
 import tsec.cipher.common.mode.GCM
 import tsec.cipher.common.padding.NoPadding
 import tsec.common.{CryptoTag, JKeyGenerator}
 import javax.crypto.{SecretKey => JSecretKey}
 
+import cats.Id
 import cats.evidence.Is
 
 package object imports{
@@ -22,16 +25,16 @@ package object imports{
   protected[tsec] case class SymmetricAlgorithm[T](algorithm: String, keyLength: Int) extends CryptoTag[T]
 
   sealed trait TaggedSecretKey {
-    type KeyRepr
-    val is: Is[KeyRepr, JSecretKey]
+    type KeyRepr[A]
+    def is[A]: Is[KeyRepr[A], JSecretKey]
   }
 
   val SecretKey$$: TaggedSecretKey = new TaggedSecretKey {
-    type KeyRepr = JSecretKey
-    val is = Is.refl[JSecretKey]
+    type KeyRepr[A] = Id[JSecretKey]
+    @inline def is[A]: Is[KeyRepr[A], JSecretKey] = Is.refl[JSecretKey]
   }
 
-  type SecretKey[A] = SecretKey$$.KeyRepr
+  type SecretKey[A] = SecretKey$$.KeyRepr[A]
 
   object SecretKey {
     @inline def apply[A: SymmetricAlgorithm](key: JSecretKey): SecretKey[A] = SecretKey$$.is.flip.coerce(key)
