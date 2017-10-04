@@ -1,0 +1,18 @@
+sudo: false
+language: scala
+
+scala:
+  - 2.12.3
+  - 2.11.11
+
+before_cache:
+  - find $HOME/.sbt -name "*.lock" -type f -delete
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt
+
+jdk:
+  - oraclejdk8
