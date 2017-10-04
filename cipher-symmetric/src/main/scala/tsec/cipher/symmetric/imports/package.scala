@@ -27,7 +27,7 @@ package object imports{
     def is[A]: Is[KeyRepr[A], JSecretKey]
   }
 
-  val SecretKey$$: TaggedSecretKey = new TaggedSecretKey {
+  protected val SecretKey$$: TaggedSecretKey = new TaggedSecretKey {
     type KeyRepr[A] = Id[JSecretKey]
     @inline def is[A]: Is[KeyRepr[A], JSecretKey] = Is.refl[JSecretKey]
   }
