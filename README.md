@@ -79,3 +79,5 @@ then use:
 [Edmund Noble](https://github.com/edmundnoble) (For the dank tagless)
 
 [Fabio Labella](https://github.com/systemfw) (For the great FP help)
+
+[Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor)
