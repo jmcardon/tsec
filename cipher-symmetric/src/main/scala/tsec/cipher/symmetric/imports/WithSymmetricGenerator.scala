@@ -1,17 +1,17 @@
 package tsec.cipher.symmetric.imports
 
 import javax.crypto.spec.SecretKeySpec
-import javax.crypto.{KeyGenerator => KG, SecretKey => JSecretKey}
-import tsec.cipher.common.{CipherError, CipherKeyBuildError}
-import tsec.common.{ErrorConstruct, JKeyGenerator}
+import javax.crypto.{KeyGenerator => KG}
+import tsec.cipher.common._
+import tsec.common.ErrorConstruct._
 import cats.syntax.either._
 
 protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: Int)
-    extends JKeyGenerator[T, SecretKey, CipherKeyBuildError] {
+    extends CipherKeyGen[T]{
 
   implicit val tag: SymmetricAlgorithm[T] = SymmetricAlgorithm[T](repr, keyLen)
 
-  implicit val keyGen: JKeyGenerator[T, SecretKey, CipherKeyBuildError] = this // useful for testing
+  implicit val keyGen: CipherKeyGen[T] = this // useful for testing
 
   def keyLength: Int = tag.keyLength
 
@@ -30,7 +30,7 @@ protected[tsec] abstract class WithSymmetricGenerator[T](repr: String, keyLen: I
         gen.init(keyLength)
         SecretKey[T](gen.generateKey())
       })
-      .leftMap(ErrorConstruct.fromThrowable[CipherKeyBuildError])
+      .mapError(CipherKeyBuildError.apply)
 
   //Note: JCipher.getMaxAllowedKeyLength(tag.algorithm) returns a length in bits. for an array of bytes
   //This means dividing by 8 to get the number of elements in bytes

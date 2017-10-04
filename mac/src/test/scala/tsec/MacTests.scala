@@ -1,14 +1,14 @@
 package tsec
 
 import org.scalatest.MustMatchers
-import tsec.common.ByteUtils._
+import tsec.common._
 import tsec.common.JKeyGenerator
 import tsec.mac.imports.{MacSigningKey, _}
 
 class MacTests extends TestSpec with MustMatchers {
 
 
-  def macTest[T: ByteAux](implicit keyGen: JKeyGenerator[T, MacSigningKey, MacKeyBuildError], tag: MacTag[T]): Unit = {
+  def macTest[T: ByteEV](implicit keyGen: JKeyGenerator[T, MacSigningKey, MacKeyBuildError], tag: MacTag[T]): Unit = {
     behavior of tag.algorithm
 
     val instance = JCAMacImpure[T]
@@ -32,7 +32,7 @@ class MacTests extends TestSpec with MustMatchers {
         k <- keyGen.generateKey()
         signed1 <- instance.algebra.sign(dataToSign, k)
         signed2 <- instance.algebra.sign(dataToSign, k)
-      } yield constantTimeEquals(signed1, signed2)
+      } yield ByteUtils.constantTimeEquals(signed1, signed2)
       res mustBe Right(true)
     }
 

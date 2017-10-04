@@ -41,6 +41,12 @@ case class DecryptError(cause: String) extends CipherError
   */
 case class CipherKeyBuildError(cause: String) extends CipherError
 
+/**
+  * Ciphertext related errors
+  */
+case class CipherTextError(cause: String) extends CipherError
+
 case object NoSuchInstanceError extends CipherError {
-  def cause: String = "The combination for the cipher parameters given does not exist"
+  def cause: String =
+    "The combination for the cipher parameters given does not exist, or is not present in your JVM"
 }

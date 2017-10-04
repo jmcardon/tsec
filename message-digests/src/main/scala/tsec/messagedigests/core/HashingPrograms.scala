@@ -1,19 +1,18 @@
 package tsec.messagedigests.core
 
 import cats.data.{NonEmptyList, State}
-import shapeless._
-import tsec.common.ByteUtils.ByteAux
+import tsec.common.ByteEV
 import tsec.messagedigests._
 
 abstract class HashingPrograms[T](
     algebra: HashAlgebra[T]
-)(implicit gen: ByteAux[T]) {
+)(implicit gen: ByteEV[T]) {
 
   def hash[C](toHash: C)(implicit cryptoPickler: CryptoPickler[C]): T =
-    (algebra.hash _).andThen(f => gen.from(f :: HNil))(cryptoPickler.pickle(toHash))
+    (algebra.hash _).andThen(gen.fromArray)(cryptoPickler.pickle(toHash))
 
   def hashBytes(bytes: Array[Byte]): T =
-    gen.from(algebra.hash(bytes)::HNil)
+    gen.fromArray(algebra.hash(bytes))
 
   def hashToByteArray(bytes: Array[Byte]): Array[Byte] =
     algebra.hash(bytes)
@@ -26,13 +25,13 @@ abstract class HashingPrograms[T](
             .map(cryptoPickler.pickle)
         )
       )
-      .map(f => gen.from(f :: HNil))
+      .map(gen.fromArray)
 
   def combineAndHash[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): T =
-    (algebra.hash _).andThen(HashingPrograms.fromBytes[T])(toHash.map(cryptoPickler.pickle).reduceLeft(_ ++ _))
+    (algebra.hash _).andThen(gen.fromArray)(toHash.map(cryptoPickler.pickle).reduceLeft(_ ++ _))
 
   protected [tsec] def consumeAndLift(state: algebra.S): T =
-    (algebra.consume _).andThen(HashingPrograms.fromBytes[T])(state)
+    (algebra.consume _).andThen(gen.fromArray)(state)
 
   def hashCumulative[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): List[T] = {
     def appendAndHash(newState: algebra.S): State[algebra.S, T] =
@@ -53,10 +52,4 @@ abstract class HashingPrograms[T](
       .runA(lifted.head)
       .value
   }
-}
-
-object HashingPrograms {
-
-  def fromBytes[C](bytes: Array[Byte])(implicit gen: ByteAux[C]): C = gen.from(bytes :: HNil)
-
 }

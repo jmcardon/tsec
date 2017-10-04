@@ -5,7 +5,7 @@ import javax.crypto.{Cipher => JCipher}
 
 import cats.effect.IO
 import tsec.cipher.common._
-import tsec.cipher.common.mode.ModeKeySpec
+import tsec.cipher.common.mode.{ModeKeySpec, ParameterSpec}
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
 import tsec.cipher.symmetric.imports.{SecretKey, SymmetricAlgorithm}
@@ -37,14 +37,17 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
       instance: JCipher,
       secretKey: SecretKey[A]
   ): IO[Unit] =
-    IO(instance.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
+    IO(instance.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv)))
 
   protected[symmetric] def initDecryptor(
       instance: JCipher,
       key: SecretKey[A],
       iv: Array[Byte]
   ): IO[Unit] =
-    IO(instance.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
+    IO(
+      instance
+        .init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv)))
+    )
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): IO[Unit] =
     IO(e.updateAAD(aad.aad))
@@ -85,7 +88,7 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
       plainText: PlainText,
       key: SecretKey[A],
       aad: AAD
-  ) =
+  ): IO[CipherText[A, M, P]] =
     for {
       instance  <- genInstance
       _         <- initEncryptor(instance, key)

@@ -1,6 +1,10 @@
 package tsec.passwordhashers
 
-import tsec.passwordhashers.core.{PWHashPrograms, PasswordValidated}
+import cats.evidence.Is
+import tsec.passwordhashers.core._
+import org.mindrot.jbcrypt.{BCrypt => JBCrypt}
+import com.lambdaworks.crypto.{SCryptUtil => JSCrypt}
+import tsec.common.{TaggedString, StringEV}
 
 package object imports {
 
@@ -23,4 +27,86 @@ package object imports {
   val SCryptHardenedN = 18
   val SCryptHardnedR  = 8
   val SCryptHardenedP = 2
+
+  protected val BCrypt$$ : TaggedString = new TaggedString {
+    type I = String
+    val is = Is.refl[String]
+  }
+
+  type BCrypt = BCrypt$$.I
+
+  implicit object BCrypt extends PasswordHasher[BCrypt] with StringEV[BCrypt] {
+    @inline def fromString(a: String): BCrypt = BCrypt$$.is.flip.coerce(a)
+
+    @inline def asString(a: BCrypt): String = BCrypt$$.is.coerce(a)
+
+    protected val defaultRounds: Rounds = Rounds(DefaultBcryptRounds)
+
+    def hashPw(pass: Password, opt: Rounds): BCrypt =
+      BCrypt$$.is.flip.coerce(JBCrypt.hashpw(pass.pass, JBCrypt.gensalt(opt.rounds)))
+
+    def checkPassword(pass: Password, hashed: BCrypt): Boolean =
+      JBCrypt.checkpw(pass.pass, hashed)
+  }
+
+  private object BCryptAlgebra extends PWHashInterpreter[BCrypt]
+
+  implicit object BCryptPasswordHasher
+      extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, Rounds(DefaultBcryptRounds))(BCrypt)
+
+  protected val SCrypt$$ : TaggedString = new TaggedString {
+    type I = String
+    val is = Is.refl[String]
+  }
+
+  type SCrypt = SCrypt$$.I
+
+  implicit object SCrypt extends PasswordHasher[SCrypt] with StringEV[SCrypt] {
+    @inline def fromString(a: String): SCrypt = SCrypt$$.is.flip.coerce(a)
+
+    @inline def asString(a: SCrypt): String = SCrypt$$.is.coerce(a)
+
+    protected val defaultRounds: Rounds = Rounds(DefaultSCryptR)
+
+    def hashPw(pass: Password, opt: Rounds): SCrypt =
+      SCrypt$$.is.flip
+        .coerce(SCryptUtil.scrypt(pass.pass, math.pow(2, opt.rounds).toInt, DefaultSCryptR, DefaultSCryptP))
+
+    def checkPassword(pass: Password, hashed: SCrypt): Boolean =
+      JSCrypt.check(pass.pass, hashed)
+  }
+
+  implicit object SCryptAlgebra extends PWHashInterpreter[SCrypt]
+
+  implicit object SCryptPasswordHasher
+      extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(DefaultSCryptN))(SCrypt)
+
+  val HardenedSCrypt$$ : TaggedString = new TaggedString {
+    type I = String
+    val is = Is.refl[String]
+  }
+
+  type HardenedSCrypt = HardenedSCrypt$$.I
+
+  implicit object HardenedSCrypt extends PasswordHasher[HardenedSCrypt] with StringEV[HardenedSCrypt] {
+
+    @inline def fromString(a: String): HardenedSCrypt = HardenedSCrypt$$.is.flip.coerce(a)
+
+    @inline def asString(a: HardenedSCrypt): String = HardenedSCrypt$$.is.coerce(a)
+
+    protected val defaultRounds: Rounds = Rounds(SCryptHardnedR)
+
+    def hashPw(pass: Password, opt: Rounds): HardenedSCrypt =
+      HardenedSCrypt$$.is.flip
+        .coerce(SCryptUtil.scrypt(pass.pass, math.pow(2, opt.rounds).toInt, SCryptHardnedR, SCryptHardenedP))
+
+    def checkPassword(pass: Password, hashed: HardenedSCrypt): Boolean =
+      SCryptUtil.check(pass.pass, hashed)
+  }
+
+  object Hardened extends PWHashInterpreter[HardenedSCrypt]
+
+  implicit object HardenedSCryptHasher
+      extends PWHashPrograms[PasswordValidated, HardenedSCrypt](Hardened, Rounds(SCryptHardenedN))(HardenedSCrypt)
+
 }

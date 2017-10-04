@@ -7,7 +7,7 @@ import cats.effect.{IO, Sync}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import tsec.cipher.common._
-import tsec.cipher.common.mode.ModeKeySpec
+import tsec.cipher.common.mode._
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
 import tsec.cipher.symmetric.imports.{SecretKey, SymmetricAlgorithm}
@@ -39,14 +39,14 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
       instance: JCipher,
       secretKey: SecretKey[A]
   ): F[Unit] =
-    F.delay(instance.init(JCipher.ENCRYPT_MODE, secretKey.key, modeSpec.genIv))
+    F.delay(instance.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv)))
 
   protected[symmetric] def initDecryptor(
       instance: JCipher,
       key: SecretKey[A],
       iv: Array[Byte]
   ): F[Unit] =
-    F.delay(instance.init(JCipher.DECRYPT_MODE, key.key, modeSpec.buildIvFromBytes(iv)))
+    F.delay(instance.init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))))
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): F[Unit] =
     F.delay(e.updateAAD(aad.aad))

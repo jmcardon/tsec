@@ -1,5 +1,6 @@
 package tsec.jws.mac
 
+import tsec.common._
 import cats.data.NonEmptyList
 import io.circe._
 import io.circe.syntax._
@@ -9,7 +10,7 @@ import tsec.jws.header.JWSHeader
 import tsec.jwt
 import tsec.jwt.header.JWTtyp
 import tsec.mac.imports.MacTag
-import tsec.common.ByteUtils._
+
 
 /**
   * A JWS header for JWT serialization.

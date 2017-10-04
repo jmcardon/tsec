@@ -24,7 +24,7 @@ object SymmetricCipherExamples {
    */
   import tsec.cipher.common._
   import tsec.cipher.symmetric.imports._
-  import tsec.common.ByteUtils._
+  import tsec.common._
 
   //Using the default Encryptor (note: Not authenticated. For most cases, you want some sort of authentication to it,
   //Either MAC or An AEAD cipher, as I'll show next
@@ -38,11 +38,23 @@ object SymmetricCipherExamples {
   } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
 
   /*
+  You can also turn it into a singlular array with the IV concatenated at the end
+   */
+  val onlyEncrypt2: Either[CipherError, String] = for {
+    instance  <- DefaultEncryptor.getInstance //Instances are unsafe! Some JVMs may not have particular instances
+    key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
+    encrypted <- instance.encrypt(PlainText(toEncrypt), key) //Encrypt our message
+    array = encrypted.toSingleArray
+    from      <- DefaultEncryptor.fromSingleArray(array)
+    decrypted <- instance.decrypt(from, key)
+  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+
+  /*
   An authenticated encryption and decryption
    */
   val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)
   val encryptAAD: Either[CipherError, String] = for {
-    instance  <- DefaultAuthEncryptor.getInstance //Instances are unsafe! Some JVMs may not have particular instances
+    instance  <- DefaultAuthEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
     key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
     encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD

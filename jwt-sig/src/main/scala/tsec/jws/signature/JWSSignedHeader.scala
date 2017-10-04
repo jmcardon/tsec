@@ -7,9 +7,9 @@ import tsec.jwt
 import tsec.jws._
 import tsec.jwt.algorithms._
 import tsec.jwt.header._
-import tsec.common.ByteUtils._
+import tsec.common._
 import tsec.jws.header.JWSHeader
-import tsec.messagedigests.imports.{SHA1, SHA256}
+import tsec.messagedigests.imports._
 
 case class JWSSignedHeader[A](
     `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"
@@ -35,8 +35,8 @@ object JWSSignedHeader {
       ("jwk", a.jwk.asJson),
       ("kid", a.kid.asJson),
       ("x5u", a.x5u.asJson),
-      ("x5t", a.x5t.map(_.array.toB64String).asJson),
-      ("x5t#s256", a.`x5t#S256`.map(_.array.toB64String).asJson)
+      ("x5t", a.x5t.map(_.toB64String).asJson),
+      ("x5t#s256", a.`x5t#S256`.map(_.toB64String).asJson)
     )
   }
 
@@ -67,8 +67,8 @@ object JWSSignedHeader {
                   jwk = jwk,
                   kid = kid,
                   x5u = x5u,
-                  x5t = x5t.map(h => SHA1(h.base64Bytes)),
-                  `x5t#S256` = x5t256.map(h => SHA256(h.base64Bytes))
+                  x5t = x5t.map(h => h.base64Bytes.toRepr[SHA1]),
+                  `x5t#S256` = x5t256.map(h => h.base64Bytes.toRepr[SHA256])
                 ) {}
             case None =>
               Left(DecodingFailure("No algorithm found", Nil))

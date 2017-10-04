@@ -19,24 +19,24 @@ abstract class GeneralSignature[A](signature: String, keyFactoryRepr: String) ex
   implicit val kt: KFTag[A] = this
 
   def generateKeyPair: Either[SignatureKeyError, SigKeyPair[A]] =
-    Either.catchNonFatal(generateKeyPairUnsafe).mapError[SignatureKeyError]
+    Either.catchNonFatal(generateKeyPairUnsafe).mapError(SignatureKeyError.apply)
 
   def generateKeyPairUnsafe: SigKeyPair[A] =
     SigKeyPair.fromKeyPair[A](KeyPairGenerator.getInstance(kt.keyFactoryAlgo).generateKeyPair())
 
   def buildPrivateKey(keyBytes: Array[Byte]): Either[SignatureKeyError, SigPrivateKey[A]] =
-    Either.catchNonFatal(buildPrivateKeyUnsafe(keyBytes)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPrivateKeyUnsafe(keyBytes)).mapError(SignatureKeyError.apply)
 
   def buildPrivateKeyUnsafe(keyBytes: Array[Byte]): SigPrivateKey[A] =
-    SigPrivateKey.fromKey[A](
+    SigPrivateKey[A](
       KeyFactory.getInstance(kt.keyFactoryAlgo).generatePrivate(new PKCS8EncodedKeySpec(keyBytes))
     )
 
   def buildPublicKey(keyBytes: Array[Byte]): Either[SignatureKeyError, SigPublicKey[A]] =
-    Either.catchNonFatal(buildPublicKeyUnsafe(keyBytes)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPublicKeyUnsafe(keyBytes)).mapError(SignatureKeyError.apply)
 
   def buildPublicKeyUnsafe(keyBytes: Array[Byte]): SigPublicKey[A] =
-    SigPublicKey.fromKey[A](KeyFactory.getInstance(kt.keyFactoryAlgo).generatePublic(new X509EncodedKeySpec(keyBytes)))
+    SigPublicKey[A](KeyFactory.getInstance(kt.keyFactoryAlgo).generatePublic(new X509EncodedKeySpec(keyBytes)))
 }
 
 abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAlgoTag[A] {
@@ -53,7 +53,7 @@ abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAl
   implicit val kt: RSAKFTag[A] = this
 
   def generateKeyPair: Either[SignatureKeyError, SigKeyPair[A]] =
-    Either.catchNonFatal(generateKeyPairUnsafe).mapError[SignatureKeyError]
+    Either.catchNonFatal(generateKeyPairUnsafe).mapError(SignatureKeyError.apply)
 
   def generateKeyPairUnsafe: SigKeyPair[A] = {
     val instance = KeyPairGenerator.getInstance(kt.keyFactoryAlgo)
@@ -62,7 +62,7 @@ abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAl
   }
 
   def generateKeyPairStrong: Either[SignatureKeyError, SigKeyPair[A]] =
-    Either.catchNonFatal(generateKeyPairStrongUnsafe).mapError[SignatureKeyError]
+    Either.catchNonFatal(generateKeyPairStrongUnsafe).leftMap(e => SignatureKeyError(e.getMessage))
 
   def generateKeyPairStrongUnsafe: SigKeyPair[A] = {
     val instance = KeyPairGenerator.getInstance(kt.keyFactoryAlgo)
@@ -71,18 +71,18 @@ abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAl
   }
 
   def buildPrivateKey(keyBytes: Array[Byte]): Either[SignatureKeyError, SigPrivateKey[A]] =
-    Either.catchNonFatal(buildPrivateKeyUnsafe(keyBytes)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPrivateKeyUnsafe(keyBytes)).mapError(SignatureKeyError.apply)
 
   def buildPrivateKeyUnsafe(keyBytes: Array[Byte]): SigPrivateKey[A] =
-    SigPrivateKey.fromKey[A](
+    SigPrivateKey[A](
       KeyFactory.getInstance(kt.keyFactoryAlgo).generatePrivate(new PKCS8EncodedKeySpec(keyBytes))
     )
 
   def buildPublicKey(keyBytes: Array[Byte]): Either[SignatureKeyError, SigPublicKey[A]] =
-    Either.catchNonFatal(buildPublicKeyUnsafe(keyBytes)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPublicKeyUnsafe(keyBytes)).mapError(SignatureKeyError.apply)
 
   def buildPublicKeyUnsafe(keyBytes: Array[Byte]): SigPublicKey[A] =
-    SigPublicKey.fromKey[A](KeyFactory.getInstance(kt.keyFactoryAlgo).generatePublic(new X509EncodedKeySpec(keyBytes)))
+    SigPublicKey[A](KeyFactory.getInstance(kt.keyFactoryAlgo).generatePublic(new X509EncodedKeySpec(keyBytes)))
 }
 
 abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
@@ -104,7 +104,7 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
   implicit val kt: ECKFTag[A] = this
 
   def generateKeyPair: Either[SignatureKeyError, SigKeyPair[A]] =
-    Either.catchNonFatal(generateKeyPairUnsafe).mapError[SignatureKeyError]
+    Either.catchNonFatal(generateKeyPairUnsafe).mapError(SignatureKeyError.apply)
 
   def generateKeyPairUnsafe: SigKeyPair[A] = {
     val instance = KeyPairGenerator.getInstance(keyFactoryAlgo, ECDSASignature.Provider)
@@ -113,21 +113,21 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
   }
 
   def buildPrivateKey(keyBytes: Array[Byte]): Either[SignatureKeyError, SigPrivateKey[A]] =
-    Either.catchNonFatal(buildPrivateKeyUnsafe(keyBytes)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPrivateKeyUnsafe(keyBytes)).mapError(SignatureKeyError.apply)
 
   def buildPrivateKeyUnsafe(keyBytes: Array[Byte]): SigPrivateKey[A] =
-    SigPrivateKey.fromKey[A](
+    SigPrivateKey[A](
       KeyFactory
         .getInstance(kt.keyFactoryAlgo, ECDSASignature.Provider)
         .generatePrivate(new PKCS8EncodedKeySpec(keyBytes))
     )
 
   def buildPrivateKey(S: BigInt): Either[SignatureKeyError, SigPrivateKey[A]] =
-    Either.catchNonFatal(buildPrivateKeyUnsafe(S)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPrivateKeyUnsafe(S)).mapError(SignatureKeyError.apply)
 
   def buildPrivateKeyUnsafe(S: BigInt): SigPrivateKey[A] = {
     val spec = new ECPrivateKeySpec(S.underlying(), curveSpec)
-    SigPrivateKey.fromKey[A](
+    SigPrivateKey[A](
       KeyFactory
         .getInstance(kt.keyFactoryAlgo, ECDSASignature.Provider)
         .generatePrivate(spec)
@@ -140,18 +140,18 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
   }
 
   def buildPublicKey(x: BigInt, y: BigInt): Either[SignatureKeyError, SigPublicKey[A]] =
-    Either.catchNonFatal(buildPublicKeyUnsafe(x, y)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPublicKeyUnsafe(x, y)).mapError(SignatureKeyError.apply)
 
   def buildPublicKeyUnsafe(x: BigInt, y: BigInt): SigPublicKey[A] = {
     val spec = new ECPublicKeySpec(new ECPoint(x.underlying(), y.underlying()), curveSpec)
-    SigPublicKey.fromKey[A](KeyFactory.getInstance(keyFactoryAlgo, ECDSASignature.Provider).generatePublic(spec))
+    SigPublicKey[A](KeyFactory.getInstance(keyFactoryAlgo, ECDSASignature.Provider).generatePublic(spec))
   }
 
   def buildPublicKey(keyBytes: Array[Byte]): Either[SignatureKeyError, SigPublicKey[A]] =
-    Either.catchNonFatal(buildPublicKeyUnsafe(keyBytes)).mapError[SignatureKeyError]
+    Either.catchNonFatal(buildPublicKeyUnsafe(keyBytes)).mapError(SignatureKeyError.apply)
 
   def buildPublicKeyUnsafe(keyBytes: Array[Byte]): SigPublicKey[A] =
-    SigPublicKey.fromKey[A](
+    SigPublicKey[A](
       KeyFactory
         .getInstance(kt.keyFactoryAlgo, ECDSASignature.Provider)
         .generatePublic(new X509EncodedKeySpec(keyBytes))

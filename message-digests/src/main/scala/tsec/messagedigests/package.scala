@@ -40,17 +40,26 @@ package object messagedigests {
       CryptoPickler[String](_.getBytes(s.getCharset))
   }
 
+
+  /**
+   * Our syntactic sugar for hashing any arbitrary T
+   * @param c
+   * @tparam T
+   */
   class DigestOps[T](val c: T) extends AnyVal {
     def pickleAndHash[K](implicit jHasher: JHasher[K], pickler: CryptoPickler[T]): K = jHasher.hash(c)
   }
 
-  implicit def digestOps[T: CryptoPickler](c: T): DigestOps[T] = new DigestOps[T](c)
 
+  /**
+   * Our syntactic sugar for hashing arrays
+   */
   class ArrayDigestOps(val arr: Array[Byte]) extends AnyVal {
     def hash[K](implicit jHasher: JHasher[K]): K                  = jHasher.hashBytes(arr)
     def hashToArray[K](implicit jHasher: JHasher[K]): Array[Byte] = jHasher.hashToByteArray(arr)
   }
 
-  implicit def arrayOps(array: Array[Byte]): ArrayDigestOps = new ArrayDigestOps(array)
+  implicit final def digestArrayOps(array: Array[Byte]): ArrayDigestOps = new ArrayDigestOps(array)
+  implicit def digestOps[T: CryptoPickler](c: T): DigestOps[T] = new DigestOps[T](c)
 
 }

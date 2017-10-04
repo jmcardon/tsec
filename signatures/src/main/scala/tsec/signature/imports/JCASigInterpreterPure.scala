@@ -1,7 +1,6 @@
 package tsec.signature.imports
 
 import java.security.Signature
-
 import cats.effect.Sync
 import tsec.signature.core._
 
@@ -14,12 +13,14 @@ sealed abstract class JCASigInterpreterPure[F[_], A](implicit M: Sync[F], signat
 
   def genSignatureInstance: F[Signature] = M.delay(Signature.getInstance(signatureAlgorithm.algorithm))
 
-  def initSign(instance: Signature, p: SigPrivateKey[A]): F[Unit] = M.delay(instance.initSign(p.key))
+  def initSign(instance: Signature, p: SigPrivateKey[A]): F[Unit] =
+    M.delay(instance.initSign(SigPrivateKey.toJavaPrivateKey[A](p)))
 
-  def initVerifyK(instance: Signature, p: SigPublicKey[A]): F[Unit] = M.delay(instance.initVerify(p.key))
+  def initVerifyK(instance: Signature, p: SigPublicKey[A]): F[Unit] =
+    M.delay(instance.initVerify(SigPublicKey.toJavaPublicKey[A](p)))
 
   def initVerifyC(instance: Signature, c: SigCertificate[A]): F[Unit] =
-    M.delay(instance.initVerify(c.certificate))
+    M.delay(instance.initVerify(SigCertificate.toJavaCertificate[A](c)))
 
   def loadBytes(bytes: Array[Byte], instance: Signature): F[Unit] = M.delay(instance.update(bytes))
 

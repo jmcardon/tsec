@@ -1,17 +1,16 @@
 package tsec
 
 import org.scalatest.MustMatchers
+import tsec.common._
 import tsec.cipher.common._
-import tsec.cipher.common.mode.ModeKeySpec
-import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.imports.{JCASymmetricCipher, SecretKey, SymmetricAlgorithm}
-import tsec.common.ByteUtils._
-import tsec.common.JKeyGenerator
+import tsec.cipher.common.mode._
+import tsec.cipher.common.padding._
+import tsec.cipher.symmetric.imports._
 
 import scala.annotation.tailrec
 import scala.util.Random
 
-class SymmetricSpec extends TestSpec with MustMatchers{
+class SymmetricSpec extends TestSpec with MustMatchers {
 
   def utf8String(array: Array[Byte]) = new String(array, "UTF-8")
 
@@ -22,12 +21,12 @@ class SymmetricSpec extends TestSpec with MustMatchers{
       (array1 zip array2).forall(r => r._1 == r._2)
 
   def cipherTest[A, M, P](
-    implicit symm: SymmetricAlgorithm[A],
-    mode: ModeKeySpec[M],
-    p: Padding[P],
-    keyGen: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
+      implicit symm: SymmetricAlgorithm[A],
+      mode: ModeKeySpec[M],
+      p: Padding[P],
+      keyGen: CipherKeyGen[A]
   ): Unit = {
-    val testMessage                       = "The Moose is Loose"
+    val testMessage              = "The Moose is Loose"
     val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
 
     val spec = s"""${symm.algorithm}_${symm.keyLength}/${mode.algorithm}/${p.algorithm}"""
@@ -44,16 +43,28 @@ class SymmetricSpec extends TestSpec with MustMatchers{
       testEncryptionDecryption must equal(Right(testMessage))
     }
 
+    it should "Be able to build a correct key from a repr" in {
+      val testEncryptionDecryption: Either[CipherError, String] = for {
+        key       <- keyGen.generateKey()
+        instance  <- JCASymmetricCipher[A, M, P]
+        encrypted <- instance.encrypt(testPlainText, key)
+        keyRepr = key.getEncoded
+        built     <- keyGen.buildKey(keyRepr)
+        decrypted <- instance.decrypt(encrypted, built)
+      } yield utf8String(decrypted.content)
+      testEncryptionDecryption must equal(Right(testMessage))
+    }
+
     /*
     We will test only a few thousand, but part of the point is simply to test proper implementation of secureRandom
      */
     it should "Not reuse IVs" in {
 
       @tailrec def tailrecGenIVs(
-        last: CipherText[A, M, P],
-        counter: Int,
-        instance: JCASymmetricCipher[A, M, P],
-        key: SecretKey[A]
+          last: CipherText[A, M, P],
+          counter: Int,
+          instance: JCASymmetricCipher[A, M, P],
+          key: SecretKey[A]
       ): Boolean =
         if (counter > 0) {
           instance.encrypt(testPlainText, key) match {
@@ -93,19 +104,19 @@ class SymmetricSpec extends TestSpec with MustMatchers{
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
       val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
         k <- keyGen.buildKey(randomKey)
-      } yield k.key.getEncoded.length < randomKey.length
+      } yield k.getEncoded.length < randomKey.length
 
       keyLenTest mustBe a[Left[_, _]]
     }
   }
 
   def authCipherTest[A, M, P](
-    implicit symm: SymmetricAlgorithm[A],
-    mode: ModeKeySpec[M],
-    p: Padding[P],
-    keyGen: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
+      implicit symm: SymmetricAlgorithm[A],
+      mode: ModeKeySpec[M],
+      p: Padding[P],
+      keyGen: CipherKeyGen[A]
   ): Unit = {
-    val testMessage                       = "The Moose is Loose"
+    val testMessage              = "The Moose is Loose"
     val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
 
     val spec = s"""${symm.algorithm}_${symm.keyLength}/${mode.algorithm}/${p.algorithm}"""
@@ -118,6 +129,18 @@ class SymmetricSpec extends TestSpec with MustMatchers{
         instance  <- JCASymmetricCipher[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
         decrypted <- instance.decrypt(encrypted, key)
+      } yield utf8String(decrypted.content)
+      testEncryptionDecryption must equal(Right(testMessage))
+    }
+
+    it should "Be able to build a correct key from a repr" in {
+      val testEncryptionDecryption: Either[CipherError, String] = for {
+        key       <- keyGen.generateKey()
+        instance  <- JCASymmetricCipher[A, M, P]
+        encrypted <- instance.encrypt(testPlainText, key)
+        keyRepr = key.getEncoded
+        built     <- keyGen.buildKey(keyRepr)
+        decrypted <- instance.decrypt(encrypted, built)
       } yield utf8String(decrypted.content)
       testEncryptionDecryption must equal(Right(testMessage))
     }
@@ -139,10 +162,10 @@ class SymmetricSpec extends TestSpec with MustMatchers{
     it should "Not reuse IVs" in {
 
       @tailrec def tailrecGenIVs(
-        last: CipherText[A, M, P],
-        counter: Int,
-        instance: JCASymmetricCipher[A, M, P],
-        key: SecretKey[A]
+          last: CipherText[A, M, P],
+          counter: Int,
+          instance: JCASymmetricCipher[A, M, P],
+          key: SecretKey[A]
       ): Boolean =
         if (counter > 0) {
           instance.encrypt(testPlainText, key) match {
@@ -194,7 +217,7 @@ class SymmetricSpec extends TestSpec with MustMatchers{
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
       val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
         k <- keyGen.buildKey(randomKey)
-      } yield k.key.getEncoded.length < randomKey.length
+      } yield k.getEncoded.length < randomKey.length
 
       keyLenTest mustBe a[Left[_, _]]
     }

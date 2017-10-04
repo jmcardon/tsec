@@ -1,8 +1,7 @@
 package tsec.jwt.algorithms
 
 import cats.MonadError
-import tsec.common.ByteUtils.ByteAux
-import tsec.common.JKeyGenerator
+import tsec.common.{ByteEV, JKeyGenerator}
 import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jwt.util.ParseEncodedKeySpec
 import tsec.mac.imports._
@@ -57,14 +56,14 @@ object JWA {
 
 }
 
-abstract class JWTMacAlgo[A](implicit val keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError]) extends JWA[A]
+abstract class JWTMacAlgo[A](implicit val keyGen: MacKeyGenerator[A]) extends JWA[A]
 
-abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWA[A] { //todo: Get rid of this tire fire
+abstract class JWTSigAlgo[A: SigAlgoTag](implicit gen: ByteEV[A]) extends JWA[A] { //todo: Get rid of this tire fire
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]]
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]]
 }
 
-abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A] {
+abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: ByteEV[A]) extends JWTSigAlgo[A] {
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] =
     ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] =
@@ -73,7 +72,7 @@ abstract class JWTECSig[A: SigAlgoTag: ECKFTag](implicit gen: ByteAux[A]) extend
   @inline def keyGen(implicit keyGen: ECKFTag[A]): ECKFTag[A] = keyGen
 }
 
-abstract class JWTRSASig[A: SigAlgoTag](implicit gen: ByteAux[A]) extends JWTSigAlgo[A] {
+abstract class JWTRSASig[A: SigAlgoTag](implicit gen: ByteEV[A]) extends JWTSigAlgo[A] {
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
 

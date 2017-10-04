@@ -4,7 +4,6 @@ import cats.Eq
 import tsec.passwordhashers._
 import tsec.passwordhashers.core._
 import tsec.passwordhashers.imports._
-import cats.syntax.either._
 
 class PasswordTest extends TestSpec {
 
@@ -14,7 +13,7 @@ class PasswordTest extends TestSpec {
   }
   implicit val BCryptCatsEqInstance = new Eq[BCrypt] {
     override def eqv(x: BCrypt, y: BCrypt): Boolean =
-      x.hashed === y.hashed
+      x === y
   }
 
   val plainPassword = "abc"

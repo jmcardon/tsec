@@ -3,18 +3,28 @@ package tsec.cipher.symmetric.imports
 import tsec.cipher.common._
 import tsec.cipher.common.mode.GCM
 import tsec.cipher.common.padding.NoPadding
-import tsec.common.JKeyGenerator
 
-sealed abstract class DefaultAuthEncryptor[A: SymmetricAlgorithm] {
-  def getInstance: Either[NoSuchInstanceError, JCASymmetricCipher[A, GCM, NoPadding]] =
+sealed abstract class AuthEncryptor[A: SymmetricAlgorithm] {
+  lazy val instance: Either[NoSuchInstanceError, JCASymmetricCipher[A, GCM, NoPadding]] =
     JCASymmetricCipher[A, GCM, NoPadding]
 
   @inline
   def keyGen(
-      implicit keyGenerator: JKeyGenerator[A, SecretKey, CipherKeyBuildError]
-  ): JKeyGenerator[A, SecretKey, CipherKeyBuildError] = keyGenerator
+      implicit keyGenerator: CipherKeyGen[A]
+  ): CipherKeyGen[A] = keyGenerator
+
+  def fromSingleArray(bytes: Array[Byte]): Either[CipherTextError, CipherText[A, GCM, NoPadding]] =
+    CipherText.fromSingleArray[A, GCM, NoPadding](bytes)
 }
 
-object DefaultAuthEncryptor extends DefaultAuthEncryptor[AES128]
+object AuthEncryptor {
+  implicit val e1: AuthEncryptor[AES128] = DefaultAuthEncryptor
+  implicit val e2: AuthEncryptor[AES192] = MediumAuthEncryptor
+  implicit val e3: AuthEncryptor[AES256] = StrongAuthEncryptor
+}
 
-object StrongAuthEncryptor extends DefaultAuthEncryptor[AES256]
+object DefaultAuthEncryptor extends AuthEncryptor[AES128]
+
+object MediumAuthEncryptor extends AuthEncryptor[AES192]
+
+object StrongAuthEncryptor extends AuthEncryptor[AES256]

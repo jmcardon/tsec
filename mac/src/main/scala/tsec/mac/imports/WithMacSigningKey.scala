@@ -2,33 +2,35 @@ package tsec.mac.imports
 
 import javax.crypto.KeyGenerator
 import javax.crypto.spec.SecretKeySpec
-
+import tsec.common.ErrorConstruct._
 import cats.syntax.either._
-import tsec.common.{ErrorConstruct, JKeyGenerator}
 
-protected[tsec] abstract class WithMacSigningKey[A](algorithm: String, keyLen: Int)
-    extends JKeyGenerator[A, MacSigningKey, MacKeyBuildError] {
+protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int)
+    extends MacTag[A]
+    with MacKeyGenerator[A]{
 
-  implicit val macTag: MacTag[A] = MacTag[A](algorithm, keyLen)
+  override val algorithm: String = algo
 
-  def generator: KeyGenerator = KeyGenerator.getInstance(algorithm)
+  implicit val macTag: MacTag[A] = this
 
-  def keyLength: Int = keyLen
+  def generator: KeyGenerator = KeyGenerator.getInstance(algo)
+
+  override val keyLength: Int = keyL
 
   def generateKey(): Either[MacKeyBuildError, MacSigningKey[A]] =
     Either
-      .catchNonFatal(MacSigningKey(generator.generateKey()))
-      .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
+      .catchNonFatal(MacSigningKey.fromJavaKey[A](generator.generateKey()))
+      .mapError(MacKeyBuildError.apply)
 
-  def generateKeyUnsafe(): MacSigningKey[A] = MacSigningKey(generator.generateKey())
+  def generateKeyUnsafe(): MacSigningKey[A] = MacSigningKey.fromJavaKey[A](generator.generateKey())
 
   def buildKey(key: Array[Byte]): Either[MacKeyBuildError, MacSigningKey[A]] =
     Either
-      .catchNonFatal(MacSigningKey(new SecretKeySpec(key.slice(0, keyLen), algorithm)))
-      .leftMap(ErrorConstruct.fromThrowable[MacKeyBuildError])
+      .catchNonFatal(MacSigningKey.fromJavaKey[A](new SecretKeySpec(key.slice(0, keyL), algo)))
+      .mapError(MacKeyBuildError.apply)
 
   def buildKeyUnsafe(key: Array[Byte]): MacSigningKey[A] =
-    MacSigningKey(new SecretKeySpec(key.slice(0, keyLen), algorithm))
+    MacSigningKey.fromJavaKey[A](new SecretKeySpec(key.slice(0, keyL), algo))
 
-  implicit def keyGen: JKeyGenerator[A, MacSigningKey, MacKeyBuildError] = this
+  implicit def keyGen: MacKeyGenerator[A] = this
 }

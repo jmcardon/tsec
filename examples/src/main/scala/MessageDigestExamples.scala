@@ -3,7 +3,7 @@ object MessageDigestExamples {
   /*
     Imports
    */
-  import tsec.common.ByteUtils._
+  import tsec.common._
   import tsec.messagedigests._
   import tsec.messagedigests.imports._ //For this example, we will use our byteutil helpers
 

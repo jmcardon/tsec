@@ -1,18 +1,6 @@
 import Dependencies._
 
-name := "fucc"
-
-version := "0.0.1"
-
-val circeV        = "0.9.0-M1"
-val catsV         = "1.0.0-MF"
-val catsEffV      = "0.4"
-val shapelessV    = "2.3.2"
-val thymeV        = "0.1.2-SNAPSHOT"
-val bouncyCastleV = "1.52"
-val jBCryptV      = "0.4.1"
-val sCryptV       = "1.4.0"
-val scalaTestV    = "3.0.1"
+name := "tsec"
 
 scalaVersion := "2.12.3"
 
@@ -34,7 +22,6 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
     Libraries.catsEffect,
-    Libraries.shapeless,
     Libraries.scalaTest
   ),
   organization in ThisBuild := "io.github.jmcardon",
@@ -42,7 +29,7 @@ lazy val commonSettings = Seq(
   fork in test := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
-  version in ThisBuild := "0.0.1-M1",
+  version in ThisBuild := "0.0.1-M2",
   scalacOpts
 )
 
@@ -65,6 +52,8 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeParser
 )
 
+lazy val http4sDeps = libraryDependencies ++= Seq(Libraries.http4sdsl, Libraries.scalaCheck)
+
 lazy val root = Project(id = "tsec", base = file("."))
   .settings(commonSettings)
   .aggregate(
@@ -74,7 +63,8 @@ lazy val root = Project(id = "tsec", base = file("."))
     signatures,
     jwtMac,
     jwtSig,
-    passwordHashers
+    passwordHashers,
+    http4s
   )
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
@@ -158,6 +148,18 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     jwtMac,
     jwtSig,
     passwordHashers
+  )
+
+lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
+  .settings(commonSettings)
+  .settings(jwtCommonLibs)
+  .settings(passwordHasherLibs)
+  .settings(http4sDeps)
+  .dependsOn(common % "compile->compile;test->test")
+  .dependsOn(
+    symmetricCipher,
+    mac,
+    jwtMac
   )
 
 lazy val publishSettings = Seq(

@@ -1,7 +1,7 @@
 package tsec.jws.signature
 
 import cats.syntax.all._
-import tsec.common.ByteUtils._
+import tsec.common._
 import tsec.jws.{JWSSerializer, JWSSignature}
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature.core._
@@ -14,7 +14,7 @@ import tsec.jwt.JWTClaims
 
 sealed abstract class JWSSigCV[F[_], A](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
-    aux: ByteAux[A],
+    aux: ByteEV[A],
     jwsSigAlgo: JWTSigAlgo[A],
     sigDSL: SignerPrograms.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
     M: MonadError[F, Throwable]
@@ -30,7 +30,7 @@ sealed abstract class JWSSigCV[F[_], A](
     val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
     for {
       signature <- sigDSL.sign(toSign.asciiBytes, sigPrivateKey)
-      concat    <- jwsSigAlgo.jcaToConcat[F](aux.to(signature).head)
+      concat    <- jwsSigAlgo.jcaToConcat[F](aux.toArray(signature))
     } yield JWTSig(header, body, JWSSignature[A](concat))
   }
 
@@ -38,7 +38,7 @@ sealed abstract class JWSSigCV[F[_], A](
     val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
     for {
       signature <- sigDSL.sign(toSign.asciiBytes, sigPrivateKey)
-      concat    <- jwsSigAlgo.jcaToConcat[F](aux.to(signature).head)
+      concat    <- jwsSigAlgo.jcaToConcat[F](aux.toArray(signature))
     } yield toSign + "." + concat.toB64UrlString
   }
 
@@ -134,7 +134,7 @@ sealed abstract class JWSSigCV[F[_], A](
 object JWSSigCV {
   implicit def genCVPure[F[_], A: SigAlgoTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
-      aux: ByteAux[A],
+      aux: ByteEV[A],
       jwsSigAlgo: JWTSigAlgo[A],
       sigDSL: JCASignerPure[F, A],
       M: MonadError[F, Throwable]
@@ -142,7 +142,7 @@ object JWSSigCV {
 
   implicit def genCVImpure[A: SigAlgoTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
-      aux: ByteAux[A],
+      aux: ByteEV[A],
       jwsSigAlgo: JWTSigAlgo[A],
       sigDSL: JCASigner[A]
   ): JWSSigCV[SigErrorM, A] = new JWSSigCV[SigErrorM, A]() {}
