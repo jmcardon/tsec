@@ -4,6 +4,8 @@ import cats.evidence.Is
 import tsec.common._
 import javax.crypto.{SecretKey => JSecretKey}
 
+import cats.Id
+
 package object imports {
 
   type MacErrorM[A] = Either[Throwable, A]
@@ -67,26 +69,23 @@ package object imports {
   trait MacKeyGenerator[A] extends JKeyGenerator[A, MacSigningKey, MacKeyBuildError]
 
   sealed trait TaggedMacKey {
-    type Repr
-    val is: Is[Repr, JSecretKey]
+    type Repr[A]
+    def is[A]: Is[Repr[A], JSecretKey]
   }
 
-  val MacSigningKey$$: TaggedMacKey = new TaggedMacKey {
-    type Repr = JSecretKey
-    val is = Is.refl[JSecretKey]
+  protected val MacSigningKey$$: TaggedMacKey = new TaggedMacKey {
+    type Repr[A] = Id[JSecretKey]
+    @inline def is[A]: Is[Repr[A], JSecretKey] = Is.refl[JSecretKey]
   }
 
-  type MacSigningKey[A] = MacSigningKey$$.Repr
+  type MacSigningKey[A] = MacSigningKey$$.Repr[A]
 
   object MacSigningKey {
-    @inline def fromJavaKey[A: MacTag](key: JSecretKey): MacSigningKey[A] = MacSigningKey$$.is.flip.coerce(key)
-    @inline def toJavaKey[A: MacTag](key: MacSigningKey[A]): JSecretKey = MacSigningKey$$.is.coerce(key)
+    @inline def fromJavaKey[A: MacTag](key: JSecretKey): MacSigningKey[A] = MacSigningKey$$.is[A].flip.coerce(key)
+    @inline def toJavaKey[A: MacTag](key: MacSigningKey[A]): JSecretKey = MacSigningKey$$.is[A].coerce(key)
   }
 
   final class SigningKeyOps[A](val key: MacSigningKey[A]) extends AnyVal {
-    def toJavaKey = MacSigningKey$$.is.coerce(key)
+    def toJavaKey: JSecretKey = MacSigningKey$$.is.coerce(key)
   }
-
-
-
 }
