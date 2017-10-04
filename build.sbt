@@ -87,6 +87,14 @@ lazy val symmetricCipher = Project(id = "tsec-symmetric-cipher", base = file("ci
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
 
+lazy val asymmetricCipher = Project(id = "tsec-asymmetric-cipher", base = file("cipher-asymmetric"))
+  .settings(commonSettings)
+  .settings(publishSettings)
+    .settings(signatureLibs)
+  .dependsOn(common % "compile->compile;test->test")
+  .dependsOn(cipherCore)
+
+
 lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(commonSettings)
   .settings(publishSettings)
