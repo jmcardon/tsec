@@ -10,9 +10,7 @@ import tsec.cipher.symmetric.imports.threadlocal.{JCATLSymmetric, JCATLSymmetric
 
 import scala.util.Random
 
-/**
-  * Ugly as shit but effective benchmarking code
-  */
+/** Ugly as shit but effective benchmarking code */
 object PoorMansBenchmark extends App {
   val totalIterLen = 100000
 
@@ -34,21 +32,15 @@ object PoorMansBenchmark extends App {
   val jcaInstance: Cipher = Cipher.getInstance("AES/GCM/NoPadding")
   val th                  = ichi.bench.Thyme.warmed(verbose = print)
 
-  /*
-  Our first two arrays are for JCA plain output, unboxed, untyped
-   */
+  /** Our first two arrays are for JCA plain output, unboxed, untyped */
   val regularTest = new Array[Array[Byte]](totalIterLen)
   val gmreg       = new Array[Array[Byte]](totalIterLen)
 
-  /*
-  Our next two, for Our boxed, effect-handled computations
-   */
+  /** Our next two, for Our boxed, effect-handled computations */
   val bench1Array = new Array[Either[CipherError, CipherText[AES128, GCM, NoPadding]]](totalIterLen)
   val bench2Array = new Array[Either[CipherError, CipherText[AES128, GCM, NoPadding]]](totalIterLen)
 
-  /*
-  How the hell to bench IO?
-   */
+  /** How the hell to bench IO? */
   val bench3Array = new Array[CipherText[AES128, GCM, NoPadding]](totalIterLen)
 
   th.pbenchOff(title = "JCA one mutable instance vs threadLocal")(
@@ -83,8 +75,7 @@ object PoorMansBenchmark extends App {
 
   th.pbench(testIO(), title = "Symmetric IO interpreter")
 
-  /**
-    * This is an ideal scenario, wherein you'd have only _one_ instance of
+  /** This is an ideal scenario, wherein you'd have only _one_ instance of
     * your cipher, wherein you save the expensive alloc
     *
     */
@@ -97,9 +88,7 @@ object PoorMansBenchmark extends App {
     }
   }
 
-  /**
-    *
-    * This is similar to what security libraries on the JVM abstract away
+  /** This is similar to what security libraries on the JVM abstract away
     * from you
     */
   def testGCMReg(): Unit = {
@@ -112,8 +101,7 @@ object PoorMansBenchmark extends App {
     }
   }
 
-  /**
-    * We test each io action
+  /** We test each io action
     * to view the related overhead, but we do not care about sequencing them
     *
     */

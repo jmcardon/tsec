@@ -1,6 +1,4 @@
 package tsec.cipher.common.mode
 
-/*
-Will tentatively not implement
- */
+/** Will tentatively not implement */
 sealed trait CTS

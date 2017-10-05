@@ -7,11 +7,9 @@ import javax.crypto.spec.GCMParameterSpec
 
 sealed trait GCM
 object GCM {
-  /*
-  in our implementation, we will use the most secure tag size as defined by:
-  http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
-
-  Iv length of 96 bits is recommended as per the spec on page 8
+  /** Inn our implementation, we will use the most secure tag size as defined
+    * by: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
+    *  Iv length of 96 bits is recommended as per the spec on page 8
    */
   val GCMTagLength        = 128
   val GCMIvOptionalLength = 12
@@ -19,10 +17,8 @@ object GCM {
 
 
     val ivLength: Int = GCMIvOptionalLength
-    /**
-      * Cache our random, and seed it properly as per
+    /** Cache our random, and seed it properly as per
       * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-      *
       */
     private val cachedRand: SecureRandom = {
       val r = new SecureRandom()
@@ -30,10 +26,8 @@ object GCM {
       r
     }
 
-    /**
-      * We will keep a reference to how many times our random is utilized
+    /** We will keep a reference to how many times our random is utilized
       * After a sensible Integer.MaxValue/2 times, we should reseed
-      *
       */
     private val adder: LongAdder = new LongAdder
     private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong

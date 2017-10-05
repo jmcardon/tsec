@@ -16,9 +16,7 @@ sealed abstract case class JWTMac[A](header: JWSMacHeader[A], body: JWTClaims, s
 
 object JWTMac {
 
-  /*
-  Default methods
-   */
+  /** Default methods */
   def build[A: ByteEV: JWTMacAlgo](
       claims: JWTClaims,
       key: MacSigningKey[A]
@@ -28,8 +26,7 @@ object JWTMac {
   private[mac] def buildToken[A](header: JWSMacHeader[A], claims: JWTClaims, signature: JWSSignature[A]): JWTMac[A] =
     new JWTMac[A](header, claims, signature) {}
 
-  /**
-    * Sign the header and the body with the given key, into a jwt object
+  /** Sign the header and the body with the given key, into a jwt object
     *
     * @param header the JWT header
     * @param body
@@ -58,8 +55,7 @@ object JWTMac {
       key: MacSigningKey[A]
   )(implicit s: JWSMacCV[MacErrorM, A]): MacErrorM[String] = s.signToString(header, body, key)
 
-  /**
-    * Verify the JWT
+  /** Verify the JWT
     *
     * @param jwt the JWT, as a string representation
     * @param key the signing key
@@ -84,9 +80,7 @@ object JWTMac {
 }
 
 object JWTMacM {
-  /*
- Methods abstracted over F[_]
-   */
+  /** Methods abstracted over F[_] */
   def build[F[_]: Monad, A: ByteEV: JWTMacAlgo](
       claims: JWTClaims,
       key: MacSigningKey[A]

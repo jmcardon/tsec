@@ -43,10 +43,9 @@ abstract class JCATLSymmetric[A, M, P](
   def replace(instance: JCipher): Either[DecryptError, Unit] =
     Right(local.get().add(instance))
 
-  /*
-  Stateful operations for internal use
-  Made private so as to not encourage any use of stateful operations
-  The only other option would be to defer these operations with something like IO, given they are stateful
+  /** Stateful operations for internal use
+    * Made private so as to not encourage any use of stateful operations
+    * The only other option would be to defer these operations with something like IO, given they are stateful
    */
   protected[symmetric] def initEncryptor(
       e: JCipher,
@@ -71,12 +70,9 @@ abstract class JCATLSymmetric[A, M, P](
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): Either[CipherKeyError, Unit] =
     Either.catchNonFatal(e.updateAAD(aad.aad)).mapError(CipherKeyError.apply)
-  /*
-  End stateful ops
-   */
+  /** End stateful ops */
 
-  /**
-    * Encrypt our plaintext with a tagged secret key
+  /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -96,8 +92,7 @@ abstract class JCATLSymmetric[A, M, P](
       _  <- replace(instance)
     } yield CipherText(encrypted, iv)
 
-  /**
-    * Encrypt our plaintext using additional authentication parameters,
+  /** Encrypt our plaintext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *
@@ -122,8 +117,7 @@ abstract class JCATLSymmetric[A, M, P](
       _  <- replace(instance)
     } yield CipherText(encrypted, iv)
 
-  /**
-    * Decrypt our ciphertext
+  /** Decrypt our ciphertext
     *
     * @param cipherText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -142,8 +136,7 @@ abstract class JCATLSymmetric[A, M, P](
       _ <- replace(instance)
     } yield PlainText(decrypted)
 
-  /**
-    * Decrypt our ciphertext using additional authentication parameters,
+  /** Decrypt our ciphertext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *
@@ -176,8 +169,7 @@ object JCATLSymmetric {
       paddingTag: Padding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
 
-  /**
-    *
+  /** generate queue unsafe
     *
     * @param queueLen
     * @tparam A
@@ -196,8 +188,7 @@ object JCATLSymmetric {
     q
   }
 
-  /**
-    * Attempt to initialize an instance of the cipher with the given type parameters
+  /** Attempt to initialize an instance of the cipher with the given type parameters
     * All processing is done on threadlocal, to guarantee no leaked instances
     * @param queueLen the length of the queue
     * @tparam A Symmetric Cipher Algorithm
@@ -226,8 +217,7 @@ object JCATLSymmetric {
   def genInstance[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
     : Either[NoSuchInstanceError.type, JCATLSymmetric[A, M, P]] = apply[A, M, P]()
 
-  /**
-    * ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
+  /** ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
     *
     *  ━╤╦︻⊂(▀¯▀)┐ "Watch me"
     *

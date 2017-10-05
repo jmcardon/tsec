@@ -17,10 +17,9 @@ object SignatureExamples {
     verified2 <- instance.verifyK(toSign, signed, keyPair.publicKey) //Or directly with arrays
   } yield verified2
 
-  /*
-  Signature Example with IO:
-  JCASignerPure will take any F[_]: Sync
-   */
+  /** Signature Example with IO:
+    * JCASignerPure will take any F[_]: Sync
+    */
   val instancePure: JCASignerPure[IO, SHA256withRSA] = JCASignerPure[IO, SHA256withRSA]
   val ioSign: IO[Boolean] = for {
     keyPair   <- Sync[IO].fromEither(SHA256withRSA.generateKeyPair)

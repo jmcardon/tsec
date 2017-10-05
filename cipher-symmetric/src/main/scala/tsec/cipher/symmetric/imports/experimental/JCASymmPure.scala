@@ -32,9 +32,7 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
   def replace(instance: JCipher): F[Boolean] =
     F.delay(queue.add(instance))
 
-  /*
-  We defer the effects of the encryption/decryption initialization
-   */
+  /** We defer the effects of the encryption/decryption initialization */
   protected[symmetric] def initEncryptor(
       instance: JCipher,
       secretKey: SecretKey[A]
@@ -50,12 +48,9 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): F[Unit] =
     F.delay(e.updateAAD(aad.aad))
-  /*
-  End stateful ops
-   */
+  /** End stateful ops */
 
-  /**
-    * Encrypt our plaintext with a tagged secret key
+  /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -73,8 +68,7 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
       _         <- replace(instance)
     } yield CipherText(encrypted, iv)
 
-  /**
-    * Encrypt our plaintext using additional authentication parameters,
+  /** Encrypt our plaintext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *
@@ -97,8 +91,7 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
       _         <- replace(instance)
     } yield CipherText(encrypted, iv)
 
-  /**
-    * Decrypt our ciphertext
+  /** Decrypt our ciphertext
     *
     * @param cipherText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -115,8 +108,7 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
       _         <- replace(instance)
     } yield PlainText(decrypted)
 
-  /**
-    * Decrypt our ciphertext using additional authentication parameters,
+  /** Decrypt our ciphertext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *
@@ -147,8 +139,7 @@ object JCASymmPure {
       paddingTag: Padding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
 
-  /**
-    *
+  /** generate Queue unsafe
     *
     * @param queueLen
     * @tparam A
@@ -167,8 +158,7 @@ object JCASymmPure {
     q
   }
 
-  /**
-    * Attempt to initialize an instance of the cipher with the given type parameters
+  /** Attempt to initialize an instance of the cipher with the given type parameters
     * All processing is done on threadlocal, to guarantee no leaked instances
     * @param queueLen the length of the queue
     * @tparam A Symmetric Cipher Algorithm

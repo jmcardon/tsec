@@ -22,10 +22,8 @@ class JCASymmetricCipher[A, M, P](
       .catchNonFatal(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
       .mapError(InstanceInitError.apply)
 
-  /*
-  Stateful operations for internal use
-  Made private so as to not encourage any use of stateful operations
-  The only other option would be to defer these operations with something like IO, given they are stateful
+  /** Stateful operations for internal use Made private so as to not encourage any use of stateful operations.
+    * The only other option would be to defer these operations with something like IO, given they are stateful
    */
   protected[symmetric] def initEncryptor(
       e: JCipher,
@@ -50,12 +48,10 @@ class JCASymmetricCipher[A, M, P](
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): Either[CipherKeyError, Unit] =
     Either.catchNonFatal(e.updateAAD(aad.aad)).mapError(CipherKeyError.apply)
-  /*
-  End stateful ops
-   */
 
-  /**
-    * Encrypt our plaintext with a tagged secret key
+  /** End stateful ops  */
+
+  /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -74,8 +70,7 @@ class JCASymmetricCipher[A, M, P](
       iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
     } yield CipherText(encrypted, iv)
 
-  /**
-    * Encrypt our plaintext using additional authentication parameters,
+  /** Encrypt our plaintext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *
@@ -99,8 +94,7 @@ class JCASymmetricCipher[A, M, P](
       iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
     } yield CipherText(encrypted, iv)
 
-  /**
-    * Decrypt our ciphertext
+  /** Decrypt our ciphertext
     *
     * @param cipherText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -118,8 +112,7 @@ class JCASymmetricCipher[A, M, P](
         .mapError(DecryptError.apply)
     } yield PlainText(decrypted)
 
-  /**
-    * Decrypt our ciphertext using additional authentication parameters,
+  /** Decrypt our ciphertext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *
@@ -145,8 +138,7 @@ class JCASymmetricCipher[A, M, P](
 
 object JCASymmetricCipher {
 
-  /**
-    * Attempt to initialize an instance of the cipher with the given type parameters
+  /** Attempt to initialize an instance of the cipher with the given type parameters
     * If the cipher doesn't exist/is not supported, it will return NoSuchIntanceError
     *
     * @tparam A Symmetric Cipher Algorithm
@@ -163,8 +155,7 @@ object JCASymmetricCipher {
   implicit def genSym[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
     : Either[NoSuchInstanceError.type, JCASymmetricCipher[A, M, P]] = apply[A, M, P]
 
-  /**
-    * ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
+  /** ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
     *
     *  ━╤╦︻⊂(▀¯▀)┐ "Watch me"
     *

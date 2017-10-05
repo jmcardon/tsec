@@ -55,9 +55,7 @@ class SymmetricSpec extends TestSpec with MustMatchers {
       testEncryptionDecryption must equal(Right(testMessage))
     }
 
-    /*
-    We will test only a few thousand, but part of the point is simply to test proper implementation of secureRandom
-     */
+    /** We will test only a few thousand, but part of the point is simply to test proper implementation of secureRandom */
     it should "Not reuse IVs" in {
 
       @tailrec def tailrecGenIVs(

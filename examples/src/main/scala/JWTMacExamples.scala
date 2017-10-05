@@ -7,14 +7,10 @@ object JWTMacExamples {
   import tsec.mac.imports._
   import scala.concurrent.duration._
 
-  /*
-  To create custom claims:
-   */
+  /** To create custom claims: */
   val claims = JWTClaims.build(expiration = Some(10.minutes))
 
-  /*
-  Using the default either interpreters
-   */
+  /** Using the default either interpreters */
   val jwt: Either[Throwable, JWTMac[HMACSHA256]] = for {
     key             <- HMACSHA256.generateKey()
     jwt             <- JWTMac.build[HMACSHA256](claims, key) //You can sign and build a jwt object directly
@@ -24,9 +20,7 @@ object JWTMacExamples {
     parsed          <- JWTMac.verifyAndParse[HMACSHA256](stringjwt, key) //Or verify and return the actual instance
   } yield parsed
 
-  /*
-  You can also chose to interpret into any target monad using JwtMacM
-   */
+  /** You can also chose to interpret into any target monad using JwtMacM */
   val jwtMonadic: IO[JWTMac[HMACSHA256]] = for {
     key <- HMACSHA256.generateLift[IO]
     jwt <- JWTMacM.build[IO, HMACSHA256](claims, key) //You can sign and build a jwt object directly

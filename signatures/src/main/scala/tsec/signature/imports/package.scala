@@ -260,9 +260,7 @@ package object imports {
     @inline def toArray(a: SHA512withECDSA): Array[Byte] = SHA512withECDSA$$.is.coerce(a)
   }
 
-  /*
-  End sig types
-   */
+  /** End sig types */
   import java.security.cert.Certificate
 
   import cats.evidence.Is

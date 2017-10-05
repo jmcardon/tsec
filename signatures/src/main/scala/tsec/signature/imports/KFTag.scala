@@ -1,7 +1,6 @@
 package tsec.signature.imports
 
-/**
-  * Trait to add a tag to an algorithm used by the JCA key factor
+/** Trait to add a tag to an algorithm used by the JCA key factor
   * this allows us to abstract over the KeyFactory instance via types
   *
   * @tparam A the signature type
@@ -28,8 +27,7 @@ trait RSAKFTag[A] extends KFTag[A] {
   def generateKeyPairStrongUnsafe: SigKeyPair[A]
 }
 
-/**
-  * KFTag, but for elliptic curves
+/** KFTag, but for elliptic curves
   *
   * @tparam A the signature type
   */
