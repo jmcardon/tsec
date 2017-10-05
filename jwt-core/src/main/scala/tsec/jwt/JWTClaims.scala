@@ -20,7 +20,7 @@ case class JWTClaims(
     notBefore: Option[Long] = None,
     issuedAt: Option[Long] = Some(Instant.now().getEpochSecond), // IEEE Std 1003.1, 2013 Edition time in seconds
     jwtId: Option[String] = None, //Case sensitive
-    custom: Json = Json.Null // non standard. I copped out. Other things are most likely too inefficient to use
+    custom: Option[Json] = None // non standard. I copped out. Other things are most likely too inefficient to use
 ) {
   def withExpiry(duration: FiniteDuration): JWTClaims =
     copy(expiration = Some(Instant.now.getEpochSecond + duration.toSeconds))
@@ -44,7 +44,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       expiration: Option[FiniteDuration],
       notBefore: Option[FiniteDuration] = None,
       jwtId: Option[String] = None, //Case sensitive
-      custom: Json = Json.Null
+      custom: Option[Json] = None
   ): JWTClaims = {
     val now = Instant.now().getEpochSecond
     val iat = Some(now)
@@ -77,7 +77,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       ("nbf", a.notBefore.asJson),
       ("iat", a.issuedAt.asJson),
       ("jti", a.jwtId.asJson),
-      ("custom", a.custom)
+      ("custom", a.custom.asJson)
     )
   }
 
@@ -91,7 +91,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
         nbf        <- c.downField("nbf").as[Option[Long]]
         iat        <- c.downField("iat").as[Option[Long]]
         jwtid      <- c.downField("jti").as[Option[String]]
-        custom = c.downField("custom").focus.getOrElse(Json.Null)
+        custom = c.downField("custom").focus
       } yield JWTClaims(iss, sub, aud, expiration, nbf, iat, jwtid, custom)
   }
 
