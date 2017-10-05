@@ -9,10 +9,8 @@ abstract class DefaultModeKeySpec[T](repr: String, ivLen: Int) {
 
     val ivLength: Int = ivLen
 
-    /**
-      * Cache our random, and seed it properly as per
+    /** Cache our random, and seed it properly as per
       * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-      *
       */
     private val cachedRand: SecureRandom = {
       val r = new SecureRandom()
@@ -20,10 +18,8 @@ abstract class DefaultModeKeySpec[T](repr: String, ivLen: Int) {
       r
     }
 
-    /**
-      * We will keep a reference to how many times our random is utilized
+    /** We will keep a reference to how many times our random is utilized
       * After a sensible Integer.MaxValue/2 times, we should reseed
-      *
       */
     private val adder: LongAdder = new LongAdder
     private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong

@@ -27,8 +27,7 @@ object ParseEncodedKeySpec {
     )
   }
 
-  /**
-    * ASN.1/DER to the concat required by https://tools.ietf.org/html/rfc7518#section-3.4
+  /** ASN.1/DER to the concat required by https://tools.ietf.org/html/rfc7518#section-3.4
     * Adapted from scala-jwt, itself adapted from jose4j
     */
   def derToConcat[F[_], A](
@@ -68,12 +67,10 @@ object ParseEncodedKeySpec {
     me.pure(concatSignature)
   }
 
-  /**
-    * Signature transcode to der as required by the JCA.
+  /** Signature transcode to der as required by the JCA.
     * Adapted from the implementation in scala-jwt, which itself was adapted from
     * jose4j, which itself was adapted from from org.apache.xml.security.algorithms.implementations.SignatureECDSA in the
     * (Apache 2 licensed) Apache Santuario XML Security library.
-    *
     *
     * @param signature the signature to conver to DER
     * @param me MonadError Instance

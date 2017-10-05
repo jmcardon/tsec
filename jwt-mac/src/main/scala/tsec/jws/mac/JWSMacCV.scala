@@ -11,8 +11,7 @@ import java.time.Instant
 
 import tsec.jwt.JWTClaims
 
-/**
-  * Our JWS Compressor, Signer and verifier (CV = Compressor and Verifier)
+/** Our JWS Compressor, Signer and verifier (CV = Compressor and Verifier)
   *
   * @param hs our header serializer
   * @param programs our mac program implementation
@@ -28,10 +27,7 @@ sealed abstract class JWSMacCV[F[_], A](
     M: MonadError[F, Throwable]
 ) {
 
-  /*
-  Generic Error.
-  Any mishandling of the errors could leak information to an attacker.
-   */
+  /**  Generic Error. Any mishandling of the errors could leak information to an attacker. */
   private def defaultError: MacError = MacVerificationError("Could not verify signature")
 
   def sign(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWSSignature[A]] = {

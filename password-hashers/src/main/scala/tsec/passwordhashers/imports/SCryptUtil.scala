@@ -8,8 +8,7 @@ import com.lambdaworks.crypto.{SCrypt => JSCrypt}
 import cats.syntax.either._
 import tsec.common.ByteUtils
 
-/**
-  * SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,
+/** SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,
   * improving on SHA1PRNGs, bad security in particular.
   *
   * SCrypt described here: http://www.tarsnap.com/scrypt.html
@@ -34,8 +33,7 @@ object SCryptUtil {
   private val SCryptPrepend = "$s0$"
   private val DerivedKeyLen = 32
 
-  /**
-    * Cache our random, and seed it properly as per
+  /** Cache our random, and seed it properly as per
     * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
     *
     */
@@ -45,10 +43,9 @@ object SCryptUtil {
     r
   }
 
-  /**
-    * We will keep a reference to how many times our random is utilized
+  /** We will keep a reference to how many times our random is utilized
     * After a sensible Integer.MaxValue/2 times, we should reseed
-    *  TODO: longadder vs atomicInteger/long comparison performance wise
+    * TODO: longadder vs atomicInteger/long comparison performance wise
     *
     */
   private val adder: LongAdder = new LongAdder
@@ -59,8 +56,7 @@ object SCryptUtil {
     cachedRand.nextBytes(new Array[Byte](20))
   }
 
-  /**
-    * Compare the supplied plaintext password to a hashed password.
+  /** Compare the supplied plaintext password to a hashed password.
     *
     * @param   passwd Plaintext password.
     * @param   hashed scrypt hashed password.
@@ -82,8 +78,7 @@ object SCryptUtil {
     }
   }
 
-  /**
-    * Scala fast log2
+  /** Scala fast log2
     *
     * @param k
     * @return
@@ -110,10 +105,7 @@ object SCryptUtil {
     log + (n >>> 1)
   }
 
-  /**
-    *
-    *
-    * Hash the supplied plaintext password and generate output in the format described
+  /** Hash the supplied plaintext password and generate output in the format described
     * in
     *
     * @param passwd Password.
@@ -125,9 +117,7 @@ object SCryptUtil {
   def scrypt(passwd: String, N: Int, r: Int, p: Int): String = {
     val salt = new Array[Byte](16)
     adder.increment()
-    /*
-    Set a sensible time for max amount of times SHA1PRNG can be used
-     */
+    /** Set a sensible time for max amount of times SHA1PRNG can be used */
     if (adder.longValue() < MaxBeforeReseed)
       reSeed()
 

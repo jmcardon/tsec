@@ -8,8 +8,7 @@ import tsec.messagedigests.core._
 
 import scala.annotation.tailrec
 
-/**
-  * Intepreter for the java default security implementation
+/** Intepreter for the java default security implementation
   * @tparam T
   */
 class JHashAlgebra[T](implicit tag: DigestTag[T]) extends HashAlgebra[T] {

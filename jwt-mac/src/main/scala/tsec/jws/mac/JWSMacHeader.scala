@@ -12,8 +12,7 @@ import tsec.jwt.header.JWTtyp
 import tsec.mac.imports.MacTag
 
 
-/**
-  * A JWS header for JWT serialization.
+/** A JWS header for JWT serialization.
   * TODO: Crit logic on verification
   *
   * @param `type` the type of the content. in a less opininated library, it could signal json serialization
@@ -46,8 +45,7 @@ object JWSMacHeader {
     )
   }
 
-  /**
-    * For our decoder, we we know, a priori, the type of header we should have
+  /** For our decoder, we we know, a priori, the type of header we should have
     * since we decode for some algorithm A, we avoid the vulnerability of
     * parsing the algorithm, then verifying against it.
     * That is, the server should know the algorithm before trying to deserialize it.

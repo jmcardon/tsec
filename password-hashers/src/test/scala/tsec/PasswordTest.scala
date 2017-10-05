@@ -18,8 +18,7 @@ class PasswordTest extends TestSpec {
 
   val plainPassword = "abc"
 
-  /**
-    * Our password spec in general
+  /** Our password spec in general
     * @param specname the name for ourspec
     * @param programs our password hasher programs to test against
     * @tparam A the password hashing algorithm

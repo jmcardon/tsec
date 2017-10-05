@@ -2,9 +2,7 @@ object MacExamples {
 
   import tsec.mac.imports._
 
-  /*
-  Example message authentication: Note, will use byteutils
-   */
+  /** Example message authentication: Note, will use byteutils */
   import tsec.common._
 
   val macInstance: JCAMacImpure[HMACSHA256] = JCAMacImpure[HMACSHA256]

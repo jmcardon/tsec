@@ -41,8 +41,7 @@ package object messagedigests {
   }
 
 
-  /**
-   * Our syntactic sugar for hashing any arbitrary T
+  /** Our syntactic sugar for hashing any arbitrary T
    * @param c
    * @tparam T
    */
@@ -51,9 +50,7 @@ package object messagedigests {
   }
 
 
-  /**
-   * Our syntactic sugar for hashing arrays
-   */
+  /** Our syntactic sugar for hashing arrays */
   class ArrayDigestOps(val arr: Array[Byte]) extends AnyVal {
     def hash[K](implicit jHasher: JHasher[K]): K                  = jHasher.hashBytes(arr)
     def hashToArray[K](implicit jHasher: JHasher[K]): Array[Byte] = jHasher.hashToByteArray(arr)

@@ -20,10 +20,7 @@ sealed abstract class JWSSigCV[F[_], A](
     M: MonadError[F, Throwable]
 ) {
 
-  /*
-  Generic Error.
-  Any mishandling of the errors could leak information to an attacker.
-   */
+  /** Generic Error. Any mishandling of the errors could leak information to an attacker.*/
   private def defaultError: GeneralSignatureError = GeneralSignatureError("Could not verify signature")
 
   def signAndBuild(header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A]): F[JWTSig[A]] = {

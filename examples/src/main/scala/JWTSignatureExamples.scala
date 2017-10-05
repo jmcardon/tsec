@@ -4,9 +4,7 @@ object JWTSignatureExamples {
   import tsec.jws.signature._
   import tsec.signature.imports._
 
-  /*
-  Example usage
-   */
+  /** Example usage */
   val claims = JWTClaims()
   val jwtStuff: Either[Throwable, JWTSig[SHA256withECDSA]] = for {
     keyPair <- SHA256withECDSA.generateKeyPair

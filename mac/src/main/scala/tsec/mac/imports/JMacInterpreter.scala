@@ -6,8 +6,7 @@ import cats.syntax.either._
 import tsec.common.ErrorConstruct._
 import tsec.mac.core.MacAlgebra
 
-/**
-  * Our interpreter over the JCA mac
+/** JCA mac interpreter
   *
   * @param macTag
   * @tparam A

@@ -2,8 +2,7 @@ package tsec.common
 
 import java.util.{ArrayDeque => Q}
 
-/**
-  * ThreadLocal optimization for JCA and BC
+/** ThreadLocal optimization for JCA and BC
   *  .getInstance() methods tend to be expensive, and most of the
   *
   * @tparam A
@@ -11,14 +10,12 @@ import java.util.{ArrayDeque => Q}
 protected [tsec] sealed trait QueueAlloc[A] {
   protected[tsec] val local: ThreadLocal[Q[A]]
 
-  /**
-    * Enqueue into our threadlocal
+  /** Enqueue into our threadlocal
     * @param v
     */
   def enqueue(v: A): Unit = local.get().addLast(v)
 
-  /***
-    * May possibly be null
+  /** May possibly be null
     * @return
     */
   def dequeue: A = local.get().poll()

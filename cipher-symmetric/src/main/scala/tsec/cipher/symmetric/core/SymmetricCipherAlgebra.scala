@@ -8,9 +8,8 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
 
   def genInstance: F[C]
 
-  /*
-  Stateful operations for internal use
-  We can choose to defer them or catch the effect somehow
+  /** Stateful operations for internal use.
+    * We can choose to defer them or catch the effect somehow
    */
   protected[symmetric] def initEncryptor(e: C, secretKey: K[A]): F[Unit]
 
@@ -21,12 +20,9 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
   ): F[Unit]
 
   protected[symmetric] def setAAD(e: C, aad: AAD): F[Unit]
-  /*
-  End stateful ops
-   */
+  /** End stateful ops */
 
-  /**
-    * Encrypt our plaintext with a tagged secret key
+  /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -34,8 +30,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     */
   def encrypt(plainText: PlainText, key: K[A]): F[CipherText[A, M, P]]
 
-  /**
-    * Encrypt our plaintext using additional authentication parameters,
+  /** Encrypt our plaintext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *
@@ -46,8 +41,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     */
   def encryptAAD(plainText: PlainText, key: K[A], aad: AAD): F[CipherText[A, M, P]]
 
-  /**
-    * Decrypt our ciphertext
+  /** Decrypt our ciphertext
     *
     * @param cipherText the plaintext to encrypt
     * @param key the SecretKey to use
@@ -55,8 +49,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     */
   def decrypt(cipherText: CipherText[A, M, P], key: K[A]): F[PlainText]
 
-  /**
-    * Decrypt our ciphertext using additional authentication parameters,
+  /** Decrypt our ciphertext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
     * Other modes will return a cipherError attempting this
     *

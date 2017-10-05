@@ -11,8 +11,7 @@ import cats.evidence.Is
 package object imports{
   type AEADCipherText[A] = CipherText[A, GCM, NoPadding]
 
-  /**
-   * Typeclass for propagating symmetric key algorithm information
+  /** Typeclass for propagating symmetric key algorithm information
    * Note: Key length is in bits
    *
    * @param algorithm the symmetric cipher representation, as a string
