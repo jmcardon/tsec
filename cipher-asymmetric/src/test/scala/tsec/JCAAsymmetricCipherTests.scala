@@ -14,4 +14,9 @@ class JCAAsymmetricCipherTests extends AsymmetricSpec {
   cipherTest[RSA3072, OAEPWithSha512andMGF1Padding]
   cipherTest[RSA4096, OAEPWithSha512andMGF1Padding]
 
+
+  cipherTest[ECIES256, NoPadding]
+  cipherTest[ECIES384, NoPadding]
+  cipherTest[ECIES521, NoPadding]
+
 }

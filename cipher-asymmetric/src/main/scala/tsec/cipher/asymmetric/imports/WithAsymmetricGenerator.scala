@@ -18,12 +18,7 @@ abstract class WithAsymmetricGenerator[T](repr: String, keyLen: Int) {
 
     def generateKeyPair(): Either[CipherKeyBuildError, KeyPair[T]] =
       Either
-        .catchNonFatal {
-          val gen = generator
-          gen.initialize(keyLength)
-          val kp = gen.generateKeyPair()
-          KeyPair[T](kp.getPrivate, kp.getPublic)
-        }
+        .catchNonFatal(generateKeyPairUnsafe())
         .mapError(CipherKeyBuildError.apply)
 
     def keyLength = keyLen
