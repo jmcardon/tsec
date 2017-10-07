@@ -159,6 +159,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .dependsOn(
     symmetricCipher,
     mac,
+    messageDigests,
     jwtMac
   )
 

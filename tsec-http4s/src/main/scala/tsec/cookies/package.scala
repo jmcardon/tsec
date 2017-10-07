@@ -1,10 +1,12 @@
 package tsec
 
+import cats.Eq
 import tsec.common._
 import cats.evidence.Is
 import tsec.cipher.common._
 import tsec.cipher.symmetric.imports._
 import tsec.mac.imports.{MacTag, MacVerificationError}
+import cats.instances.string._
 
 package object cookies {
 
@@ -69,5 +71,7 @@ package object cookies {
 
     @inline def substitute[G[_], A: MacTag](fa: G[SignedCookie[A]]): G[String] = SignedCookie$$.is.substitute[G](fa)
   }
+
+  implicit def cookieEQ[A: MacTag]: Eq[SignedCookie[A]] = Eq.by[SignedCookie[A], String](identity[String])
 
 }

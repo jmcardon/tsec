@@ -31,7 +31,7 @@ object CookieSigner {
 
   def verifyAndRetrieve[A: MacTag: ByteEV](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
-  ) = {
+  ): Either[Throwable, String] = {
     val split = signed.split("-")
     if (split.length != 2)
       Left(MacVerificationError("Invalid cookie"))
