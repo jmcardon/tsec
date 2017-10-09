@@ -23,9 +23,7 @@ import cats.implicits._
 import tsec.jwt.JWTPrinter
 
 abstract class EncryptedCookieAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
-    extends AuthenticatorEV[F, A, I, V] {
-  type Authenticator[T] = AuthEncryptedCookie[T, I]
-}
+    extends AuthenticatorEV[F, A, I, V, AuthEncryptedCookie[?, I]]
 
 /** An authenticated cookie implementation
   *
@@ -55,7 +53,7 @@ final case class AuthEncryptedCookie[A, Id](
     lastTouched.exists(
       _.toInstant
         .plusSeconds(timeOut.toSeconds)
-        .isAfter(now)
+        .isBefore(now)
     )
   def toCookie = Cookie(
     name,
@@ -119,10 +117,25 @@ object AuthEncryptedCookie {
 
 object EncryptedCookieAuthenticator {
 
-  def withBackingStore[F[_]: Monad, Alg: AuthEncryptor: ByteEV, I: Decoder: Encoder, V](
+  /***
+    * The default Encrypted cookie Authenticator, with a backing store.
+    *
+    * @param settings the cookie settings
+    * @param tokenStore the token backing store
+    * @param identityStore the backing store of the identity
+    * @param key the symmetric signing key
+    * @param expiryDuration the duration before expiry
+    * @param maxIdle the (optional) sliding window expiration
+    * @tparam F the effect type
+    * @tparam Alg the symmetric key algorithm to use authenticated encryption
+    * @tparam I the id type for a user
+    * @tparam V the expected user type, V aka value
+    * @return An encrypted cookie authenticator
+    */
+  def withBackingStore[F[_]: Monad, Alg: AuthEncryptor, I: Decoder: Encoder, V](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthEncryptedCookie[Alg, I]],
-      idStore: BackingStore[F, I, V],
+      identityStore: BackingStore[F, I, V],
       key: SecretKey[Alg],
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
@@ -152,11 +165,11 @@ object EncryptedCookieAuthenticator {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = AEADCookie.fromRaw[Alg](rawCookie.content)
           contentRaw <- OptionT.fromOption[F](AEADCookieEncryptor.retrieveFromSigned[Alg](coerced, key).toOption)
-          tokenId    <- OptionT.fromOption[F](decode[UUID](contentRaw).toOption)
+          tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
           _          <- validateCookieT(authed, coerced, now)
           refreshed  <- refresh(authed)
-          identity   <- idStore.get(authed.messageId)
+          identity   <- identityStore.get(authed.messageId)
         } yield SecuredRequest(request, refreshed, identity)
       }
 
@@ -176,6 +189,18 @@ object EncryptedCookieAuthenticator {
           _ <- OptionT.liftF(tokenStore.put(cookie))
         } yield cookie
       }
+
+      def update(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
+        OptionT.liftF(tokenStore.update(authenticator)).mapFilter {
+          case 1 => Some(authenticator)
+          case _ => None
+        }
+
+      def discard(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
+        OptionT.liftF(tokenStore.delete(authenticator.id)).mapFilter {
+          case 1 => Some(authenticator)
+          case _ => None
+        }
 
       def renew(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = maxIdle match {
         case Some(idleTime) =>
@@ -228,7 +253,7 @@ object EncryptedCookieAuthenticator {
     * @tparam V
     * @return
     */
-  def stateless[F[_]: Monad, Alg: AuthEncryptor: ByteEV, I: Decoder: Encoder, V](
+  def stateless[F[_]: Monad, Alg: AuthEncryptor, I: Decoder: Encoder, V](
       settings: TSecCookieSettings,
       idStore: BackingStore[F, I, V],
       key: SecretKey[Alg],
@@ -287,10 +312,34 @@ object EncryptedCookieAuthenticator {
         } yield cookie
       }
 
+      /*
+      Reader's note:
+      Since this is a stateless authenticator, update must carry information about expiry and sliding window info
+      since this is something that could be manipulated by an attacker.
+
+      We sincerely don't want this, thus renew and refresh also rely on update.
+       */
+      def update(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = {
+        val serialized = AuthEncryptedCookie
+          .Internal(authenticator.id, authenticator.messageId, authenticator.expiry, authenticator.lastTouched)
+          .asJson
+          .pretty(JWTPrinter)
+        for {
+          encrypted <- OptionT.fromOption[F](
+            AEADCookieEncryptor.signAndEncrypt[Alg](serialized, generateAAD(serialized), key).toOption
+          )
+        } yield authenticator.copy[Alg, I](content = encrypted)
+      }
+
+      //In this case, since we have no backing store, we can invalidate the token
+      //This doesn't work entirely if the person _doesn't_
+      def discard(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
+        OptionT.pure(authenticator.copy[Alg, I](content = AEADCookie.fromRaw[Alg]("invalid"), expiry = HttpDate.now))
+
       def renew(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = maxIdle match {
         case Some(idleTime) =>
           val now = Instant.now()
-          OptionT.pure[F](
+          update(
             authenticator.copy[Alg, I](
               lastTouched = Some(HttpDate.unsafeFromInstant(now.plusSeconds(idleTime.toSeconds))),
               expiry = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
@@ -303,7 +352,7 @@ object EncryptedCookieAuthenticator {
       def refresh(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = maxIdle match {
         case Some(idleTime) =>
           val now = Instant.now()
-          OptionT.pure[F](
+          update(
             authenticator.copy[Alg, I](
               lastTouched = Some(HttpDate.unsafeFromInstant(now.plusSeconds(idleTime.toSeconds)))
             )

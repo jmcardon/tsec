@@ -5,15 +5,14 @@ import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import org.http4s.dsl._
 
-abstract class RequestAuthenticator[F[_]: Monad, Alg, I, V](
-    authenticator: AuthenticatorEV[F, Alg, I, V]
+abstract class RequestAuthenticator[F[_]: Monad, Alg, I, V, Auth[_]](
+    authenticator: AuthenticatorEV[F, Alg, I, V, Auth]
 ) extends Http4sDsl[F] {
-  import authenticator.Authenticator
 
-  private val cachedKleisli: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Authenticator[Alg], V]] =
+  private val cachedKleisli: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Auth[Alg], V]] =
     Kleisli(authenticator.extractAndValidate)
 
-  def apply(pf: PartialFunction[SecuredRequest[F, Authenticator[Alg], V], F[Response[F]]]): HttpService[F] = {
+  def apply(pf: PartialFunction[SecuredRequest[F, Auth[Alg], V], F[Response[F]]]): HttpService[F] = {
     val middleware = TSecMiddleware(cachedKleisli)
     middleware(TSecAuthService(pf))
   }

@@ -6,8 +6,6 @@ import java.util.UUID
 import cats.Monad
 import cats.data.OptionT
 import io.circe.{Decoder, Encoder}
-import io.circe.parser.decode
-import org.http4s.util.CaseInsensitiveString
 import org.http4s._
 import tsec.common.ByteEV
 import tsec.cookies._
@@ -19,9 +17,8 @@ import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class CookieAuthenticator[F[_], Alg: MacTag: ByteEV, I, V] extends AuthenticatorEV[F, Alg, I, V] {
-  type Authenticator[T] = AuthenticatedCookie[Alg, I]
-}
+abstract class CookieAuthenticator[F[_], Alg: MacTag: ByteEV, I, V]
+    extends AuthenticatorEV[F, Alg, I, V, AuthenticatedCookie[?, I]]
 
 /** An authenticated cookie implementation
   *
@@ -51,7 +48,7 @@ final case class AuthenticatedCookie[A, Id](
     lastTouched.exists(
       _.toInstant
         .plusSeconds(timeOut.toSeconds)
-        .isAfter(now)
+        .isBefore(now)
     )
   def toCookie = Cookie(
     name,
@@ -138,9 +135,9 @@ object CookieAuthenticator {
           contentRaw <- OptionT.fromOption[F](CookieSigner.verifyAndRetrieve[Alg](coerced, key).toOption)
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
-          _         <- validateCookieT(authed, coerced, now)
-          refreshed <- refresh(authed)
-          identity  <- idStore.get(authed.messageId)
+          _          <- validateCookieT(authed, coerced, now)
+          refreshed  <- refresh(authed)
+          identity   <- idStore.get(authed.messageId)
         } yield SecuredRequest(request, refreshed, identity)
 
       }
@@ -165,6 +162,18 @@ object CookieAuthenticator {
           _ <- OptionT.liftF(tokenStore.put(cookie))
         } yield cookie
       }
+
+      def update(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
+        OptionT.liftF(tokenStore.update(authenticator)).mapFilter {
+          case 1 => Some(authenticator)
+          case _ => None
+        }
+
+      def discard(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
+        OptionT.liftF(tokenStore.delete(authenticator.id)).mapFilter {
+          case 1 => Some(authenticator)
+          case _ => None
+        }
 
       /**
         * Renew an authenticator: Reset it's expiry and whatnot.

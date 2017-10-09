@@ -12,8 +12,7 @@ import org.http4s.{Request, Response}
   * @tparam I The Identifier type
   * @tparam V The value type, i.e user, or possibly only partial information
   */
-trait AuthenticatorEV[F[_], Alg, I, V] {
-  type Authenticator[T]
+trait AuthenticatorEV[F[_], Alg, I, V, Authenticator[_]] {
 
   /** Return a secured request from a request, that carries our authenticator
     * @param request
@@ -28,8 +27,23 @@ trait AuthenticatorEV[F[_], Alg, I, V] {
     */
   def create(body: I): OptionT[F, Authenticator[Alg]]
 
-  /**
-    * Renew an authenticator: Reset it's expiry and whatnot.
+  /** Update the altered authenticator
+    *
+    * @param authenticator
+    * @return
+    */
+  def update(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
+
+  /** Delete an authenticator from a backing store, or invalidate it.
+    *
+    *
+    * @param authenticator
+    * @return
+    */
+  def discard(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
+
+  /** Renew an authenticator: Reset it's expiry and whatnot.
+    *
     * @param authenticator
     * @return
     */
@@ -61,14 +75,5 @@ trait AuthenticatorEV[F[_], Alg, I, V] {
 
 }
 
-object AuthenticatorEV {
-  type AuthAux[F[_], A, I, V, T[_]] = AuthenticatorEV[F, A, I, V] {
-    type Authenticator[B] = T[B]
-  }
-}
-
 abstract class JWTMacAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
-    extends AuthenticatorEV[F, A, I, V] {
-  type Authenticator[T] = JWTMac[T]
-
-}
+    extends AuthenticatorEV[F, A, I, V, JWTMac]

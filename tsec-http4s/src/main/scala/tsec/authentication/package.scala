@@ -85,6 +85,16 @@ package object authentication {
       Kleisli.lift(OptionT.none)
   }
 
+  /**
+    * Common cookie settings for cookie-based authenticators
+    *
+    * @param cookieName
+    * @param secure
+    * @param httpOnly
+    * @param domain
+    * @param path
+    * @param extension
+    */
   final case class TSecCookieSettings(
       cookieName: String,
       secure: Boolean,
