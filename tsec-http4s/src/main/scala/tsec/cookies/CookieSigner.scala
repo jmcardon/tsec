@@ -12,7 +12,7 @@ object CookieSigner {
     if (message.isEmpty)
       Left(MacSigningError("Cannot sign an empty string"))
     else {
-      val toSign = (message.utf8Bytes.toB64String + "-" + nonce).utf8Bytes
+      val toSign = (message.utf8Bytes.toB64String + "-" + nonce.utf8Bytes.toB64String).utf8Bytes
       signer.sign(toSign, key).map(SignedCookie.from[A](_, toSign.toB64String))
     }
 

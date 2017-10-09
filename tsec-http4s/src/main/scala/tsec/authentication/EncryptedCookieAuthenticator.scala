@@ -1,4 +1,4 @@
-package tsec.auth
+package tsec.authentication
 
 import java.time.Instant
 import java.util.UUID
@@ -52,7 +52,7 @@ final case class AuthEncryptedCookie[A, Id](
 ) {
   def isExpired(now: Instant): Boolean = expiry.toInstant.isBefore(now)
   def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
-    lastTouched.forall(
+    lastTouched.exists(
       _.toInstant
         .plusSeconds(timeOut.toSeconds)
         .isAfter(now)
@@ -137,7 +137,7 @@ object EncryptedCookieAuthenticator {
           raw: AEADCookie[Alg],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !maxIdle.forall(internal.isTimedout(now, _))
+        internal.content === raw && !internal.isExpired(now) && !maxIdle.exists(internal.isTimedout(now, _))
 
       private def validateCookieT(
           internal: AuthEncryptedCookie[Alg, I],
@@ -241,19 +241,21 @@ object EncryptedCookieAuthenticator {
       private def generateAAD(message: String) =
         AAD((message + Instant.now.toEpochMilli).utf8Bytes.hash[SHA1])
 
+      /** Inside a stateless cookie, we do not have a backing store, thus checking with the AuthEncryptedCookie is
+        * useless
+        *
+        */
       private def validateCookie(
           internal: AuthEncryptedCookie[Alg, I],
-          raw: AEADCookie[Alg],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !maxIdle.forall(internal.isTimedout(now, _))
+        !internal.isExpired(now) && !maxIdle.exists(internal.isTimedout(now, _))
 
       private def validateCookieT(
           internal: AuthEncryptedCookie[Alg, I],
-          raw: AEADCookie[Alg],
           now: Instant
       ): OptionT[F, Unit] =
-        if (validateCookie(internal, raw, now)) OptionT.pure[F](()) else OptionT.none
+        if (validateCookie(internal, now)) OptionT.pure[F](()) else OptionT.none
 
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, AuthEncryptedCookie[Alg, I], V]] = {
         val now = Instant.now()
@@ -263,7 +265,7 @@ object EncryptedCookieAuthenticator {
           contentRaw <- OptionT.fromOption[F](AEADCookieEncryptor.retrieveFromSigned[Alg](coerced, key).toOption)
           internal   <- OptionT.fromOption[F](decode[AuthEncryptedCookie.Internal[I]](contentRaw).toOption)
           authed = AuthEncryptedCookie.build[Alg, I](internal, coerced, TSecCookieSettings.fromCookie(rawCookie))
-          _         <- validateCookieT(authed, coerced, now)
+          _         <- validateCookieT(authed, now)
           refreshed <- refresh(authed)
           identity  <- idStore.get(authed.messageId)
         } yield SecuredRequest(request, refreshed, identity)

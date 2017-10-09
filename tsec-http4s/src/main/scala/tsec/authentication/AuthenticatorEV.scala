@@ -1,4 +1,4 @@
-package tsec.auth
+package tsec.authentication
 
 import cats.data.OptionT
 import tsec.cipher.symmetric.imports.AuthEncryptor
@@ -15,7 +15,7 @@ import org.http4s.{Request, Response}
 trait AuthenticatorEV[F[_], Alg, I, V] {
   type Authenticator[T]
 
-  /** Return a recured request from a request, that carries our authenticator
+  /** Return a secured request from a request, that carries our authenticator
     * @param request
     * @return
     */
@@ -59,6 +59,12 @@ trait AuthenticatorEV[F[_], Alg, I, V] {
     */
   def afterBlock(response: Response[F], authenticator: Authenticator[Alg]): OptionT[F, Response[F]]
 
+}
+
+object AuthenticatorEV {
+  type AuthAux[F[_], A, I, V, T[_]] = AuthenticatorEV[F, A, I, V] {
+    type Authenticator[B] = T[B]
+  }
 }
 
 abstract class JWTMacAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])

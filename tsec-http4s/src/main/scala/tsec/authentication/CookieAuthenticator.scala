@@ -1,4 +1,4 @@
-package tsec.auth
+package tsec.authentication
 
 import java.time.Instant
 import java.util.UUID
@@ -48,7 +48,7 @@ final case class AuthenticatedCookie[A, Id](
 ) {
   def isExpired(now: Instant): Boolean = expiry.toInstant.isBefore(now)
   def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
-    lastTouched.forall(
+    lastTouched.exists(
       _.toInstant
         .plusSeconds(timeOut.toSeconds)
         .isAfter(now)
@@ -121,7 +121,7 @@ object CookieAuthenticator {
           raw: SignedCookie[Alg],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !maxIdle.forall(internal.isTimedout(now, _))
+        internal.content === raw && !internal.isExpired(now) && !maxIdle.exists(internal.isTimedout(now, _))
 
       private def validateCookieT(
           internal: AuthenticatedCookie[Alg, I],
@@ -136,11 +136,11 @@ object CookieAuthenticator {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = SignedCookie.fromRaw[Alg](rawCookie.content)
           contentRaw <- OptionT.fromOption[F](CookieSigner.verifyAndRetrieve[Alg](coerced, key).toOption)
-          tokenId    <- OptionT.fromOption[F](decode[UUID](contentRaw).toOption)
+          tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
-          _          <- validateCookieT(authed, coerced, now)
-          refreshed  <- refresh(authed)
-          identity   <- idStore.get(authed.messageId)
+          _         <- validateCookieT(authed, coerced, now)
+          refreshed <- refresh(authed)
+          identity  <- idStore.get(authed.messageId)
         } yield SecuredRequest(request, refreshed, identity)
 
       }
@@ -217,6 +217,5 @@ object CookieAuthenticator {
           case None =>
             OptionT.pure[F](response)
         }
-
     }
 }

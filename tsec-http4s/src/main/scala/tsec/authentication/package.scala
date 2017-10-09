@@ -1,5 +1,7 @@
 package tsec
 
+import java.util.UUID
+
 import cats.{Applicative, Monad}
 import cats.arrow.Choice
 import cats.data.{Kleisli, OptionT}
@@ -13,7 +15,9 @@ import cats.syntax.either._
 import io.circe.Decoder.Result
 import io.circe._
 
-package object auth {
+import scala.util.control.NonFatal
+
+package object authentication {
 
   trait BackingStore[F[_], I, V] {
     def put(elem: V): F[Int]
@@ -99,11 +103,17 @@ package object auth {
 
   implicit val HttpDateLongDecoder: Decoder[HttpDate] = new Decoder[HttpDate] {
     def apply(c: HCursor): Result[HttpDate] =
-      c.as[Long].flatMap(HttpDate.fromEpochSecond(_).leftMap(_ => DecodingFailure("InvalidEpoch", Nil)))
+      c.value.as[Long].flatMap(HttpDate.fromEpochSecond(_).leftMap(_ => DecodingFailure("InvalidEpoch", Nil)))
   }
 
   implicit val HttpDateLongEncoder: Encoder[HttpDate] = new Encoder[HttpDate] {
     def apply(a: HttpDate): Json = Json.fromLong(a.epochSecond)
   }
+
+  def uuidFromRaw[F[_]: Applicative](string: String): OptionT[F, UUID] =
+    try OptionT.pure(UUID.fromString(string))
+    catch {
+      case NonFatal(e) => OptionT.none
+    }
 
 }
