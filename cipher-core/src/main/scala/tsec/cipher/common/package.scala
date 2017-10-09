@@ -2,7 +2,8 @@ package tsec.cipher
 
 
 import tsec.common._
-import tsec.cipher.common.mode.ModeKeySpec
+import tsec.cipher.common.mode.{GCM, ModeKeySpec}
+import tsec.cipher.common.padding.NoPadding
 
 package object common {
 
@@ -10,6 +11,8 @@ package object common {
   final case class CipherText[A, M, P](content: Array[Byte], iv: Array[Byte]) {
     def toSingleArray: Array[Byte] = content ++ iv
   }
+
+  type AEADCipherText[A] = CipherText[A, GCM, NoPadding]
 
   object CipherText {
     def fromSingleArray[A2, M2, P2](

@@ -16,7 +16,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
         val verified = for {
           key <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          stringer = SignedCookie.to[A](signed)
+          stringer = SignedCookie.toString[A](signed)
           recoerced = SignedCookie.fromRaw[A](stringer)
           verify <- CookieSigner.verify[A](recoerced, key)
         } yield verify
@@ -33,7 +33,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
         val verified = for {
           key <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          stringer = SignedCookie.to[A](signed)
+          stringer = SignedCookie.toString[A](signed)
           recoerced = SignedCookie.fromRaw[A](stringer)
           verify <- CookieSigner.verifyAndRetrieve[A](recoerced, key)
         } yield verify

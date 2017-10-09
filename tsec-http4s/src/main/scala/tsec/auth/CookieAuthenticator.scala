@@ -5,18 +5,17 @@ import java.util.UUID
 
 import cats.Monad
 import cats.data.OptionT
-import cats.implicits._
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
 import org.http4s.util.CaseInsensitiveString
 import org.http4s._
-import org.http4s.headers.{Cookie => C}
 import tsec.common.ByteEV
 import tsec.cookies._
 import tsec.mac.imports._
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import tsec.common._
+import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -92,19 +91,7 @@ object AuthenticatedCookie {
 
 }
 
-final case class TSecCookieSettings(
-    cookieName: String,
-    secure: Boolean,
-    httpOnly: Boolean = true,
-    domain: Option[String] = None,
-    path: Option[String] = None,
-    extension: Option[String] = None
-)
-
 object CookieAuthenticator {
-
-  def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, Cookie] =
-    OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))
 
   def apply[F[_]: Monad, Alg: MacTag: ByteEV, I: Decoder: Encoder, V](
       settings: TSecCookieSettings,
@@ -115,7 +102,6 @@ object CookieAuthenticator {
       maxIdle: Option[FiniteDuration]
   ): CookieAuthenticator[F, Alg, I, V] =
     new CookieAuthenticator[F, Alg, I, V] {
-      private val cookieName = CaseInsensitiveString(settings.cookieName)
 
       /** Generate a nonce by concatenating the message to be sent with the current instant and hashing their result
         * Possibly this should be a variable argument, but for now SHA1 is enough, since the chance for collision is
@@ -213,6 +199,9 @@ object CookieAuthenticator {
         case None =>
           OptionT.pure[F](authenticator)
       }
+
+      def embed(response: Response[F], authenticator: AuthenticatedCookie[Alg, I]): Response[F] =
+        response.addCookie(authenticator.toCookie)
 
       /** Handles the embedding of the authenticator (if necessary) in the response,
         * and any other actions that should happen after a request related to authenticators

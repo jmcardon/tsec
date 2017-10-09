@@ -13,7 +13,7 @@ sealed abstract class AuthEncryptor[A: SymmetricAlgorithm] {
       implicit keyGenerator: CipherKeyGen[A]
   ): CipherKeyGen[A] = keyGenerator
 
-  def fromSingleArray(bytes: Array[Byte]): Either[CipherTextError, CipherText[A, GCM, NoPadding]] =
+  def fromSingleArray(bytes: Array[Byte]): Either[CipherTextError, AEADCipherText[A]] =
     CipherText.fromSingleArray[A, GCM, NoPadding](bytes)
 }
 

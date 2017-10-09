@@ -42,6 +42,14 @@ trait AuthenticatorEV[F[_], Alg, I, V] {
     */
   def refresh(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
 
+  /** Embed an authenticator directly into a response.
+    * Particularly useful for adding an authenticator into unauthenticated actions
+    *
+    * @param response
+    * @return
+    */
+  def embed(response: Response[F], authenticator: Authenticator[Alg]): Response[F]
+
   /** Handles the embedding of the authenticator (if necessary) in the response,
     * and any other actions that should happen after a request related to authenticators
     *
@@ -53,12 +61,8 @@ trait AuthenticatorEV[F[_], Alg, I, V] {
 
 }
 
-abstract class EncryptedCookieAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
+abstract class JWTMacAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
     extends AuthenticatorEV[F, A, I, V] {
-  type Authenticator[T] = AEADCookie[T]
-}
-
-abstract class JWTMacAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A]) extends AuthenticatorEV[F, A, I, V] {
   type Authenticator[T] = JWTMac[T]
 
 }
