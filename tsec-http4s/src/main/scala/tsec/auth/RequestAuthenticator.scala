@@ -7,19 +7,18 @@ import org.http4s.server._
 import org.http4s.dsl._
 
 abstract class RequestAuthenticator[F[_]: Monad, Alg, I, V](
-    authenticator: Authenticator[F, Alg, I, V],
-    extract: Request[F] => String
+    authenticator: AuthenticatorEV[F, Alg, I, V]
 ) extends Http4sDsl[F] {
+  import authenticator.Authenticator
 
-  def apply(pf: PartialFunction[AuthedRequest[F, V], F[Response[F]]]): HttpService[F] =
-    authedRequest(AuthedService(pf))
+  def apply(pf: PartialFunction[SecuredRequest[F, Authenticator[Alg], V], F[Response[F]]]): HttpService[F] = {
+    val middleware = TSecMiddleware(extractedKleisli)
+    middleware(TSecAuthService(pf))
+  }
 
-  private lazy val authedRequest: AuthMiddleware[F, V] =
-    _.compose(
-      (req: Request[F]) =>
-        for {
-          stringRepr <- OptionT.pure[F](extract(req))
-          v          <- authenticator.retrieveIdentity(stringRepr)
-        } yield AuthedRequest(v, req)
+  private val extractedKleisli =
+    Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Authenticator[Alg], V]](
+      req => authenticator.extractAndValidate(req)
     )
+
 }

@@ -39,7 +39,7 @@ object CookieSigner {
       val original = split(0).base64Bytes
       val signed   = split(1).base64Bytes.toRepr[A]
       signer.verify(original, signed, key).flatMap {
-        case true  => SignedCookie.splitOriginal(original.toUtf8String)
+        case true  => SignedCookie.fromDecodedString(original.toUtf8String)
         case false => Left(MacVerificationError("Invalid cookie"))
       }
     }
