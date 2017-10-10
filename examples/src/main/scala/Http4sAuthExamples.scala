@@ -55,7 +55,7 @@ object Http4sAuthExamples {
 
   For our example, we'll use a dummy backing store with encrypted cookies and a cookie backing store
   We will encrypt our cookies with AES GCM.
-  In this case, we need a cryptographic
+  In this case, we need a cryptographic key to sign and encrypt our cookie
    */
   val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]] =
     dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]](_.id)
