@@ -52,7 +52,12 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeParser
 )
 
-lazy val http4sDeps = libraryDependencies ++= Seq(Libraries.http4sdsl, Libraries.scalaCheck)
+lazy val http4sDeps = libraryDependencies ++= Seq(
+  Libraries.http4sdsl,
+  Libraries.scalaCheck,
+  Libraries.http4sServer,
+  Libraries.http4sCirce
+)
 
 lazy val root = Project(id = "tsec", base = file("."))
   .settings(commonSettings)
@@ -140,6 +145,7 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
   .settings(jwtCommonLibs)
   .settings(signatureLibs)
   .settings(passwordHasherLibs)
+  .settings(http4sDeps)
   .dependsOn(
     symmetricCipher,
     mac,
@@ -147,7 +153,8 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     signatures,
     jwtMac,
     jwtSig,
-    passwordHashers
+    passwordHashers,
+    http4s
   )
 
 lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
@@ -159,6 +166,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .dependsOn(
     symmetricCipher,
     mac,
+    messageDigests,
     jwtMac
   )
 

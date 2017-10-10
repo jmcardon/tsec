@@ -2,6 +2,7 @@ package tsec.jwt
 
 import java.nio.charset.StandardCharsets
 import java.time.Instant
+import java.util.UUID
 
 import io.circe.Decoder.Result
 import io.circe._
@@ -19,8 +20,8 @@ case class JWTClaims(
     expiration: Option[Long] = None,
     notBefore: Option[Long] = None,
     issuedAt: Option[Long] = Some(Instant.now().getEpochSecond), // IEEE Std 1003.1, 2013 Edition time in seconds
-    jwtId: Option[String] = None, //Case sensitive
-    custom: Json = Json.Null // non standard. I copped out. Other things are most likely too inefficient to use
+    jwtId:  UUID = UUID.randomUUID(),  //Case sensitive, and in our implementation, secure enough using UUIDv4
+    custom: Option[Json] = None // non standard. I copped out. Other things are most likely too inefficient to use
 ) {
   def withExpiry(duration: FiniteDuration): JWTClaims =
     copy(expiration = Some(Instant.now.getEpochSecond + duration.toSeconds))
@@ -43,8 +44,8 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       audience: Option[Either[String, List[String]]] = None, //case-sensitive
       expiration: Option[FiniteDuration],
       notBefore: Option[FiniteDuration] = None,
-      jwtId: Option[String] = None, //Case sensitive
-      custom: Json = Json.Null
+      jwtId: UUID = UUID.randomUUID(), //Case sensitive
+      custom: Option[Json] = None
   ): JWTClaims = {
     val now = Instant.now().getEpochSecond
     val iat = Some(now)
@@ -77,7 +78,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       ("nbf", a.notBefore.asJson),
       ("iat", a.issuedAt.asJson),
       ("jti", a.jwtId.asJson),
-      ("custom", a.custom)
+      ("custom", a.custom.asJson)
     )
   }
 
@@ -90,8 +91,8 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
         expiration <- c.downField("exp").as[Option[Long]]
         nbf        <- c.downField("nbf").as[Option[Long]]
         iat        <- c.downField("iat").as[Option[Long]]
-        jwtid      <- c.downField("jti").as[Option[String]]
-        custom = c.downField("custom").focus.getOrElse(Json.Null)
+        jwtid      <- c.downField("jti").as[UUID]
+        custom = c.downField("custom").focus
       } yield JWTClaims(iss, sub, aud, expiration, nbf, iat, jwtid, custom)
   }
 

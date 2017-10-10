@@ -1,7 +1,7 @@
 package tsec.cipher.symmetric
 
 import tsec.cipher.common._
-import tsec.cipher.common.mode.GCM
+import tsec.cipher.common.mode.{CTR, GCM}
 import tsec.cipher.common.padding.NoPadding
 import tsec.common.{CryptoTag, JKeyGenerator}
 import javax.crypto.{SecretKey => JSecretKey}
@@ -10,6 +10,7 @@ import cats.evidence.Is
 
 package object imports{
   type AEADCipherText[A] = CipherText[A, GCM, NoPadding]
+  type EncryptorInstance[A] = JCASymmetricCipher[A, CTR, NoPadding]
 
   /** Typeclass for propagating symmetric key algorithm information
    * Note: Key length is in bits

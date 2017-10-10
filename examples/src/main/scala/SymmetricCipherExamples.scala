@@ -27,7 +27,7 @@ object SymmetricCipherExamples {
 
   val toEncrypt = "hi hello welcome to tsec".utf8Bytes
   val onlyEncrypt: Either[CipherError, String] = for {
-    instance  <- DefaultEncryptor.getInstance //Instances are unsafe! Some JVMs may not have particular instances
+    instance  <- DefaultEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
     key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
     encrypted <- instance.encrypt(PlainText(toEncrypt), key) //Encrypt our message
     decrypted <- instance.decrypt(encrypted, key)
@@ -35,7 +35,7 @@ object SymmetricCipherExamples {
 
   /** You can also turn it into a singlular array with the IV concatenated at the end */
   val onlyEncrypt2: Either[CipherError, String] = for {
-    instance  <- DefaultEncryptor.getInstance //Instances are unsafe! Some JVMs may not have particular instances
+    instance  <- DefaultEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
     key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
     encrypted <- instance.encrypt(PlainText(toEncrypt), key) //Encrypt our message
     array = encrypted.toSingleArray

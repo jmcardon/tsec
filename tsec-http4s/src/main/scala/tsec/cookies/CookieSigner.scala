@@ -12,7 +12,7 @@ object CookieSigner {
     if (message.isEmpty)
       Left(MacSigningError("Cannot sign an empty string"))
     else {
-      val toSign = (message.utf8Bytes.toB64String + "-" + nonce).utf8Bytes
+      val toSign = (message.utf8Bytes.toB64String + "-" + nonce.utf8Bytes.toB64String).utf8Bytes
       signer.sign(toSign, key).map(SignedCookie.from[A](_, toSign.toB64String))
     }
 
@@ -31,7 +31,7 @@ object CookieSigner {
 
   def verifyAndRetrieve[A: MacTag: ByteEV](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
-  ) = {
+  ): Either[Throwable, String] = {
     val split = signed.split("-")
     if (split.length != 2)
       Left(MacVerificationError("Invalid cookie"))
@@ -39,7 +39,7 @@ object CookieSigner {
       val original = split(0).base64Bytes
       val signed   = split(1).base64Bytes.toRepr[A]
       signer.verify(original, signed, key).flatMap {
-        case true  => SignedCookie.splitOriginal(original.toUtf8String)
+        case true  => SignedCookie.fromDecodedString(original.toUtf8String)
         case false => Left(MacVerificationError("Invalid cookie"))
       }
     }
