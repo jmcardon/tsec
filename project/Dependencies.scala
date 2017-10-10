@@ -30,6 +30,7 @@ object Dependencies {
     val circeParser        = "io.circe"           %% "circe-parser"         % Versions.circeV
     val http4sdsl          = "org.http4s"         %% "http4s-dsl"           % Versions.http4sV
     val http4sServer       = "org.http4s"         %% "http4s-server"        % Versions.http4sV
+    val http4sCirce        = "org.http4s"         %% "http4s-circe"        % Versions.http4sV % "test"
     val scalaCheck         = "org.scalacheck"     %% "scalacheck"           % Versions.scalacheckV % "test"
   }
 

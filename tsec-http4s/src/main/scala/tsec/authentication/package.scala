@@ -34,6 +34,19 @@ package object authentication {
     */
   final case class SecuredRequest[F[_], Auth, Identity](request: Request[F], authenticator: Auth, identity: Identity)
 
+  object asAuthed{
+    /**
+      * Matcher for the http4s dsl
+      * @param ar
+      * @tparam F
+      * @tparam A
+      * @tparam I
+      * @return
+      */
+    def unapply[F[_], A, I](ar: SecuredRequest[F, A, I]): Option[(Request[F], I)] =
+      Some(ar.request -> ar.identity)
+  }
+
   type TSecMiddleware[F[_], A, I] =
     Middleware[OptionT[F, ?], SecuredRequest[F, A, I], Response[F], Request[F], Response[F]]
 
@@ -72,8 +85,19 @@ package object authentication {
       */
     def apply[F[_], A, I](
         pf: PartialFunction[SecuredRequest[F, A, I], F[Response[F]]]
-    )(implicit F: Applicative[F]): TSecAuthService[F, A, I] =
+    )(implicit F: Monad[F]): TSecAuthService[F, A, I] =
       Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+
+    def apply[F[_], A, I](
+        pf: PartialFunction[SecuredRequest[F, A, I], F[Response[F]]],
+        andThen: (Response[F], A) => OptionT[F, Response[F]]
+    )(implicit F: Monad[F]): TSecAuthService[F, A, I] =
+      Kleisli(
+        req =>
+          pf.andThen(OptionT.liftF(_))
+            .applyOrElse(req, Function.const(OptionT.none[F, Response[F]]))
+            .flatMap(r => andThen(r, req.authenticator))
+      )
 
     /** The empty service (all requests fallthrough).
       * @tparam F - Ignored

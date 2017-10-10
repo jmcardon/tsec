@@ -52,7 +52,12 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeParser
 )
 
-lazy val http4sDeps = libraryDependencies ++= Seq(Libraries.http4sdsl, Libraries.scalaCheck, Libraries.http4sServer)
+lazy val http4sDeps = libraryDependencies ++= Seq(
+  Libraries.http4sdsl,
+  Libraries.scalaCheck,
+  Libraries.http4sServer,
+  Libraries.http4sCirce
+)
 
 lazy val root = Project(id = "tsec", base = file("."))
   .settings(commonSettings)
