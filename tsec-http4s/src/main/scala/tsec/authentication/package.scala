@@ -157,5 +157,4 @@ package object authentication {
     catch {
       case NonFatal(e) => OptionT.none
     }
-
 }

@@ -145,6 +145,7 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
   .settings(jwtCommonLibs)
   .settings(signatureLibs)
   .settings(passwordHasherLibs)
+  .settings(http4sDeps)
   .dependsOn(
     symmetricCipher,
     mac,
@@ -152,7 +153,8 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     signatures,
     jwtMac,
     jwtSig,
-    passwordHashers
+    passwordHashers,
+    http4s
   )
 
 lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))

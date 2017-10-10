@@ -22,7 +22,7 @@ import io.circe.generic.auto._
 import cats.implicits._
 import tsec.jwt.JWTPrinter
 
-abstract class EncryptedCookieAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
+sealed abstract class EncryptedCookieAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
     extends AuthenticatorEV[F, A, I, V, AuthEncryptedCookie[?, I]]
 
 /** An authenticated cookie implementation
