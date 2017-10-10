@@ -48,7 +48,7 @@ object JWTAuthenticator {
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
-  )(implicit cv: JWSMacCV[F, A], enc: Encryptor[E], me: MonadError[F, Throwable]) =
+  )(implicit cv: JWSMacCV[F, A], enc: Encryptor[E], M: MonadError[F, Throwable]) =
     new JWTAuthenticator[F, A, I, V] {
 
       /** Generate a message body, with some arbitrary I which signal an id,
@@ -75,12 +75,12 @@ object JWTAuthenticator {
         * @param instance
         * @return
         */
-      private def decodeI(body: JWTInternal, instance: EncryptorInstance[E]): Option[I] =
-        (for {
+      private def decodeI(body: JWTInternal, instance: EncryptorInstance[E]): F[I] =
+        M.fromEither(for {
           cipherText <- enc.fromSingleArray(body.value.base64Bytes)
           decrypted  <- instance.decrypt(cipherText, encryptionKey)
           decoded    <- decode[I](decrypted.content.toUtf8String)
-        } yield decoded).toOption
+        } yield decoded)
 
       /** A conditional to check for:
         * 1. Token serialization equality. No need to verify the signature, this is done via our
@@ -125,12 +125,12 @@ object JWTAuthenticator {
         */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, JWTMac[A], V]] =
         for {
-          encryptorInstance <- OptionT.fromOption[F](enc.instance.toOption)
+          encryptorInstance <- OptionT.liftF(M.fromEither(enc.instance))
           rawHeader         <- OptionT.fromOption[F](request.headers.get(CaseInsensitiveString(settings.headerName)))
-          extracted         <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey)).handleErrorWith(_ => OptionT.none)
+          extracted         <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey))
           retrieved         <- tokenStore.get(extracted.id)
           internal          <- OptionT.fromOption[F](extracted.body.custom.flatMap(_.as[JWTInternal].toOption))
-          decodedBody       <- OptionT.fromOption[F](decodeI(internal, encryptorInstance))
+          decodedBody       <- OptionT.liftF(decodeI(internal, encryptorInstance))
           _                 <- verifyWithRawF(rawHeader.value, retrieved, internal)
           refreshed         <- refresh(extracted)
           identity          <- identityStore.get(decodedBody)
@@ -148,7 +148,7 @@ object JWTAuthenticator {
           custom = messageBody
         )
         for {
-          signed <- OptionT.liftF(JWTMacM.build[F, A](claims, signingKey)).handleErrorWith(_ => OptionT.none)
+          signed <- OptionT.liftF(JWTMacM.build[F, A](claims, signingKey))
           _      <- OptionT.liftF(tokenStore.put(signed))
         } yield signed
       }
@@ -237,7 +237,7 @@ object JWTAuthenticator {
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
-  )(implicit cv: JWSMacCV[F, A], enc: Encryptor[E], me: MonadError[F, Throwable]) =
+  )(implicit cv: JWSMacCV[F, A], enc: Encryptor[E], M: MonadError[F, Throwable]) =
     new JWTAuthenticator[F, A, I, V] {
 
       /** Generate a message body, with some arbitrary I which signal an id,
@@ -264,12 +264,12 @@ object JWTAuthenticator {
         * @param instance
         * @return
         */
-      private def decodeI(body: JWTInternal, instance: EncryptorInstance[E]): Option[I] =
-        (for {
+      private def decodeI(body: JWTInternal, instance: EncryptorInstance[E]): F[I] =
+        M.fromEither(for {
           cipherText <- enc.fromSingleArray(body.value.base64Bytes)
           decrypted  <- instance.decrypt(cipherText, encryptionKey)
           decoded    <- decode[I](decrypted.content.toUtf8String)
-        } yield decoded).toOption
+        } yield decoded)
 
       /** Same as verify, but tack on dat dere diddly OptionT.
         *
@@ -299,12 +299,12 @@ object JWTAuthenticator {
         */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, JWTMac[A], V]] =
         for {
-          encryptorInstance <- OptionT.fromOption[F](enc.instance.toOption)
+          encryptorInstance <- OptionT.liftF(M.fromEither(enc.instance))
           rawHeader         <- OptionT.fromOption[F](request.headers.get(CaseInsensitiveString(settings.headerName)))
-          extracted         <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey)).handleErrorWith(_ => OptionT.none)
+          extracted         <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey))
           internal          <- OptionT.fromOption[F](extracted.body.custom.flatMap(_.as[JWTInternal].toOption))
           _                 <- checkTimeout(internal)
-          decodedBody       <- OptionT.fromOption[F](decodeI(internal, encryptorInstance))
+          decodedBody       <- OptionT.liftF(decodeI(internal, encryptorInstance))
           refreshed         <- refresh(extracted)
           identity          <- identityStore.get(decodedBody)
         } yield SecuredRequest(request, refreshed, identity)
@@ -320,7 +320,7 @@ object JWTAuthenticator {
           expiration = Some(expiry),
           custom = messageBody
         )
-        OptionT.liftF(JWTMacM.build[F, A](claims, signingKey)).handleErrorWith(_ => OptionT.none)
+        OptionT.liftF(JWTMacM.build[F, A](claims, signingKey))
       }
 
       def update(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =

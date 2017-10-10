@@ -109,7 +109,10 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
         res <- testService(embedded)
       } yield res
-      response.getOrElse(Response[IO](status = Status.Forbidden)).map(_.status).unsafeRunSync() mustBe Status.Forbidden
+      response
+        .getOrElse(Response[IO](status = Status.Forbidden))
+        .map(_.status)
+        .unsafeRunSync() mustBe Status.Forbidden
     }
 
     //note: we feed it "discarded" because stateless tokens rely on this.
@@ -120,7 +123,10 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), discarded)
         res <- testService(embedded)
       } yield res
-      response.getOrElse(Response[IO](status = Status.Forbidden)).map(_.status).unsafeRunSync() mustBe Status.Forbidden
+      response
+        .getOrElse(Response[IO](status = Status.Forbidden))
+        .map(_.status)
+        .unsafeRunSync() mustBe Status.Forbidden
     }
   }
 

@@ -1,7 +1,5 @@
 package tsec.authentication
 
-import java.util.UUID
-
 import cats.data.OptionT
 import cats.effect.IO
 import cats.{Id, Monad}
@@ -78,7 +76,9 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
         fromRequest  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
         res          <- OptionT.pure[IO](authSpec.authie.embed(Response[IO](), fromRequest.authenticator))
         fromResponse <- authSpec.extractFromResponse(res)
-      } yield (fromResponse, fromRequest)).value
+      } yield (fromResponse, fromRequest))
+        .handleErrorWith(_ => OptionT.none)
+        .value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe false
       extracted.map(_._2.identity) mustBe Some(dummy1)
@@ -91,7 +91,9 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
         expired <- authSpec.expireAuthenticator(auth)
         updated <- authSpec.authie.update(expired)
         req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
-      } yield req2).value
+      } yield req2)
+        .handleErrorWith(_ => OptionT.none)
+        .value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe true
     }
@@ -103,7 +105,9 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
         updated1 <- authSpec.authie.update(expired)
         renewed  <- authSpec.authie.renew(updated1)
         req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
-      } yield req2).value
+      } yield req2)
+        .handleErrorWith(_ => OptionT.none)
+        .value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe false
     }
@@ -114,7 +118,9 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
         expired <- authSpec.timeoutAuthenticator(auth)
         updated <- authSpec.authie.update(expired)
         req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
-      } yield req2).value
+      } yield req2)
+        .handleErrorWith(_ => OptionT.none)
+        .value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe true
     }
@@ -126,7 +132,9 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
         updated1 <- authSpec.authie.update(expired)
         renewed  <- authSpec.authie.refresh(updated1)
         req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
-      } yield req2).value
+      } yield req2)
+        .handleErrorWith(_ => OptionT.none)
+        .value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe false
     }
@@ -135,17 +143,21 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
       val results = (for {
         wrong <- authSpec.wrongKeyAuthenticator
         req2  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
-      } yield req2).value
+      } yield req2)
+        .handleErrorWith(_ => OptionT.none)
+        .value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe true
     }
 
     it should "discard a token properly" in {
       val results = (for {
-        auth     <- authSpec.authie.create(dummy1.id)
-        discarded  <- authSpec.authie.discard(auth)
-        req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
-      } yield req2).value
+        auth      <- authSpec.authie.create(dummy1.id)
+        discarded <- authSpec.authie.discard(auth)
+        req2      <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
+      } yield req2)
+        .handleErrorWith(_ => OptionT.none)
+        .value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe true
     }

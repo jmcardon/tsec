@@ -3,19 +3,19 @@ package tsec.authentication
 import java.time.Instant
 import java.util.UUID
 
-import cats.Monad
+import cats.{Monad, MonadError}
 import cats.data.OptionT
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
 import org.http4s.util.CaseInsensitiveString
 import org.http4s._
 import tsec.cipher.common.AAD
-import tsec.common.ByteEV
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import tsec.common._
 import tsec.cipher.symmetric.imports._
 import tsec.cookies._
+
 import scala.concurrent.duration.FiniteDuration
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -132,14 +132,14 @@ object EncryptedCookieAuthenticator {
     * @tparam V the expected user type, V aka value
     * @return An encrypted cookie authenticator
     */
-  def withBackingStore[F[_]: Monad, Alg: AuthEncryptor, I: Decoder: Encoder, V](
+  def withBackingStore[F[_], Alg: AuthEncryptor, I: Decoder: Encoder, V](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthEncryptedCookie[Alg, I]],
       identityStore: BackingStore[F, I, V],
       key: SecretKey[Alg],
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
-  ) =
+  )(implicit M: MonadError[F, Throwable]) =
     new EncryptedCookieAuthenticator[F, Alg, I, V] {
 
       private def generateAAD(message: String) =
@@ -164,7 +164,7 @@ object EncryptedCookieAuthenticator {
         for {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = AEADCookie.fromRaw[Alg](rawCookie.content)
-          contentRaw <- OptionT.fromOption[F](AEADCookieEncryptor.retrieveFromSigned[Alg](coerced, key).toOption)
+          contentRaw <- OptionT.liftF(M.fromEither(AEADCookieEncryptor.retrieveFromSigned[Alg](coerced, key)))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
           _          <- validateCookieT(authed, coerced, now)
@@ -180,8 +180,8 @@ object EncryptedCookieAuthenticator {
         val lastTouched = maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         val messageBody = cookieId.toString
         for {
-          encrypted <- OptionT.fromOption[F](
-            AEADCookieEncryptor.signAndEncrypt[Alg](messageBody, generateAAD(messageBody), key).toOption
+          encrypted <- OptionT.liftF(
+            M.fromEither(AEADCookieEncryptor.signAndEncrypt[Alg](messageBody, generateAAD(messageBody), key))
           )
           cookie <- OptionT.pure[F](
             AuthEncryptedCookie.build[Alg, I](cookieId, encrypted, body, expiry, lastTouched, settings)
@@ -253,13 +253,13 @@ object EncryptedCookieAuthenticator {
     * @tparam V
     * @return
     */
-  def stateless[F[_]: Monad, Alg: AuthEncryptor, I: Decoder: Encoder, V](
+  def stateless[F[_], Alg: AuthEncryptor, I: Decoder: Encoder, V](
       settings: TSecCookieSettings,
       idStore: BackingStore[F, I, V],
       key: SecretKey[Alg],
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
-  ) =
+  )(implicit M: MonadError[F, Throwable]) =
     new EncryptedCookieAuthenticator[F, Alg, I, V] {
       private val cookieName = CaseInsensitiveString(settings.cookieName)
 
@@ -287,8 +287,8 @@ object EncryptedCookieAuthenticator {
         for {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = AEADCookie.fromRaw[Alg](rawCookie.content)
-          contentRaw <- OptionT.fromOption[F](AEADCookieEncryptor.retrieveFromSigned[Alg](coerced, key).toOption)
-          internal   <- OptionT.fromOption[F](decode[AuthEncryptedCookie.Internal[I]](contentRaw).toOption)
+          contentRaw <- OptionT.liftF(M.fromEither(AEADCookieEncryptor.retrieveFromSigned[Alg](coerced, key)))
+          internal   <- OptionT.liftF(M.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
           authed = AuthEncryptedCookie.build[Alg, I](internal, coerced, TSecCookieSettings.fromCookie(rawCookie))
           _         <- validateCookieT(authed, now)
           refreshed <- refresh(authed)
@@ -303,8 +303,8 @@ object EncryptedCookieAuthenticator {
         val lastTouched = maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         val messageBody = AuthEncryptedCookie.Internal(cookieId, body, expiry, lastTouched).asJson.pretty(JWTPrinter)
         for {
-          encrypted <- OptionT.fromOption[F](
-            AEADCookieEncryptor.signAndEncrypt[Alg](messageBody, generateAAD(messageBody), key).toOption
+          encrypted <- OptionT.liftF(
+            M.fromEither(AEADCookieEncryptor.signAndEncrypt[Alg](messageBody, generateAAD(messageBody), key))
           )
           cookie <- OptionT.pure[F](
             AuthEncryptedCookie.build[Alg, I](cookieId, encrypted, body, expiry, lastTouched, settings)
@@ -325,8 +325,8 @@ object EncryptedCookieAuthenticator {
           .asJson
           .pretty(JWTPrinter)
         for {
-          encrypted <- OptionT.fromOption[F](
-            AEADCookieEncryptor.signAndEncrypt[Alg](serialized, generateAAD(serialized), key).toOption
+          encrypted <- OptionT.liftF(
+            M.fromEither(AEADCookieEncryptor.signAndEncrypt[Alg](serialized, generateAAD(serialized), key))
           )
         } yield authenticator.copy[Alg, I](content = encrypted)
       }

@@ -3,7 +3,7 @@ package tsec.authentication
 import java.time.Instant
 import java.util.UUID
 
-import cats.Monad
+import cats.{Monad, MonadError}
 import cats.data.OptionT
 import io.circe.{Decoder, Encoder}
 import org.http4s._
@@ -90,14 +90,14 @@ object AuthenticatedCookie {
 
 object CookieAuthenticator {
 
-  def apply[F[_]: Monad, Alg: MacTag: ByteEV, I: Decoder: Encoder, V](
+  def apply[F[_], Alg: MacTag: ByteEV, I: Decoder: Encoder, V](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
       idStore: BackingStore[F, I, V],
       key: MacSigningKey[Alg],
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
-  ): CookieAuthenticator[F, Alg, I, V] =
+  )(implicit M: MonadError[F, Throwable]): CookieAuthenticator[F, Alg, I, V] =
     new CookieAuthenticator[F, Alg, I, V] {
 
       /** Generate a nonce by concatenating the message to be sent with the current instant and hashing their result
@@ -132,7 +132,7 @@ object CookieAuthenticator {
         for {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = SignedCookie.fromRaw[Alg](rawCookie.content)
-          contentRaw <- OptionT.fromOption[F](CookieSigner.verifyAndRetrieve[Alg](coerced, key).toOption)
+          contentRaw <- OptionT.liftF(M.fromEither(CookieSigner.verifyAndRetrieve[Alg](coerced, key)))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
           _          <- validateCookieT(authed, coerced, now)
@@ -155,7 +155,7 @@ object CookieAuthenticator {
         val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
         val lastTouched = maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         for {
-          signed <- OptionT.fromOption[F](CookieSigner.sign[Alg](messageBody, generateNonce(messageBody), key).toOption)
+          signed <- OptionT.liftF(M.fromEither(CookieSigner.sign[Alg](messageBody, generateNonce(messageBody), key)))
           cookie <- OptionT.pure[F](
             AuthenticatedCookie.build[Alg, I](cookieId, signed, body, expiry, lastTouched, settings)
           )
