@@ -6,7 +6,7 @@ import tsec.cipher.common.padding.NoPadding
 
 
 sealed abstract class Encryptor[A: SymmetricAlgorithm] {
-  def getInstance: Either[NoSuchInstanceError, JCASymmetricCipher[A, CTR, NoPadding]] =
+  lazy val instance: Either[NoSuchInstanceError, JCASymmetricCipher[A, CTR, NoPadding]] =
     JCASymmetricCipher[A, CTR, NoPadding]
 
   @inline
@@ -18,10 +18,11 @@ sealed abstract class Encryptor[A: SymmetricAlgorithm] {
     CipherText.fromSingleArray[A, CTR, NoPadding](bytes)
 }
 
-object DefaultEncryptor extends Encryptor[AES128] {
-  implicit val defaultEncryptor: Encryptor[AES128] = this
+object Encryptor {
+  implicit val defaultEncryptor: Encryptor[AES128] = DefaultEncryptor
+  implicit val strongEncryptor: Encryptor[AES256] = StrongEncryptor
 }
 
-object StrongEncryptor extends Encryptor[AES256]{
-  implicit val defaultEncryptor: Encryptor[AES256] = this
-}
+object DefaultEncryptor extends Encryptor[AES128]
+
+object StrongEncryptor extends Encryptor[AES256]

@@ -29,7 +29,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       dummyStore,
       keygen.generateKeyUnsafe(),
       10.minutes,
-      Some(20.minutes)
+      Some(10.minutes)
     )
     new AuthSpecTester[A, AuthEncryptedCookie[?, Int]](authenticator) {
 
@@ -82,7 +82,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       dummyStore,
       secretKey,
       10.minutes,
-      Some(20.minutes)
+      Some(10.minutes)
     )
     new AuthSpecTester[A, AuthEncryptedCookie[?, Int]](authenticator) {
 

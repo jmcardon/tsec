@@ -74,6 +74,3 @@ trait AuthenticatorEV[F[_], Alg, I, V, Authenticator[_]] {
   def afterBlock(response: Response[F], authenticator: Authenticator[Alg]): OptionT[F, Response[F]]
 
 }
-
-abstract class JWTMacAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
-    extends AuthenticatorEV[F, A, I, V, JWTMac]

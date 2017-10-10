@@ -185,7 +185,7 @@ object CookieAuthenticator {
         case Some(idleTime) =>
           val now = Instant.now()
           val updated = authenticator.copy[Alg, I](
-            lastTouched = Some(HttpDate.unsafeFromInstant(now.plusSeconds(idleTime.toSeconds))),
+            lastTouched = Some(HttpDate.unsafeFromInstant(now)),
             expiry = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
           )
           OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
@@ -202,7 +202,7 @@ object CookieAuthenticator {
         case Some(idleTime) =>
           val now = Instant.now()
           val updated = authenticator.copy[Alg, I](
-            lastTouched = Some(HttpDate.unsafeFromInstant(now.plusSeconds(idleTime.toSeconds)))
+            lastTouched = Some(HttpDate.unsafeFromInstant(now))
           )
           OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
         case None =>

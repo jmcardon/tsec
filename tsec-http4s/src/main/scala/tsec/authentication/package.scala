@@ -15,6 +15,7 @@ import cats.syntax.either._
 import io.circe.Decoder.Result
 import io.circe._
 
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
 package object authentication {
@@ -34,7 +35,8 @@ package object authentication {
     */
   final case class SecuredRequest[F[_], Auth, Identity](request: Request[F], authenticator: Auth, identity: Identity)
 
-  object asAuthed{
+  object asAuthed {
+
     /**
       * Matcher for the http4s dsl
       * @param ar
@@ -126,6 +128,12 @@ package object authentication {
       domain: Option[String] = None,
       path: Option[String] = None,
       extension: Option[String] = None
+  )
+
+  final case class TSecJWTSettings(
+      headerName: String,
+      expirationTime: FiniteDuration,
+      maxIdle: Option[FiniteDuration]
   )
 
   object TSecCookieSettings {

@@ -1,22 +1,13 @@
 package tsec.authentication
 
-import java.time.Instant
-import java.util.UUID
-
 import cats.data.OptionT
-
 import cats.effect.IO
 import io.circe.Json
 import org.http4s.dsl.io._
 import org.http4s.circe._
-import tsec.cipher.symmetric.imports._
-import tsec.authentication._
 import org.http4s._
 import io.circe.syntax._
 import io.circe.generic.auto._
-import cats.syntax.all._
-import org.http4s.util.CaseInsensitiveString
-import io.circe.parser.parse
 
 class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
 
@@ -121,10 +112,11 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
       response.getOrElse(Response[IO](status = Status.Forbidden)).map(_.status).unsafeRunSync() mustBe Status.Forbidden
     }
 
+    //note: we feed it "discarded" because stateless tokens rely on this.
     it should "Fail on a discarded token" in {
       val response: OptionT[IO, Response[IO]] = for {
-        auth <- requestAuth.authenticator.create(dummyBob.id)
-        discarded    <- requestAuth.authenticator.discard(auth)
+        auth      <- requestAuth.authenticator.create(dummyBob.id)
+        discarded <- requestAuth.authenticator.discard(auth)
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), discarded)
         res <- testService(embedded)
       } yield res

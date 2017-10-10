@@ -1,5 +1,7 @@
 package tsec.authentication
 
+import java.util.UUID
+
 import cats.data.OptionT
 import cats.effect.IO
 import cats.{Id, Monad}
@@ -41,8 +43,11 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
     private val storageMap = mutable.HashMap.empty[I, V]
 
     def put(elem: V): F[Int] = {
-      storageMap.put(getId(elem), elem)
-      F.pure(1)
+      val map = storageMap.put(getId(elem), elem)
+      if (map.isEmpty)
+        F.pure(0)
+      else
+        F.pure(1)
     }
 
     def get(id: I): OptionT[F, V] =
@@ -80,18 +85,6 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
       extracted.map(_._1) mustBe extracted.map(_._2.authenticator)
     }
 
-    it should "refresh properly" in {
-      val results = (for {
-        auth     <- authSpec.authie.create(dummy1.id)
-        expired  <- authSpec.timeoutAuthenticator(auth)
-        updated1 <- authSpec.authie.update(expired)
-        renewed  <- authSpec.authie.renew(updated1)
-        req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
-      } yield req2).value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe false
-    }
-
     it should "Not validate for an expired token" in {
       val results = (for {
         auth    <- authSpec.authie.create(dummy1.id)
@@ -103,6 +96,18 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
       extracted.isEmpty mustBe true
     }
 
+    it should "renew properly" in {
+      val results = (for {
+        auth     <- authSpec.authie.create(dummy1.id)
+        expired  <- authSpec.expireAuthenticator(auth)
+        updated1 <- authSpec.authie.update(expired)
+        renewed  <- authSpec.authie.renew(updated1)
+        req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+      } yield req2).value
+      val extracted = results.unsafeRunSync()
+      extracted.isEmpty mustBe false
+    }
+
     it should "Not validate for a token past the timeout" in {
       val results = (for {
         auth    <- authSpec.authie.create(dummy1.id)
@@ -112,6 +117,18 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
       } yield req2).value
       val extracted = results.unsafeRunSync()
       extracted.isEmpty mustBe true
+    }
+
+    it should "refresh properly" in {
+      val results = (for {
+        auth     <- authSpec.authie.create(dummy1.id)
+        expired  <- authSpec.timeoutAuthenticator(auth)
+        updated1 <- authSpec.authie.update(expired)
+        renewed  <- authSpec.authie.refresh(updated1)
+        req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+      } yield req2).value
+      val extracted = results.unsafeRunSync()
+      extracted.isEmpty mustBe false
     }
 
     it should "Not validate for a token with a different key/incorrect" in {
