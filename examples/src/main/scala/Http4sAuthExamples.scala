@@ -1,18 +1,13 @@
-import java.time.Instant
 import java.util.UUID
-
 import cats.Monad
 import cats.data.OptionT
 import cats.effect.IO
-import org.http4s.{HttpService, Request, Response}
+import org.http4s.HttpService
 import tsec.authentication._
 import tsec.cipher.symmetric.imports.{AES128, SecretKey}
-
 import scala.concurrent.duration._
 import scala.collection.mutable
 import org.http4s.dsl.io._
-import tsec.cipher.common
-import tsec.cookies.AEADCookie
 
 object Http4sAuthExamples {
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Monad[F]) = new BackingStore[F, I, V] {
