@@ -5,9 +5,8 @@ package object core {
   final case class Password(pass: String) extends AnyVal
   final case class Salt(salt: String)     extends AnyVal
   final case class Rounds(rounds: Int)    extends AnyVal
-  final case class PasswordError(reason: String) extends Exception {
-    override def getCause: Throwable = this
 
+  final case class PasswordError(reason: String) extends Exception {
     override def getMessage: String = reason
 
     override def fillInStackTrace(): Throwable = this

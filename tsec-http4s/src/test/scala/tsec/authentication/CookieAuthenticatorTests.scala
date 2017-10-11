@@ -23,12 +23,10 @@ class CookieAuthenticatorTests extends RequestAuthenticatorSpec[AuthenticatedCoo
       store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
   ): AuthSpecTester[A, AuthenticatedCookie[?, Int]] = {
     val authenticator = CookieAuthenticator[IO, A, Int, DummyUser](
-      TSecCookieSettings(cookieName, false),
+      TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
       keyGenerator.generateKeyUnsafe(),
-      10.minute,
-      Some(20.minutes)
     )
     new AuthSpecTester[A, AuthenticatedCookie[?, Int]](authenticator) {
 
@@ -59,12 +57,10 @@ class CookieAuthenticatorTests extends RequestAuthenticatorSpec[AuthenticatedCoo
 
       def wrongKeyAuthenticator: OptionT[IO, AuthenticatedCookie[A, Int]] =
         CookieAuthenticator[IO, A, Int, DummyUser](
-          TSecCookieSettings(cookieName, false),
+          TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
           store,
           dummyStore,
-          keyGenerator.generateKeyUnsafe(),
-          10.minute,
-          Some(20.minutes)
+          keyGenerator.generateKeyUnsafe()
         ).create(123)
     }
   }

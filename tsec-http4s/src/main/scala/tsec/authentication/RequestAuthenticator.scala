@@ -5,6 +5,7 @@ import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import cats.syntax.all._
 import tsec.jws.mac.JWTMac
+
 case class RequestAuthenticator[F[_], Alg, Identity, User, Auth[_]](
     authenticator: AuthenticatorEV[F, Alg, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {

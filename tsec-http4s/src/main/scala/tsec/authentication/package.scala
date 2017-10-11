@@ -59,22 +59,6 @@ package object authentication {
       service => {
         service.compose(authedStuff)
       }
-    //Todo: Deal with the Explicit error
-//
-//    def apply[F[_], Err, T](
-//      authUser: Kleisli[F, Request[F], Either[Err, T]],
-//      onFailure: Kleisli[OptionT[F, ?], AuthedRequest[F, Err], Response[F]]
-//    )(implicit F: Monad[F], C: Choice[Kleisli[OptionT[F, ?], ?, ?]]): AuthMiddleware[F, T] = {
-//      service: AuthedService[F, T] =>
-//        C.choice(onFailure, service)
-//          .local { authed: AuthedRequest[F, Either[Err, T]] =>
-//            authed.authInfo.bimap(
-//              err => AuthedRequest(err, authed.req),
-//              suc => AuthedRequest(suc, authed.req)
-//            )
-//          }
-//          .compose(AuthedRequest(authUser.run).mapF(OptionT.liftF(_)))
-//    }
   }
 
   type TSecAuthService[F[_], A, I] = Kleisli[OptionT[F, ?], SecuredRequest[F, A, I], Response[F]]
@@ -82,7 +66,7 @@ package object authentication {
   object TSecAuthService {
 
     /** Lifts a partial function to an `TSecAuthedService`.  Responds with
-      * [[org.http4s.Response.notFoundFor]], which generates a 404, for any request
+      * [[org.http4s.Response.notFound]], which generates a 404, for any request
       * where `pf` is not defined.
       */
     def apply[F[_], A, I](
@@ -127,7 +111,9 @@ package object authentication {
       httpOnly: Boolean = true,
       domain: Option[String] = None,
       path: Option[String] = None,
-      extension: Option[String] = None
+      extension: Option[String] = None,
+      expiryDuration: FiniteDuration,
+      maxIdle: Option[FiniteDuration]
   )
 
   final case class TSecJWTSettings(
@@ -135,10 +121,6 @@ package object authentication {
       expirationTime: FiniteDuration,
       maxIdle: Option[FiniteDuration]
   )
-
-  object TSecCookieSettings {
-    def fromCookie(c: Cookie) = TSecCookieSettings(c.name, c.secure, c.httpOnly, c.domain, c.path, c.extension)
-  }
 
   def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, Cookie] =
     OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))

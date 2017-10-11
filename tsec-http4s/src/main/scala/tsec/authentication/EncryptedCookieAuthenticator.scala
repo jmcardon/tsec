@@ -7,7 +7,6 @@ import cats.{Monad, MonadError}
 import cats.data.OptionT
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
-import org.http4s.util.CaseInsensitiveString
 import org.http4s._
 import tsec.cipher.common.AAD
 import tsec.messagedigests._
@@ -97,20 +96,20 @@ object AuthEncryptedCookie {
   def build[A, Id](
       internal: Internal[Id],
       content: AEADCookie[A],
-      settings: TSecCookieSettings
+      c: Cookie
   ) =
     AuthEncryptedCookie[A, Id](
       internal.id,
-      settings.cookieName,
+      c.name,
       content,
       internal.messageId,
       internal.expiry,
       internal.lastTouched,
-      settings.secure,
-      settings.httpOnly,
-      settings.domain,
-      settings.path,
-      settings.extension
+      c.secure,
+      c.httpOnly,
+      c.domain,
+      c.path,
+      c.extension
     )
 
 }
@@ -124,8 +123,6 @@ object EncryptedCookieAuthenticator {
     * @param tokenStore the token backing store
     * @param identityStore the backing store of the identity
     * @param key the symmetric signing key
-    * @param expiryDuration the duration before expiry
-    * @param maxIdle the (optional) sliding window expiration
     * @tparam F the effect type
     * @tparam Alg the symmetric key algorithm to use authenticated encryption
     * @tparam I the id type for a user
@@ -136,11 +133,43 @@ object EncryptedCookieAuthenticator {
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthEncryptedCookie[Alg, I]],
       identityStore: BackingStore[F, I, V],
-      key: SecretKey[Alg],
-      expiryDuration: FiniteDuration,
-      maxIdle: Option[FiniteDuration]
-  )(implicit M: MonadError[F, Throwable]) =
+      key: SecretKey[Alg]
+  )(implicit M: MonadError[F, Throwable]): EncryptedCookieAuthenticator[F, Alg, I, V] =
     new EncryptedCookieAuthenticator[F, Alg, I, V] {
+
+      def withKey(newKey: SecretKey[Alg]): EncryptedCookieAuthenticator[F, Alg, I, V] =
+        withBackingStore[F, Alg, I, V](
+          settings,
+          tokenStore,
+          identityStore,
+          newKey
+        )
+
+      def withSettings(settings: TSecCookieSettings): EncryptedCookieAuthenticator[F, Alg, I, V] =
+        withBackingStore[F, Alg, I, V](
+          settings,
+          tokenStore,
+          identityStore,
+          key
+        )
+
+      def withIdentityStore(newStore: BackingStore[F, I, V]): EncryptedCookieAuthenticator[F, Alg, I, V] =
+        withBackingStore[F, Alg, I, V](
+          settings,
+          tokenStore,
+          newStore,
+          key
+        )
+
+      def withTokenStore(
+          newStore: BackingStore[F, UUID, AuthEncryptedCookie[Alg, I]]
+      ): EncryptedCookieAuthenticator[F, Alg, I, V] =
+        withBackingStore[F, Alg, I, V](
+          settings,
+          newStore,
+          identityStore,
+          key
+        )
 
       private def generateAAD(message: String) =
         AAD((message + Instant.now.toEpochMilli).utf8Bytes.hash[SHA1])
@@ -150,7 +179,7 @@ object EncryptedCookieAuthenticator {
           raw: AEADCookie[Alg],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !maxIdle.exists(internal.isTimedout(now, _))
+        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedout(now, _))
 
       private def validateCookieT(
           internal: AuthEncryptedCookie[Alg, I],
@@ -176,8 +205,8 @@ object EncryptedCookieAuthenticator {
       def create(body: I): OptionT[F, AuthEncryptedCookie[Alg, I]] = {
         val cookieId    = UUID.randomUUID()
         val now         = Instant.now()
-        val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
-        val lastTouched = maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
+        val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+        val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         val messageBody = cookieId.toString
         for {
           encrypted <- OptionT.liftF(
@@ -202,34 +231,36 @@ object EncryptedCookieAuthenticator {
           case _ => None
         }
 
-      def renew(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = maxIdle match {
-        case Some(idleTime) =>
-          val now = Instant.now()
-          val updated = authenticator.copy[Alg, I](
-            lastTouched = Some(HttpDate.unsafeFromInstant(now)),
-            expiry = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
-          )
-          OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
-        case None =>
-          OptionT.pure[F](authenticator)
-      }
+      def renew(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
+        settings.maxIdle match {
+          case Some(idleTime) =>
+            val now = Instant.now()
+            val updated = authenticator.copy[Alg, I](
+              lastTouched = Some(HttpDate.unsafeFromInstant(now)),
+              expiry = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+            )
+            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
+          case None =>
+            OptionT.pure[F](authenticator)
+        }
 
-      def refresh(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = maxIdle match {
-        case Some(idleTime) =>
-          val now = Instant.now()
-          val updated = authenticator.copy[Alg, I](
-            lastTouched = Some(HttpDate.unsafeFromInstant(now))
-          )
-          OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
-        case None =>
-          OptionT.pure[F](authenticator)
-      }
+      def refresh(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
+        settings.maxIdle match {
+          case Some(idleTime) =>
+            val now = Instant.now()
+            val updated = authenticator.copy[Alg, I](
+              lastTouched = Some(HttpDate.unsafeFromInstant(now))
+            )
+            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
+          case None =>
+            OptionT.pure[F](authenticator)
+        }
 
       def embed(response: Response[F], authenticator: AuthEncryptedCookie[Alg, I]): Response[F] =
         response.addCookie(authenticator.toCookie)
 
       def afterBlock(response: Response[F], authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, Response[F]] =
-        maxIdle match {
+        settings.maxIdle match {
           case Some(_) =>
             OptionT.pure[F](response.addCookie(authenticator.toCookie))
           case None =>
@@ -243,10 +274,8 @@ object EncryptedCookieAuthenticator {
     * we encrypt it as part of the contents
     *
     * @param settings
-    * @param idStore
+    * @param identityStore
     * @param key
-    * @param expiryDuration
-    * @param maxIdle
     * @tparam F
     * @tparam Alg
     * @tparam I
@@ -255,13 +284,31 @@ object EncryptedCookieAuthenticator {
     */
   def stateless[F[_], Alg: AuthEncryptor, I: Decoder: Encoder, V](
       settings: TSecCookieSettings,
-      idStore: BackingStore[F, I, V],
-      key: SecretKey[Alg],
-      expiryDuration: FiniteDuration,
-      maxIdle: Option[FiniteDuration]
-  )(implicit M: MonadError[F, Throwable]) =
+      identityStore: BackingStore[F, I, V],
+      key: SecretKey[Alg]
+  )(implicit M: MonadError[F, Throwable]): EncryptedCookieAuthenticator[F, Alg, I, V] =
     new EncryptedCookieAuthenticator[F, Alg, I, V] {
-      private val cookieName = CaseInsensitiveString(settings.cookieName)
+
+      def withKey(newKey: SecretKey[Alg]): EncryptedCookieAuthenticator[F, Alg, I, V] =
+        stateless[F, Alg, I, V](
+          settings,
+          identityStore,
+          newKey
+        )
+
+      def withSettings(settings: TSecCookieSettings): EncryptedCookieAuthenticator[F, Alg, I, V] =
+        stateless[F, Alg, I, V](
+          settings,
+          identityStore,
+          key
+        )
+
+      def withIdentityStore(newStore: BackingStore[F, I, V]): EncryptedCookieAuthenticator[F, Alg, I, V] =
+        stateless[F, Alg, I, V](
+          settings,
+          newStore,
+          key
+        )
 
       private def generateAAD(message: String) =
         AAD((message + Instant.now.toEpochMilli).utf8Bytes.hash[SHA1])
@@ -274,7 +321,7 @@ object EncryptedCookieAuthenticator {
           internal: AuthEncryptedCookie[Alg, I],
           now: Instant
       ): Boolean =
-        !internal.isExpired(now) && !maxIdle.exists(internal.isTimedout(now, _))
+        !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedout(now, _))
 
       private def validateCookieT(
           internal: AuthEncryptedCookie[Alg, I],
@@ -289,18 +336,18 @@ object EncryptedCookieAuthenticator {
           coerced = AEADCookie.fromRaw[Alg](rawCookie.content)
           contentRaw <- OptionT.liftF(M.fromEither(AEADCookieEncryptor.retrieveFromSigned[Alg](coerced, key)))
           internal   <- OptionT.liftF(M.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
-          authed = AuthEncryptedCookie.build[Alg, I](internal, coerced, TSecCookieSettings.fromCookie(rawCookie))
+          authed = AuthEncryptedCookie.build[Alg, I](internal, coerced, rawCookie)
           _         <- validateCookieT(authed, now)
           refreshed <- refresh(authed)
-          identity  <- idStore.get(authed.messageId)
+          identity  <- identityStore.get(authed.messageId)
         } yield SecuredRequest(request, refreshed, identity)
       }
 
       def create(body: I): OptionT[F, AuthEncryptedCookie[Alg, I]] = {
         val cookieId    = UUID.randomUUID()
         val now         = Instant.now()
-        val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
-        val lastTouched = maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
+        val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+        val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         val messageBody = AuthEncryptedCookie.Internal(cookieId, body, expiry, lastTouched).asJson.pretty(JWTPrinter)
         for {
           encrypted <- OptionT.liftF(
@@ -332,40 +379,41 @@ object EncryptedCookieAuthenticator {
       }
 
       //In this case, since we have no backing store, we can invalidate the token
-      //This doesn't work entirely if the person _doesn't_
+      //This doesn't work entirely if the person _doesn't_ set the token afterwards.
       def discard(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
         OptionT.pure(authenticator.copy[Alg, I](content = AEADCookie.fromRaw[Alg]("invalid"), expiry = HttpDate.now))
 
-      def renew(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = maxIdle match {
-        case Some(idleTime) =>
-          val now = Instant.now()
-          update(
-            authenticator.copy[Alg, I](
-              lastTouched = Some(HttpDate.unsafeFromInstant(now)),
-              expiry = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
+      def renew(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
+        settings.maxIdle match {
+          case Some(idleTime) =>
+            val now = Instant.now()
+            update(
+              authenticator.copy[Alg, I](
+                lastTouched = Some(HttpDate.unsafeFromInstant(now)),
+                expiry = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+              )
             )
-          )
-        case None =>
-          OptionT.pure[F](authenticator)
-      }
+          case None =>
+            OptionT.pure[F](authenticator)
+        }
 
-      def refresh(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = maxIdle match {
-        case Some(idleTime) =>
-          val now = Instant.now()
-          update(
-            authenticator.copy[Alg, I](
-              lastTouched = Some(HttpDate.unsafeFromInstant(now))
+      def refresh(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
+        settings.maxIdle match {
+          case Some(_) =>
+            update(
+              authenticator.copy[Alg, I](
+                lastTouched = Some(HttpDate.unsafeFromInstant(Instant.now()))
+              )
             )
-          )
-        case None =>
-          OptionT.pure[F](authenticator)
-      }
+          case None =>
+            OptionT.pure[F](authenticator)
+        }
 
       def embed(response: Response[F], authenticator: AuthEncryptedCookie[Alg, I]): Response[F] =
         response.addCookie(authenticator.toCookie)
 
       def afterBlock(response: Response[F], authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, Response[F]] =
-        maxIdle match {
+        settings.maxIdle match {
           case Some(_) =>
             OptionT.pure[F](response.addCookie(authenticator.toCookie))
           case None =>
