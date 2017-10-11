@@ -1,6 +1,7 @@
 package tsec
 
 import javax.crypto.Cipher
+import javax.crypto.{ SecretKey => JSK}
 
 import tsec.cipher.common._
 import tsec.cipher.common.mode.GCM
@@ -14,7 +15,7 @@ import scala.util.Random
 object PoorMansBenchmark extends App {
   val totalIterLen = 100000
 
-  val keys: Array[SecretKey[AES128]] = Array.fill(totalIterLen)(AES128.generateKeyUnsafe())
+  val keys: Array[JSK] = Array.fill(totalIterLen)(SecretKey.toJavaKey(AES128.generateKeyUnsafe()))
 
   val rand = new Random()
 
@@ -48,7 +49,7 @@ object PoorMansBenchmark extends App {
   )({
     var i = 0
     while (i < totalIterLen) {
-      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
       i += 1
     }
   })
@@ -60,7 +61,7 @@ object PoorMansBenchmark extends App {
   th.pbench({
     var i = 0
     while (i < totalIterLen) {
-      bench1Array(i) = eitherInterpreter.encrypt(plaintexts(i), keys(i))
+      bench1Array(i) = eitherInterpreter.encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
       i += 1
     }
   }, title = "Regular Either interpreter")
@@ -68,7 +69,7 @@ object PoorMansBenchmark extends App {
   th.pbench({
     var i = 0
     while (i < totalIterLen) {
-      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), keys(i))
+      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
       i += 1
     }
   }, title = "ThreadLocal interpreter")
@@ -82,7 +83,7 @@ object PoorMansBenchmark extends App {
   def testJCAInstance(): Unit = {
     var i = 0
     while (i < totalIterLen) {
-      jcaInstance.init(Cipher.ENCRYPT_MODE, keys(i).key)
+      jcaInstance.init(Cipher.ENCRYPT_MODE, keys(i))
       regularTest(i) = jcaInstance.doFinal(plaintexts(i).content)
       i += 1
     }
@@ -95,7 +96,7 @@ object PoorMansBenchmark extends App {
     var i = 0
     while (i < totalIterLen) {
       val kk = Cipher.getInstance("AES/GCM/NoPadding")
-      kk.init(Cipher.ENCRYPT_MODE, keys(i).key)
+      kk.init(Cipher.ENCRYPT_MODE, keys(i))
       gmreg(i) = kk.doFinal(plaintexts(i).content)
       i += 1
     }
@@ -109,7 +110,7 @@ object PoorMansBenchmark extends App {
     var i = 0
     while (i < totalIterLen) {
       ioThreadLocalInterpreter
-        .encrypt(plaintexts(i), keys(i))
+        .encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
         .map(f => {
           bench3Array(i) = f
         })

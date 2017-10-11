@@ -2,8 +2,7 @@ package tsec.authentication
 
 import java.time.Instant
 import java.util.UUID
-
-import cats.{Monad, MonadError}
+import cats.MonadError
 import cats.data.OptionT
 import io.circe.{Decoder, Encoder}
 import org.http4s._
@@ -94,11 +93,43 @@ object CookieAuthenticator {
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
       idStore: BackingStore[F, I, V],
-      key: MacSigningKey[Alg],
-      expiryDuration: FiniteDuration,
-      maxIdle: Option[FiniteDuration]
+      key: MacSigningKey[Alg]
   )(implicit M: MonadError[F, Throwable]): CookieAuthenticator[F, Alg, I, V] =
     new CookieAuthenticator[F, Alg, I, V] {
+
+      def withNewKey(newKey: MacSigningKey[Alg]): CookieAuthenticator[F, Alg, I, V] =
+        apply[F, Alg, I, V](
+          settings: TSecCookieSettings,
+          tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
+          idStore: BackingStore[F, I, V],
+          newKey
+        )
+
+      def withTokenStore(
+          newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]]
+      ): CookieAuthenticator[F, Alg, I, V] =
+        apply[F, Alg, I, V](
+          settings: TSecCookieSettings,
+          newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
+          idStore: BackingStore[F, I, V],
+          key
+        )
+
+      def withIdStore(newStore: BackingStore[F, I, V]): CookieAuthenticator[F, Alg, I, V] =
+        apply[F, Alg, I, V](
+          settings: TSecCookieSettings,
+          tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
+          newStore,
+          key
+        )
+
+      def withSettings(newSettings: TSecCookieSettings): CookieAuthenticator[F, Alg, I, V] =
+        apply[F, Alg, I, V](
+          newSettings: TSecCookieSettings,
+          tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
+          idStore,
+          key
+        )
 
       /** Generate a nonce by concatenating the message to be sent with the current instant and hashing their result
         * Possibly this should be a variable argument, but for now SHA1 is enough, since the chance for collision is
@@ -118,7 +149,7 @@ object CookieAuthenticator {
           raw: SignedCookie[Alg],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !maxIdle.exists(internal.isTimedout(now, _))
+        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedout(now, _))
 
       private def validateCookieT(
           internal: AuthenticatedCookie[Alg, I],
@@ -152,8 +183,8 @@ object CookieAuthenticator {
         val cookieId    = UUID.randomUUID()
         val messageBody = cookieId.toString
         val now         = Instant.now()
-        val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
-        val lastTouched = maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
+        val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+        val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         for {
           signed <- OptionT.liftF(M.fromEither(CookieSigner.sign[Alg](messageBody, generateNonce(messageBody), key)))
           cookie <- OptionT.pure[F](
@@ -181,33 +212,35 @@ object CookieAuthenticator {
         * @param authenticator
         * @return
         */
-      def renew(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] = maxIdle match {
-        case Some(idleTime) =>
-          val now = Instant.now()
-          val updated = authenticator.copy[Alg, I](
-            lastTouched = Some(HttpDate.unsafeFromInstant(now)),
-            expiry = HttpDate.unsafeFromInstant(now.plusSeconds(expiryDuration.toSeconds))
-          )
-          OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
-        case None =>
-          OptionT.pure[F](authenticator)
-      }
+      def renew(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
+        settings.maxIdle match {
+          case Some(idleTime) =>
+            val now = Instant.now()
+            val updated = authenticator.copy[Alg, I](
+              lastTouched = Some(HttpDate.unsafeFromInstant(now)),
+              expiry = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+            )
+            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
+          case None =>
+            OptionT.pure[F](authenticator)
+        }
 
       /** Refresh an authenticator: Primarily used for sliding window expiration
         *
         * @param authenticator
         * @return
         */
-      def refresh(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] = maxIdle match {
-        case Some(idleTime) =>
-          val now = Instant.now()
-          val updated = authenticator.copy[Alg, I](
-            lastTouched = Some(HttpDate.unsafeFromInstant(now))
-          )
-          OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
-        case None =>
-          OptionT.pure[F](authenticator)
-      }
+      def refresh(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
+        settings.maxIdle match {
+          case Some(idleTime) =>
+            val now = Instant.now()
+            val updated = authenticator.copy[Alg, I](
+              lastTouched = Some(HttpDate.unsafeFromInstant(now))
+            )
+            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
+          case None =>
+            OptionT.pure[F](authenticator)
+        }
 
       def embed(response: Response[F], authenticator: AuthenticatedCookie[Alg, I]): Response[F] =
         response.addCookie(authenticator.toCookie)
@@ -220,7 +253,7 @@ object CookieAuthenticator {
         * @return
         */
       def afterBlock(response: Response[F], authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, Response[F]] =
-        maxIdle match {
+        settings.maxIdle match {
           case Some(_) =>
             OptionT.pure[F](response.addCookie(authenticator.toCookie))
           case None =>
