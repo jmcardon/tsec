@@ -24,18 +24,18 @@ class JCAAsymmetricCipher[A, P](implicit algoTag: AsymmetricAlgorithm[A], paddin
   protected[this] def initEncryptor(cipher: JCipher, publicKey: PublicKey[A]): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal(
-        cipher.init(JCipher.ENCRYPT_MODE, publicKey)
+        cipher.init(JCipher.ENCRYPT_MODE, PublicKey.toJavaPublicKey[A](publicKey))
       )
       .mapError(CipherKeyError.apply)
 
   protected[this] def initDecryptor(
       cipher: JCipher,
-      publicKey: PrivateKey[A],
+      privateKey: PrivateKey[A],
       iv: Array[Byte]
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal(
-        cipher.init(JCipher.DECRYPT_MODE, publicKey)
+        cipher.init(JCipher.DECRYPT_MODE, PrivateKey.toJavaPublicKey[A](privateKey))
       )
       .mapError(CipherKeyError.apply)
 

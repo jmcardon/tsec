@@ -2,7 +2,6 @@ package tsec.cipher.asymmetric
 
 import java.security.{PrivateKey => JPrivateKey, PublicKey => JPublicKey}
 
-import cats.Id
 import cats.evidence.Is
 import tsec.common.CryptoTag
 
@@ -16,33 +15,37 @@ package object imports {
       new KeyPair[A](PrivateKey[A](jPrivateKey), PublicKey[A](jPublicKey))
   }
 
-  sealed trait TaggedKey[T] {
-    type KeyRepr[A] <: Id[T]
-    def is[A]: Is[KeyRepr[A], T]
+  sealed trait TaggedPublicKey {
+    type KeyRepr
+    def is: Is[KeyRepr, JPublicKey]
   }
 
-  protected val PublicKey$$ : TaggedKey[JPublicKey] = new TaggedKey[JPublicKey] {
-    type KeyRepr[A] = Id[JPublicKey]
-
-    def is[A] = Is.refl[JPublicKey]
-  }
-  protected val PrivateKey$$ : TaggedKey[JPrivateKey] = new TaggedKey[JPrivateKey] {
-
-    type KeyRepr[A] = Id[JPrivateKey]
-
-    def is[A] = Is.refl[JPrivateKey]
+  sealed trait TaggedPrivateKey {
+    type KeyRepr
+    def is: Is[KeyRepr, JPrivateKey]
   }
 
-  type PublicKey[A] = PublicKey$$.KeyRepr[A]
+  protected val PublicKey$$ : TaggedPublicKey = new TaggedPublicKey {
+    type KeyRepr = JPublicKey
+    def is = Is.refl[JPublicKey]
+  }
+  protected val PrivateKey$$ : TaggedPrivateKey = new TaggedPrivateKey {
+    override type KeyRepr = JPrivateKey
 
-  type PrivateKey[A] = PrivateKey$$.KeyRepr[A]
+    override def is = Is.refl[JPrivateKey]
+  }
+
+  type PrivateKey[A] = PrivateKey$$.KeyRepr
+  type PublicKey[A] = PublicKey$$.KeyRepr
 
   object PublicKey {
-    @inline def apply[A](key: JPublicKey): PublicKey[A] = PublicKey$$.is[A].flip.coerce(key)
+    @inline def apply[A](key: JPublicKey): PublicKey[A] = PublicKey$$.is.flip.coerce(key)
+    @inline def toJavaPublicKey[A](key: PublicKey[A]): JPublicKey = PublicKey$$.is.coerce(key)
   }
 
   object PrivateKey {
-    @inline def apply[A](key: JPrivateKey): PrivateKey[A] = PrivateKey$$.is[A].flip.coerce(key)
+    @inline def apply[A](key: JPrivateKey): PrivateKey[A] = PrivateKey$$.is.flip.coerce(key)
+    @inline def toJavaPublicKey[A](key: PrivateKey[A]): JPrivateKey = PrivateKey$$.is.coerce(key)
   }
 
 }
