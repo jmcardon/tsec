@@ -22,7 +22,8 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
     Libraries.catsEffect,
-    Libraries.scalaTest
+    Libraries.scalaTest,
+    Libraries.scalaCheck
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion in ThisBuild := "2.12.3",
@@ -54,7 +55,6 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
 
 lazy val http4sDeps = libraryDependencies ++= Seq(
   Libraries.http4sdsl,
-  Libraries.scalaCheck,
   Libraries.http4sServer,
   Libraries.http4sCirce
 )
@@ -185,7 +185,7 @@ lazy val publishSettings = Seq(
   apiURL := None,
   bintrayRepository := "tsec",
   pomExtra :=
-  <developers>
+    <developers>
     <developer>
       <id>jmcardon</id>
       <name>Jose Cardona</name>
