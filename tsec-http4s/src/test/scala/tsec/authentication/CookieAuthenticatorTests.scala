@@ -22,13 +22,14 @@ class CookieAuthenticatorTests extends RequestAuthenticatorSpec[AuthenticatedCoo
       implicit keyGenerator: MacKeyGenerator[A],
       store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
   ): AuthSpecTester[A, AuthenticatedCookie[?, Int]] = {
+    val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val authenticator = CookieAuthenticator[IO, A, Int, DummyUser](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
       keyGenerator.generateKeyUnsafe(),
     )
-    new AuthSpecTester[A, AuthenticatedCookie[?, Int]](authenticator) {
+    new AuthSpecTester[A, AuthenticatedCookie[?, Int]](authenticator, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: AuthenticatedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)

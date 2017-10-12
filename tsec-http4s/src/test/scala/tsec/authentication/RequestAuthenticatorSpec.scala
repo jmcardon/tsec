@@ -20,7 +20,7 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
     val requestAuth: RequestAuthenticator[IO, A, Int, DummyUser, B] = RequestAuthenticator(authSpec.authie)
 
     //Add bob to the db
-    dummyStore.put(dummyBob).unsafeRunSync()
+    authSpec.dummyStore.put(dummyBob).unsafeRunSync()
 
     val testService: HttpService[IO] = requestAuth {
       case request @ GET -> Root / "api" asAuthed hi =>

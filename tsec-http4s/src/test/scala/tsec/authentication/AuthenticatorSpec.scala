@@ -7,7 +7,9 @@ import tsec.TestSpec
 import org.http4s._
 import org.http4s.dsl._
 import cats.syntax.all._
-import org.scalatest.MustMatchers
+import org.scalacheck._
+import org.scalatest.{BeforeAndAfterEach, MustMatchers}
+import org.scalatest.prop.PropertyChecks
 
 import scala.collection.mutable
 
@@ -21,7 +23,8 @@ case class DummyUser(id: Int, name: String = "bob")
   * @tparam Authenticator
   */
 protected[authentication] abstract case class AuthSpecTester[A, Authenticator[_]](
-    authie: AuthenticatorEV[IO, A, Int, DummyUser, Authenticator]
+    authie: AuthenticatorEV[IO, A, Int, DummyUser, Authenticator],
+    dummyStore: BackingStore[IO, Int, DummyUser]
 ) {
 
   def embedInRequest(request: Request[IO], authenticator: Authenticator[A]): Request[IO]
@@ -35,10 +38,15 @@ protected[authentication] abstract case class AuthSpecTester[A, Authenticator[_]
   def wrongKeyAuthenticator: OptionT[IO, Authenticator[A]]
 }
 
-abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
+abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with PropertyChecks with BeforeAndAfterEach {
+
+  implicit val genDummy: Arbitrary[DummyUser] = Arbitrary(for {
+    i <- Gen.chooseNum[Int](0, Int.MaxValue)
+    s <- Gen.alphaNumStr
+  } yield DummyUser(i, s))
 
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Monad[F]) = new BackingStore[F, I, V] {
-    private val storageMap = mutable.HashMap.empty[I, V]
+    val storageMap = mutable.HashMap.empty[I, V]
 
     def put(elem: V): F[Int] = {
       val map = storageMap.put(getId(elem), elem)
@@ -61,105 +69,131 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers {
         case Some(_) => F.pure(1)
         case None    => F.pure(0)
       }
-  }
 
-  val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
+    def dAll(): Unit = storageMap.clear()
+  }
 
   def AuthenticatorTest[A](title: String, authSpec: AuthSpecTester[A, B]) = {
     behavior of title
-    val dummy1 = DummyUser(0)
 
     it should "Create, embed and extract properly" in {
-      val results = (for {
-        _            <- OptionT.liftF(dummyStore.put(dummy1))
-        auth         <- authSpec.authie.create(dummy1.id)
-        fromRequest  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
-        res          <- OptionT.pure[IO](authSpec.authie.embed(Response[IO](), fromRequest.authenticator))
-        fromResponse <- authSpec.extractFromResponse(res)
-      } yield (fromResponse, fromRequest))
-        .handleErrorWith(_ => OptionT.none)
-        .value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe false
-      extracted.map(_._2.identity) mustBe Some(dummy1)
-      extracted.map(_._1) mustBe extracted.map(_._2.authenticator)
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          _            <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          auth         <- authSpec.authie.create(dummy1.id)
+          fromRequest  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
+          res          <- OptionT.pure[IO](authSpec.authie.embed(Response[IO](), fromRequest.authenticator))
+          fromResponse <- authSpec.extractFromResponse(res)
+          _            <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+        } yield (fromResponse, fromRequest))
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe false
+        extracted.map(_._2.identity) mustBe Some(dummy1)
+        extracted.map(_._1) mustBe extracted.map(_._2.authenticator)
+      }
     }
 
     it should "Not validate for an expired token" in {
-      val results = (for {
-        auth    <- authSpec.authie.create(dummy1.id)
-        expired <- authSpec.expireAuthenticator(auth)
-        updated <- authSpec.authie.update(expired)
-        req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
-      } yield req2)
-        .handleErrorWith(_ => OptionT.none)
-        .value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe true
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          _       <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          auth    <- authSpec.authie.create(dummy1.id)
+          expired <- authSpec.expireAuthenticator(auth)
+          updated <- authSpec.authie.update(expired)
+          req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
+          _       <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe true
+      }
     }
 
     it should "renew properly" in {
-      val results = (for {
-        auth     <- authSpec.authie.create(dummy1.id)
-        expired  <- authSpec.expireAuthenticator(auth)
-        updated1 <- authSpec.authie.update(expired)
-        renewed  <- authSpec.authie.renew(updated1)
-        req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
-      } yield req2)
-        .handleErrorWith(_ => OptionT.none)
-        .value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe false
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          _        <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          auth     <- authSpec.authie.create(dummy1.id)
+          expired  <- authSpec.expireAuthenticator(auth)
+          updated1 <- authSpec.authie.update(expired)
+          renewed  <- authSpec.authie.renew(updated1)
+          req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+          _        <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe false
+      }
     }
 
     it should "Not validate for a token past the timeout" in {
-      val results = (for {
-        auth    <- authSpec.authie.create(dummy1.id)
-        expired <- authSpec.timeoutAuthenticator(auth)
-        updated <- authSpec.authie.update(expired)
-        req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
-      } yield req2)
-        .handleErrorWith(_ => OptionT.none)
-        .value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe true
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          _       <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          auth    <- authSpec.authie.create(dummy1.id)
+          expired <- authSpec.timeoutAuthenticator(auth)
+          updated <- authSpec.authie.update(expired)
+          req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
+          _       <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe true
+      }
     }
 
     it should "refresh properly" in {
-      val results = (for {
-        auth     <- authSpec.authie.create(dummy1.id)
-        expired  <- authSpec.timeoutAuthenticator(auth)
-        updated1 <- authSpec.authie.update(expired)
-        renewed  <- authSpec.authie.refresh(updated1)
-        req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
-      } yield req2)
-        .handleErrorWith(_ => OptionT.none)
-        .value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe false
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          _        <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          auth     <- authSpec.authie.create(dummy1.id)
+          expired  <- authSpec.timeoutAuthenticator(auth)
+          updated1 <- authSpec.authie.update(expired)
+          renewed  <- authSpec.authie.refresh(updated1)
+          req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+          _        <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe false
+      }
     }
 
     it should "Not validate for a token with a different key/incorrect" in {
-      val results = (for {
-        wrong <- authSpec.wrongKeyAuthenticator
-        req2  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
-      } yield req2)
-        .handleErrorWith(_ => OptionT.none)
-        .value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe true
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          _     <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          wrong <- authSpec.wrongKeyAuthenticator
+          req2  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
+          _     <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe true
+      }
     }
 
     it should "discard a token properly" in {
-      val results = (for {
-        auth      <- authSpec.authie.create(dummy1.id)
-        discarded <- authSpec.authie.discard(auth)
-        req2      <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
-      } yield req2)
-        .handleErrorWith(_ => OptionT.none)
-        .value
-      val extracted = results.unsafeRunSync()
-      extracted.isEmpty mustBe true
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          _         <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          auth      <- authSpec.authie.create(dummy1.id)
+          discarded <- authSpec.authie.discard(auth)
+          req2      <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
+          _         <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe true
+      }
     }
   }
 
