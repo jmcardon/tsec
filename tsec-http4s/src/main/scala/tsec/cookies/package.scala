@@ -3,10 +3,12 @@ package tsec
 import cats.Eq
 import tsec.common._
 import cats.evidence.Is
-import tsec.cipher.common._
-import tsec.cipher.symmetric.imports.{AEADCipherText, _}
-import tsec.mac.imports.{MacTag, MacVerificationError}
 import cats.instances.string._
+import tsec.cipher.common._
+import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.imports._
+import tsec.mac.imports.{MacTag, MacVerificationError}
+
 import io.circe.{Decoder, Encoder, HCursor, Json}
 
 package object cookies {

@@ -11,8 +11,8 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, HttpDate, Request, Response}
-import tsec.cipher.common.{CipherError, PlainText}
-import tsec.cipher.symmetric.imports.{Encryptor, EncryptorInstance, SecretKey}
+import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.imports._
 import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.{JWTClaims, JWTPrinter}

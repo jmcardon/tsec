@@ -2,6 +2,7 @@ package tsec.cookies
 
 import tsec.common._
 import tsec.cipher.common._
+import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 
 object AEADCookieEncryptor {

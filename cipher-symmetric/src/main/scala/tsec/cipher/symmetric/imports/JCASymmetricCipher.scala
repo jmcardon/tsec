@@ -3,15 +3,15 @@ package tsec.cipher.symmetric.imports
 import javax.crypto.{Cipher => JCipher}
 
 import cats.syntax.either._
-import tsec.cipher.common._
-import tsec.cipher.common.mode._
+import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.mode._
 import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.SymmetricCipherAlgebra
 import tsec.common.ErrorConstruct._
 
 class JCASymmetricCipher[A, M, P](
-    implicit algoTag: SymmetricAlgorithm[A],
-    modeSpec: ModeKeySpec[M],
+    implicit algoTag: SymmetricCipher[A],
+    modeSpec: CipherMode[M],
     paddingTag: Padding[P]
 ) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
 
@@ -70,29 +70,6 @@ class JCASymmetricCipher[A, M, P](
       iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
     } yield CipherText(encrypted, iv)
 
-  /** Encrypt our plaintext using additional authentication parameters,
-    * Primarily for GCM mode and CCM mode
-    * Other modes will return a cipherError attempting this
-    *
-    * @param plainText the plaintext to encrypt
-    * @param key the SecretKey to use
-    * @param aad The additional authentication information
-    * @return
-    */
-  def encryptAAD(
-      plainText: PlainText,
-      key: SecretKey[A],
-      aad: AAD
-  ): Either[CipherError, CipherText[A, M, P]] =
-    for {
-      instance <- genInstance
-      _        <- initEncryptor(instance, key)
-      _        <- setAAD(instance, aad)
-      encrypted <- Either
-        .catchNonFatal(instance.doFinal(plainText.content))
-        .mapError(EncryptError.apply)
-      iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
-    } yield CipherText(encrypted, iv)
 
   /** Decrypt our ciphertext
     *
@@ -112,28 +89,6 @@ class JCASymmetricCipher[A, M, P](
         .mapError(DecryptError.apply)
     } yield PlainText(decrypted)
 
-  /** Decrypt our ciphertext using additional authentication parameters,
-    * Primarily for GCM mode and CCM mode
-    * Other modes will return a cipherError attempting this
-    *
-    * @param cipherText the plaintext to encrypt
-    * @param key the SecretKey to use
-    * @param aad The additional authentication information
-    * @return
-    */
-  def decryptAAD(
-      cipherText: CipherText[A, M, P],
-      key: SecretKey[A],
-      aad: AAD
-  ): Either[CipherError, PlainText] =
-    for {
-      instance <- genInstance
-      _        <- initDecryptor(instance, key, cipherText.iv)
-      _        <- setAAD(instance, aad)
-      decrypted <- Either
-        .catchNonFatal(instance.doFinal(cipherText.content))
-        .mapError(DecryptError.apply)
-    } yield PlainText(decrypted)
 }
 
 object JCASymmetricCipher {
@@ -146,13 +101,13 @@ object JCASymmetricCipher {
     * @tparam P Padding mode
     * @return
     */
-  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
+  def apply[A: SymmetricCipher, M: CipherMode, P: Padding]
     : Either[NoSuchInstanceError.type, JCASymmetricCipher[A, M, P]] = {
     val c = new JCASymmetricCipher[A, M, P]
     c.genInstance.map(_ => c).leftMap(_ => NoSuchInstanceError)
   }
 
-  implicit def genSym[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
+  implicit def genSym[A: SymmetricCipher, M: CipherMode, P: Padding]
     : Either[NoSuchInstanceError.type, JCASymmetricCipher[A, M, P]] = apply[A, M, P]
 
   /** ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
@@ -164,7 +119,7 @@ object JCASymmetricCipher {
     * @tparam P Padding mode
     * @return
     */
-  def getCipherUnsafe[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]: JCASymmetricCipher[A, M, P] =
+  def getCipherUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding]: JCASymmetricCipher[A, M, P] =
     new JCASymmetricCipher[A, M, P]
 
 }

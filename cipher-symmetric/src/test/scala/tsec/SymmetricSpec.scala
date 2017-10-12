@@ -2,10 +2,11 @@ package tsec
 
 import org.scalatest.MustMatchers
 import tsec.common._
-import tsec.cipher.common._
-import tsec.cipher.common.mode._
+import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.mode._
 import tsec.cipher.common.padding._
 import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.imports.aead._
 
 import scala.annotation.tailrec
 import scala.util.Random
@@ -21,15 +22,15 @@ class SymmetricSpec extends TestSpec with MustMatchers {
       (array1 zip array2).forall(r => r._1 == r._2)
 
   def cipherTest[A, M, P](
-      implicit symm: SymmetricAlgorithm[A],
-      mode: ModeKeySpec[M],
+      implicit symm: SymmetricCipher[A],
+      mode: CipherMode[M],
       p: Padding[P],
       keyGen: CipherKeyGen[A]
   ): Unit = {
     val testMessage              = "The Moose is Loose"
     val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
 
-    val spec = s"""${symm.algorithm}_${symm.keyLength}/${mode.algorithm}/${p.algorithm}"""
+    val spec = s"""${symm.algorithm}_${keyGen.keyLength}/${mode.algorithm}/${p.algorithm}"""
 
     behavior of spec
 
@@ -109,22 +110,22 @@ class SymmetricSpec extends TestSpec with MustMatchers {
   }
 
   def authCipherTest[A, M, P](
-      implicit symm: SymmetricAlgorithm[A],
-      mode: ModeKeySpec[M],
+      implicit symm: AEADCipher[A],
+      mode: AEADMode[M],
       p: Padding[P],
       keyGen: CipherKeyGen[A]
   ): Unit = {
     val testMessage              = "The Moose is Loose"
     val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
 
-    val spec = s"""${symm.algorithm}_${symm.keyLength}/${mode.algorithm}/${p.algorithm}"""
+    val spec = s"""${symm.algorithm}_${keyGen.keyLength}/${mode.algorithm}/${p.algorithm}"""
 
     behavior of spec
 
     it should "Encrypt and decrypt for the same key" in {
       val testEncryptionDecryption: Either[CipherError, String] = for {
         key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
+        instance  <- JCAAEAD[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
         decrypted <- instance.decrypt(encrypted, key)
       } yield utf8String(decrypted.content)
@@ -134,7 +135,7 @@ class SymmetricSpec extends TestSpec with MustMatchers {
     it should "Be able to build a correct key from a repr" in {
       val testEncryptionDecryption: Either[CipherError, String] = for {
         key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
+        instance  <- JCAAEAD[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key)
         keyRepr = key.getEncoded
         built     <- keyGen.buildKey(keyRepr)
@@ -147,7 +148,7 @@ class SymmetricSpec extends TestSpec with MustMatchers {
       val aad = AAD("HI HELLO!".utf8Bytes)
       val testEncryptionDecryption: Either[CipherError, String] = for {
         key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
+        instance  <- JCAAEAD[A, M, P]
         encrypted <- instance.encryptAAD(testPlainText, key, aad)
         decrypted <- instance.decryptAAD(encrypted, key, aad)
       } yield utf8String(decrypted.content)
@@ -162,7 +163,7 @@ class SymmetricSpec extends TestSpec with MustMatchers {
       @tailrec def tailrecGenIVs(
           last: CipherText[A, M, P],
           counter: Int,
-          instance: JCASymmetricCipher[A, M, P],
+          instance: JCAAEAD[A, M, P],
           key: SecretKey[A]
       ): Boolean =
         if (counter > 0) {
@@ -179,7 +180,7 @@ class SymmetricSpec extends TestSpec with MustMatchers {
 
       val testIvs: Either[CipherError, Boolean] = for {
         key      <- keyGen.generateKey()
-        instance <- JCASymmetricCipher[A, M, P]
+        instance <- JCAAEAD[A, M, P]
         first    <- instance.encrypt(testPlainText, key)
       } yield tailrecGenIVs(first, 100000, instance, key)
 
@@ -190,7 +191,7 @@ class SymmetricSpec extends TestSpec with MustMatchers {
       val testEncryptionDecryption: Either[CipherError, String] = for {
         key1      <- keyGen.generateKey()
         key2      <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
+        instance  <- JCAAEAD[A, M, P]
         encrypted <- instance.encrypt(testPlainText, key1)
         decrypted <- instance.decrypt(encrypted, key2)
       } yield new String(decrypted.content, "UTF-8")
@@ -202,7 +203,7 @@ class SymmetricSpec extends TestSpec with MustMatchers {
       val aad2 = AAD("HI HELLO2!".utf8Bytes)
       val testEncryptionDecryption: Either[CipherError, String] = for {
         key1      <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
+        instance  <- JCAAEAD[A, M, P]
         encrypted <- instance.encryptAAD(testPlainText, key1, aad1)
         decrypted <- instance.decryptAAD(encrypted, key1, aad2)
       } yield new String(decrypted.content, "UTF-8")

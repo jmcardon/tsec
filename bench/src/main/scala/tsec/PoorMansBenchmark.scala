@@ -3,8 +3,7 @@ package tsec
 import javax.crypto.Cipher
 import javax.crypto.{ SecretKey => JSK}
 
-import tsec.cipher.common._
-import tsec.cipher.common.mode.GCM
+import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.imports.threadlocal.{JCATLSymmetric, JCATLSymmetricPure}

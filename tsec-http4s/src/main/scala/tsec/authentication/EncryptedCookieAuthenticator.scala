@@ -8,7 +8,7 @@ import cats.data.OptionT
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
 import org.http4s._
-import tsec.cipher.common.AAD
+import tsec.cipher.symmetric._
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import tsec.common._

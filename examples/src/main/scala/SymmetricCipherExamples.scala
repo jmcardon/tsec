@@ -15,12 +15,11 @@ object SymmetricCipherExamples {
     * For debian-like distros:
     * Follow the instructions here: http://tipsonubuntu.com/2016/07/31/install-oracle-java-8-9-ubuntu-16-04-linux-mint-18
     * then use:sudo apt-get install oracle-java8-unlimited-jce-policy
-   */
-
+    */
   /** These are the imports you will need for basic usage */
-  import tsec.cipher.common._
-  import tsec.cipher.symmetric.imports._
   import tsec.common._
+  import tsec.cipher.symmetric._
+  import tsec.cipher.symmetric.imports._
 
   //Using the default Encryptor (note: Not authenticated. For most cases, you want some sort of authentication to it,
   //Either MAC or An AEAD cipher, as I'll show next
@@ -52,22 +51,29 @@ object SymmetricCipherExamples {
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
   } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
 
-  /** For more advanced usage, i.e you know which cipher you want specifically: */
-  import tsec.cipher.common.mode._
+  /** For more advanced usage, i.e you know which cipher you want specifically, you must import padding.
+    *
+    * Note: AEAD modes are separate from general cipher modes, to avoid the possibility of someone making a
+    * mistake. Thus for AEAD, you must import tsec.cipher.symmetric.imports.aead._
+    *
+    *
+    */
   import tsec.cipher.common.padding._
+  import tsec.cipher.symmetric.imports.aead._
   val advancedUsage: Either[CipherError, String] = for {
-    instance  <- JCASymmetricCipher[AES128, GCM, NoPadding]
+    instance  <- JCAAEAD[AES128, GCM, NoPadding]
     key       <- AES128.generateKey()
     encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
   } yield decrypted.content.toUtf8String
 
-  /** For interpretation into any F[_]: Sync: */
+  /** For interpretation into any F[_]: Sync,
+    * use JCASymmPure or AEADPure
+    */
   import cats.effect.{IO, Sync}
-  import tsec.cipher.symmetric.imports.experimental.JCASymmPure
 
   val advancedUsage2: IO[String] = for {
-    instance  <- JCASymmPure[IO, AES128, GCM, NoPadding]()
+    instance  <- JCAAEADPure[IO, AES128, GCM, NoPadding]()
     key       <- AES128.generateLift[IO]
     encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD

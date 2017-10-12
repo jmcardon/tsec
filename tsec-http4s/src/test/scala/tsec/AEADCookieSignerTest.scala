@@ -2,14 +2,14 @@ package tsec
 
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
-import tsec.cipher.common._
+import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 import tsec.cookies.AEADCookieEncryptor
 
 class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyChecks {
 
-  def aeadCookieTest[A: CipherKeyGen](implicit authE: AuthEncryptor[A], s: SymmetricAlgorithm[A]) = {
-    behavior of s"AEAD Cookie encrypting with ${s.algorithm}${s.keyLength}"
+  def aeadCookieTest[A: CipherKeyGen](implicit authE: AuthEncryptor[A], s: SymmetricCipher[A]) = {
+    behavior of s"AEAD Cookie encrypting with ${s.algorithm}${authE.keyGen.keyLength}"
 
     it should "Encrypt and decrypt properly" in {
       val now = java.time.Instant.now().toString

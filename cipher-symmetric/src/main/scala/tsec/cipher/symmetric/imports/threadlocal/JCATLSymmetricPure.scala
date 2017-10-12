@@ -2,18 +2,16 @@ package tsec.cipher.symmetric.imports.threadlocal
 
 import java.util.{ArrayDeque => JQueue}
 import javax.crypto.{Cipher => JCipher}
-
 import cats.effect.IO
-import tsec.cipher.common._
-import tsec.cipher.common.mode.{ModeKeySpec, ParameterSpec}
+import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-import tsec.cipher.symmetric.imports.{SecretKey, SymmetricAlgorithm}
+import tsec.cipher.symmetric.imports.{SecretKey, SymmetricCipher}
+import tsec.cipher.symmetric.mode.{CipherMode, ParameterSpec}
 import tsec.common.QueueAlloc
 
 sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher])(
-    implicit algoTag: SymmetricAlgorithm[A],
-    modeSpec: ModeKeySpec[M],
+    implicit algoTag: SymmetricCipher[A],
+    modeSpec: CipherMode[M],
     paddingTag: Padding[P]
 ) extends SymmetricCipherAlgebra[IO, A, M, P, SecretKey] {
 
@@ -135,8 +133,8 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
 object JCATLSymmetricPure {
 
   protected[imports] def getJCipherUnsafe[A, M, P](
-      implicit algoTag: SymmetricAlgorithm[A],
-      modeSpec: ModeKeySpec[M],
+      implicit algoTag: SymmetricCipher[A],
+      modeSpec: CipherMode[M],
       paddingTag: Padding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
 
@@ -148,7 +146,7 @@ object JCATLSymmetricPure {
     * @tparam P
     * @return
     */
-  protected[imports] def genQueueUnsafe[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  protected[imports] def genQueueUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding](
       queueLen: Int
   ): JQueue[JCipher] = {
     val q = new JQueue[JCipher]()
@@ -167,7 +165,7 @@ object JCATLSymmetricPure {
     * @tparam P Padding mode
     * @return
     */
-  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  def apply[A: SymmetricCipher, M: CipherMode, P: Padding](
       queueLen: Int = 15
   ): IO[JCATLSymmetricPure[A, M, P]] =
     for {
