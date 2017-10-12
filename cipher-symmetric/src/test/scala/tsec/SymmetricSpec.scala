@@ -8,17 +8,9 @@ import tsec.cipher.symmetric.mode._
 import tsec.cipher.common.padding._
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.imports.aead._
-
-import scala.annotation.tailrec
 import scala.util.Random
 
 class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
-
-  def arrayCompare(array1: Array[Byte], array2: Array[Byte]): Boolean =
-    if (array1.length != array2.length)
-      false
-    else
-      (array1 zip array2).forall(r => r._1 == r._2)
 
   def cipherTest[A, M, P](
       implicit symm: SymmetricCipher[A],
