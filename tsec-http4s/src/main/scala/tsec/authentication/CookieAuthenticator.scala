@@ -212,18 +212,22 @@ object CookieAuthenticator {
         * @param authenticator
         * @return
         */
-      def renew(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
+      def renew(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] = {
+        val now = Instant.now()
         settings.maxIdle match {
           case Some(idleTime) =>
-            val now = Instant.now()
             val updated = authenticator.copy[Alg, I](
               lastTouched = Some(HttpDate.unsafeFromInstant(now)),
               expiry = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
             )
             OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
           case None =>
-            OptionT.pure[F](authenticator)
+            val updated = authenticator.copy[Alg, I](
+              expiry = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+            )
+            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
         }
+      }
 
       /** Refresh an authenticator: Primarily used for sliding window expiration
         *
