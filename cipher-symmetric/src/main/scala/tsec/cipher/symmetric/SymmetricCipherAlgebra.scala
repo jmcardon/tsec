@@ -1,7 +1,4 @@
-package tsec.cipher.symmetric.core
-
-import tsec.cipher.common._
-import tsec.cipher.symmetric.imports.SecretKey
+package tsec.cipher.symmetric
 
 trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
   type C
@@ -10,7 +7,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
 
   /** Stateful operations for internal use.
     * We can choose to defer them or catch the effect somehow
-   */
+    */
   protected[symmetric] def initEncryptor(e: C, secretKey: K[A]): F[Unit]
 
   protected[symmetric] def initDecryptor(
@@ -19,9 +16,7 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
       iv: Array[Byte]
   ): F[Unit]
 
-  protected[symmetric] def setAAD(e: C, aad: AAD): F[Unit]
   /** End stateful ops */
-
   /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
@@ -29,6 +24,20 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @return
     */
   def encrypt(plainText: PlainText, key: K[A]): F[CipherText[A, M, P]]
+
+  /** Decrypt our ciphertext
+    *
+    * @param cipherText the plaintext to encrypt
+    * @param key the SecretKey to use
+    * @return
+    */
+  def decrypt(cipherText: CipherText[A, M, P], key: K[A]): F[PlainText]
+
+}
+
+trait AEADCipherAlg[F[_], A, M, P, K[_]] extends SymmetricCipherAlgebra[F, A, M, P, K] {
+
+  protected[symmetric] def setAAD(e: C, aad: AAD): F[Unit]
 
   /** Encrypt our plaintext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
@@ -40,14 +49,6 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
     * @return
     */
   def encryptAAD(plainText: PlainText, key: K[A], aad: AAD): F[CipherText[A, M, P]]
-
-  /** Decrypt our ciphertext
-    *
-    * @param cipherText the plaintext to encrypt
-    * @param key the SecretKey to use
-    * @return
-    */
-  def decrypt(cipherText: CipherText[A, M, P], key: K[A]): F[PlainText]
 
   /** Decrypt our ciphertext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode

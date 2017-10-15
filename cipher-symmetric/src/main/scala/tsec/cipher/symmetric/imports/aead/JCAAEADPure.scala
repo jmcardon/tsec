@@ -1,46 +1,49 @@
-package tsec.cipher.symmetric.imports.threadlocal
+package tsec.cipher.symmetric.imports.aead
 
-import java.util.{ArrayDeque => JQueue}
+import cats.effect.Sync
 import javax.crypto.{Cipher => JCipher}
-import cats.effect.IO
-import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.mode._
 import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.imports.{SecretKey, SymmetricCipher}
-import tsec.cipher.symmetric.mode.{CipherMode, ParameterSpec}
-import tsec.common.QueueAlloc
+import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
+import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.imports._
+import cats.syntax.all._
 
-sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher])(
-    implicit algoTag: SymmetricCipher[A],
-    modeSpec: CipherMode[M],
-    paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[IO, A, M, P, SecretKey] {
+class JCAAEADPure[F[_], A, M, P](queue: JQueue[JCipher])(
+    implicit algoTag: AEADCipher[A],
+    modeSpec: AEADMode[M],
+    paddingTag: Padding[P],
+    F: Sync[F]
+) extends SymmetricCipherAlgebra[F, A, M, P, SecretKey] {
 
   type C = JCipher
 
-  def genInstance: IO[JCipher] = IO {
-    val inst = queueAlloc.dequeue
+  def genInstance: F[JCipher] = F.delay {
+    val inst = queue.poll()
     if (inst != null)
       inst
     else
-      JCATLSymmetricPure.getJCipherUnsafe[A, M, P]
+      JCAAEADPure.getJCipherUnsafe[A, M, P]
   }
 
-  def replace(instance: JCipher): IO[Unit] =
-    IO(queueAlloc.enqueue(instance))
+  def replace(instance: JCipher): F[Boolean] =
+    F.delay(queue.add(instance))
 
   /** We defer the effects of the encryption/decryption initialization */
   protected[symmetric] def initEncryptor(
       instance: JCipher,
       secretKey: SecretKey[A]
-  ): IO[Unit] =
-    IO(instance.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv)))
+  ): F[Unit] =
+    F.delay(
+      instance.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv))
+    )
 
   protected[symmetric] def initDecryptor(
       instance: JCipher,
       key: SecretKey[A],
       iv: Array[Byte]
-  ): IO[Unit] =
-    IO(
+  ): F[Unit] =
+    F.delay(
       instance
         .init(
           JCipher.DECRYPT_MODE,
@@ -49,8 +52,8 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
         )
     )
 
-  protected[symmetric] def setAAD(e: JCipher, aad: AAD): IO[Unit] =
-    IO(e.updateAAD(aad.aad))
+  protected[symmetric] def setAAD(e: JCipher, aad: AAD): F[Unit] =
+    F.delay(e.updateAAD(aad.aad))
 
   /** End stateful ops */
   /** Encrypt our plaintext with a tagged secret key
@@ -62,12 +65,12 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
   def encrypt(
       plainText: PlainText,
       key: SecretKey[A]
-  ): IO[CipherText[A, M, P]] =
+  ) =
     for {
       instance  <- genInstance
       _         <- initEncryptor(instance, key)
-      encrypted <- IO(instance.doFinal(plainText.content))
-      iv        <- IO(instance.getIV)
+      encrypted <- F.delay(instance.doFinal(plainText.content))
+      iv        <- F.delay(instance.getIV)
       _         <- replace(instance)
     } yield CipherText(encrypted, iv)
 
@@ -84,13 +87,13 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
       plainText: PlainText,
       key: SecretKey[A],
       aad: AAD
-  ): IO[CipherText[A, M, P]] =
+  ): F[CipherText[A, M, P]] =
     for {
       instance  <- genInstance
       _         <- initEncryptor(instance, key)
       _         <- setAAD(instance, aad)
-      encrypted <- IO(instance.doFinal(plainText.content))
-      iv        <- IO(instance.getIV)
+      encrypted <- F.delay(instance.doFinal(plainText.content))
+      iv        <- F.delay(instance.getIV)
       _         <- replace(instance)
     } yield CipherText(encrypted, iv)
 
@@ -103,11 +106,11 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
   def decrypt(
       cipherText: CipherText[A, M, P],
       key: SecretKey[A]
-  ): IO[PlainText] =
+  ): F[PlainText] =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
-      decrypted <- IO(instance.doFinal(cipherText.content))
+      decrypted <- F.delay(instance.doFinal(cipherText.content))
       _         <- replace(instance)
     } yield PlainText(decrypted)
 
@@ -124,25 +127,25 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
       cipherText: CipherText[A, M, P],
       key: SecretKey[A],
       aad: AAD
-  ) =
+  ): F[PlainText] =
     for {
       instance  <- genInstance
       _         <- initDecryptor(instance, key, cipherText.iv)
       _         <- setAAD(instance, aad)
-      decrypted <- IO(instance.doFinal(cipherText.content))
+      decrypted <- F.delay(instance.doFinal(cipherText.content))
       _         <- replace(instance)
     } yield PlainText(decrypted)
 }
 
-object JCATLSymmetricPure {
+object JCAAEADPure {
 
   protected[imports] def getJCipherUnsafe[A, M, P](
-      implicit algoTag: SymmetricCipher[A],
-      modeSpec: CipherMode[M],
+      implicit algoTag: AEADCipher[A],
+      modeSpec: AEADMode[M],
       paddingTag: Padding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
 
-  /** generate Queue unsage
+  /** generate Queue unsafe
     *
     * @param queueLen
     * @tparam A
@@ -150,7 +153,7 @@ object JCATLSymmetricPure {
     * @tparam P
     * @return
     */
-  protected[imports] def genQueueUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding](
+  protected[imports] def genQueueUnsafe[A: AEADCipher, M: AEADMode, P: Padding](
       queueLen: Int
   ): JQueue[JCipher] = {
     val q = new JQueue[JCipher]()
@@ -169,11 +172,14 @@ object JCATLSymmetricPure {
     * @tparam P Padding mode
     * @return
     */
-  def apply[A: SymmetricCipher, M: CipherMode, P: Padding](
+  def apply[F[_], A: AEADCipher, M: AEADMode, P: Padding](
       queueLen: Int = 15
-  ): IO[JCATLSymmetricPure[A, M, P]] =
+  )(implicit F: Sync[F]): F[JCAAEADPure[F, A, M, P]] =
     for {
-      tL <- IO(QueueAlloc(List.fill(queueLen)(JCATLSymmetricPure.getJCipherUnsafe[A, M, P])))
-    } yield new JCATLSymmetricPure[A, M, P](tL) {}
+      q <- F.delay(genQueueUnsafe(queueLen))
+    } yield new JCAAEADPure[F, A, M, P](q) {}
+
+  implicit def genInstance[F[_]: Sync, A: AEADCipher, M: AEADMode, P: Padding]: F[JCAAEADPure[F, A, M, P]] =
+    apply[F, A, M, P]()
 
 }

@@ -7,7 +7,7 @@ import java.util.{ArrayDeque => Q}
   *
   * @tparam A
   */
-protected [tsec] sealed trait QueueAlloc[A] {
+protected[tsec] sealed trait QueueAlloc[A] {
   protected[tsec] val local: ThreadLocal[Q[A]]
 
   /** Enqueue into our threadlocal

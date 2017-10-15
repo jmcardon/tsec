@@ -5,6 +5,7 @@ import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import cats.syntax.all._
 import tsec.jws.mac.JWTMac
+
 case class RequestAuthenticator[F[_], Alg, Identity, User, Auth[_]](
     authenticator: AuthenticatorEV[F, Alg, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
@@ -32,23 +33,23 @@ case class RequestAuthenticator[F[_], Alg, Identity, User, Auth[_]](
 
 object RequestAuthenticator {
 
-  private [authentication] final class EncryptedPartial[F[_]](val dummy: Boolean = true) extends AnyVal {
+  private[authentication] final class EncryptedPartial[F[_]](val dummy: Boolean = true) extends AnyVal {
     def apply[Alg, Identity, User](
         authenticator: AuthenticatorEV[F, Alg, Identity, User, AuthEncryptedCookie[?, Identity]]
     )(implicit F: MonadError[F, Throwable]) =
       RequestAuthenticator[F, Alg, Identity, User, AuthEncryptedCookie[?, Identity]](authenticator)
   }
 
-  private [authentication] final class CookiePartial[F[_]](val dummy: Boolean = true) extends AnyVal {
+  private[authentication] final class CookiePartial[F[_]](val dummy: Boolean = true) extends AnyVal {
     def apply[Alg, Identity, User](
-      authenticator: AuthenticatorEV[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]]
+        authenticator: AuthenticatorEV[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]]
     )(implicit F: MonadError[F, Throwable]) =
       RequestAuthenticator[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]](authenticator)
   }
 
-  private [authentication] final class JWTPartial[F[_]](val dummy: Boolean = true) extends AnyVal {
+  private[authentication] final class JWTPartial[F[_]](val dummy: Boolean = true) extends AnyVal {
     def apply[Alg, Identity, User](
-      authenticator: AuthenticatorEV[F, Alg, Identity, User, JWTMac]
+        authenticator: AuthenticatorEV[F, Alg, Identity, User, JWTMac]
     )(implicit F: MonadError[F, Throwable]) =
       RequestAuthenticator[F, Alg, Identity, User, JWTMac](authenticator)
   }

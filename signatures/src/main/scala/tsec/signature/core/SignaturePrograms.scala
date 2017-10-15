@@ -4,7 +4,7 @@ import cats.Monad
 import cats.implicits._
 import tsec.common.ByteEV
 
-abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteEV[A]) {
+abstract class SignaturePrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteEV[A]) {
   type PubK
   type PrivK
   type Cert
@@ -40,8 +40,8 @@ abstract class SignerPrograms[F[_]: Monad, A: SigAlgoTag](implicit aux: ByteEV[A
 
 }
 
-object SignerPrograms {
-  type Aux[F[_], A, PbK, PrK, C] = SignerPrograms[F, A] {
+object SignaturePrograms {
+  type Aux[F[_], A, PbK, PrK, C] = SignaturePrograms[F, A] {
     type PubK  = PbK
     type PrivK = PrK
     type Cert  = C

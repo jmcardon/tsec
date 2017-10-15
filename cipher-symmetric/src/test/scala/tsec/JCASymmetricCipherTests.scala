@@ -1,6 +1,6 @@
 package tsec
 
-import tsec.cipher.common.mode._
+import tsec.cipher.symmetric._
 import tsec.cipher.common.padding._
 import tsec.cipher.symmetric.imports._
 

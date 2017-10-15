@@ -289,7 +289,7 @@ package object imports {
     def is[A]: Is[Repr[A], PublicKey]
   }
 
-  protected val SigPubKey$$: TaggedSigPubKey = new TaggedSigPubKey {
+  protected val SigPubKey$$ : TaggedSigPubKey = new TaggedSigPubKey {
     type Repr[A] = PublicKey
     def is[A]: Is[Repr[A], PublicKey] = Is.refl[PublicKey]
   }
@@ -298,7 +298,7 @@ package object imports {
 
   object SigPublicKey {
     @inline def apply[A: SigAlgoTag](key: PublicKey): SigPublicKey[A] = SigPubKey$$.is[A].flip.coerce(key)
-    @inline def toJavaPublicKey[A](key: SigPublicKey[A]): PublicKey = SigPubKey$$.is[A].coerce(key)
+    @inline def toJavaPublicKey[A](key: SigPublicKey[A]): PublicKey   = SigPubKey$$.is[A].coerce(key)
   }
 
   sealed trait TaggedSigPrivateKey {
@@ -306,7 +306,7 @@ package object imports {
     def is[A]: Is[Repr[A], PrivateKey]
   }
 
-  protected val SigPrivateKey$$: TaggedSigPrivateKey = new TaggedSigPrivateKey {
+  protected val SigPrivateKey$$ : TaggedSigPrivateKey = new TaggedSigPrivateKey {
     type Repr[A] = PrivateKey
     @inline def is[A]: Is[Repr[A], PrivateKey] = Is.refl[PrivateKey]
   }
@@ -315,7 +315,7 @@ package object imports {
 
   object SigPrivateKey {
     @inline def apply[A: SigAlgoTag](key: PrivateKey): SigPrivateKey[A] = SigPrivateKey$$.is[A].flip.coerce(key)
-    @inline def toJavaPrivateKey[A](key: SigPrivateKey[A]): PrivateKey = SigPrivateKey$$.is[A].coerce(key)
+    @inline def toJavaPrivateKey[A](key: SigPrivateKey[A]): PrivateKey  = SigPrivateKey$$.is[A].coerce(key)
   }
 
 }

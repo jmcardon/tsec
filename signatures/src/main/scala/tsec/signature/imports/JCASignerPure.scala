@@ -2,12 +2,12 @@ package tsec.signature.imports
 
 import cats.effect.Sync
 import tsec.common.ByteEV
-import tsec.signature.core.{SigAlgoTag, SignerPrograms}
+import tsec.signature.core.{SigAlgoTag, SignaturePrograms}
 
 sealed abstract case class JCASignerPure[F[_]: Sync, A: SigAlgoTag](
     alg: JCASigInterpreterPure[F, A]
 )(implicit aux: ByteEV[A])
-    extends SignerPrograms[F, A] {
+    extends SignaturePrograms[F, A] {
 
   type PubK  = SigPublicKey[A]
   type PrivK = SigPrivateKey[A]

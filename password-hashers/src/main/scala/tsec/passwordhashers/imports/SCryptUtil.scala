@@ -117,6 +117,7 @@ object SCryptUtil {
   def scrypt(passwd: String, N: Int, r: Int, p: Int): String = {
     val salt = new Array[Byte](16)
     adder.increment()
+
     /** Set a sensible time for max amount of times SHA1PRNG can be used */
     if (adder.longValue() < MaxBeforeReseed)
       reSeed()

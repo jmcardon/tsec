@@ -2,18 +2,18 @@ package tsec.cipher.symmetric.imports.threadlocal
 
 import java.util.{ArrayDeque => JQueue}
 import javax.crypto.{Cipher => JCipher}
-
 import cats.syntax.either._
 import tsec.cipher.common._
-import tsec.cipher.common.mode._
+import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.core.SymmetricCipherAlgebra
-import tsec.cipher.symmetric.imports.{SecretKey, SymmetricAlgorithm}
+import tsec.cipher.symmetric.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.imports.{SecretKey, SymmetricCipher}
+import tsec.cipher.symmetric.mode._
 import tsec.common.ErrorConstruct._
 
 abstract class JCATLSymmetric[A, M, P](
-    implicit algoTag: SymmetricAlgorithm[A],
-    modeSpec: ModeKeySpec[M],
+    implicit algoTag: SymmetricCipher[A],
+    modeSpec: CipherMode[M],
     paddingTag: Padding[P]
 ) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
 
@@ -46,7 +46,7 @@ abstract class JCATLSymmetric[A, M, P](
   /** Stateful operations for internal use
     * Made private so as to not encourage any use of stateful operations
     * The only other option would be to defer these operations with something like IO, given they are stateful
-   */
+    */
   protected[symmetric] def initEncryptor(
       e: JCipher,
       secretKey: SecretKey[A]
@@ -64,14 +64,18 @@ abstract class JCATLSymmetric[A, M, P](
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
-        decryptor.init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv)))
+        decryptor.init(
+          JCipher.DECRYPT_MODE,
+          SecretKey.toJavaKey[A](key),
+          ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
+        )
       })
       .mapError(CipherKeyError.apply)
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): Either[CipherKeyError, Unit] =
     Either.catchNonFatal(e.updateAAD(aad.aad)).mapError(CipherKeyError.apply)
-  /** End stateful ops */
 
+  /** End stateful ops */
   /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
@@ -164,8 +168,8 @@ abstract class JCATLSymmetric[A, M, P](
 object JCATLSymmetric {
 
   protected[imports] def getJCipherUnsafe[A, M, P](
-      implicit algoTag: SymmetricAlgorithm[A],
-      modeSpec: ModeKeySpec[M],
+      implicit algoTag: SymmetricCipher[A],
+      modeSpec: CipherMode[M],
       paddingTag: Padding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
 
@@ -177,7 +181,7 @@ object JCATLSymmetric {
     * @tparam P
     * @return
     */
-  protected[imports] def genQueueUnsafe[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  protected[imports] def genQueueUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding](
       queueLen: Int
   ): JQueue[JCipher] = {
     val q = new JQueue[JCipher]()
@@ -196,7 +200,7 @@ object JCATLSymmetric {
     * @tparam P Padding mode
     * @return
     */
-  def apply[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](
+  def apply[A: SymmetricCipher, M: CipherMode, P: Padding](
       queueLen: Int = 15
   ): Either[NoSuchInstanceError.type, JCATLSymmetric[A, M, P]] =
     for {
@@ -214,7 +218,7 @@ object JCATLSymmetric {
         protected val local: ThreadLocal[JQueue[JCipher]] = tl
       }
 
-  def genInstance[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding]
+  def genInstance[A: SymmetricCipher, M: CipherMode, P: Padding]
     : Either[NoSuchInstanceError.type, JCATLSymmetric[A, M, P]] = apply[A, M, P]()
 
   /** ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
@@ -226,7 +230,7 @@ object JCATLSymmetric {
     * @tparam P Padding mode
     * @return
     */
-  def getCipherUnsafe[A: SymmetricAlgorithm, M: ModeKeySpec, P: Padding](queueLen: Int): JCATLSymmetric[A, M, P] = {
+  def getCipherUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding](queueLen: Int): JCATLSymmetric[A, M, P] = {
     val queue = genQueueUnsafe(queueLen)
     new JCATLSymmetric[A, M, P] {
       protected val local: ThreadLocal[JQueue[JCipher]] = new ThreadLocal[JQueue[JCipher]] {

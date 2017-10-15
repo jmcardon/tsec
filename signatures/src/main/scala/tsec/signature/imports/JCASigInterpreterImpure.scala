@@ -24,7 +24,9 @@ sealed abstract class JCASigInterpreterImpure[A](implicit signatureAlgorithm: Si
     Either.catchNonFatal(instance.initVerify(SigPublicKey.toJavaPublicKey[A](p))).mapError(SignatureInitError.apply)
 
   def initVerifyC(instance: Signature, c: SigCertificate[A]): SigErrorM[Unit] =
-    Either.catchNonFatal(instance.initVerify(SigCertificate.toJavaCertificate[A](c))).mapError(SignatureInitError.apply)
+    Either
+      .catchNonFatal(instance.initVerify(SigCertificate.toJavaCertificate[A](c)))
+      .mapError(SignatureInitError.apply)
 
   def loadBytes(bytes: Array[Byte], instance: Signature): SigErrorM[Unit] =
     Either.catchNonFatal(instance.update(bytes)).mapError(GeneralSignatureError.apply)

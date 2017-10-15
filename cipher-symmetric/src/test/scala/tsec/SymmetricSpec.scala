@@ -1,99 +1,69 @@
 package tsec
 
 import org.scalatest.MustMatchers
+import org.scalatest.prop.PropertyChecks
 import tsec.common._
-import tsec.cipher.common._
-import tsec.cipher.common.mode._
+import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.mode._
 import tsec.cipher.common.padding._
 import tsec.cipher.symmetric.imports._
-
-import scala.annotation.tailrec
+import tsec.cipher.symmetric.imports.aead._
 import scala.util.Random
 
-class SymmetricSpec extends TestSpec with MustMatchers {
-
-  def utf8String(array: Array[Byte]) = new String(array, "UTF-8")
-
-  def arrayCompare(array1: Array[Byte], array2: Array[Byte]): Boolean =
-    if (array1.length != array2.length)
-      false
-    else
-      (array1 zip array2).forall(r => r._1 == r._2)
+class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
   def cipherTest[A, M, P](
-      implicit symm: SymmetricAlgorithm[A],
-      mode: ModeKeySpec[M],
+      implicit symm: SymmetricCipher[A],
+      mode: CipherMode[M],
       p: Padding[P],
       keyGen: CipherKeyGen[A]
   ): Unit = {
-    val testMessage              = "The Moose is Loose"
-    val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
 
-    val spec = s"""${symm.algorithm}_${symm.keyLength}/${mode.algorithm}/${p.algorithm}"""
+    val spec = s"""${symm.algorithm}_${keyGen.keyLength}/${mode.algorithm}/${p.algorithm}"""
 
     behavior of spec
 
     it should "Encrypt and decrypt for the same key" in {
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encrypt(testPlainText, key)
-        decrypted <- instance.decrypt(encrypted, key)
-      } yield utf8String(decrypted.content)
-      testEncryptionDecryption must equal(Right(testMessage))
+      forAll { (testMessage: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key       <- keyGen.generateKey()
+          instance  <- JCASymmetricCipher[A, M, P]
+          encrypted <- instance.encrypt(testPlainText, key)
+          decrypted <- instance.decrypt(encrypted, key)
+        } yield decrypted.content.toUtf8String
+        testEncryptionDecryption must equal(Right(testMessage))
+      }
     }
 
     it should "Be able to build a correct key from a repr" in {
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encrypt(testPlainText, key)
-        keyRepr = key.getEncoded
-        built     <- keyGen.buildKey(keyRepr)
-        decrypted <- instance.decrypt(encrypted, built)
-      } yield utf8String(decrypted.content)
-      testEncryptionDecryption must equal(Right(testMessage))
-    }
-
-    /** We will test only a few thousand, but part of the point is simply to test proper implementation of secureRandom */
-    it should "Not reuse IVs" in {
-
-      @tailrec def tailrecGenIVs(
-          last: CipherText[A, M, P],
-          counter: Int,
-          instance: JCASymmetricCipher[A, M, P],
-          key: SecretKey[A]
-      ): Boolean =
-        if (counter > 0) {
-          instance.encrypt(testPlainText, key) match {
-            case Right(r) =>
-              if (!arrayCompare(last.iv, r.iv))
-                tailrecGenIVs(r, counter - 1, instance, key)
-              else
-                false
-            case Left(_) =>
-              false
-          }
-        } else true
-
-      val testIvs: Either[CipherError, Boolean] = for {
-        key      <- keyGen.generateKey()
-        instance <- JCASymmetricCipher[A, M, P]
-        first    <- instance.encrypt(testPlainText, key)
-      } yield tailrecGenIVs(first, 100000, instance, key)
-
-      testIvs mustBe Right(true)
+      forAll { (testMessage: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key       <- keyGen.generateKey()
+          instance  <- JCASymmetricCipher[A, M, P]
+          encrypted <- instance.encrypt(testPlainText, key)
+          keyRepr = key.getEncoded
+          built     <- keyGen.buildKey(keyRepr)
+          decrypted <- instance.decrypt(encrypted, built)
+        } yield decrypted.content.toUtf8String
+        testEncryptionDecryption must equal(Right(testMessage))
+      }
     }
 
     it should "not decrypt properly for an incorrect key" in {
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key1      <- keyGen.generateKey()
-        key2      <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encrypt(testPlainText, key1)
-        decrypted <- instance.decrypt(encrypted, key2)
-      } yield new String(decrypted.content, "UTF-8")
-      testEncryptionDecryption mustNot equal(Right(testMessage))
+      forAll { (testMessage: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key1      <- keyGen.generateKey()
+          key2      <- keyGen.generateKey()
+          instance  <- JCASymmetricCipher[A, M, P]
+          encrypted <- instance.encrypt(testPlainText, key1)
+          decrypted <- instance.decrypt(encrypted, key2)
+        } yield new String(decrypted.content, "UTF-8")
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption mustNot equal(Right(testMessage))
+      }
     }
 
     behavior of (spec + " Key Generator")
@@ -109,104 +79,87 @@ class SymmetricSpec extends TestSpec with MustMatchers {
   }
 
   def authCipherTest[A, M, P](
-      implicit symm: SymmetricAlgorithm[A],
-      mode: ModeKeySpec[M],
+      implicit symm: AEADCipher[A],
+      mode: AEADMode[M],
       p: Padding[P],
       keyGen: CipherKeyGen[A]
   ): Unit = {
-    val testMessage              = "The Moose is Loose"
-    val testPlainText: PlainText = PlainText(testMessage.getBytes("UTF-8"))
 
-    val spec = s"""${symm.algorithm}_${symm.keyLength}/${mode.algorithm}/${p.algorithm}"""
+    val spec = s"""${symm.algorithm}_${keyGen.keyLength}/${mode.algorithm}/${p.algorithm}"""
 
     behavior of spec
 
     it should "Encrypt and decrypt for the same key" in {
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encrypt(testPlainText, key)
-        decrypted <- instance.decrypt(encrypted, key)
-      } yield utf8String(decrypted.content)
-      testEncryptionDecryption must equal(Right(testMessage))
+      forAll { (testMessage: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key       <- keyGen.generateKey()
+          instance  <- JCAAEAD[A, M, P]
+          encrypted <- instance.encrypt(testPlainText, key)
+          decrypted <- instance.decrypt(encrypted, key)
+        } yield decrypted.content.toUtf8String
+        testEncryptionDecryption must equal(Right(testMessage))
+      }
     }
 
     it should "Be able to build a correct key from a repr" in {
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encrypt(testPlainText, key)
-        keyRepr = key.getEncoded
-        built     <- keyGen.buildKey(keyRepr)
-        decrypted <- instance.decrypt(encrypted, built)
-      } yield utf8String(decrypted.content)
-      testEncryptionDecryption must equal(Right(testMessage))
+      forAll { (testMessage: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key       <- keyGen.generateKey()
+          instance  <- JCAAEAD[A, M, P]
+          encrypted <- instance.encrypt(testPlainText, key)
+          keyRepr = key.getEncoded
+          built     <- keyGen.buildKey(keyRepr)
+          decrypted <- instance.decrypt(encrypted, built)
+        } yield decrypted.content.toUtf8String
+        testEncryptionDecryption must equal(Right(testMessage))
+      }
     }
 
     it should "Encrypt and decrypt for the same key and AEAD" in {
-      val aad = AAD("HI HELLO!".utf8Bytes)
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key       <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encryptAAD(testPlainText, key, aad)
-        decrypted <- instance.decryptAAD(encrypted, key, aad)
-      } yield utf8String(decrypted.content)
-      testEncryptionDecryption must equal(Right(testMessage))
-    }
-
-    /*
-    We will test only a few thousand, but part of the point is simply to test proper implementation of secureRandom
-     */
-    it should "Not reuse IVs" in {
-
-      @tailrec def tailrecGenIVs(
-          last: CipherText[A, M, P],
-          counter: Int,
-          instance: JCASymmetricCipher[A, M, P],
-          key: SecretKey[A]
-      ): Boolean =
-        if (counter > 0) {
-          instance.encrypt(testPlainText, key) match {
-            case Right(r) =>
-              if (!arrayCompare(last.iv, r.iv))
-                tailrecGenIVs(r, counter - 1, instance, key)
-              else
-                false
-            case Left(_) =>
-              false
-          }
-        } else true
-
-      val testIvs: Either[CipherError, Boolean] = for {
-        key      <- keyGen.generateKey()
-        instance <- JCASymmetricCipher[A, M, P]
-        first    <- instance.encrypt(testPlainText, key)
-      } yield tailrecGenIVs(first, 100000, instance, key)
-
-      testIvs mustBe Right(true)
+      forAll { (testMessage: String, aadData: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val aad           = AAD(aadData.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key       <- keyGen.generateKey()
+          instance  <- JCAAEAD[A, M, P]
+          encrypted <- instance.encryptAAD(testPlainText, key, aad)
+          decrypted <- instance.decryptAAD(encrypted, key, aad)
+        } yield decrypted.content.toUtf8String
+        testEncryptionDecryption must equal(Right(testMessage))
+      }
     }
 
     it should "not decrypt properly for an incorrect key" in {
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key1      <- keyGen.generateKey()
-        key2      <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encrypt(testPlainText, key1)
-        decrypted <- instance.decrypt(encrypted, key2)
-      } yield new String(decrypted.content, "UTF-8")
-      testEncryptionDecryption mustNot equal(Right(testMessage))
+      forAll { (testMessage: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key1      <- keyGen.generateKey()
+          key2      <- keyGen.generateKey()
+          instance  <- JCAAEAD[A, M, P]
+          encrypted <- instance.encrypt(testPlainText, key1)
+          decrypted <- instance.decrypt(encrypted, key2)
+        } yield new String(decrypted.content, "UTF-8")
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption mustNot equal(Right(testMessage))
+      }
     }
 
     it should "not decrypt properly for correct key but incorrect AAD" in {
-      val aad1 = AAD("HI HELLO!".utf8Bytes)
-      val aad2 = AAD("HI HELLO2!".utf8Bytes)
-      val testEncryptionDecryption: Either[CipherError, String] = for {
-        key1      <- keyGen.generateKey()
-        instance  <- JCASymmetricCipher[A, M, P]
-        encrypted <- instance.encryptAAD(testPlainText, key1, aad1)
-        decrypted <- instance.decryptAAD(encrypted, key1, aad2)
-      } yield new String(decrypted.content, "UTF-8")
-      testEncryptionDecryption mustNot equal(Right(testMessage))
+      forAll { (testMessage: String, AAD1: String, AAD2: String) =>
+        val testPlainText = PlainText(testMessage.utf8Bytes)
+        val aad1          = AAD(AAD1.utf8Bytes)
+        val aad2          = AAD(AAD2.utf8Bytes)
+        val testEncryptionDecryption: Either[CipherError, String] = for {
+          key1      <- keyGen.generateKey()
+          instance  <- JCAAEAD[A, M, P]
+          encrypted <- instance.encryptAAD(testPlainText, key1, aad1)
+          decrypted <- instance.decryptAAD(encrypted, key1, aad2)
+        } yield new String(decrypted.content, "UTF-8")
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption mustNot equal(Right(testMessage))
+      }
     }
 
     behavior of (spec + " Key Generator")

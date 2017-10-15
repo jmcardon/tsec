@@ -38,6 +38,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       macKeyGen: MacKeyGenerator[A],
       store: BackingStore[IO, UUID, JWTMac[A]]
   ): AuthSpecTester[A, JWTMac] = {
+    val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey    = macKeyGen.generateKeyUnsafe()
     val cryptoKey = eKeyGen.generateKeyUnsafe()
     val auth = JWTAuthenticator.withBackingStore[IO, A, Int, DummyUser, E](
@@ -47,7 +48,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       macKey,
       cryptoKey
     )
-    new AuthSpecTester[A, JWTMac](auth) {
+    new AuthSpecTester[A, JWTMac](auth, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: JWTMac[A]): Request[IO] =
         request.withHeaders(
@@ -103,6 +104,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       eKeyGen: CipherKeyGen[E],
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[A, JWTMac] = {
+    val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey    = macKeyGen.generateKeyUnsafe()
     val cryptoKey = eKeyGen.generateKeyUnsafe()
     val auth = JWTAuthenticator.stateless[IO, A, Int, DummyUser, E](
@@ -111,7 +113,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       macKey,
       cryptoKey
     )
-    new AuthSpecTester[A, JWTMac](auth) {
+    new AuthSpecTester[A, JWTMac](auth, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: JWTMac[A]): Request[IO] =
         request.withHeaders(

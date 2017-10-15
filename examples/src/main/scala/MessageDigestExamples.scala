@@ -12,10 +12,10 @@ object MessageDigestExamples {
     * CryptoPickler[String](_.getBytes("UTF-8"))
     *
     * Alternatively, java standard charsets are covered with:
-   */
+    */
   implicit val pickler: CryptoPickler[String] = CryptoPickler.stringPickle[UTF8]
-  /** or: use the defaultPickler, which uses UTF-8 */
 
+  /** or: use the defaultPickler, which uses UTF-8 */
   "hi".pickleAndHash[SHA256]
 
   /**For direct byte pickling, use: */

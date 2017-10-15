@@ -22,14 +22,15 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
     Libraries.catsEffect,
-    Libraries.scalaTest
+    Libraries.scalaTest,
+    Libraries.scalaCheck
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion in ThisBuild := "2.12.3",
   fork in test := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
-  version in ThisBuild := "0.0.1-M2",
+  version in ThisBuild := "0.0.1-M2-NAPSHO",
   scalacOpts
 )
 
@@ -54,17 +55,18 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
 
 lazy val http4sDeps = libraryDependencies ++= Seq(
   Libraries.http4sdsl,
-  Libraries.scalaCheck,
   Libraries.http4sServer,
   Libraries.http4sCirce
 )
 
-lazy val root = Project(id = "tsec", base = file("."))
-  .settings(commonSettings)
+lazy val root = project
   .aggregate(
+    common,
+    messageDigests,
+    cipherCore,
+    jwtCore,
     symmetricCipher,
     mac,
-    messageDigests,
     signatures,
     jwtMac,
     jwtSig,
@@ -82,8 +84,9 @@ lazy val passwordHashers = Project(id = "tsec-password", base = file("password-h
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
-lazy val cipherCore = Project(id = "cipher-core", base = file("cipher-core"))
+lazy val cipherCore = Project(id = "tsec-cipher-core", base = file("cipher-core"))
   .settings(commonSettings)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
 lazy val symmetricCipher = Project(id = "tsec-symmetric-cipher", base = file("cipher-symmetric"))
@@ -97,7 +100,7 @@ lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
-lazy val messageDigests = Project(id = "tsec-messageDigests", base = file("message-digests"))
+lazy val messageDigests = Project(id = "tsec-md", base = file("message-digests"))
   .settings(commonSettings)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
@@ -111,6 +114,7 @@ lazy val signatures = Project(id = "tsec-signatures", base = file("signatures"))
 lazy val jwtCore = Project(id = "tsec-jwt-core", base = file("jwt-core"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(mac)
   .dependsOn(signatures)
@@ -139,6 +143,7 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)
+  .settings(publish := {})
 
 lazy val examples = Project(id = "tsec-examples", base = file("examples"))
   .settings(commonSettings)
@@ -156,12 +161,14 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     passwordHashers,
     http4s
   )
+  .settings(publish := {})
 
 lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
+  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
     symmetricCipher,

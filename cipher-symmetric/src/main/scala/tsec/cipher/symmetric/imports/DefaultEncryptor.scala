@@ -1,11 +1,9 @@
 package tsec.cipher.symmetric.imports
 
-import tsec.cipher.common._
-import tsec.cipher.common.mode.CTR
+import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.NoPadding
 
-
-sealed abstract class Encryptor[A: SymmetricAlgorithm] {
+sealed abstract class Encryptor[A: SymmetricCipher] {
   lazy val instance: Either[NoSuchInstanceError, JCASymmetricCipher[A, CTR, NoPadding]] =
     JCASymmetricCipher[A, CTR, NoPadding]
 
@@ -20,7 +18,7 @@ sealed abstract class Encryptor[A: SymmetricAlgorithm] {
 
 object Encryptor {
   implicit val defaultEncryptor: Encryptor[AES128] = DefaultEncryptor
-  implicit val strongEncryptor: Encryptor[AES256] = StrongEncryptor
+  implicit val strongEncryptor: Encryptor[AES256]  = StrongEncryptor
 }
 
 object DefaultEncryptor extends Encryptor[AES128]

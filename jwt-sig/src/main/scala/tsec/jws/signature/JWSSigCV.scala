@@ -16,7 +16,7 @@ sealed abstract class JWSSigCV[F[_], A](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
     aux: ByteEV[A],
     jwsSigAlgo: JWTSigAlgo[A],
-    sigDSL: SignerPrograms.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
+    sigDSL: SignaturePrograms.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
     M: MonadError[F, Throwable]
 ) {
 

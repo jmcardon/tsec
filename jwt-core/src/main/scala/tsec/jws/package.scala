@@ -5,8 +5,7 @@ import tsec.common._
 
 package object jws {
 
-
-  val JWSSignature$$: TaggedByteArray = new TaggedByteArray {
+  val JWSSignature$$ : TaggedByteArray = new TaggedByteArray {
     type I = Array[Byte]
     val is = Is.refl[Array[Byte]]
   }

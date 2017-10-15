@@ -60,7 +60,8 @@ object Http4sAuthExamples {
   val settings: TSecCookieSettings = TSecCookieSettings(
     cookieName = "tsec-auth",
     secure = false,
-    httpOnly = true
+    expiryDuration = 10.minutes, // Absolute expiration time
+    maxIdle = None // Rolling window expiration. Set this to a Finiteduration if you intend to have one
   )
 
   val key: SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key
@@ -70,9 +71,7 @@ object Http4sAuthExamples {
       settings,
       cookieBackingStore,
       userStore,
-      key,
-      10.minutes, // Absolute expiration time
-      None // Rolling window expiration. Set this to a Finiteduration if you intend to have one
+      key
     )
 
   val requestAuthenticator =
