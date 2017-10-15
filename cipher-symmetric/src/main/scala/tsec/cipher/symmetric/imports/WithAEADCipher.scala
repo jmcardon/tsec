@@ -62,7 +62,7 @@ protected[tsec] abstract class WithSymmetricCipher[T](repr: String, keyLen: Int)
 }
 
 protected[tsec] abstract class WithAEADCipher[T](repr: String, keyLen: Int)
-  extends AEADCipher[T]
+    extends AEADCipher[T]
     with CipherKeyGen[T] {
 
   implicit val tag: AEADCipher[T] = this

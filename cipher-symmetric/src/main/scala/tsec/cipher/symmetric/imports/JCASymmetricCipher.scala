@@ -24,7 +24,7 @@ class JCASymmetricCipher[A, M, P](
 
   /** Stateful operations for internal use Made private so as to not encourage any use of stateful operations.
     * The only other option would be to defer these operations with something like IO, given they are stateful
-   */
+    */
   protected[symmetric] def initEncryptor(
       e: JCipher,
       secretKey: SecretKey[A]
@@ -42,7 +42,11 @@ class JCASymmetricCipher[A, M, P](
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
-        decryptor.init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv)))
+        decryptor.init(
+          JCipher.DECRYPT_MODE,
+          SecretKey.toJavaKey[A](key),
+          ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
+        )
       })
       .mapError(CipherKeyError.apply)
 
@@ -50,7 +54,6 @@ class JCASymmetricCipher[A, M, P](
     Either.catchNonFatal(e.updateAAD(aad.aad)).mapError(CipherKeyError.apply)
 
   /** End stateful ops  */
-
   /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
@@ -69,7 +72,6 @@ class JCASymmetricCipher[A, M, P](
         .mapError(EncryptError.apply)
       iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
     } yield CipherText(encrypted, iv)
-
 
   /** Decrypt our ciphertext
     *

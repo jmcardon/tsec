@@ -24,7 +24,8 @@ object JWTMacExamples {
   val jwtMonadic: IO[JWTMac[HMACSHA256]] = for {
     key <- HMACSHA256.generateLift[IO]
     jwt <- JWTMacM.build[IO, HMACSHA256](claims, key) //You can sign and build a jwt object directly
-    verifiedFromObj <- JWTMacM.verifyFromInstance[IO, HMACSHA256](jwt, key) //You can verify the jwt straight from an object
+    verifiedFromObj <- JWTMacM
+      .verifyFromInstance[IO, HMACSHA256](jwt, key) //You can verify the jwt straight from an object
     stringjwt  <- JWTMacM.buildToString[IO, HMACSHA256](claims, key)       //Or build it straight to string
     isverified <- JWTMacM.verifyFromString[IO, HMACSHA256](stringjwt, key) //You can verify straight from a string
     parsed     <- JWTMacM.verifyAndParse[IO, HMACSHA256](stringjwt, key)   //Or verify and return the actual instance

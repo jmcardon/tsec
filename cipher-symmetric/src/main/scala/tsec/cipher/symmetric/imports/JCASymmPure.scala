@@ -10,7 +10,6 @@ import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.SymmetricCipherAlgebra
 import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 
-
 sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
     implicit algoTag: SymmetricCipher[A],
     modeSpec: CipherMode[M],
@@ -36,17 +35,24 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
       instance: JCipher,
       secretKey: SecretKey[A]
   ): F[Unit] =
-    F.delay(instance.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv)))
+    F.delay(
+      instance.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv))
+    )
 
   protected[symmetric] def initDecryptor(
       instance: JCipher,
       key: SecretKey[A],
       iv: Array[Byte]
   ): F[Unit] =
-    F.delay(instance.init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))))
+    F.delay(
+      instance.init(
+        JCipher.DECRYPT_MODE,
+        SecretKey.toJavaKey[A](key),
+        ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
+      )
+    )
 
   /** End stateful ops */
-
   /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt

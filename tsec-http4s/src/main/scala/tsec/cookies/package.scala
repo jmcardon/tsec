@@ -38,16 +38,18 @@ package object cookies {
 
     @inline def fromRaw[A: AuthEncryptor](raw: String): AEADCookie[A] = AEADCookie$$.is.flip.coerce(raw)
 
-    def getEncryptedContent[A](signed: AEADCookie[A])(implicit encryptor: AuthEncryptor[A]): Either[CipherTextError, AEADCipherText[A]] = {
+    def getEncryptedContent[A](
+        signed: AEADCookie[A]
+    )(implicit encryptor: AuthEncryptor[A]): Either[CipherTextError, AEADCipherText[A]] = {
       val split = toString[A](signed).split("-")
-      if(split.length != 2)
+      if (split.length != 2)
         Left(CipherTextError("String encoded improperly"))
       else {
         encryptor.fromSingleArray(split(0).base64Bytes)
       }
     }
 
-    implicit def circeDecoder[A: AuthEncryptor]: Decoder[AEADCookie[A]] = new Decoder[AEADCookie[A]]{
+    implicit def circeDecoder[A: AuthEncryptor]: Decoder[AEADCookie[A]] = new Decoder[AEADCookie[A]] {
       def apply(c: HCursor) = c.as[String].map(AEADCookie.fromRaw[A])
     }
 
@@ -84,7 +86,7 @@ package object cookies {
 
     def getContent[A: MacTag](signed: SignedCookie[A]): Either[MacVerificationError, String] = {
       val split = toString(signed).split("-")
-      if(split.length != 2)
+      if (split.length != 2)
         Left(MacVerificationError("String encoded improperly"))
       else {
         fromDecodedString(split(0).base64Bytes.toUtf8String)
@@ -93,7 +95,7 @@ package object cookies {
 
     def fromDecodedString(original: String): Either[MacVerificationError, String] = {
       val split = original.split("-")
-      if(split.length != 2)
+      if (split.length != 2)
         Left(MacVerificationError("String encoded improperly"))
       else {
         Right(split(0).base64Bytes.toUtf8String)
@@ -103,6 +105,6 @@ package object cookies {
 
     @inline def substitute[G[_], A: MacTag](fa: G[SignedCookie[A]]): G[String] = SignedCookie$$.is.substitute[G](fa)
   }
-  implicit final def cookieEQ[A: MacTag]: Eq[SignedCookie[A]] = Eq.by[SignedCookie[A], String](identity[String])
+  implicit final def cookieEQ[A: MacTag]: Eq[SignedCookie[A]]       = Eq.by[SignedCookie[A], String](identity[String])
   implicit final def ecookieEQ[A: AuthEncryptor]: Eq[AEADCookie[A]] = Eq.by[AEADCookie[A], String](identity[String])
 }

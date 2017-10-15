@@ -44,24 +44,24 @@ package object common {
   }
 
   final class JerryStringer(val s: String) extends AnyVal {
-    def utf8Bytes: Array[Byte]   = s.getBytes(StandardCharsets.UTF_8)
-    def asciiBytes: Array[Byte]  = s.getBytes(StandardCharsets.US_ASCII)
-    def base64Bytes: Array[Byte] = Base64.getDecoder.decode(s)
-    def base64UrlBytes: Array[Byte] = Base64.getUrlDecoder.decode(s)
+    def utf8Bytes: Array[Byte]                             = s.getBytes(StandardCharsets.UTF_8)
+    def asciiBytes: Array[Byte]                            = s.getBytes(StandardCharsets.US_ASCII)
+    def base64Bytes: Array[Byte]                           = Base64.getDecoder.decode(s)
+    def base64UrlBytes: Array[Byte]                        = Base64.getUrlDecoder.decode(s)
     def toStringRepr[A](implicit stringEV: StringEV[A]): A = stringEV.fromString(s)
   }
 
   final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {
-    def toUtf8String           = new String(array, StandardCharsets.UTF_8)
-    def toAsciiString          = new String(array, StandardCharsets.US_ASCII)
-    def toB64UrlString: String = Base64.getUrlEncoder.encodeToString(array)
-    def toB64String: String    = Base64.getEncoder.encodeToString(array)
+    def toUtf8String                             = new String(array, StandardCharsets.UTF_8)
+    def toAsciiString                            = new String(array, StandardCharsets.US_ASCII)
+    def toB64UrlString: String                   = Base64.getUrlEncoder.encodeToString(array)
+    def toB64String: String                      = Base64.getEncoder.encodeToString(array)
     def toRepr[A](implicit byteEV: ByteEV[A]): A = byteEV.fromArray(array)
   }
 
-  implicit final def byteSyntaxOps(array: Array[Byte]) = new ByteSyntaxHelpers(array)
-  implicit final def costanzaOps(jerry: String) = new JerryStringer(jerry)
-  implicit final def taggedByteOps[A: ByteEV](repr: A) = new TaggedByteSyntax[A](repr)
+  implicit final def byteSyntaxOps(array: Array[Byte])     = new ByteSyntaxHelpers(array)
+  implicit final def costanzaOps(jerry: String)            = new JerryStringer(jerry)
+  implicit final def taggedByteOps[A: ByteEV](repr: A)     = new TaggedByteSyntax[A](repr)
   implicit final def taggedStringOps[A: StringEV](repr: A) = new TaggedStringSyntax[A](repr)
 
 }

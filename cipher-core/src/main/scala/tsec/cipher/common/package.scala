@@ -1,2 +1,2 @@
 package tsec.cipher
-package object common{}
+package object common {}

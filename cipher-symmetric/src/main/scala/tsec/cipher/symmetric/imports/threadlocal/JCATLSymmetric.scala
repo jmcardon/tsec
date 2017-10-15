@@ -46,7 +46,7 @@ abstract class JCATLSymmetric[A, M, P](
   /** Stateful operations for internal use
     * Made private so as to not encourage any use of stateful operations
     * The only other option would be to defer these operations with something like IO, given they are stateful
-   */
+    */
   protected[symmetric] def initEncryptor(
       e: JCipher,
       secretKey: SecretKey[A]
@@ -64,14 +64,18 @@ abstract class JCATLSymmetric[A, M, P](
   ): Either[CipherKeyError, Unit] =
     Either
       .catchNonFatal({
-        decryptor.init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv)))
+        decryptor.init(
+          JCipher.DECRYPT_MODE,
+          SecretKey.toJavaKey[A](key),
+          ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
+        )
       })
       .mapError(CipherKeyError.apply)
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): Either[CipherKeyError, Unit] =
     Either.catchNonFatal(e.updateAAD(aad.aad)).mapError(CipherKeyError.apply)
-  /** End stateful ops */
 
+  /** End stateful ops */
   /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt

@@ -42,13 +42,17 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
   ): IO[Unit] =
     IO(
       instance
-        .init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv)))
+        .init(
+          JCipher.DECRYPT_MODE,
+          SecretKey.toJavaKey[A](key),
+          ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
+        )
     )
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): IO[Unit] =
     IO(e.updateAAD(aad.aad))
-  /** End stateful ops */
 
+  /** End stateful ops */
   /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt

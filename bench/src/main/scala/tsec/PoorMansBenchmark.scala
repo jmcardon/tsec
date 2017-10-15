@@ -1,7 +1,7 @@
 package tsec
 
 import javax.crypto.Cipher
-import javax.crypto.{ SecretKey => JSK}
+import javax.crypto.{SecretKey => JSK}
 
 import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.NoPadding
@@ -57,21 +57,27 @@ object PoorMansBenchmark extends App {
 
   th.pbench(testGCMReg(), title = "Usual library methods")
 
-  th.pbench({
-    var i = 0
-    while (i < totalIterLen) {
-      bench1Array(i) = eitherInterpreter.encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
-      i += 1
-    }
-  }, title = "Regular Either interpreter")
+  th.pbench(
+    {
+      var i = 0
+      while (i < totalIterLen) {
+        bench1Array(i) = eitherInterpreter.encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
+        i += 1
+      }
+    },
+    title = "Regular Either interpreter"
+  )
 
-  th.pbench({
-    var i = 0
-    while (i < totalIterLen) {
-      bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
-      i += 1
-    }
-  }, title = "ThreadLocal interpreter")
+  th.pbench(
+    {
+      var i = 0
+      while (i < totalIterLen) {
+        bench2Array(i) = eThreadLocalInterpreter.encrypt(plaintexts(i), SecretKey[AES128](keys(i)))
+        i += 1
+      }
+    },
+    title = "ThreadLocal interpreter"
+  )
 
   th.pbench(testIO(), title = "Symmetric IO interpreter")
 

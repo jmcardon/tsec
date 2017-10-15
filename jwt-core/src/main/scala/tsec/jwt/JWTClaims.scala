@@ -20,7 +20,7 @@ case class JWTClaims(
     expiration: Option[Long] = None,
     notBefore: Option[Long] = None,
     issuedAt: Option[Long] = Some(Instant.now().getEpochSecond), // IEEE Std 1003.1, 2013 Edition time in seconds
-    jwtId:  UUID = UUID.randomUUID(),  //Case sensitive, and in our implementation, secure enough using UUIDv4
+    jwtId: UUID = UUID.randomUUID(), //Case sensitive, and in our implementation, secure enough using UUIDv4
     custom: Option[Json] = None // non standard. I copped out. Other things are most likely too inefficient to use
 ) {
   def withExpiry(duration: FiniteDuration): JWTClaims =

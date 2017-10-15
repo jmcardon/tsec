@@ -67,7 +67,11 @@ object JWTAuthenticator {
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
-  )(implicit cv: JWSMacCV[F, A], enc: Encryptor[E], M: MonadError[F, Throwable]): StatefulJWTAuthenticator[F, A, I, V] =
+  )(
+      implicit cv: JWSMacCV[F, A],
+      enc: Encryptor[E],
+      M: MonadError[F, Throwable]
+  ): StatefulJWTAuthenticator[F, A, I, V] =
     new StatefulJWTAuthenticator[F, A, I, V] {
 
       def withSettings(s: TSecJWTSettings): StatefulJWTAuthenticator[F, A, I, V] =

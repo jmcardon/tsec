@@ -30,7 +30,7 @@ abstract class HashingPrograms[T](
   def combineAndHash[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): T =
     (algebra.hash _).andThen(gen.fromArray)(toHash.map(cryptoPickler.pickle).reduceLeft(_ ++ _))
 
-  protected [tsec] def consumeAndLift(state: algebra.S): T =
+  protected[tsec] def consumeAndLift(state: algebra.S): T =
     (algebra.consume _).andThen(gen.fromArray)(state)
 
   def hashCumulative[C](toHash: NonEmptyList[C])(implicit cryptoPickler: CryptoPickler[C]): List[T] = {

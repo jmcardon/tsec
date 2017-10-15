@@ -7,7 +7,7 @@ import cats.syntax.either._
 
 protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int)
     extends MacTag[A]
-    with MacKeyGenerator[A]{
+    with MacKeyGenerator[A] {
 
   override val algorithm: String = algo
 

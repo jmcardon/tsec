@@ -45,7 +45,11 @@ class JCAAEADPure[F[_], A, M, P](queue: JQueue[JCipher])(
   ): F[Unit] =
     F.delay(
       instance
-        .init(JCipher.DECRYPT_MODE, SecretKey.toJavaKey[A](key), ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv)))
+        .init(
+          JCipher.DECRYPT_MODE,
+          SecretKey.toJavaKey[A](key),
+          ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
+        )
     )
 
   protected[symmetric] def setAAD(e: JCipher, aad: AAD): F[Unit] =

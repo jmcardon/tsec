@@ -16,7 +16,7 @@ package object imports {
     */
   protected[tsec] trait SymmetricCipher[T] extends CryptoTag[T]
 
-  protected [tsec] trait AEADCipher[T] extends SymmetricCipher[T]
+  protected[tsec] trait AEADCipher[T] extends SymmetricCipher[T]
 
   sealed trait TaggedSecretKey {
     type KeyRepr[A]

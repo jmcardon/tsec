@@ -4,7 +4,7 @@ import cats.evidence.Is
 import tsec.passwordhashers.core._
 import org.mindrot.jbcrypt.{BCrypt => JBCrypt}
 import com.lambdaworks.crypto.{SCryptUtil => JSCrypt}
-import tsec.common.{TaggedString, StringEV}
+import tsec.common.{StringEV, TaggedString}
 
 package object imports {
 

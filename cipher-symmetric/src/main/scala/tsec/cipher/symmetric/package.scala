@@ -14,7 +14,7 @@ package object symmetric extends CipherErrors with CipherModes {
 
   object CipherText {
     def fromSingleArray[A2, M2, P2](
-      bytes: Array[Byte]
+        bytes: Array[Byte]
     )(implicit keySpec: CipherMode[M2]): Either[CipherTextError, CipherText[A2, M2, P2]] =
       if (bytes.length < keySpec.ivLength + 1)
         Left(CipherTextError("Array must be nonEmpty"))
