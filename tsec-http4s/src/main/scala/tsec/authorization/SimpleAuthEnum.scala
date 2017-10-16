@@ -23,7 +23,7 @@ abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: Auth
   Since `Repr` does not come necessarily with a classtag,
   this is necessary, unfortunately
    */
-  protected lazy val reprValues = primtive.unBoxedFromRepr[T](getRepr, values)
+  private lazy val reprValues = primtive.unBoxedFromRepr[T](getRepr, values)
 
   val orElse: T
 
@@ -35,7 +35,9 @@ abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: Auth
       orElse
   }
 
-  @inline def contains(elem: T): Boolean = reprValues.contains(elem)
+  @inline def contains(elem: T): Boolean = values.contains(elem)
+
+  def viewAll: List[T] = values.toList
 
   implicit val decoder: Decoder[T] = new Decoder[T] {
     def apply(c: HCursor): Result[T] = c.as[Repr].map(fromRepr)
@@ -48,8 +50,8 @@ abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: Auth
   implicit def subClDecoder[A <: T](implicit singleton: A): Decoder[A] =
     new Decoder[A] {
       def apply(c: HCursor): Result[A] = c.as[T].flatMap {
-        case a if E.eqv(singleton, a) => Right(singleton)
-        case _                        => Left(DecodingFailure("Improperly typed", Nil))
+        case a if a == singleton => Right(singleton)
+        case _                   => Left(DecodingFailure("Improperly typed", Nil))
       }
     }
 

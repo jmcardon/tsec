@@ -121,9 +121,14 @@ package object authorization {
 
   type AuthGroup[G] = AuthGroup$$.AuthRepr[G]
   object AuthGroup {
-    def apply[G: ClassTag](values: G*): AuthGroup[G]          = AuthGroup$$.is[G].coerce(values.toSet.toArray)
-    def fromSet[G: ClassTag](set: Set[G]): AuthGroup[G]       = AuthGroup$$.is[G].coerce(set.toArray)
-    def unsafeFromArray[G](array: Array[G]): AuthGroup[G]     = AuthGroup$$.is[G].coerce(array)
+    def apply[G: ClassTag](values: G*): AuthGroup[G]    = AuthGroup$$.is[G].coerce(values.toSet.toArray)
+    def fromSet[G: ClassTag](set: Set[G]): AuthGroup[G] = AuthGroup$$.is[G].coerce(set.toArray)
+    def unsafeFromArray[G: ClassTag](array: Array[G]): AuthGroup[G] = {
+      val arrayLen = array.length
+      val newArr   = new Array[G](arrayLen)
+      System.arraycopy(array, 0, newArr, 0, arrayLen)
+      AuthGroup$$.is[G].coerce(newArr)
+    }
     def fromSeq[G: ClassTag](seq: Seq[G]): AuthGroup[G]       = AuthGroup$$.is[G].coerce(seq.distinct.toArray)
     def unsafeFromSeq[G: ClassTag](seq: Seq[G]): AuthGroup[G] = AuthGroup$$.is[G].coerce(seq.toArray)
   }

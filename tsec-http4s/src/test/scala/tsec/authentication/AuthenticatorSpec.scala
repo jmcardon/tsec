@@ -2,18 +2,37 @@ package tsec.authentication
 
 import cats.data.OptionT
 import cats.effect.IO
-import cats.{Id, Monad}
+import cats.{Eq, Id, Monad}
 import tsec.TestSpec
 import org.http4s._
 import org.http4s.dsl._
-import cats.syntax.all._
+import cats.implicits._
 import org.scalacheck._
 import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatest.prop.PropertyChecks
+import tsec.authorization.{AuthGroup, AuthorizationInfo, SimpleAuthEnum}
 
 import scala.collection.mutable
 
-case class DummyUser(id: Int, name: String = "bob")
+sealed abstract class DummyRole(val repr: String)
+object DummyRole extends SimpleAuthEnum[DummyRole, String] {
+  implicit case object Admin extends DummyRole("Admin")
+  implicit case object Other extends DummyRole("Other")
+  implicit case object Err   extends DummyRole("Err")
+
+  implicit val E                             = Eq.by[DummyRole, String](_.repr)
+  val getRepr: (DummyRole) => String         = _.repr
+  protected val values: AuthGroup[DummyRole] = AuthGroup(Admin, Other)
+  val orElse: DummyRole                      = Err
+}
+
+case class DummyUser(id: Int, name: String = "bob", role: DummyRole = DummyRole.Other)
+
+object DummyUser {
+  implicit val role: AuthorizationInfo[DummyUser, DummyRole] = new AuthorizationInfo[DummyUser, DummyRole] {
+    def getRole(u: DummyUser): DummyRole = u.role
+  }
+}
 
 /**
   * An inner class for defining tests against an authenticator

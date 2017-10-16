@@ -32,4 +32,7 @@ object BasicRBAC {
       implicit role: AuthorizationInfo[U, R],
       enum: SimpleAuthEnum[R, String]
   ): BasicRBAC[U, R] = new BasicRBAC[U, R](valueSet) {}
+
+  def all[U, R: ClassTag](implicit enum: SimpleAuthEnum[R, String], role: AuthorizationInfo[U, R]): BasicRBAC[U, R] =
+    new BasicRBAC[U, R](AuthGroup.fromSeq[R](enum.viewAll)) {}
 }
