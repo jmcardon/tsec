@@ -30,6 +30,8 @@ package object authentication {
     def delete(id: I): F[Int]
   }
 
+  type AuthExtractorService[F[_], A, I] = Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, A, I]]
+
   /** Inspired from the Silhouette `SecuredRequest`
     *
     */

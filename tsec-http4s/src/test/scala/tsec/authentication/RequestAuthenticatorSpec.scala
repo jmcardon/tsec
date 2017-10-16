@@ -17,7 +17,7 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
 
     val dummyBob = DummyUser(0)
 
-    val requestAuth: RequestAuthenticator[IO, A, Int, DummyUser, B] = RequestAuthenticator(authSpec.authie)
+    val requestAuth: Authenticator[IO, A, Int, DummyUser, B] = Authenticator(authSpec.authie)
 
     //Add bob to the db
     authSpec.dummyStore.put(dummyBob).unsafeRunSync()
