@@ -2,3 +2,7 @@ options:
   - title: Symmetric Ciphers
     url: docs/symmetric.html
     section: symmetric-ciphers
+
+  - title: Message Authentication Code
+    url: docs/message-authentication-code.html
+    section: mac
