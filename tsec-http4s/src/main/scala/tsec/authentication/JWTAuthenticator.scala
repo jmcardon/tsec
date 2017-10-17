@@ -415,7 +415,7 @@ object JWTAuthenticator {
       def update(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
         OptionT.pure[F](authenticator)
 
-      //The only "discarding" we can do to a stateless token is make it invalid.
+      /** The only "discarding" we can do to a stateless token is make it invalid. */
       def discard(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
         OptionT
           .liftF(

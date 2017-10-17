@@ -133,9 +133,7 @@ package object authorization {
     def unsafeFromSeq[G: ClassTag](seq: Seq[G]): AuthGroup[G] = AuthGroup$$.is[G].coerce(seq.toArray)
   }
 
-  /**
-    * A simple typeclass that allows us to propagate information that is required for authorization
-    */
+  /** A simple typeclass that allows us to propagate information that is required for authorization */
   trait AuthorizationInfo[F[_], U, Role] {
     def fetchInfo(u: U): F[Role]
   }

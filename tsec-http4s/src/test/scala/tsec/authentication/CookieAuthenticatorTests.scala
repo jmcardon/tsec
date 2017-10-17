@@ -6,9 +6,8 @@ import java.util.UUID
 import cats.data.OptionT
 import cats.effect.IO
 import tsec.mac.imports._
-import io.circe._
-import org.http4s.{HttpDate, Request, Response}
-import org.http4s.headers.`Set-Cookie`
+
+import org.http4s.{HttpDate, Request}
 import tsec.common.ByteEV
 
 import scala.concurrent.duration._

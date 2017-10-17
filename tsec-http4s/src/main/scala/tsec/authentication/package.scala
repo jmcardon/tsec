@@ -3,12 +3,10 @@ package tsec
 import java.util.UUID
 
 import cats.{Applicative, Monad}
-import cats.arrow.Choice
 import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import org.http4s.server.Middleware
 import org.http4s.headers.{Cookie => C}
-import tsec.cookies._
 import cats.instances.all._
 import cats.syntax.eq._
 import cats.syntax.either._
@@ -39,8 +37,7 @@ package object authentication {
 
   object asAuthed {
 
-    /**
-      * Matcher for the http4s dsl
+    /** Matcher for the http4s dsl
       * @param ar
       * @tparam F
       * @tparam A
@@ -97,8 +94,7 @@ package object authentication {
       Kleisli.lift(OptionT.none)
   }
 
-  /**
-    * Common cookie settings for cookie-based authenticators
+  /** Common cookie settings for cookie-based authenticators
     *
     * @param cookieName
     * @param secure

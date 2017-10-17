@@ -3,7 +3,7 @@ package tsec.authentication
 import java.time.Instant
 import java.util.UUID
 
-import cats.{Monad, MonadError}
+import cats.MonadError
 import cats.data.OptionT
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
@@ -138,8 +138,7 @@ object AuthEncryptedCookie {
 
 object EncryptedCookieAuthenticator {
 
-  /***
-    * The default Encrypted cookie Authenticator, with a backing store.
+  /** The default Encrypted cookie Authenticator, with a backing store.
     *
     * @param settings the cookie settings
     * @param tokenStore the token backing store
@@ -159,9 +158,7 @@ object EncryptedCookieAuthenticator {
   )(implicit M: MonadError[F, Throwable]): StatefulECAuthenticator[F, Alg, I, V] =
     new StatefulECAuthenticator[F, Alg, I, V] {
 
-      /**
-        * Return a new instance with a modified key
-        */
+      /** Return a new instance with a modified key */
       def withKey(newKey: SecretKey[Alg]): StatefulECAuthenticator[F, Alg, I, V] =
         withBackingStore[F, Alg, I, V](
           settings,
@@ -170,9 +167,7 @@ object EncryptedCookieAuthenticator {
           newKey
         )
 
-      /** Return a new instance with modified settings
-        *
-        */
+      /** Return a new instance with modified settings */
       def withSettings(settings: TSecCookieSettings): StatefulECAuthenticator[F, Alg, I, V] =
         withBackingStore[F, Alg, I, V](
           settings,
@@ -181,9 +176,7 @@ object EncryptedCookieAuthenticator {
           key
         )
 
-      /** Return a new instance with a different identity store
-        *
-        */
+      /** Return a new instance with a different identity store */
       def withIdentityStore(newStore: BackingStore[F, I, V]): StatefulECAuthenticator[F, Alg, I, V] =
         withBackingStore[F, Alg, I, V](
           settings,
@@ -192,9 +185,7 @@ object EncryptedCookieAuthenticator {
           key
         )
 
-      /** Return a new instance with a different token store
-        *
-        */
+      /** Return a new instance with a different token store */
       def withTokenStore(
           newStore: BackingStore[F, UUID, AuthEncryptedCookie[Alg, I]]
       ): StatefulECAuthenticator[F, Alg, I, V] =
@@ -428,13 +419,12 @@ object EncryptedCookieAuthenticator {
         } yield cookie
       }
 
-      /*
-      Reader's note:
-      Since this is a stateless authenticator, update must carry information about expiry and sliding window info
-      since this is something that could be manipulated by an attacker.
-
-      We sincerely don't want this, thus renew and refresh also rely on update.
-       */
+      /** Reader's note:
+        * Since this is a stateless authenticator, update must carry information about expiry and sliding window info
+        * since this is something that could be manipulated by an attacker.
+        *
+        * We sincerely don't want this, thus renew and refresh also rely on update.
+        * */
       def update(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] = {
         val serialized = AuthEncryptedCookie
           .Internal(authenticator.id, authenticator.messageId, authenticator.expiry, authenticator.lastTouched)
@@ -447,8 +437,12 @@ object EncryptedCookieAuthenticator {
         } yield authenticator.copy[Alg, I](content = encrypted)
       }
 
-      //In this case, since we have no backing store, we can invalidate the token
-      //This doesn't work entirely if the person _doesn't_ set the token afterwards.
+      /** In this case, since we have no backing store, we can invalidate the token.
+        * This doesn't work entirely if the person _doesn't_ set the token afterwards.
+        *
+        * @param authenticator
+        * @return
+        */
       def discard(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
         OptionT.pure(authenticator.copy[Alg, I](content = AEADCookie.fromRaw[Alg]("invalid"), expiry = HttpDate.now))
 

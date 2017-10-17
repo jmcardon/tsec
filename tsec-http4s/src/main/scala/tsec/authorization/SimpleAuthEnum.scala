@@ -5,8 +5,7 @@ import io.circe.syntax._
 
 import scala.reflect.ClassTag
 
-/**
-  * Dead simple typed enum with explicitly handled enumeration error
+/** Dead simple typed enum with explicitly handled enumeration error
   * It also provides an implicit decoder/encoder for serialization into json.
   *
   * @tparam T the abstract type to enumerate, subclass style
@@ -19,10 +18,7 @@ abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: Auth
 
   protected val values: AuthGroup[T]
 
-  /*
-  Since `Repr` does not come necessarily with a classtag,
-  this is necessary, unfortunately
-   */
+  /** Since `Repr` does not come necessarily with a classtag,this is necessary, unfortunately*/
   private lazy val reprValues = primtive.unBoxedFromRepr[T](getRepr, values)
 
   val orElse: T

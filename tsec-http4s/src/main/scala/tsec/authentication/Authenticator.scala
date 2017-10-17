@@ -20,8 +20,7 @@ trait Authenticator[F[_], Alg, I, V, Authenticator[_]] {
     */
   def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, Authenticator[Alg], V]]
 
-  /**
-    * Create an authenticator from an identifier.
+  /** Create an authenticator from an identifier.
     * @param body
     * @return
     */
@@ -35,7 +34,6 @@ trait Authenticator[F[_], Alg, I, V, Authenticator[_]] {
   def update(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
 
   /** Delete an authenticator from a backing store, or invalidate it.
-    *
     *
     * @param authenticator
     * @return

@@ -33,8 +33,7 @@ object DummyUser {
   }
 }
 
-/**
-  * An inner class for defining tests against an authenticator
+/** An inner class for defining tests against an authenticator
   * This contains utilities that are not present currently under the `Authenticator`
   * class that are necessary for testing.
   *
