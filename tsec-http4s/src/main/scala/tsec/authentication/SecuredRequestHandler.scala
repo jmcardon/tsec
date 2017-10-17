@@ -7,12 +7,9 @@ import cats.syntax.all._
 import tsec.jws.mac.JWTMac
 import tsec.authorization._
 
-sealed abstract class RequestHandler[F[_], Alg, Identity, User, Auth[_]](
+sealed abstract class SecuredRequestHandler[F[_], Alg, Identity, User, Auth[_]](
     val authenticator: Authenticator[F, Alg, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
-  private val defaultMiddleware: TSecMiddleware[F, Auth[Alg], User] = TSecMiddleware(
-    Kleisli(authenticator.extractAndValidate)
-  )
 
   protected def authorizedMiddleware(authorization: Authorization[F, User]): TSecMiddleware[F, Auth[Alg], User] = {
     val authed = Kleisli(authenticator.extractAndValidate)
@@ -28,15 +25,15 @@ sealed abstract class RequestHandler[F[_], Alg, Identity, User, Auth[_]](
 
 }
 
-object RequestHandler {
+object SecuredRequestHandler {
 
   def apply[F[_], Alg, Identity, User, Auth[_]](
       authenticator: Authenticator[F, Alg, Identity, User, Auth],
       rolling: Boolean = false
-  )(implicit F: MonadError[F, Throwable]): RequestHandler[F, Alg, Identity, User, Auth] = {
+  )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Alg, Identity, User, Auth] = {
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate))
     if (rolling) {
-      new RequestHandler[F, Alg, Identity, User, Auth](authenticator) {
+      new SecuredRequestHandler[F, Alg, Identity, User, Auth](authenticator) {
         def apply(pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf))
             .handleError(_ => Response[F](Status.Forbidden))
@@ -48,7 +45,7 @@ object RequestHandler {
             .handleError(_ => Response[F](Status.Forbidden))
       }
     } else
-      new RequestHandler[F, Alg, Identity, User, Auth](authenticator) {
+      new SecuredRequestHandler[F, Alg, Identity, User, Auth](authenticator) {
         def apply(pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf, authenticator.afterBlock))
             .handleError(_ => Response[F](Status.Forbidden))
@@ -66,7 +63,7 @@ object RequestHandler {
         authenticator: Authenticator[F, Alg, Identity, User, AuthEncryptedCookie[?, Identity]],
         rolling: Boolean = false
     )(implicit F: MonadError[F, Throwable]) =
-      RequestHandler[F, Alg, Identity, User, AuthEncryptedCookie[?, Identity]](authenticator, rolling)
+      SecuredRequestHandler[F, Alg, Identity, User, AuthEncryptedCookie[?, Identity]](authenticator, rolling)
   }
 
   private[authentication] final class DefaultCookie[F[_]](val dummy: Boolean = true) extends AnyVal {
@@ -74,7 +71,7 @@ object RequestHandler {
         authenticator: Authenticator[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]],
         rolling: Boolean = false
     )(implicit F: MonadError[F, Throwable]) =
-      RequestHandler[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]](authenticator, rolling)
+      SecuredRequestHandler[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]](authenticator, rolling)
   }
 
   private[authentication] final class DefaultJWT[F[_]](val dummy: Boolean = true) extends AnyVal {
@@ -82,7 +79,7 @@ object RequestHandler {
         authenticator: Authenticator[F, Alg, Identity, User, JWTMac],
         rolling: Boolean = false
     )(implicit F: MonadError[F, Throwable]) =
-      RequestHandler[F, Alg, Identity, User, JWTMac](authenticator, rolling)
+      SecuredRequestHandler[F, Alg, Identity, User, JWTMac](authenticator, rolling)
   }
 
   final def encryptedCookie[F[_]]: DefaultEncrypted[F] = new DefaultEncrypted[F]()
