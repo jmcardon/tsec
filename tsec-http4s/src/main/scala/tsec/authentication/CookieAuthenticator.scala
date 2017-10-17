@@ -17,7 +17,7 @@ import cats.syntax.all._
 import scala.concurrent.duration.FiniteDuration
 
 abstract class CookieAuthenticator[F[_], Alg: MacTag: ByteEV, I, V]
-    extends AuthenticatorEV[F, Alg, I, V, AuthenticatedCookie[?, I]]
+    extends Authenticator[F, Alg, I, V, AuthenticatedCookie[?, I]]
 
 /** An authenticated cookie implementation
   *

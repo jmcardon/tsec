@@ -3,6 +3,8 @@ import io.circe.Decoder.Result
 import io.circe._
 import io.circe.syntax._
 
+import scala.reflect.ClassTag
+
 /**
   * Dead simple typed enum with explicitly handled enumeration error
   * It also provides an implicit decoder/encoder for serialization into json.
@@ -35,7 +37,13 @@ abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: Auth
 
   @inline def contains(elem: T): Boolean = values.contains(elem)
 
-  def viewAll: List[T] = values.toList
+  def viewAll(implicit classTag: ClassTag[T]): AuthGroup[T] = {
+    val arr = new Array[T](values.length)
+    values.copyToArray(arr)
+    AuthGroup.unsafeFromArray[T](arr)
+  }
+
+  def toList: List[T] = values.toList
 
   implicit val decoder: Decoder[T] = new Decoder[T] {
     def apply(c: HCursor): Result[T] = c.as[Repr].map(fromRepr)
@@ -48,8 +56,9 @@ abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: Auth
   implicit final def subClDecoder[A <: T](implicit singleton: A): Decoder[A] =
     new Decoder[A] {
       def apply(c: HCursor): Result[A] = c.as[T].flatMap {
-        case a if a == singleton => Right(singleton) //It's ok to do reference equality, since it should be singletons anyway
-        case _                   => Left(DecodingFailure("Improperly typed", Nil))
+        case a if a == singleton =>
+          Right(singleton) //It's ok to do reference equality, since it should be singletons anyway
+        case _ => Left(DecodingFailure("Improperly typed", Nil))
       }
     }
 

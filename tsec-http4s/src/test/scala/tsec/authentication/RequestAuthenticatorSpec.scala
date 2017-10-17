@@ -18,13 +18,13 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
 
     val dummyBob = DummyUser(0)
 
-    val requestAuth: Authenticator[IO, A, Int, DummyUser, B] = Authenticator(authSpec.authie)
+    val requestAuth: RequestHandler[IO, A, Int, DummyUser, B] = RequestHandler(authSpec.auth)
 
     //Add bob to the db
     authSpec.dummyStore.put(dummyBob).unsafeRunSync()
 
-    val onlyAdmins = BasicRBAC[DummyUser, DummyRole](DummyRole.Admin)
-    val everyone   = BasicRBAC.all[DummyUser, DummyRole]
+    val onlyAdmins = BasicRBAC[IO, DummyUser, DummyRole](DummyRole.Admin)
+    val everyone   = BasicRBAC.all[IO, DummyUser, DummyRole]
 
     val testService: HttpService[IO] = requestAuth {
       case request @ GET -> Root / "api" asAuthed hi =>
@@ -72,7 +72,7 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
       val response: OptionT[IO, Response[IO]] = for {
         auth    <- requestAuth.authenticator.create(dummyBob.id)
         expired <- authSpec.expireAuthenticator(auth)
-        renewed <- authSpec.authie.renew(expired)
+        renewed <- authSpec.auth.renew(expired)
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), renewed)
         res <- testService(embedded)
       } yield res
@@ -100,7 +100,7 @@ class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
       val response: OptionT[IO, Response[IO]] = for {
         auth    <- requestAuth.authenticator.create(dummyBob.id)
         expired <- authSpec.timeoutAuthenticator(auth)
-        renewed <- authSpec.authie.refresh(expired)
+        renewed <- authSpec.auth.refresh(expired)
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), renewed)
         res <- testService(embedded)
       } yield res

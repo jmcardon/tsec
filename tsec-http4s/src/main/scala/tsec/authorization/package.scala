@@ -136,8 +136,16 @@ package object authorization {
   /**
     * A simple typeclass that allows us to propagate information that is required for authorization
     */
-  trait AuthorizationInfo[U, Role] {
-    def getRole(u: U): Role
+  trait AuthorizationInfo[F[_], U, Role] {
+    def getRole(u: U): F[Role]
+  }
+
+  type InvalidAuthLevel = InvalidAuthLevelError.type
+
+  final object InvalidAuthLevelError extends Exception {
+    override def getMessage: String = "The minimum auth level is zero."
+
+    override def fillInStackTrace(): Throwable = this
   }
 
 }

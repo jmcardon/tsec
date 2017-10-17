@@ -109,13 +109,13 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](expiry = HttpDate.unsafeFromInstant(now.minusSeconds(2000)))
-        authie.update(updated)
+        auth.update(updated)
       }
 
       def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](lastTouched = Some(HttpDate.unsafeFromInstant(now.minusSeconds(2000))))
-        authie.update(updated)
+        auth.update(updated)
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =
