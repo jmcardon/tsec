@@ -12,7 +12,7 @@ import org.http4s.{Request, Response}
   * @tparam I The Identifier type
   * @tparam V The value type, i.e user, or possibly only partial information
   */
-trait AuthenticatorEV[F[_], Alg, I, V, Authenticator[_]] {
+trait Authenticator[F[_], Alg, I, V, Authenticator[_]] {
 
   /** Return a secured request from a request, that carries our authenticator
     * @param request
@@ -20,8 +20,7 @@ trait AuthenticatorEV[F[_], Alg, I, V, Authenticator[_]] {
     */
   def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, Authenticator[Alg], V]]
 
-  /**
-    * Create an authenticator from an identifier.
+  /** Create an authenticator from an identifier.
     * @param body
     * @return
     */
@@ -35,7 +34,6 @@ trait AuthenticatorEV[F[_], Alg, I, V, Authenticator[_]] {
   def update(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
 
   /** Delete an authenticator from a backing store, or invalidate it.
-    *
     *
     * @param authenticator
     * @return

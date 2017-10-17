@@ -35,15 +35,6 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)
 
-      def extractFromResponse(response: Response[IO]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
-        val cookieOpt = `Set-Cookie`.from(response.headers).map(_.cookie).find(_.name === cookieName)
-        cookieOpt match {
-          case None =>
-            OptionT.none
-          case Some(c) =>
-            authenticator.extractAndValidate(Request[IO]().addCookie(c)).map(_.authenticator)
-        }
-      }
 
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
@@ -109,13 +100,13 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](expiry = HttpDate.unsafeFromInstant(now.minusSeconds(2000)))
-        authie.update(updated)
+        auth.update(updated)
       }
 
       def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](lastTouched = Some(HttpDate.unsafeFromInstant(now.minusSeconds(2000))))
-        authie.update(updated)
+        auth.update(updated)
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =

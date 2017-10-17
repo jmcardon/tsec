@@ -1,13 +1,17 @@
 import java.util.UUID
-import cats.Monad
+
+import Http4sAuthExamples.Role.{Administrator, Customer, Seller}
+import cats.{Eq, Monad, MonadError}
 import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.HttpService
 import tsec.authentication._
 import tsec.cipher.symmetric.imports.{AES128, SecretKey}
+
 import scala.concurrent.duration._
 import scala.collection.mutable
 import org.http4s.dsl.io._
+import tsec.authorization.{AuthGroup, AuthorizationInfo, BasicRBAC, SimpleAuthEnum}
 
 object Http4sAuthExamples {
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Monad[F]) = new BackingStore[F, I, V] {
@@ -36,7 +40,32 @@ object Http4sAuthExamples {
       }
   }
 
-  case class User(id: Int, age: Int, name: String)
+  /*
+  In our example, we will demonstrate how to use SimpleAuthEnum, as well as
+  Role based authorization
+   */
+  sealed abstract class Role(val roleRepr: String)
+  object Role extends SimpleAuthEnum[Role, String] {
+    implicit case object Administrator extends Role("Administrator")
+    implicit case object Customer      extends Role("User")
+    implicit case object Seller        extends Role("Seller")
+    implicit case object CorruptedData extends Role("corrupted")
+
+    implicit val E: Eq[Role]      = Eq.fromUniversalEquals[Role]
+    val getRepr: (Role) => String = _.roleRepr
+
+    protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer, Seller)
+    val orElse: Role                      = CorruptedData
+  }
+
+  case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)
+
+  object User {
+    implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, User, Role] =
+      new AuthorizationInfo[F, User, Role] {
+        def fetchInfo(u: User): F[Role] = F.pure(u.role)
+      }
+  }
 
   /*
   Here, we initialize our authenticator. For this, we need the following:
@@ -55,6 +84,7 @@ object Http4sAuthExamples {
   val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]] =
     dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]](_.id)
 
+  //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val settings: TSecCookieSettings = TSecCookieSettings(
@@ -74,13 +104,17 @@ object Http4sAuthExamples {
       key
     )
 
-  val requestAuthenticator =
-    RequestAuthenticator.encryptedCookie(encryptedCookieAuth)
+  val Auth =
+    RequestHandler.encryptedCookie(encryptedCookieAuth)
+
+  val onlyAdmins      = BasicRBAC[IO, User, Role](Administrator, Customer)
+  val adminsAndSeller = BasicRBAC[IO, User, Role](Administrator, Seller)
 
   /*
-  Now from here, if want want to create services, we simply use:
+  Now from here, if want want to create services, we simply use the following
+  (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
    */
-  val service: HttpService[IO] = requestAuthenticator {
+  val service: HttpService[IO] = Auth {
     //Where user is the case class User above
     case request @ GET -> Root / "api" asAuthed user =>
       /*
@@ -94,7 +128,11 @@ object Http4sAuthExamples {
   }
 
   /*
-  Since the type of the service is HttpService[IO], we can mount it like any other endpoint!
- */
+  For an endpoint with different authorization logic, we can use:
+   */
+  val authorizedService: HttpService[IO] = Auth.authorized(onlyAdmins) {
+    case request @ GET -> Root / "api" asAuthed user =>
+      Ok(user.role.roleRepr)
+  }
 
 }

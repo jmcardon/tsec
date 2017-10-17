@@ -2,7 +2,6 @@ package tsec.cookies
 
 import tsec.common._
 import tsec.mac.imports._
-import cats.syntax.either._
 
 object CookieSigner {
 
