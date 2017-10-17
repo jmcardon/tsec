@@ -6,5 +6,5 @@ position: 1
 ---
 
 <script>
-window.location.href = "/"
+window.location.href = "/tsec"
 </script>

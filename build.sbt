@@ -21,12 +21,13 @@ lazy val scalacOpts = scalacOptions := Seq(
 lazy val micrositeSettings = Seq(
   libraryDependencies += "com.47deg" %% "github4s" % "0.16.0",
   micrositeName := "TSec",
+  micrositeBaseUrl := "/tsec",
   micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",
   micrositeAuthor := "Jose Cardona",
   micrositeHomepage := "https://jmcardon.github.io/tsec/",
   micrositeGithubOwner := "jmcardon",
   micrositeGithubRepo := "tsec",
-  micrositeDocumentationUrl := "docs/symmetric.html",
+  micrositeDocumentationUrl := "/tsec/docs/symmetric.html",
   micrositeGitterChannel := false,
   micrositePushSiteWith := GitHub4s,
   micrositeGithubToken := sys.env.get("GITHUB_TOKEN")
@@ -191,7 +192,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     jwtMac
   )
 
-lazy val microsite = Project(id = "microsite", base = file("microsite"))
+lazy val microsite = Project(id = "microsite", base = file("docs"))
   .settings(commonSettings)
   .settings(micrositeSettings)
   .enablePlugins(MicrositesPlugin)

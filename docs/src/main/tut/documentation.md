@@ -5,5 +5,5 @@ section: "crypto"
 position: 2
 ---
 <script>
-window.location.href = "docs/symmetric.html"
+window.location.href = "/tsec/docs/symmetric.html"
 </script>
