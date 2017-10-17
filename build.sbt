@@ -19,14 +19,17 @@ lazy val scalacOpts = scalacOptions := Seq(
 )
 
 lazy val micrositeSettings = Seq(
+  libraryDependencies += "com.47deg" %% "github4s" % "0.16.0",
   micrositeName := "TSec",
   micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",
   micrositeAuthor := "Jose Cardona",
-  micrositeHomepage := "https://47deg.github.io/sbt-microsites/",
+  micrositeHomepage := "https://jmcardon.github.io/tsec/",
   micrositeGithubOwner := "jmcardon",
   micrositeGithubRepo := "tsec",
-  micrositeDocumentationUrl := "/docs/symmetric.html",
-  micrositeGitterChannel := false
+  micrositeDocumentationUrl := "docs/symmetric.html",
+  micrositeGitterChannel := false,
+  micrositePushSiteWith := GitHub4s,
+  micrositeGithubToken := sys.env.get("GITHUB_TOKEN")
 )
 
 lazy val commonSettings = Seq(
