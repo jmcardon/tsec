@@ -1,7 +1,7 @@
 import java.util.UUID
 
 import Http4sAuthExamples.Role.{Administrator, Customer, Seller}
-import cats.{Eq, Monad}
+import cats.{Eq, Monad, MonadError}
 import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.HttpService
@@ -61,9 +61,10 @@ object Http4sAuthExamples {
   case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)
 
   object User {
-    implicit val authRole: AuthorizationInfo[User, Role] = new AuthorizationInfo[User, Role] {
-      def getRole(u: User): Role = u.role
-    }
+    implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, User, Role] =
+      new AuthorizationInfo[F, User, Role] {
+        def fetchInfo(u: User): F[Role] = F.pure(u.role)
+      }
   }
 
   /*
@@ -106,8 +107,8 @@ object Http4sAuthExamples {
   val Auth =
     RequestHandler.encryptedCookie(encryptedCookieAuth)
 
-  val onlyAdmins      = BasicRBAC[User, Role](Administrator, Customer)
-  val adminsAndSeller = BasicRBAC[User, Role](Administrator, Seller)
+  val onlyAdmins      = BasicRBAC[IO, User, Role](Administrator, Customer)
+  val adminsAndSeller = BasicRBAC[IO, User, Role](Administrator, Seller)
 
   /*
   Now from here, if want want to create services, we simply use the following
@@ -129,10 +130,9 @@ object Http4sAuthExamples {
   /*
   For an endpoint with different authorization logic, we can use:
    */
-  val authorizedService: HttpService[IO] = Auth.authorized(onlyAdmins){
+  val authorizedService: HttpService[IO] = Auth.authorized(onlyAdmins) {
     case request @ GET -> Root / "api" asAuthed user =>
       Ok(user.role.roleRepr)
   }
-
 
 }

@@ -29,7 +29,7 @@ case class DummyUser(id: Int, name: String = "bob", role: DummyRole = DummyRole.
 
 object DummyUser {
   implicit val role: AuthorizationInfo[IO, DummyUser, DummyRole] = new AuthorizationInfo[IO, DummyUser, DummyRole] {
-    def getRole(u: DummyUser): IO[DummyRole] = IO.pure(u.role)
+    def fetchInfo(u: DummyUser): IO[DummyRole] = IO.pure(u.role)
   }
 }
 

@@ -17,7 +17,7 @@ sealed abstract case class BasicRBAC[F[_], U, R](authorized: AuthGroup[R])(
       toAuth: authentication.SecuredRequest[F, Auth, U]
   ): OptionT[F, authentication.SecuredRequest[F, Auth, U]] =
     OptionT {
-      role.getRole(toAuth.identity).map { extractedRole =>
+      role.fetchInfo(toAuth.identity).map { extractedRole =>
         if (enum.contains(extractedRole) && authorized.contains(extractedRole))
           Some(toAuth)
         else

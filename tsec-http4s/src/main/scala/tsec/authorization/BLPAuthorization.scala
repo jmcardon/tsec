@@ -26,7 +26,7 @@ sealed abstract case class BLPReadAction[F[_], A, Role](authLevel: Int)(
   def isAuthorized[Auth](
       toAuth: authentication.SecuredRequest[F, Auth, A]
   ): OptionT[F, authentication.SecuredRequest[F, Auth, A]] = {
-    val out = authInfo.getRole(toAuth.identity).map { info =>
+    val out = authInfo.fetchInfo(toAuth.identity).map { info =>
       val userAuthLevel = enum.getRepr(info)
       if (enum.contains(info) && userAuthLevel <= authLevel)
         Some(toAuth)
@@ -61,7 +61,7 @@ sealed abstract case class BLPWriteAction[F[_], A, Role](authLevel: Int)(
   def isAuthorized[Auth](
       toAuth: authentication.SecuredRequest[F, Auth, A]
   ): OptionT[F, authentication.SecuredRequest[F, Auth, A]] = {
-    val out = authInfo.getRole(toAuth.identity).map { info =>
+    val out = authInfo.fetchInfo(toAuth.identity).map { info =>
       val userAuthLevel = enum.getRepr(info)
       if (enum.contains(info) && userAuthLevel == authLevel)
         Some(toAuth)

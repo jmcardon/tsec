@@ -15,7 +15,7 @@ sealed abstract case class HierarchyAuth[F[_], U, R](authLevel: Int)(
       toAuth: authentication.SecuredRequest[F, Auth, U]
   ): OptionT[F, authentication.SecuredRequest[F, Auth, U]] =
     OptionT {
-      role.getRole(toAuth.identity).map { authRole =>
+      role.fetchInfo(toAuth.identity).map { authRole =>
         val intRepr = enum.getRepr(authRole)
         if (0 <= intRepr && intRepr <= authLevel && enum.contains(authRole))
           Some(toAuth)
