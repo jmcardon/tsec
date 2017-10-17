@@ -24,7 +24,9 @@ lazy val micrositeSettings = Seq(
   micrositeAuthor := "Jose Cardona",
   micrositeHomepage := "https://47deg.github.io/sbt-microsites/",
   micrositeGithubOwner := "jmcardon",
-  micrositeGithubRepo := "tsec"
+  micrositeGithubRepo := "tsec",
+  micrositeDocumentationUrl := "/docs/symmetric.html",
+  micrositeGitterChannel := false
 )
 
 lazy val commonSettings = Seq(

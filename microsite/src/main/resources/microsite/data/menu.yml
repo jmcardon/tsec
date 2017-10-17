@@ -1,0 +1,4 @@
+options:
+  - title: Symmetric Ciphers
+    url: docs/symmetric.html
+    section: symmetric-ciphers
