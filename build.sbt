@@ -18,6 +18,15 @@ lazy val scalacOpts = scalacOptions := Seq(
   "-language:implicitConversions"
 )
 
+lazy val micrositeSettings = Seq(
+  micrositeName := "TSec",
+  micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",
+  micrositeAuthor := "Jose Cardona",
+  micrositeHomepage := "https://47deg.github.io/sbt-microsites/",
+  micrositeGithubOwner := "jmcardon",
+  micrositeGithubRepo := "tsec"
+)
+
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
@@ -175,6 +184,25 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     mac,
     messageDigests,
     jwtMac
+  )
+
+lazy val microsite = Project(id = "microsite", base = file("microsite"))
+  .settings(commonSettings)
+  .settings(micrositeSettings)
+  .enablePlugins(MicrositesPlugin)
+  .enablePlugins(TutPlugin)
+  .dependsOn(
+    common,
+    messageDigests,
+    cipherCore,
+    jwtCore,
+    symmetricCipher,
+    mac,
+    signatures,
+    jwtMac,
+    jwtSig,
+    passwordHashers,
+    http4s
   )
 
 lazy val publishSettings = Seq(
