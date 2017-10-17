@@ -14,13 +14,12 @@ import tsec.authorization.{AuthGroup, AuthorizationInfo, SimpleAuthEnum}
 
 import scala.collection.mutable
 
-sealed abstract class DummyRole(val repr: String)
+sealed abstract case class DummyRole(repr: String)
 object DummyRole extends SimpleAuthEnum[DummyRole, String] {
-  implicit case object Admin extends DummyRole("Admin")
-  implicit case object Other extends DummyRole("Other")
-  implicit case object Err   extends DummyRole("Err")
+  implicit object Admin extends DummyRole("Admin")
+  implicit object Other extends DummyRole("Other")
+  implicit object Err   extends DummyRole("Err")
 
-  implicit val E                             = Eq.by[DummyRole, String](_.repr)
   val getRepr: (DummyRole) => String         = _.repr
   protected val values: AuthGroup[DummyRole] = AuthGroup(Admin, Other)
   val orElse: DummyRole                      = Err
