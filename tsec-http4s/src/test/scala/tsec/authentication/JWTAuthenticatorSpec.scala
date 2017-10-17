@@ -75,15 +75,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
           _ <- OptionT.liftF(store.update(newToken))
         } yield newToken
 
-      def extractFromResponse(response: Response[IO]): OptionT[IO, JWTMac[A]] = {
-        val headerOpt = response.headers.get(CaseInsensitiveString(settings.headerName))
-        headerOpt match {
-          case None =>
-            OptionT.none
-          case Some(c) =>
-            OptionT.liftF(JWTMacM.verifyAndParse[IO, A](c.value, macKey))
-        }
-      }
+
 
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator
@@ -138,15 +130,6 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
           }
         } yield newToken
 
-      def extractFromResponse(response: Response[IO]): OptionT[IO, JWTMac[A]] = {
-        val headerOpt = response.headers.get(CaseInsensitiveString(settings.headerName))
-        headerOpt match {
-          case None =>
-            OptionT.none
-          case Some(c) =>
-            OptionT.liftF(JWTMacM.verifyAndParse[IO, A](c.value, macKey))
-        }
-      }
 
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator

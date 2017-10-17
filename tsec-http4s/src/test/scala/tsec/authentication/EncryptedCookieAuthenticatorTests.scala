@@ -2,7 +2,6 @@ package tsec.authentication
 
 import tsec.cipher.symmetric.imports._
 
-
 class EncryptedCookieAuthenticatorTests extends EncryptedCookieAuthenticatorSpec {
 
   AuthenticatorTest[AES128]("AES128 Authenticator w\\ backing store", genStatefulAuthenticator[AES128])

@@ -47,8 +47,6 @@ protected[authentication] abstract case class AuthSpecTester[A, Auth[_]](
 
   def embedInRequest(request: Request[IO], authenticator: Auth[A]): Request[IO]
 
-  def extractFromResponse(response: Response[IO]): OptionT[IO, Auth[A]]
-
   def expireAuthenticator(b: Auth[A]): OptionT[IO, Auth[A]]
 
   def timeoutAuthenticator(b: Auth[A]): OptionT[IO, Auth[A]]
@@ -100,16 +98,14 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
           _            <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
           auth         <- authSpec.auth.create(dummy1.id)
           fromRequest  <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
-          res          <- OptionT.pure[IO](authSpec.auth.embed(Response[IO](), fromRequest.authenticator))
-          fromResponse <- authSpec.extractFromResponse(res)
           _            <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
-        } yield (fromResponse, fromRequest))
+        } yield fromRequest)
           .handleErrorWith(_ => OptionT.none)
           .value
+
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe false
-        extracted.map(_._2.identity) mustBe Some(dummy1)
-        extracted.map(_._1) mustBe extracted.map(_._2.authenticator)
+        extracted.map(_.identity) mustBe Some(dummy1)
       }
     }
 
