@@ -1,5 +1,5 @@
 name: TSec
-baseurl: ''
+baseurl: /tsec/
 description: A Type-Safe General Cryptography Library on the JVM
 highlighter: rouge
 docs: true
