@@ -41,11 +41,11 @@ abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: Auth
 
   def toList: List[T] = values.toList
 
-  implicit val decoder: Decoder[T] = new Decoder[T] {
+  implicit lazy val decoder: Decoder[T] = new Decoder[T] {
     def apply(c: HCursor): Result[T] = c.as[Repr].map(fromRepr)
   }
 
-  implicit val encoder: Encoder[T] = new Encoder[T] {
+  implicit lazy val encoder: Encoder[T] = new Encoder[T] {
     def apply(a: T): Json = getRepr(a).asJson
   }
 
