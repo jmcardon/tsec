@@ -38,7 +38,7 @@ resolvers += "jmcardon at bintray" at "https://dl.bintray.com/jmcardon/tsec"
 | tsec-md               | Message Digests (Hashing)                                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala)|
 | tsec-jwt-mac          | JWT implementation for Message Authentication signatures | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTMacExamples.scala)|
 | tsec-jwt-sig          | JWT implementation for Digital signatures                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTSignatureExamples.scala)|
-| tsec-http4s           | Http4s Request Authentication and Authorization          | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTSignatureExamples.scala)|
+| tsec-http4s           | Http4s Request Authentication and Authorization          | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/Http4sAuthExamples.scala)|
 
 To include any of these packages in your project use:
 
@@ -52,7 +52,8 @@ val tsecV = "0.0.1-M2"
  "io.github.jmcardon" %% "tsec-signatures" % tsecV,
  "io.github.jmcardon" %% "tsec-md" % tsecV,
  "io.github.jmcardon" %% "tsec-jwt-mac" % tsecV,
- "io.github.jmcardon" %% "tsec-jwt-sig" % tsecV
+ "io.github.jmcardon" %% "tsec-jwt-sig" % tsecV,
+ "io.github.jmcardon" %% "tsec-http4s" % tsecV
 )
 ```
 

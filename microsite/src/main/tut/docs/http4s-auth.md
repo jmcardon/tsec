@@ -50,9 +50,9 @@ This is used to encrypt the custom claims of the JWT that transmit our id data.
 * User and token backing store as stated above
 * Create with the method
 
-### Example
+## Example
 
-#### Setup
+### Setup
 
 In our example, we will use a dummy backing store, to simulate a data transfer class or object:
 
@@ -97,7 +97,7 @@ def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Monad[F]) = new Bac
   }
 ```
 
-#### Our Example user class + SimpleAuthEnum
+### Our Example user class + SimpleAuthEnum
 
 
 We will demonstrate how to use SimpleAuthEnum, as well as Role based authorization. A note about SimpleAuthEnum:
@@ -141,7 +141,7 @@ The following will be the user class used for this example
   import User._ 
   import Role._ 
 ```
-#### Authenticator creation
+### Authenticator creation
 In this example we will use an encrypted cookie authenticator.
 Then, we create a stateful Encrypted KeyAuthenticator, as well as our Request Handler.
 From here, if want want to create services, we simply use the request handler we created

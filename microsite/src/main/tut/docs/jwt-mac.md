@@ -4,6 +4,7 @@ number: 5
 title: "JWT"
 ---
 # JWT 
+
 The TSec implementation is more opinionated than most JWT libraries, thus requires a `UUID` for the `jwtId` field.
 This is secure, given Java UUIDs are UUIDv4, with an extremely low probability of collision.
 

@@ -3,9 +3,17 @@ options:
     url: docs/symmetric.html
     section: symmetric-ciphers
 
+  - title: Message Digests
+    url: docs/messagedigests.html
+    section: signatures
+
   - title: Password Hashers
     url: docs/passwordhashers.html
     section: password-hashers
+
+  - title: Message Authentication
+    url: docs/mac.html
+    section: mac
 
   - title: JWT
     url: docs/jwt-mac.html
@@ -15,7 +23,9 @@ options:
     url: docs/http4s-auth.html
     section: http4-auth
 
-  - title: Message Authentication Code
-    url: docs/message-authentication-code.html
-    section: mac
+  - title: Digital Signatures
+    url: docs/signatures.html
+    section: signatures
+
+
 

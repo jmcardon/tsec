@@ -1,13 +1,15 @@
-import cats.effect.{IO, Sync}
+
 
 object SignatureExamples {
 
+  import tsec.common._
   import tsec.signature.imports._
+  import cats.effect.{IO, Sync}
 
   /*
   Signature example with Either
    */
-  import tsec.common._
+
   val toSign                               = "hiThere!".utf8Bytes
   val instance: JCASigner[SHA256withECDSA] = JCASigner[SHA256withECDSA]
   val sig: Either[Throwable, Boolean] = for {

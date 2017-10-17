@@ -1,8 +1,8 @@
 ---
 #layout: docs
-title:  "Crypto Primitives"
+title:  "Documentation"
 section: "crypto"
-position: 1
+position: 2
 ---
 <script>
 window.location.href = "docs/symmetric.html"

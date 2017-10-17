@@ -1,6 +1,6 @@
 ---
 layout: docs
-number: 3
+number: 4
 title: "Message Authentication Code"
 ---
 
