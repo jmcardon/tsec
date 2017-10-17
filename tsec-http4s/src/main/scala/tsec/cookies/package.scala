@@ -4,7 +4,6 @@ import cats.Eq
 import tsec.common._
 import cats.evidence.Is
 import cats.instances.string._
-import tsec.cipher.common._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 import tsec.mac.imports.{MacTag, MacVerificationError}

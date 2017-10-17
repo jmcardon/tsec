@@ -5,19 +5,16 @@ import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.IO
-import org.http4s.{Header, HttpDate, Request, Response}
+import org.http4s.{Header, HttpDate, Request}
 import io.circe.syntax._
-import org.http4s.util.CaseInsensitiveString
 import tsec.authentication.JWTAuthenticator.JWTInternal
-import tsec.cipher.symmetric.imports.{AuthEncryptor, CipherKeyGen, Encryptor}
+import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
 import tsec.common.ByteEV
 import tsec.jws.mac.{JWSMacCV, JWTMac, JWTMacM}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.imports.{MacKeyGenerator, MacTag}
-import cats.implicits._
-import io.circe.generic.auto._
 
-import scala.collection.mutable
+import io.circe.generic.auto._
 import scala.concurrent.duration._
 
 class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
@@ -75,15 +72,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
           _ <- OptionT.liftF(store.update(newToken))
         } yield newToken
 
-      def extractFromResponse(response: Response[IO]): OptionT[IO, JWTMac[A]] = {
-        val headerOpt = response.headers.get(CaseInsensitiveString(settings.headerName))
-        headerOpt match {
-          case None =>
-            OptionT.none
-          case Some(c) =>
-            OptionT.liftF(JWTMacM.verifyAndParse[IO, A](c.value, macKey))
-        }
-      }
+
 
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator
@@ -138,15 +127,6 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
           }
         } yield newToken
 
-      def extractFromResponse(response: Response[IO]): OptionT[IO, JWTMac[A]] = {
-        val headerOpt = response.headers.get(CaseInsensitiveString(settings.headerName))
-        headerOpt match {
-          case None =>
-            OptionT.none
-          case Some(c) =>
-            OptionT.liftF(JWTMacM.verifyAndParse[IO, A](c.value, macKey))
-        }
-      }
 
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator

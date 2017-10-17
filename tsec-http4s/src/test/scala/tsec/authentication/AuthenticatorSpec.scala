@@ -2,40 +2,55 @@ package tsec.authentication
 
 import cats.data.OptionT
 import cats.effect.IO
-import cats.{Id, Monad}
+import cats.{Eq, Id, Monad}
 import tsec.TestSpec
 import org.http4s._
 import org.http4s.dsl._
-import cats.syntax.all._
+import cats.implicits._
 import org.scalacheck._
 import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatest.prop.PropertyChecks
+import tsec.authorization.{AuthGroup, AuthorizationInfo, SimpleAuthEnum}
 
 import scala.collection.mutable
 
-case class DummyUser(id: Int, name: String = "bob")
+sealed abstract case class DummyRole(repr: String)
+object DummyRole extends SimpleAuthEnum[DummyRole, String] {
+  implicit object Admin extends DummyRole("Admin")
+  implicit object Other extends DummyRole("Other")
+  implicit object Err   extends DummyRole("Err")
 
-/**
-  * An inner class for defining tests against an authenticator
+  val getRepr: (DummyRole) => String         = _.repr
+  protected val values: AuthGroup[DummyRole] = AuthGroup(Admin, Other)
+  val orElse: DummyRole                      = Err
+}
+
+case class DummyUser(id: Int, name: String = "bob", role: DummyRole = DummyRole.Other)
+
+object DummyUser {
+  implicit val role: AuthorizationInfo[IO, DummyUser, DummyRole] = new AuthorizationInfo[IO, DummyUser, DummyRole] {
+    def fetchInfo(u: DummyUser): IO[DummyRole] = IO.pure(u.role)
+  }
+}
+
+/** An inner class for defining tests against an authenticator
+  * This contains utilities that are not present currently under the `Authenticator`
+  * class that are necessary for testing.
   *
-  * @param authie
   * @tparam A
-  * @tparam Authenticator
   */
-protected[authentication] abstract case class AuthSpecTester[A, Authenticator[_]](
-    authie: AuthenticatorEV[IO, A, Int, DummyUser, Authenticator],
+protected[authentication] abstract case class AuthSpecTester[A, Auth[_]](
+    auth: Authenticator[IO, A, Int, DummyUser, Auth],
     dummyStore: BackingStore[IO, Int, DummyUser]
 ) {
 
-  def embedInRequest(request: Request[IO], authenticator: Authenticator[A]): Request[IO]
+  def embedInRequest(request: Request[IO], authenticator: Auth[A]): Request[IO]
 
-  def extractFromResponse(response: Response[IO]): OptionT[IO, Authenticator[A]]
+  def expireAuthenticator(b: Auth[A]): OptionT[IO, Auth[A]]
 
-  def expireAuthenticator(b: Authenticator[A]): OptionT[IO, Authenticator[A]]
+  def timeoutAuthenticator(b: Auth[A]): OptionT[IO, Auth[A]]
 
-  def timeoutAuthenticator(b: Authenticator[A]): OptionT[IO, Authenticator[A]]
-
-  def wrongKeyAuthenticator: OptionT[IO, Authenticator[A]]
+  def wrongKeyAuthenticator: OptionT[IO, Auth[A]]
 }
 
 abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with PropertyChecks with BeforeAndAfterEach {
@@ -80,18 +95,16 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
       forAll { (dummy1: DummyUser) =>
         val results = (for {
           _            <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
-          auth         <- authSpec.authie.create(dummy1.id)
-          fromRequest  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
-          res          <- OptionT.pure[IO](authSpec.authie.embed(Response[IO](), fromRequest.authenticator))
-          fromResponse <- authSpec.extractFromResponse(res)
+          auth         <- authSpec.auth.create(dummy1.id)
+          fromRequest  <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
           _            <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
-        } yield (fromResponse, fromRequest))
+        } yield fromRequest)
           .handleErrorWith(_ => OptionT.none)
           .value
+
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe false
-        extracted.map(_._2.identity) mustBe Some(dummy1)
-        extracted.map(_._1) mustBe extracted.map(_._2.authenticator)
+        extracted.map(_.identity) mustBe Some(dummy1)
       }
     }
 
@@ -99,10 +112,10 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
       forAll { (dummy1: DummyUser) =>
         val results = (for {
           _       <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
-          auth    <- authSpec.authie.create(dummy1.id)
+          auth    <- authSpec.auth.create(dummy1.id)
           expired <- authSpec.expireAuthenticator(auth)
-          updated <- authSpec.authie.update(expired)
-          req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
+          updated <- authSpec.auth.update(expired)
+          req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
           _       <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
           .handleErrorWith(_ => OptionT.none)
@@ -116,11 +129,11 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
       forAll { (dummy1: DummyUser) =>
         val results = (for {
           _        <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
-          auth     <- authSpec.authie.create(dummy1.id)
+          auth     <- authSpec.auth.create(dummy1.id)
           expired  <- authSpec.expireAuthenticator(auth)
-          updated1 <- authSpec.authie.update(expired)
-          renewed  <- authSpec.authie.renew(updated1)
-          req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+          updated1 <- authSpec.auth.update(expired)
+          renewed  <- authSpec.auth.renew(updated1)
+          req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
           _        <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
           .handleErrorWith(_ => OptionT.none)
@@ -134,10 +147,10 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
       forAll { (dummy1: DummyUser) =>
         val results = (for {
           _       <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
-          auth    <- authSpec.authie.create(dummy1.id)
+          auth    <- authSpec.auth.create(dummy1.id)
           expired <- authSpec.timeoutAuthenticator(auth)
-          updated <- authSpec.authie.update(expired)
-          req2    <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
+          updated <- authSpec.auth.update(expired)
+          req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
           _       <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
           .handleErrorWith(_ => OptionT.none)
@@ -151,11 +164,11 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
       forAll { (dummy1: DummyUser) =>
         val results = (for {
           _        <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
-          auth     <- authSpec.authie.create(dummy1.id)
+          auth     <- authSpec.auth.create(dummy1.id)
           expired  <- authSpec.timeoutAuthenticator(auth)
-          updated1 <- authSpec.authie.update(expired)
-          renewed  <- authSpec.authie.refresh(updated1)
-          req2     <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+          updated1 <- authSpec.auth.update(expired)
+          renewed  <- authSpec.auth.refresh(updated1)
+          req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
           _        <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
           .handleErrorWith(_ => OptionT.none)
@@ -170,7 +183,7 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
         val results = (for {
           _     <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
           wrong <- authSpec.wrongKeyAuthenticator
-          req2  <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
+          req2  <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
           _     <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
           .handleErrorWith(_ => OptionT.none)
@@ -184,9 +197,9 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
       forAll { (dummy1: DummyUser) =>
         val results = (for {
           _         <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
-          auth      <- authSpec.authie.create(dummy1.id)
-          discarded <- authSpec.authie.discard(auth)
-          req2      <- authSpec.authie.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
+          auth      <- authSpec.auth.create(dummy1.id)
+          discarded <- authSpec.auth.discard(auth)
+          req2      <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
           _         <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
           .handleErrorWith(_ => OptionT.none)

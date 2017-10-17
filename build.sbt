@@ -30,7 +30,7 @@ lazy val commonSettings = Seq(
   fork in test := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
-  version in ThisBuild := "0.0.1-M2-NAPSHO",
+  version in ThisBuild := "0.0.1-M2",
   scalacOpts
 )
 

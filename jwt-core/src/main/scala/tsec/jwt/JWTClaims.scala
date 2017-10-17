@@ -29,10 +29,10 @@ case class JWTClaims(
     copy(issuedAt = Some(Instant.now.getEpochSecond + duration.toSeconds))
   def withNBF(duration: FiniteDuration): JWTClaims =
     copy(notBefore = Some(Instant.now.getEpochSecond + duration.toSeconds))
-  def isNotExpired(now: Instant): Boolean  = expiration.forall(e => now.isBefore(Instant.ofEpochSecond(e)))
-  def isExpired(now: Instant): Boolean     = expiration.exists(e => now.isAfter(Instant.ofEpochSecond(e)))
-  def isAfterNBF(now: Instant): Boolean    = notBefore.forall(e => now.isAfter(Instant.ofEpochSecond(e)))
-  def isValidIssued(now: Instant): Boolean = issuedAt.forall(e => now.isAfter(Instant.ofEpochSecond(e)))
+  def isNotExpired(now: Instant): Boolean = expiration.forall(e => now.isBefore(Instant.ofEpochSecond(e)))
+  def isAfterNBF(now: Instant): Boolean   = notBefore.forall(e => now.isAfter(Instant.ofEpochSecond(e)))
+  def isValidIssued(now: Instant): Boolean =
+    issuedAt.forall(e => !now.isBefore(Instant.ofEpochSecond(e)))
 
 }
 

@@ -12,12 +12,12 @@ import tsec.mac.imports._
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import tsec.common._
-import cats.syntax.all._
+import cats.syntax.eq._
 
 import scala.concurrent.duration.FiniteDuration
 
 abstract class CookieAuthenticator[F[_], Alg: MacTag: ByteEV, I, V]
-    extends AuthenticatorEV[F, Alg, I, V, AuthenticatedCookie[?, I]]
+    extends Authenticator[F, Alg, I, V, AuthenticatedCookie[?, I]]
 
 /** An authenticated cookie implementation
   *
@@ -173,8 +173,7 @@ object CookieAuthenticator {
 
       }
 
-      /**
-        * Create an authenticator from an identifier.
+      /** Create an authenticator from an identifier.
         *
         * @param body
         * @return
@@ -206,8 +205,7 @@ object CookieAuthenticator {
           case _ => None
         }
 
-      /**
-        * Renew an authenticator: Reset it's expiry and whatnot.
+      /** Renew an authenticator: Reset it's expiry and whatnot.
         *
         * @param authenticator
         * @return

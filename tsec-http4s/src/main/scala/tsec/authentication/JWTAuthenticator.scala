@@ -22,7 +22,7 @@ import cats.implicits._
 import scala.concurrent.duration.FiniteDuration
 
 sealed abstract class JWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
-    extends AuthenticatorEV[F, A, I, V, JWTMac]
+    extends Authenticator[F, A, I, V, JWTMac]
 
 sealed abstract class StatefulJWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
     extends JWTAuthenticator[F, A, I, V] {
@@ -415,7 +415,7 @@ object JWTAuthenticator {
       def update(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
         OptionT.pure[F](authenticator)
 
-      //The only "discarding" we can do to a stateless token is make it invalid.
+      /** The only "discarding" we can do to a stateless token is make it invalid. */
       def discard(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
         OptionT
           .liftF(
