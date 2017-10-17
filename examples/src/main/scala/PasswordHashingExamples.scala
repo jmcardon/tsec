@@ -1,5 +1,6 @@
 object PasswordHashingExamples {
 
+  import tsec.common._
   import tsec.passwordhashers._
   import tsec.passwordhashers.imports._
 
@@ -12,5 +13,14 @@ object PasswordHashingExamples {
 
   /** To Validate, you can check against a hash! */
   val check: Boolean = "hiThere".checkWithHash[BCrypt](bcryptHash)
+
+  /*
+  To Cast a hash to a plain string
+   */
+  bcryptHash.asString
+  /*
+  To cast a hash to a plain string
+   */
+  "hi".toStringRepr[BCrypt]
 
 }
