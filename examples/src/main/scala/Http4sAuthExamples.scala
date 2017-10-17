@@ -1,17 +1,15 @@
 import java.util.UUID
-
-import Http4sAuthExamples.Role.{Administrator, Customer, Seller}
-import cats.{Eq, Monad, MonadError}
+import cats._
 import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.HttpService
 import tsec.authentication._
-import tsec.cipher.symmetric.imports.{AES128, SecretKey}
-
-import scala.concurrent.duration._
+import tsec.authorization._
+import tsec.cipher.symmetric.imports._
 import scala.collection.mutable
+import scala.concurrent.duration._
 import org.http4s.dsl.io._
-import tsec.authorization.{AuthGroup, AuthorizationInfo, BasicRBAC, SimpleAuthEnum}
+
 
 object Http4sAuthExamples {
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Monad[F]) = new BackingStore[F, I, V] {
@@ -107,8 +105,8 @@ object Http4sAuthExamples {
   val Auth =
     SecuredRequestHandler.encryptedCookie(encryptedCookieAuth)
 
-  val onlyAdmins      = BasicRBAC[IO, User, Role](Administrator, Customer)
-  val adminsAndSeller = BasicRBAC[IO, User, Role](Administrator, Seller)
+  val onlyAdmins      = BasicRBAC[IO, User, Role](Role.Administrator, Role.Customer)
+  val adminsAndSeller = BasicRBAC[IO, User, Role](Role.Administrator, Role.Seller)
 
   /*
   Now from here, if want want to create services, we simply use the following

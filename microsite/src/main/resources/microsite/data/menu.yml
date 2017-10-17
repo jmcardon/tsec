@@ -2,3 +2,15 @@ options:
   - title: Symmetric Ciphers
     url: docs/symmetric.html
     section: symmetric-ciphers
+
+  - title: Password Hashers
+    url: docs/passwordhashers.html
+    section: password-hashers
+
+  - title: JWT
+    url: docs/jwt-mac.html
+    section: jwt
+
+  - title: Http4s-Auth
+    url: docs/http4s-auth.html
+    section: http4-auth
