@@ -1,0 +1,134 @@
+<html><head><title>TSec</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Jose Cardona" /><meta name="description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="og:image" content="/img/poster.png" /><meta name="og:title" content="TSec" /><meta name="og:site_name" content="TSec" /><meta name="og:url" content="https://jmcardon.github.io/tsec/" /><meta name="og:type" content="website" /><meta name="og:description" content="A Type-Safe General Cryptography Library on the JVM" /><link rel="icon" type="image/png" href="/img/favicon.png" /><meta name="twitter:title" content="TSec" /><meta name="twitter:image" content="https://jmcardon.github.io/tsec/img/poster.png" /><meta name="twitter:description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/highlight/styles/default.css" /><link rel="stylesheet" href="/css/style.css" /><link rel="stylesheet" href="/css/palette.css" /><link rel="stylesheet" href="/css/codemirror.css" /><link rel="stylesheet" href="/css/kazari-style.css" /><link rel="stylesheet" href="/css/monokai.css" /></head><body><header id="site-header"><div class="navbar-wrapper"><div class="container"><div class="row"><div class="col-xs-6"><a href="/" class="brand"><div class="icon-wrapper"><span>TSec</span></div></a></div><div class="col-xs-6"><nav class="text-right"><ul class=""><li><a href="https://github.com/jmcardon/tsec"><i class="fa fa-github"></i><span class="hidden-xs">GitHub</span></a></li><li><a href="docs/symmetric.html"><i class="fa fa-file-text"></i><span class="hidden-xs">Documentation</span></a></li></ul></nav></div></div></div></div><div class="jumbotron"><div class="container"><h1 class="text-center">A Type-Safe General Cryptography Library on the JVM</h1><h2></h2><p class="text-center"><a href="https://github.com/jmcardon/tsec" class="btn btn-outline-inverse">View on GitHub</a></p></div></div><div><ul class="horizontalNav">                     <li><a class="" href="/home.html">Home</a></li>  <li><a class="" href="/documentation.html">Documentation</a></li>  <li><a class="" href="/motivation.html">Motivation</a></li> </ul></div></header><main id="site-main"><section class="use"><div class="container"><div id="content"><h1 id="tsec---tagless-security">TSec - Tagless Security</h1>
+
+<p><strong>TSec</strong> Is a type-safe general cryptography library on the JVM.</p>
+
+<p><a href="https://gitter.im/tsecc/Lobby?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/tsecc/Lobby.svg" alt="Join the chat at https://gitter.im/tsecc/Lobby" /></a>
+<a href="https://travis-ci.org/jmcardon/tsec"><img src="https://travis-ci.org/jmcardon/tsec.svg?branch=master" alt="Build Status" /></a></p>
+
+<p>For the current progress, please refer to the <a href="https://github.com/jmcardon/tsec/wiki">RoadMap</a></p>
+
+<p>0.0.1-M2 is here for scala 2.12+ and Cats 1.0.0-MF!</p>
+
+<p>To get started, if you are on sbt 0.13.16+, add</p>
+
+<div class="language-scala highlighter-rouge"><pre class="codehilite"><code><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">"jmcardon at bintray"</span> <span class="n">at</span> <span class="s">"https://dl.bintray.com/jmcardon/tsec"</span>
+</code></pre></div>
+
+<p>or with the bintray plugin:</p>
+
+<div class="language-scala highlighter-rouge"><pre class="codehilite"><code><span class="n">resolvers</span> <span class="o">+=</span> <span class="nc">Resolver</span><span class="o">.</span><span class="n">bintrayRepo</span><span class="o">(</span><span class="s">"jmcardon"</span><span class="o">,</span> <span class="s">"tsec"</span><span class="o">)</span>
+</code></pre></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Examples</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>tsec-common</td>
+      <td>Common crypto utilities</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>tsec-password</td>
+      <td>Password hashers: BCrypt and Scrypt</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/PasswordHashingExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-symmetric-cipher</td>
+      <td>Symmetric encryption utilities!</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SymmetricCipherExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-mac</td>
+      <td>Message Authentication</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MacExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-signatures</td>
+      <td>Digital signatures</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SignatureExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-messageDigests</td>
+      <td>Message Digests (Hashing)</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-jwt-mac</td>
+      <td>JWT implementation for Message Authentication signatures</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTMacExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-jwt-sig</td>
+      <td>JWT implementation for Digital signatures</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTSignatureExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-http4s</td>
+      <td>Http4s Request Authentication and Authorization</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/Http4sAuthExamples.scala">here</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To include any of these packages in your project use:</p>
+
+<div class="language-scala highlighter-rouge"><pre class="codehilite"><code><span class="k">val</span> <span class="n">tsecV</span> <span class="k">=</span> <span class="s">"0.0.1-M2"</span>
+ <span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-common"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-password"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-symmetric-cipher"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-mac"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-signatures"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-md"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-jwt-mac"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-jwt-sig"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-http4s"</span> <span class="o">%</span> <span class="n">tsecV</span>
+<span class="o">)</span>
+</code></pre></div>
+
+<h2 id="testing">Testing:</h2>
+
+<p>All tests can be run locally, but make sure you have the 
+<a href="http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html">Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy</a>
+installed for tests that use Keys larger than 128 bits. More information under <a href="/docs/symmetric.html">symmetric cipher</a> in the docs.</p>
+
+<h2 id="inspirations">Inspirations:</h2>
+
+<p><a href="https://github.com/mohiva/play-silhouette">play-silhouette</a></p>
+
+<p><a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html">JCA</a></p>
+
+<p><a href="http://www.bouncycastle.org/">Bouncy Castle</a></p>
+
+<p><a href="https://github.com/pauldijou/jwt-scala">jwt-scala</a></p>
+
+<h2 id="big-thanks-to">Big Thanks to:</h2>
+
+<p><a href="https://github.com/rsoeldner">Robert Soeldner</a> (Contributor)</p>
+
+<p><a href="https://github.com/edmundnoble">Edmund Noble</a> (For the dank tagless)</p>
+
+<p><a href="https://github.com/systemfw">Fabio Labella</a> (For the great FP help)</p>
+
+<p><a href="https://github.com/ChristopherDavenport">Christopher Davenport</a>(Contributor)</p>
+</div></div></section><section class="technologies"><div class="container"><div class="row">
+            <div class="col-md-4"><div class="first-icon-wrapper"></div><h3>Scala</h3><p>sbt-microsites plugin is completely written in Scala</p></div>
+          
+            <div class="col-md-4"><div class="second-icon-wrapper"></div><h3>SBT</h3><p>sbt-microsites plugin uses SBT and other sbt plugins to generate microsites easily</p></div>
+          
+            <div class="col-md-4"><div class="third-icon-wrapper"></div><h3>Jekyll</h3><p>Jekyll allows for the transformation of plain text into static websites and blogs.</p></div>
+          </div></div></section></main><footer id="site-footer"><div class="container"><div class="row"><div class="col-xs-6"><p>TSec is designed and developed by <a href="" target="_blank">Jose Cardona</a></p></div><div class="col-xs-6"><p class="text-right"><a href="https://github.com/jmcardon/tsec"><span class="fa fa-github"></span>View on GitHub</a></p></div></div><div class="row"><div class="col-xs-6"><p>Website built with <a href="https://47deg.github.io/sbt-microsites/" target="_blank">Sbt-microsites</a> - © 2016 <a href="https://www.47deg.com/" target="_blank">47 Degrees</a></p></div></div></div></footer><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/highlight/highlight.pack.js"></script><script>hljs.configure({
+languages:['scala','java','bash']
+});
+hljs.initHighlighting();
+             </script><script src="/js/kazari.js"></script><script>
+$(document).ready(function() {
+	kazari.KazariPlugin().decorateCode('https://scala-evaluator-212.herokuapp.com/eval', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.S2F6YXJp.Jl2eqMfw8IakJF93PjxTbrf-8YUJgX5OoOfy5JHE8Yw', '', 'monokai')
+})
+    </script></body></html>

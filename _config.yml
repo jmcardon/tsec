@@ -1,0 +1,11 @@
+name: TSec
+baseurl: ''
+description: A Type-Safe General Cryptography Library on the JVM
+highlighter: rouge
+docs: true
+collections:
+  tut:
+    output: true
+version: 0.0.1-M2
+org: io.github.jmcardon
+markdown: kramdown
