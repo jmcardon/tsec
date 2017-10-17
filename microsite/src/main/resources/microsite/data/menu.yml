@@ -14,3 +14,8 @@ options:
   - title: Http4s-Auth
     url: docs/http4s-auth.html
     section: http4-auth
+
+  - title: Message Authentication Code
+    url: docs/message-authentication-code.html
+    section: mac
+
