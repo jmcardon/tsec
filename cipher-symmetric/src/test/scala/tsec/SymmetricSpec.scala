@@ -157,7 +157,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           encrypted <- instance.encryptAAD(testPlainText, key1, aad1)
           decrypted <- instance.decryptAAD(encrypted, key1, aad2)
         } yield new String(decrypted.content, "UTF-8")
-        if (!testMessage.isEmpty)
+        if (!testMessage.isEmpty && !AAD1.isEmpty && !AAD2.isEmpty)
           testEncryptionDecryption mustNot equal(Right(testMessage))
       }
     }
