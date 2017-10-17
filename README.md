@@ -10,11 +10,11 @@ ________________________________________
 
 [![Join the chat at https://gitter.im/tsecc/Lobby](https://badges.gitter.im/tsecc/Lobby.svg)](https://gitter.im/tsecc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-### Latest Release: 0.0.1-M1
+### Latest Release: 0.0.1-M2
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
-0.0.1-M1 is here for scala 2.12+ and Cats 1.0.0-MF!
+0.0.1-M2 is here for scala 2.12+ and Cats 1.0.0-MF!
 
 To get started, if you are on sbt 0.13.16+, add
 
@@ -43,7 +43,7 @@ resolvers += "jmcardon at bintray" at "https://dl.bintray.com/jmcardon/tsec"
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M1"
+val tsecV = "0.0.1-M2"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
