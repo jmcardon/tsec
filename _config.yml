@@ -6,6 +6,6 @@ docs: true
 collections:
   tut:
     output: true
-version: 0.0.1-M2
+version: 0.0.1-M3
 org: io.github.jmcardon
 markdown: kramdown
