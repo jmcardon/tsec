@@ -84,3 +84,7 @@ then use:
 [Fabio Labella](https://github.com/systemfw) (For the great FP help)
 
 [Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor)
+
+[Bjørn Madsen](https://github.com/aeons) (Contributor)
+
+[Will Sargent](https://github.com/wsargent) (Security Discussions)
