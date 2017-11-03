@@ -4,15 +4,15 @@ import Keys._
 object Dependencies {
 
   object Versions {
-    val circeV        = "0.9.0-M1"
-    val catsV         = "1.0.0-MF"
-    val catsEffV      = "0.4"
+    val circeV        = "0.9.0-M2"
+    val catsV         = "1.0.0-RC1"
+    val catsEffV      = "0.5"
     val thymeV        = "0.1.2-SNAPSHOT"
     val bouncyCastleV = "1.52"
     val jBCryptV      = "0.4.1"
     val sCryptV       = "1.4.0"
-    val scalaTestV    = "3.0.1"
-    val http4sV       = "0.18.0-M4"
+    val scalaTestV    = "3.0.4"
+    val http4sV       = "0.18.0-M5"
     val scalacheckV   = "1.13.4"
   }
 
@@ -30,7 +30,7 @@ object Dependencies {
     val circeParser        = "io.circe"           %% "circe-parser"         % Versions.circeV
     val http4sdsl          = "org.http4s"         %% "http4s-dsl"           % Versions.http4sV
     val http4sServer       = "org.http4s"         %% "http4s-server"        % Versions.http4sV
-    val http4sCirce        = "org.http4s"         %% "http4s-circe"        % Versions.http4sV % "test"
+    val http4sCirce        = "org.http4s"         %% "http4s-circe"         % Versions.http4sV % "test"
     val scalaCheck         = "org.scalacheck"     %% "scalacheck"           % Versions.scalacheckV % "test"
   }
 
