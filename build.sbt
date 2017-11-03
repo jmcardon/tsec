@@ -2,7 +2,7 @@ import Dependencies._
 
 name := "tsec"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.4"
 
 lazy val scalacOpts = scalacOptions := Seq(
   "-unchecked",
