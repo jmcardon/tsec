@@ -104,7 +104,7 @@ object JWSMacCV {
 
   implicit def genSignerIO[A: ByteEV](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMacPure[A]
+      alg: JCAMacPure[IO, A]
   ): JWSMacCV[IO, A] =
     new JWSMacCV[IO, A]() {}
 
