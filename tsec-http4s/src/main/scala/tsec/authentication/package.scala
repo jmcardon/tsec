@@ -104,7 +104,7 @@ package object authentication {
     * @param extension
     */
   final case class TSecCookieSettings(
-      cookieName: String,
+      cookieName: String = "tsec-auth-cookie",
       secure: Boolean,
       httpOnly: Boolean = true,
       domain: Option[String] = None,
@@ -115,7 +115,7 @@ package object authentication {
   )
 
   final case class TSecJWTSettings(
-      headerName: String,
+      headerName: String = "X-TSec-JWT",
       expirationTime: FiniteDuration,
       maxIdle: Option[FiniteDuration]
   )
