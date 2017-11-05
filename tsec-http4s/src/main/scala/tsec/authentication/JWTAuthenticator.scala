@@ -1,7 +1,6 @@
 package tsec.authentication
 
 import java.time.Instant
-import java.util.UUID
 
 import cats.{Monad, MonadError}
 import cats.data.OptionT
@@ -27,7 +26,7 @@ sealed abstract class JWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacC
 sealed abstract class StatefulJWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
     extends JWTAuthenticator[F, A, I, V] {
   def withSettings(settings: TSecJWTSettings): StatefulJWTAuthenticator[F, A, I, V]
-  def withTokenStore(tokenStore: BackingStore[F, UUID, JWTMac[A]]): StatefulJWTAuthenticator[F, A, I, V]
+  def withTokenStore(tokenStore: BackingStore[F, SecureRandomId, JWTMac[A]]): StatefulJWTAuthenticator[F, A, I, V]
   def withIdentityStore(identityStore: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, A, I, V]
   def withSigningKey(signingKey: MacSigningKey[A]): StatefulJWTAuthenticator[F, A, I, V]
   def withEncryptionKey[E: Encryptor](encryptionKey: SecretKey[E]): StatefulJWTAuthenticator[F, A, I, V]
@@ -63,7 +62,7 @@ object JWTAuthenticator {
 
   def withBackingStore[F[_], A: ByteEV: JWTMacAlgo: MacTag, I: Decoder: Encoder, V, E](
       settings: TSecJWTSettings,
-      tokenStore: BackingStore[F, UUID, JWTMac[A]],
+      tokenStore: BackingStore[F, SecureRandomId, JWTMac[A]],
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
@@ -77,7 +76,7 @@ object JWTAuthenticator {
       def withSettings(s: TSecJWTSettings): StatefulJWTAuthenticator[F, A, I, V] =
         withBackingStore(s, tokenStore, identityStore, signingKey, encryptionKey)
 
-      def withTokenStore(ts: BackingStore[F, UUID, JWTMac[A]]): StatefulJWTAuthenticator[F, A, I, V] =
+      def withTokenStore(ts: BackingStore[F, SecureRandomId, JWTMac[A]]): StatefulJWTAuthenticator[F, A, I, V] =
         withBackingStore(settings, ts, identityStore, signingKey, encryptionKey)
 
       def withIdentityStore(is: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, A, I, V] =
@@ -177,7 +176,7 @@ object JWTAuthenticator {
             request.headers.get(CaseInsensitiveString(settings.headerName))
           )
           extracted <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey))
-          retrieved <- tokenStore.get(extracted.id)
+          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
           internal <- OptionT.fromOption[F](
             extracted.body.custom.flatMap(_.as[JWTInternal].toOption)
           )
@@ -189,7 +188,7 @@ object JWTAuthenticator {
 
       def create(body: I): OptionT[F, JWTMac[A]] = {
         val now         = Instant.now()
-        val cookieId    = UUID.randomUUID()
+        val cookieId    = SecureRandomId.generate
         val expiry      = now.plusSeconds(settings.expirationTime.toSeconds).getEpochSecond
         val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         val messageBody = encodeI(body, lastTouched).toOption
@@ -214,7 +213,7 @@ object JWTAuthenticator {
 
       def discard(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
         for {
-          auth <- OptionT.liftF(tokenStore.delete(authenticator.id)).mapFilter {
+          auth <- OptionT.liftF(tokenStore.delete(SecureRandomId.coerce(authenticator.id))).mapFilter {
             case 1 => Some(authenticator)
             case _ => None
           }
@@ -400,7 +399,7 @@ object JWTAuthenticator {
         */
       def create(body: I): OptionT[F, JWTMac[A]] = {
         val now         = Instant.now()
-        val cookieId    = UUID.randomUUID()
+        val cookieId    = SecureRandomId.generate
         val expiry      = now.plusSeconds(settings.expirationTime.toSeconds).getEpochSecond
         val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
         val messageBody = encodeI(body, lastTouched).toOption
@@ -423,7 +422,7 @@ object JWTAuthenticator {
               authenticator.body.copy(
                 expiration = Some(Instant.now().getEpochSecond),
                 custom = None,
-                jwtId = UUID.randomUUID()
+                jwtId = SecureRandomId.generate
               ),
               signingKey
             )

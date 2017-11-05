@@ -38,7 +38,8 @@ lazy val commonSettings = Seq(
     Libraries.cats,
     Libraries.catsEffect,
     Libraries.scalaTest,
-    Libraries.scalaCheck
+    Libraries.scalaCheck,
+    Libraries.commonsCodec
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion in ThisBuild := "2.12.3",

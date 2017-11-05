@@ -50,7 +50,7 @@ package object mode {
       /** Cache our random, and seed it properly as per
         * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
         */
-      private val cachedRand: SecureRandom = {
+      private var cachedRand: SecureRandom = {
         val r = new SecureRandom()
         r.nextBytes(new Array[Byte](20))
         r
@@ -60,11 +60,13 @@ package object mode {
         * After a sensible Integer.MaxValue/2 times, we should reseed
         */
       private val adder: LongAdder = new LongAdder
-      private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong
+      private val MaxBeforeReseed  = (Integer.MAX_VALUE / 5).toLong
 
       private def reSeed(): Unit = {
         adder.reset()
-        cachedRand.nextBytes(new Array[Byte](20))
+        val tmpRand = new SecureRandom()
+        tmpRand.nextBytes(new Array[Byte](20))
+        cachedRand = tmpRand
       }
 
       override lazy val algorithm: String = repr
@@ -74,7 +76,7 @@ package object mode {
 
       def genIv: ParameterSpec[T] = {
         adder.increment()
-        if (adder.sum() >= MaxBeforeReseed)
+        if (adder.sum() == MaxBeforeReseed)
           reSeed()
 
         val byteArray = new Array[Byte](ivLen)

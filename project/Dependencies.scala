@@ -14,6 +14,7 @@ object Dependencies {
     val scalaTestV    = "3.0.4"
     val http4sV       = "0.18.0-M5"
     val scalacheckV   = "1.13.4"
+    val commonsCodecV = "1.11"
   }
 
   object Libraries {
@@ -32,6 +33,7 @@ object Dependencies {
     val http4sServer       = "org.http4s"         %% "http4s-server"        % Versions.http4sV
     val http4sCirce        = "org.http4s"         %% "http4s-circe"         % Versions.http4sV % "test"
     val scalaCheck         = "org.scalacheck"     %% "scalacheck"           % Versions.scalacheckV % "test"
+    val commonsCodec       = "commons-codec"      % "commons-codec"         % Versions.commonsCodecV
   }
 
 }

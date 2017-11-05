@@ -44,7 +44,7 @@ trait CipherModes {
       /** Cache our random, and seed it properly as per
         * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
         */
-      private val cachedRand: SecureRandom = {
+      private var cachedRand: SecureRandom = {
         val r = new SecureRandom()
         r.nextBytes(new Array[Byte](20))
         r
@@ -58,7 +58,9 @@ trait CipherModes {
 
       private def reSeed(): Unit = {
         adder.reset()
-        cachedRand.nextBytes(new Array[Byte](20))
+        val tmpRand = new SecureRandom()
+        tmpRand.nextBytes(new Array[Byte](20))
+        cachedRand = tmpRand
       }
 
       def algorithm: String = "GCM"
@@ -67,7 +69,7 @@ trait CipherModes {
 
       def genIv: ParameterSpec[GCM] = {
         adder.increment()
-        if (adder.sum() >= MaxBeforeReseed)
+        if (adder.sum() == MaxBeforeReseed)
           reSeed()
 
         val newBytes = new Array[Byte](12)

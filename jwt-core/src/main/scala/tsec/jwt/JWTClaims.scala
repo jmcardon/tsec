@@ -9,6 +9,7 @@ import io.circe._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
+import tsec.common.SecureRandomId
 import tsec.jws.JWSSerializer
 
 import scala.concurrent.duration.FiniteDuration
@@ -20,7 +21,7 @@ case class JWTClaims(
     expiration: Option[Long] = None,
     notBefore: Option[Long] = None,
     issuedAt: Option[Long] = Some(Instant.now().getEpochSecond), // IEEE Std 1003.1, 2013 Edition time in seconds
-    jwtId: UUID = UUID.randomUUID(), //Case sensitive, and in our implementation, secure enough using UUIDv4
+    jwtId: String = SecureRandomId.generate, //Case sensitive, and in our implementation, secure enough using UUIDv4
     custom: Option[Json] = None // non standard. I copped out. Other things are most likely too inefficient to use
 ) {
   def withExpiry(duration: FiniteDuration): JWTClaims =
@@ -44,7 +45,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       audience: Option[Either[String, List[String]]] = None, //case-sensitive
       expiration: Option[FiniteDuration],
       notBefore: Option[FiniteDuration] = None,
-      jwtId: UUID = UUID.randomUUID(), //Case sensitive
+      jwtId: String = SecureRandomId.generate, //Case sensitive
       custom: Option[Json] = None
   ): JWTClaims = {
     val now = Instant.now().getEpochSecond
@@ -91,7 +92,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
         expiration <- c.downField("exp").as[Option[Long]]
         nbf        <- c.downField("nbf").as[Option[Long]]
         iat        <- c.downField("iat").as[Option[Long]]
-        jwtid      <- c.downField("jti").as[UUID]
+        jwtid      <- c.downField("jti").as[String]
         custom = c.downField("custom").focus
       } yield JWTClaims(iss, sub, aud, expiration, nbf, iat, jwtid, custom)
   }

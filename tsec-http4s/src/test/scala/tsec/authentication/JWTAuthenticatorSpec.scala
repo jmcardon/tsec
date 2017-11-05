@@ -9,12 +9,12 @@ import org.http4s.{Header, HttpDate, Request}
 import io.circe.syntax._
 import tsec.authentication.JWTAuthenticator.JWTInternal
 import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
-import tsec.common.ByteEV
+import tsec.common.{ByteEV, SecureRandomId}
 import tsec.jws.mac.{JWSMacCV, JWTMac, JWTMacM}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.imports.{MacKeyGenerator, MacTag}
-
 import io.circe.generic.auto._
+
 import scala.concurrent.duration._
 
 class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
@@ -26,18 +26,19 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       Some(10.minutes)
     )
 
-  implicit def backingStore[A]: BackingStore[IO, UUID, JWTMac[A]] = dummyBackingStore[IO, UUID, JWTMac[A]](_.id)
+  implicit def backingStore[A]: BackingStore[IO, SecureRandomId, JWTMac[A]] =
+    dummyBackingStore[IO, SecureRandomId, JWTMac[A]](s => SecureRandomId.coerce(s.id))
 
   def genStatefulAuthenticator[A: ByteEV: JWTMacAlgo: MacTag, E](
       implicit cv: JWSMacCV[IO, A],
       enc: Encryptor[E],
       eKeyGen: CipherKeyGen[E],
       macKeyGen: MacKeyGenerator[A],
-      store: BackingStore[IO, UUID, JWTMac[A]]
+      store: BackingStore[IO, SecureRandomId, JWTMac[A]]
   ): AuthSpecTester[A, JWTMac] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val macKey    = macKeyGen.generateKeyUnsafe()
-    val cryptoKey = eKeyGen.generateKeyUnsafe()
+    val macKey     = macKeyGen.generateKeyUnsafe()
+    val cryptoKey  = eKeyGen.generateKeyUnsafe()
     val auth = JWTAuthenticator.withBackingStore[IO, A, Int, DummyUser, E](
       settings,
       store,
@@ -72,8 +73,6 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
           _ <- OptionT.liftF(store.update(newToken))
         } yield newToken
 
-
-
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator
           .withBackingStore[IO, A, Int, DummyUser, E](
@@ -94,8 +93,8 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[A, JWTMac] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val macKey    = macKeyGen.generateKeyUnsafe()
-    val cryptoKey = eKeyGen.generateKeyUnsafe()
+    val macKey     = macKeyGen.generateKeyUnsafe()
+    val cryptoKey  = eKeyGen.generateKeyUnsafe()
     val auth = JWTAuthenticator.stateless[IO, A, Int, DummyUser, E](
       settings,
       dummyStore,
@@ -126,7 +125,6 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
               .build[IO, A](b.body.copy(custom = Some(newInternal.asJson)), macKey)
           }
         } yield newToken
-
 
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator
