@@ -22,7 +22,7 @@ import cats.implicits._
 import tsec.jwt.JWTPrinter
 
 sealed abstract class EncryptedCookieAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
-    extends Authenticator[F, A, I, V, AuthEncryptedCookie[?, I]]
+    extends Authenticator[F, I, V, AuthEncryptedCookie[A, I]]
 
 sealed abstract class StatefulECAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
     extends EncryptedCookieAuthenticator[F, A, I, V] {

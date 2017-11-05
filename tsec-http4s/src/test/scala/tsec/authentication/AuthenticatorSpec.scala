@@ -37,23 +37,22 @@ object DummyUser {
   * This contains utilities that are not present currently under the `Authenticator`
   * class that are necessary for testing.
   *
-  * @tparam A
   */
-protected[authentication] abstract case class AuthSpecTester[A, Auth[_]](
-    auth: Authenticator[IO, A, Int, DummyUser, Auth],
+protected[authentication] abstract case class AuthSpecTester[Auth](
+    auth: Authenticator[IO, Int, DummyUser, Auth],
     dummyStore: BackingStore[IO, Int, DummyUser]
 ) {
 
-  def embedInRequest(request: Request[IO], authenticator: Auth[A]): Request[IO]
+  def embedInRequest(request: Request[IO], authenticator: Auth): Request[IO]
 
-  def expireAuthenticator(b: Auth[A]): OptionT[IO, Auth[A]]
+  def expireAuthenticator(b: Auth): OptionT[IO, Auth]
 
-  def timeoutAuthenticator(b: Auth[A]): OptionT[IO, Auth[A]]
+  def timeoutAuthenticator(b: Auth): OptionT[IO, Auth]
 
-  def wrongKeyAuthenticator: OptionT[IO, Auth[A]]
+  def wrongKeyAuthenticator: OptionT[IO, Auth]
 }
 
-abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with PropertyChecks with BeforeAndAfterEach {
+abstract class AuthenticatorSpec extends TestSpec with MustMatchers with PropertyChecks with BeforeAndAfterEach {
 
   implicit val genDummy: Arbitrary[DummyUser] = Arbitrary(for {
     i <- Gen.chooseNum[Int](0, Int.MaxValue)
@@ -88,7 +87,7 @@ abstract class AuthenticatorSpec[B[_]] extends TestSpec with MustMatchers with P
     def dAll(): Unit = storageMap.clear()
   }
 
-  def AuthenticatorTest[A](title: String, authSpec: AuthSpecTester[A, B]) = {
+  def AuthenticatorTest[A](title: String, authSpec: AuthSpecTester[A]) = {
     behavior of title
 
     it should "Create, embed and extract properly" in {

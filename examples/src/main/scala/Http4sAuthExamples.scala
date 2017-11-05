@@ -103,7 +103,7 @@ object Http4sAuthExamples {
     )
 
   val Auth =
-    SecuredRequestHandler.encryptedCookie(encryptedCookieAuth)
+    SecuredRequestHandler(encryptedCookieAuth)
 
   val onlyAdmins      = BasicRBAC[IO, User, Role](Role.Administrator, Role.Customer)
   val adminsAndSeller = BasicRBAC[IO, User, Role](Role.Administrator, Role.Seller)

@@ -17,7 +17,7 @@ import io.circe.generic.auto._
 
 import scala.concurrent.duration._
 
-class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
+class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
 
   private val settings =
     TSecJWTSettings(
@@ -35,7 +35,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       eKeyGen: CipherKeyGen[E],
       macKeyGen: MacKeyGenerator[A],
       store: BackingStore[IO, SecureRandomId, JWTMac[A]]
-  ): AuthSpecTester[A, JWTMac] = {
+  ): AuthSpecTester[JWTMac[A]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()
@@ -46,7 +46,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       macKey,
       cryptoKey
     )
-    new AuthSpecTester[A, JWTMac](auth, dummyStore) {
+    new AuthSpecTester[JWTMac[A]](auth, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: JWTMac[A]): Request[IO] =
         request.withHeaders(
@@ -91,7 +91,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       enc: Encryptor[E],
       eKeyGen: CipherKeyGen[E],
       macKeyGen: MacKeyGenerator[A]
-  ): AuthSpecTester[A, JWTMac] = {
+  ): AuthSpecTester[JWTMac[A]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()
@@ -101,7 +101,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec[JWTMac] {
       macKey,
       cryptoKey
     )
-    new AuthSpecTester[A, JWTMac](auth, dummyStore) {
+    new AuthSpecTester[JWTMac[A]](auth, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: JWTMac[A]): Request[IO] =
         request.withHeaders(

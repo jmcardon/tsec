@@ -21,7 +21,7 @@ import cats.implicits._
 import scala.concurrent.duration.FiniteDuration
 
 sealed abstract class JWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
-    extends Authenticator[F, A, I, V, JWTMac]
+    extends Authenticator[F, I, V, JWTMac[A]]
 
 sealed abstract class StatefulJWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
     extends JWTAuthenticator[F, A, I, V] {

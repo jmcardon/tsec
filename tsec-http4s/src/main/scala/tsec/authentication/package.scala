@@ -6,7 +6,7 @@ import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import org.http4s.server.Middleware
-import org.http4s.headers.{Cookie => C}
+import org.http4s.headers.{Authorization, Cookie => C}
 import cats.instances.all._
 import cats.syntax.eq._
 import cats.syntax.either._
@@ -114,6 +114,11 @@ package object authentication {
       maxIdle: Option[FiniteDuration]
   )
 
+  final case class TSecTokenSettings(
+      expirationTime: FiniteDuration,
+      maxIdle: Option[FiniteDuration]
+  )
+
   final case class TSecJWTSettings(
       headerName: String = "X-TSec-JWT",
       expirationTime: FiniteDuration,
@@ -122,6 +127,15 @@ package object authentication {
 
   def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, Cookie] =
     OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))
+
+  def extractBearerToken[F[_]: Monad](request: Request[F]): Option[String] =
+    request.headers.get(Authorization).flatMap { t =>
+      t.credentials match {
+        case Credentials.Token(scheme, token) if scheme == AuthScheme.Bearer =>
+          Some(token)
+        case _ => None
+      }
+    }
 
   implicit val HttpDateLongDecoder: Decoder[HttpDate] = new Decoder[HttpDate] {
     def apply(c: HCursor): Result[HttpDate] =

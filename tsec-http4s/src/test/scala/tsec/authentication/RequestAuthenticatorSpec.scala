@@ -10,15 +10,15 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import tsec.authorization.BasicRBAC
 
-class RequestAuthenticatorSpec[B[_]] extends AuthenticatorSpec[B] {
+class RequestAuthenticatorSpec extends AuthenticatorSpec  {
 
-  def RequestAuthTests[A](title: String, authSpec: AuthSpecTester[A, B]) {
+  def RequestAuthTests[A](title: String, authSpec: AuthSpecTester[A]) {
 
     behavior of "SecuredRequests: " + title
 
     val dummyBob = DummyUser(0)
 
-    val requestAuth: SecuredRequestHandler[IO, A, Int, DummyUser, B] = SecuredRequestHandler(authSpec.auth)
+    val requestAuth: SecuredRequestHandler[IO, Int, DummyUser, A] = SecuredRequestHandler(authSpec.auth)
 
     //Add bob to the db
     authSpec.dummyStore.put(dummyBob).unsafeRunSync()
