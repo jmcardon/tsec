@@ -19,13 +19,13 @@ import scala.util.control.NonFatal
 package object authentication {
 
   trait BackingStore[F[_], I, V] {
-    def put(elem: V): F[Int]
+    def put(elem: V): F[V]
 
     def get(id: I): OptionT[F, V]
 
-    def update(v: V): F[Int]
+    def update(v: V): F[V]
 
-    def delete(id: I): F[Int]
+    def delete(id: I): F[Unit]
   }
 
   type AuthExtractorService[F[_], A, I] = Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, A, I]]

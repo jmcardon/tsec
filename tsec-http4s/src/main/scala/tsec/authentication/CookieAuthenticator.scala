@@ -194,16 +194,10 @@ object CookieAuthenticator {
       }
 
       def update(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.update(authenticator)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.update(authenticator))
 
       def discard(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.delete(authenticator.id)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.delete(authenticator.id)).map(_ => authenticator)
 
       /** Renew an authenticator: Reset it's expiry and whatnot.
         *

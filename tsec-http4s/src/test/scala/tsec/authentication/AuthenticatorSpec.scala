@@ -2,7 +2,7 @@ package tsec.authentication
 
 import cats.data.OptionT
 import cats.effect.IO
-import cats.{Eq, Id, Monad}
+import cats.{Eq, Id, Monad, MonadError}
 import tsec.TestSpec
 import org.http4s._
 import org.http4s.dsl._
@@ -59,29 +59,27 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     s <- Gen.alphaNumStr
   } yield DummyUser(i, s))
 
-  def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Monad[F]) = new BackingStore[F, I, V] {
+  def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: MonadError[F, Throwable]) = new BackingStore[F, I, V] {
     val storageMap = mutable.HashMap.empty[I, V]
 
-    def put(elem: V): F[Int] = {
+    def put(elem: V): F[V] = {
       val map = storageMap.put(getId(elem), elem)
-      if (map.isEmpty)
-        F.pure(1)
-      else
-        F.pure(0)
+      F.pure(elem)
     }
 
     def get(id: I): OptionT[F, V] =
       OptionT.fromOption[F](storageMap.get(id))
 
-    def update(v: V): F[Int] = {
+    def update(v: V): F[V] = {
       storageMap.update(getId(v), v)
-      F.pure(1)
+      F.pure(v)
     }
 
-    def delete(id: I): F[Int] =
+    def delete(id: I): F[Unit] =
       storageMap.remove(id) match {
-        case Some(_) => F.pure(1)
-        case None    => F.pure(0)
+        case Some(_) => F.unit
+        case None =>
+          F.raiseError(new IllegalArgumentException)
       }
 
     def dAll(): Unit = storageMap.clear()
@@ -115,9 +113,8 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           expired <- authSpec.expireAuthenticator(auth)
           updated <- authSpec.auth.update(expired)
           req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
-          _       <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
-          .handleErrorWith(_ => OptionT.none)
+          .handleErrorWith(_ => OptionT.liftF(authSpec.dummyStore.delete(dummy1.id)).flatMap(_ => OptionT.none)) // Only delete if it fails as expected
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe true
@@ -150,9 +147,8 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           expired <- authSpec.timeoutAuthenticator(auth)
           updated <- authSpec.auth.update(expired)
           req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
-          _       <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
-          .handleErrorWith(_ => OptionT.none)
+          .handleErrorWith(_ => OptionT.liftF(authSpec.dummyStore.delete(dummy1.id)).flatMap(_ => OptionT.none))
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe true
@@ -185,7 +181,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           req2  <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
           _     <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
-          .handleErrorWith(_ => OptionT.none)
+          .handleErrorWith(_ => OptionT.liftF(authSpec.dummyStore.delete(dummy1.id)).flatMap(_ => OptionT.none))
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe true

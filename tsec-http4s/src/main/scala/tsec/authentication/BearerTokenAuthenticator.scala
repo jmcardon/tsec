@@ -78,25 +78,14 @@ object BearerTokenAuthenticator {
           now.plusSeconds(settings.expirationTime.toSeconds),
           settings.maxIdle.map(_ => now)
         )
-        OptionT.liftF(tokenStore.put(newToken)).mapFilter {
-          case 1 =>
-            Some(newToken)
-          case _ =>
-            None
-        }
+        OptionT.liftF(tokenStore.put(newToken))
       }
 
       def update(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] =
-        OptionT.liftF(tokenStore.update(authenticator)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.update(authenticator))
 
       def discard(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] =
-        OptionT.liftF(tokenStore.delete(authenticator.id)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.delete(authenticator.id)).map(_ => authenticator)
 
       def renew(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] = {
         val now = Instant.now()

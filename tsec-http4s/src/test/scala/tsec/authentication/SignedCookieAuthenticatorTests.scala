@@ -12,7 +12,7 @@ import tsec.common.ByteEV
 
 import scala.concurrent.duration._
 
-class CookieAuthenticatorTests extends RequestAuthenticatorSpec {
+class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
 
   private val cookieName                     = "hi"
   implicit def cookiebackingStore[A: MacTag] = dummyBackingStore[IO, UUID, AuthenticatedCookie[A, Int]](_.id)

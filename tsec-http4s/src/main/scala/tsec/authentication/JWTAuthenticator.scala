@@ -204,20 +204,10 @@ object JWTAuthenticator {
       }
 
       def update(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
-        for {
-          auth <- OptionT.liftF(tokenStore.update(authenticator)).mapFilter {
-            case 1 => Some(authenticator)
-            case _ => None
-          }
-        } yield auth
+        OptionT.liftF(tokenStore.update(authenticator))
 
       def discard(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
-        for {
-          auth <- OptionT.liftF(tokenStore.delete(SecureRandomId.coerce(authenticator.id))).mapFilter {
-            case 1 => Some(authenticator)
-            case _ => None
-          }
-        } yield auth
+          OptionT.liftF(tokenStore.delete(SecureRandomId.coerce(authenticator.id))).map(_ => authenticator)
 
       def renew(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] = {
         val now           = Instant.now()
