@@ -13,7 +13,7 @@ trait ManagedRandom {
     * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
     * Random may block on linux machiens
     */
-  protected[tsec] var cachedRand: SecureRandom = {
+  private var cachedRand: SecureRandom = {
     val r = new SecureRandom()
     r.nextBytes(new Array[Byte](20))
     r
