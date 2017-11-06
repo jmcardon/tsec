@@ -38,17 +38,17 @@ trait CipherModes {
       *  Iv length of 96 bits is recommended as per the spec on page 8
       */
     val GCMTagLength        = 128
-    val GCMIvOptionalLength = 12
+    val GCMIVStandardLength = 12
     implicit lazy val spec = new AEADMode[GCM] with ManagedRandom { self =>
 
-      val ivLength: Int = GCMIvOptionalLength
+      val ivLength: Int = GCMIVStandardLength
 
       def algorithm: String = "GCM"
       def buildIvFromBytes(specBytes: Array[Byte]): ParameterSpec[GCM] =
         ParameterSpec.fromSpec[GCM](new GCMParameterSpec(GCMTagLength, specBytes))(self)
 
       def genIv: ParameterSpec[GCM] = {
-        val newBytes = new Array[Byte](12)
+        val newBytes = new Array[Byte](GCMIVStandardLength)
         nextBytes(newBytes)
         ParameterSpec.fromSpec[GCM](new GCMParameterSpec(GCMTagLength, newBytes))(self)
       }
