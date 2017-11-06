@@ -1,10 +1,9 @@
 package tsec.authentication
 
-import cats.{Monad, MonadError}
-import cats.data.{Kleisli, OptionT}
+import cats.MonadError
+import cats.data.Kleisli
 import org.http4s._
 import cats.syntax.all._
-import tsec.jws.mac.JWTMac
 import tsec.authorization._
 
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
