@@ -7,8 +7,8 @@ import cats.syntax.functor._
 
 import scala.reflect.ClassTag
 
-sealed abstract case class BasicRBAC[F[_], U, R](authorized: AuthGroup[R])(
-    implicit role: AuthorizationInfo[F, U, R],
+sealed abstract case class BasicRBAC[F[_], R, U](authorized: AuthGroup[R])(
+    implicit role: AuthorizationInfo[F, R, U],
     enum: SimpleAuthEnum[R, String],
     F: MonadError[F, Throwable]
 ) extends Authorization[F, U] {
@@ -27,23 +27,23 @@ sealed abstract case class BasicRBAC[F[_], U, R](authorized: AuthGroup[R])(
 }
 
 object BasicRBAC {
-  def apply[F[_], U, R: ClassTag](roles: R*)(
+  def apply[F[_], R: ClassTag, U](roles: R*)(
       implicit enum: SimpleAuthEnum[R, String],
-      role: AuthorizationInfo[F, U, R],
+      role: AuthorizationInfo[F, R, U],
       F: MonadError[F, Throwable]
-  ): BasicRBAC[F, U, R] =
-    fromGroup[F, U, R](AuthGroup(roles: _*))
+  ): BasicRBAC[F, R, U] =
+    fromGroup[F, R, U](AuthGroup(roles: _*))
 
-  def fromGroup[F[_], U, R: ClassTag](valueSet: AuthGroup[R])(
-      implicit role: AuthorizationInfo[F, U, R],
+  def fromGroup[F[_], R: ClassTag, U](valueSet: AuthGroup[R])(
+      implicit role: AuthorizationInfo[F, R, U],
       enum: SimpleAuthEnum[R, String],
       F: MonadError[F, Throwable]
-  ): BasicRBAC[F, U, R] = new BasicRBAC[F, U, R](valueSet) {}
+  ): BasicRBAC[F, R, U] = new BasicRBAC[F, R, U](valueSet) {}
 
-  def all[F[_], U, R: ClassTag](
+  def all[F[_], R: ClassTag, U](
       implicit enum: SimpleAuthEnum[R, String],
-      role: AuthorizationInfo[F, U, R],
+      role: AuthorizationInfo[F, R, U],
       F: MonadError[F, Throwable]
-  ): BasicRBAC[F, U, R] =
-    new BasicRBAC[F, U, R](enum.viewAll) {}
+  ): BasicRBAC[F, R, U] =
+    new BasicRBAC[F, R, U](enum.viewAll) {}
 }

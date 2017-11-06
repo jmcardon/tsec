@@ -61,8 +61,8 @@ object Http4sAuthExamples {
   case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)
 
   object User {
-    implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, User, Role] =
-      new AuthorizationInfo[F, User, Role] {
+    implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, Role, User] =
+      new AuthorizationInfo[F, Role, User] {
         def fetchInfo(u: User): F[Role] = F.pure(u.role)
       }
   }
@@ -107,8 +107,8 @@ object Http4sAuthExamples {
   val Auth =
     SecuredRequestHandler(encryptedCookieAuth)
 
-  val onlyAdmins      = BasicRBAC[IO, User, Role](Role.Administrator, Role.Customer)
-  val adminsAndSeller = BasicRBAC[IO, User, Role](Role.Administrator, Role.Seller)
+  val onlyAdmins      = BasicRBAC[IO, Role, User](Role.Administrator, Role.Customer)
+  val adminsAndSeller = BasicRBAC[IO, Role, User](Role.Administrator, Role.Seller)
 
   /*
   Now from here, if want want to create services, we simply use the following

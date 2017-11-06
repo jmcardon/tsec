@@ -17,18 +17,22 @@ import scala.collection.mutable
 sealed abstract case class DummyRole(repr: String)
 object DummyRole extends SimpleAuthEnum[DummyRole, String] {
   implicit object Admin extends DummyRole("Admin")
+  implicit object User  extends DummyRole("User")
   implicit object Other extends DummyRole("Other")
   implicit object Err   extends DummyRole("Err")
 
   val getRepr: (DummyRole) => String         = _.repr
   protected val values: AuthGroup[DummyRole] = AuthGroup(Admin, Other)
   val orElse: DummyRole                      = Err
+  implicit val eq: Eq[DummyRole] = new Eq[DummyRole] {
+    def eqv(x: DummyRole, y: DummyRole): Boolean = x == y
+  }
 }
 
 case class DummyUser(id: Int, name: String = "bob", role: DummyRole = DummyRole.Other)
 
 object DummyUser {
-  implicit val role: AuthorizationInfo[IO, DummyUser, DummyRole] = new AuthorizationInfo[IO, DummyUser, DummyRole] {
+  implicit val role: AuthorizationInfo[IO, DummyRole, DummyUser] = new AuthorizationInfo[IO, DummyRole, DummyUser] {
     def fetchInfo(u: DummyUser): IO[DummyRole] = IO.pure(u.role)
   }
 }

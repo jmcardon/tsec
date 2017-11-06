@@ -10,7 +10,7 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import tsec.authorization.BasicRBAC
 
-class RequestAuthenticatorSpec extends AuthenticatorSpec  {
+class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
   def requestAuthTests[A](title: String, authSpec: AuthSpecTester[A]) {
 
@@ -23,8 +23,8 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec  {
     //Add bob to the db
     authSpec.dummyStore.put(dummyBob).unsafeRunSync()
 
-    val onlyAdmins = BasicRBAC[IO, DummyUser, DummyRole](DummyRole.Admin)
-    val everyone   = BasicRBAC.all[IO, DummyUser, DummyRole]
+    val onlyAdmins = BasicRBAC[IO, DummyRole, DummyUser](DummyRole.Admin)
+    val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser]
 
     val testService: HttpService[IO] = requestAuth {
       case request @ GET -> Root / "api" asAuthed hi =>
