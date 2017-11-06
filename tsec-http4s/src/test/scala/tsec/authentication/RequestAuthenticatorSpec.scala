@@ -12,7 +12,7 @@ import tsec.authorization.BasicRBAC
 
 class RequestAuthenticatorSpec extends AuthenticatorSpec  {
 
-  def RequestAuthTests[A](title: String, authSpec: AuthSpecTester[A]) {
+  def requestAuthTests[A](title: String, authSpec: AuthSpecTester[A]) {
 
     behavior of "SecuredRequests: " + title
 

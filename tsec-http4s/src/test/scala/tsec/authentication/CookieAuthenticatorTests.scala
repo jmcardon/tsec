@@ -60,7 +60,7 @@ class CookieAuthenticatorTests extends RequestAuthenticatorSpec {
     AuthenticatorTest[AuthenticatedCookie[A, Int]](string, auth)
 
   def CookieReqTest[A: MacTag: ByteEV](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
-    RequestAuthTests[AuthenticatedCookie[A, Int]](string, auth)
+    requestAuthTests[AuthenticatedCookie[A, Int]](string, auth)
 
   CookieAuthTest[HMACSHA1]("HMACSHA1 Authenticator", genAuthenticator[HMACSHA1])
   CookieAuthTest[HMACSHA256]("HMACSHA256 Authenticator", genAuthenticator[HMACSHA256])

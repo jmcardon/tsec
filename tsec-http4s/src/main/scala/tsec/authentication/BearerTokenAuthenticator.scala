@@ -57,7 +57,7 @@ object BearerTokenAuthenticator {
 
       private def validate(token: TSecBearerToken[I]) = {
         val now = Instant.now()
-        !token.isExpired(now) && settings.maxIdle.forall(token.isTimedout(now, _))
+        !token.isExpired(now) && settings.maxIdle.forall(!token.isTimedout(now, _))
       }
 
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, TSecBearerToken[I], V]] =
@@ -72,16 +72,17 @@ object BearerTokenAuthenticator {
       def create(body: I): OptionT[F, TSecBearerToken[I]] = {
         val newID = SecureRandomId.generate
         val now   = Instant.now()
-        val newToken = TSecBearerToken(
+        val newToken: TSecBearerToken[I] = TSecBearerToken(
           newID,
           body,
           now.plusSeconds(settings.expirationTime.toSeconds),
           settings.maxIdle.map(_ => now)
         )
-
         OptionT.liftF(tokenStore.put(newToken)).mapFilter {
-          case 1 => Some(newToken)
-          case _ => None
+          case 1 =>
+            Some(newToken)
+          case _ =>
+            None
         }
       }
 

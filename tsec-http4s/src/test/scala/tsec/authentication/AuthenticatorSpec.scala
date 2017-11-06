@@ -65,9 +65,9 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     def put(elem: V): F[Int] = {
       val map = storageMap.put(getId(elem), elem)
       if (map.isEmpty)
-        F.pure(0)
-      else
         F.pure(1)
+      else
+        F.pure(0)
     }
 
     def get(id: I): OptionT[F, V] =
@@ -93,10 +93,10 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     it should "Create, embed and extract properly" in {
       forAll { (dummy1: DummyUser) =>
         val results = (for {
-          _            <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
-          auth         <- authSpec.auth.create(dummy1.id)
-          fromRequest  <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
-          _            <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
+          _           <- OptionT.liftF(authSpec.dummyStore.put(dummy1))
+          auth        <- authSpec.auth.create(dummy1.id)
+          fromRequest <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
+          _           <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield fromRequest)
           .handleErrorWith(_ => OptionT.none)
           .value
