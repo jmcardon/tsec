@@ -38,10 +38,11 @@ lazy val commonSettings = Seq(
     Libraries.cats,
     Libraries.catsEffect,
     Libraries.scalaTest,
-    Libraries.scalaCheck
+    Libraries.scalaCheck,
+    Libraries.commonsCodec
   ),
   organization in ThisBuild := "io.github.jmcardon",
-  scalaVersion in ThisBuild := "2.12.3",
+  scalaVersion in ThisBuild := "2.12.4",
   fork in test := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
@@ -189,6 +190,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     symmetricCipher,
     mac,
     messageDigests,
+    passwordHashers,
     jwtMac
   )
 

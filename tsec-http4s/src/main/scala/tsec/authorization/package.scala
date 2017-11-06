@@ -1,6 +1,7 @@
 package tsec
 
 import cats.evidence.Is
+import tsec.authorization.AuthGroup$$
 
 import scala.reflect.ClassTag
 
@@ -131,15 +132,16 @@ package object authorization {
     }
     def fromSeq[G: ClassTag](seq: Seq[G]): AuthGroup[G]       = AuthGroup$$.is[G].coerce(seq.distinct.toArray)
     def unsafeFromSeq[G: ClassTag](seq: Seq[G]): AuthGroup[G] = AuthGroup$$.is[G].coerce(seq.toArray)
+    def empty[G: ClassTag]: AuthGroup$$.AuthRepr[G] = AuthGroup$$.is[G].coerce(Array.empty[G])
   }
 
   /** A simple typeclass that allows us to propagate information that is required for authorization */
-  trait AuthorizationInfo[F[_], U, Role] {
+  trait AuthorizationInfo[F[_], Role, U] {
     def fetchInfo(u: U): F[Role]
   }
 
-  trait DynamicAuthGroup[F[_], U, Grp]{
-    def fetchGroupInfo(u: U): F[AuthGroup[Grp]]
+  trait DynamicAuthGroup[F[_], Grp]{
+    def fetchGroupInfo: F[AuthGroup[Grp]]
   }
 
   type InvalidAuthLevel = InvalidAuthLevelError.type

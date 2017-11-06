@@ -22,7 +22,7 @@ import cats.implicits._
 import tsec.jwt.JWTPrinter
 
 sealed abstract class EncryptedCookieAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
-    extends Authenticator[F, A, I, V, AuthEncryptedCookie[?, I]]
+    extends Authenticator[F, I, V, AuthEncryptedCookie[A, I]]
 
 sealed abstract class StatefulECAuthenticator[F[_], A, I, V](implicit auth: AuthEncryptor[A])
     extends EncryptedCookieAuthenticator[F, A, I, V] {
@@ -267,19 +267,13 @@ object EncryptedCookieAuthenticator {
         *
         */
       def update(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.update(authenticator)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.update(authenticator))
 
       /** Discard our authenticator from the backing store
         *
         */
       def discard(authenticator: AuthEncryptedCookie[Alg, I]): OptionT[F, AuthEncryptedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.delete(authenticator.id)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.delete(authenticator.id)).map(_ => authenticator)
 
       /** Renew, aka reset both the expiry as well as the last touched (if present) value
         *

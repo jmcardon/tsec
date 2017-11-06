@@ -18,8 +18,8 @@ trait BLPAuthorization[F[_], A] extends Authorization[F, A]
   * For our model, we will think about higher authorization levels as being lower in number
   *
   */
-sealed abstract case class BLPReadAction[F[_], A, Role](authLevel: Int)(
-    implicit authInfo: AuthorizationInfo[F, A, Role],
+sealed abstract case class BLPReadAction[F[_], Role, A](authLevel: Role)(
+    implicit authInfo: AuthorizationInfo[F, Role, A],
     enum: SimpleAuthEnum[Role, Int],
     F: MonadError[F, Throwable]
 ) extends BLPAuthorization[F, A] {
@@ -28,7 +28,7 @@ sealed abstract case class BLPReadAction[F[_], A, Role](authLevel: Int)(
   ): OptionT[F, authentication.SecuredRequest[F, Auth, A]] = {
     val out = authInfo.fetchInfo(toAuth.identity).map { info =>
       val userAuthLevel = enum.getRepr(info)
-      if (enum.contains(info) && userAuthLevel <= authLevel)
+      if (enum.contains(info) && userAuthLevel <= enum.getRepr(authLevel))
         Some(toAuth)
       else
         None
@@ -38,23 +38,23 @@ sealed abstract case class BLPReadAction[F[_], A, Role](authLevel: Int)(
 }
 
 object BLPReadAction {
-  def apply[F[_], A, Role](authLevel: Int)(
-      implicit authInfo: AuthorizationInfo[F, A, Role],
+  def apply[F[_], Role, A](authLevel: Role)(
+      implicit authInfo: AuthorizationInfo[F, Role, A],
       enum: SimpleAuthEnum[Role, Int],
       F: MonadError[F, Throwable]
-  ): F[BLPReadAction[F, A, Role]] =
-    if (authLevel < 0)
+  ): F[BLPReadAction[F, Role, A]] =
+    if (enum.getRepr(authLevel) < 0)
       F.raiseError(InvalidAuthLevelError)
     else
-      F.pure(new BLPReadAction[F, A, Role](authLevel) {})
+      F.pure(new BLPReadAction[F, Role, A](authLevel) {})
 
 }
 
 /** Only write to same level. No write up, no write down.
   *
   */
-sealed abstract case class BLPWriteAction[F[_], A, Role](authLevel: Int)(
-    implicit authInfo: AuthorizationInfo[F, A, Role],
+sealed abstract case class BLPWriteAction[F[_], Role, A](authLevel: Role)(
+    implicit authInfo: AuthorizationInfo[F, Role, A],
     enum: SimpleAuthEnum[Role, Int],
     F: MonadError[F, Throwable]
 ) extends BLPAuthorization[F, A] {
@@ -63,7 +63,7 @@ sealed abstract case class BLPWriteAction[F[_], A, Role](authLevel: Int)(
   ): OptionT[F, authentication.SecuredRequest[F, Auth, A]] = {
     val out = authInfo.fetchInfo(toAuth.identity).map { info =>
       val userAuthLevel = enum.getRepr(info)
-      if (enum.contains(info) && userAuthLevel == authLevel)
+      if (enum.contains(info) && userAuthLevel == enum.getRepr(authLevel))
         Some(toAuth)
       else
         None
@@ -73,13 +73,13 @@ sealed abstract case class BLPWriteAction[F[_], A, Role](authLevel: Int)(
 }
 
 object BLPWriteAction {
-  def apply[F[_], A, Role](authLevel: Int)(
-      implicit authInfo: AuthorizationInfo[F, A, Role],
+  def apply[F[_], Role, A](authLevel: Role)(
+      implicit authInfo: AuthorizationInfo[F, Role, A],
       enum: SimpleAuthEnum[Role, Int],
       F: MonadError[F, Throwable]
-  ): F[BLPWriteAction[F, A, Role]] =
-    if (authLevel < 0)
+  ): F[BLPWriteAction[F, Role, A]] =
+    if (enum.getRepr(authLevel) < 0)
       F.raiseError(InvalidAuthLevelError)
     else
-      F.pure(new BLPWriteAction[F, A, Role](authLevel) {})
+      F.pure(new BLPWriteAction[F, Role, A](authLevel) {})
 }

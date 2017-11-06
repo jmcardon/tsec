@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.LongAdder
 import com.lambdaworks.codec.Base64
 import com.lambdaworks.crypto.{SCrypt => JSCrypt}
 import cats.syntax.either._
-import tsec.common.ByteUtils
+import tsec.common.{ByteUtils, ManagedRandom}
 
 /** SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,
   * improving on SHA1PRNGs, bad security in particular.
@@ -28,33 +28,10 @@ import tsec.common.ByteUtils
   * <code>s0</code> identifies version 0 of the scrypt format, using a 128-bit salt and 256-bit derived key.
   *
   */
-object SCryptUtil {
+object SCryptUtil extends ManagedRandom {
 
   private val SCryptPrepend = "$s0$"
   private val DerivedKeyLen = 32
-
-  /** Cache our random, and seed it properly as per
-    * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-    *
-    */
-  private val cachedRand: SecureRandom = {
-    val r = new SecureRandom()
-    r.nextBytes(new Array[Byte](20))
-    r
-  }
-
-  /** We will keep a reference to how many times our random is utilized
-    * After a sensible Integer.MaxValue/2 times, we should reseed
-    * TODO: longadder vs atomicInteger/long comparison performance wise
-    *
-    */
-  private val adder: LongAdder = new LongAdder
-  private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong
-
-  private def reSeed(): Unit = {
-    adder.reset()
-    cachedRand.nextBytes(new Array[Byte](20))
-  }
 
   /** Compare the supplied plaintext password to a hashed password.
     *
@@ -116,13 +93,8 @@ object SCryptUtil {
     */
   def scrypt(passwd: String, N: Int, r: Int, p: Int): String = {
     val salt = new Array[Byte](16)
-    adder.increment()
 
-    /** Set a sensible time for max amount of times SHA1PRNG can be used */
-    if (adder.longValue() < MaxBeforeReseed)
-      reSeed()
-
-    cachedRand.nextBytes(salt)
+    nextBytes(salt)
     val derived = JSCrypt.scrypt(passwd.getBytes("UTF-8"), salt, N, r, p, DerivedKeyLen)
     val params  = java.lang.Long.toString(log2(N) << 16L | r << 8 | p, 16)
 

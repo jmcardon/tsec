@@ -6,7 +6,7 @@ import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import org.http4s.server.Middleware
-import org.http4s.headers.{Cookie => C}
+import org.http4s.headers.{Authorization, Cookie => C}
 import cats.instances.all._
 import cats.syntax.eq._
 import cats.syntax.either._
@@ -19,13 +19,13 @@ import scala.util.control.NonFatal
 package object authentication {
 
   trait BackingStore[F[_], I, V] {
-    def put(elem: V): F[Int]
+    def put(elem: V): F[V]
 
     def get(id: I): OptionT[F, V]
 
-    def update(v: V): F[Int]
+    def update(v: V): F[V]
 
-    def delete(id: I): F[Int]
+    def delete(id: I): F[Unit]
   }
 
   type AuthExtractorService[F[_], A, I] = Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, A, I]]
@@ -104,7 +104,7 @@ package object authentication {
     * @param extension
     */
   final case class TSecCookieSettings(
-      cookieName: String,
+      cookieName: String = "tsec-auth-cookie",
       secure: Boolean,
       httpOnly: Boolean = true,
       domain: Option[String] = None,
@@ -114,14 +114,28 @@ package object authentication {
       maxIdle: Option[FiniteDuration]
   )
 
+  final case class TSecTokenSettings(
+      expirationTime: FiniteDuration,
+      maxIdle: Option[FiniteDuration]
+  )
+
   final case class TSecJWTSettings(
-      headerName: String,
+      headerName: String = "X-TSec-JWT",
       expirationTime: FiniteDuration,
       maxIdle: Option[FiniteDuration]
   )
 
   def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, Cookie] =
     OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))
+
+  def extractBearerToken[F[_]: Monad](request: Request[F]): Option[String] =
+    request.headers.get(Authorization).flatMap { t =>
+      t.credentials match {
+        case Credentials.Token(scheme, token) if scheme == AuthScheme.Bearer =>
+          Some(token)
+        case _ => None
+      }
+    }
 
   implicit val HttpDateLongDecoder: Decoder[HttpDate] = new Decoder[HttpDate] {
     def apply(c: HCursor): Result[HttpDate] =

@@ -17,7 +17,7 @@ import cats.syntax.eq._
 import scala.concurrent.duration.FiniteDuration
 
 abstract class CookieAuthenticator[F[_], Alg: MacTag: ByteEV, I, V]
-    extends Authenticator[F, Alg, I, V, AuthenticatedCookie[?, I]]
+    extends Authenticator[F, I, V, AuthenticatedCookie[Alg, I]]
 
 /** An authenticated cookie implementation
   *
@@ -194,16 +194,10 @@ object CookieAuthenticator {
       }
 
       def update(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.update(authenticator)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.update(authenticator))
 
       def discard(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.delete(authenticator.id)).mapFilter {
-          case 1 => Some(authenticator)
-          case _ => None
-        }
+        OptionT.liftF(tokenStore.delete(authenticator.id)).map(_ => authenticator)
 
       /** Renew an authenticator: Reset it's expiry and whatnot.
         *

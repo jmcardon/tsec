@@ -157,7 +157,7 @@ object JCAAEADPure {
       queueLen: Int
   ): JQueue[JCipher] = {
     val q = new JQueue[JCipher]()
-    (0 until queueLen)
+    Array.range(0, queueLen)
       .foreach(
         _ => q.add(getJCipherUnsafe)
       )

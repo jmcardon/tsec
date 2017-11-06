@@ -8,51 +8,50 @@ import org.http4s.{Request, Response}
 
 /** A base typeclass for generating authenticators, i.e cookies, tokens, JWTs etc.
   *
-  * @tparam Alg The related cryptographic algorithm used in authentication
   * @tparam I The Identifier type
   * @tparam V The value type, i.e user, or possibly only partial information
   */
-trait Authenticator[F[_], Alg, I, V, Authenticator[_]] {
+trait Authenticator[F[_], I, V, Authenticator] {
 
   /** Return a secured request from a request, that carries our authenticator
     * @param request
     * @return
     */
-  def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, Authenticator[Alg], V]]
+  def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, Authenticator, V]]
 
   /** Create an authenticator from an identifier.
     * @param body
     * @return
     */
-  def create(body: I): OptionT[F, Authenticator[Alg]]
+  def create(body: I): OptionT[F, Authenticator]
 
   /** Update the altered authenticator
     *
     * @param authenticator
     * @return
     */
-  def update(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
+  def update(authenticator: Authenticator): OptionT[F, Authenticator]
 
   /** Delete an authenticator from a backing store, or invalidate it.
     *
     * @param authenticator
     * @return
     */
-  def discard(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
+  def discard(authenticator: Authenticator): OptionT[F, Authenticator]
 
   /** Renew an authenticator: Reset it's expiry and whatnot.
     *
     * @param authenticator
     * @return
     */
-  def renew(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
+  def renew(authenticator: Authenticator): OptionT[F, Authenticator]
 
   /** Refresh an authenticator: Primarily used for sliding window expiration
     *
     * @param authenticator
     * @return
     */
-  def refresh(authenticator: Authenticator[Alg]): OptionT[F, Authenticator[Alg]]
+  def refresh(authenticator: Authenticator): OptionT[F, Authenticator]
 
   /** Embed an authenticator directly into a response.
     * Particularly useful for adding an authenticator into unauthenticated actions
@@ -60,7 +59,7 @@ trait Authenticator[F[_], Alg, I, V, Authenticator[_]] {
     * @param response
     * @return
     */
-  def embed(response: Response[F], authenticator: Authenticator[Alg]): Response[F]
+  def embed(response: Response[F], authenticator: Authenticator): Response[F]
 
   /** Handles the embedding of the authenticator (if necessary) in the response,
     * and any other actions that should happen after a request related to authenticators
@@ -69,6 +68,6 @@ trait Authenticator[F[_], Alg, I, V, Authenticator[_]] {
     * @param authenticator
     * @return
     */
-  def afterBlock(response: Response[F], authenticator: Authenticator[Alg]): OptionT[F, Response[F]]
+  def afterBlock(response: Response[F], authenticator: Authenticator): OptionT[F, Response[F]]
 
 }

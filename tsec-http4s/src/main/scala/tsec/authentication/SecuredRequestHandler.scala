@@ -1,91 +1,59 @@
 package tsec.authentication
 
-import cats.{Monad, MonadError}
-import cats.data.{Kleisli, OptionT}
+import cats.MonadError
+import cats.data.Kleisli
 import org.http4s._
 import cats.syntax.all._
-import tsec.jws.mac.JWTMac
 import tsec.authorization._
 
-sealed abstract class SecuredRequestHandler[F[_], Alg, Identity, User, Auth[_]](
-    val authenticator: Authenticator[F, Alg, Identity, User, Auth]
+sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
+    val authenticator: Authenticator[F, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
 
-  protected def authorizedMiddleware(authorization: Authorization[F, User]): TSecMiddleware[F, Auth[Alg], User] = {
+  protected def authorizedMiddleware(authorization: Authorization[F, User]): TSecMiddleware[F, Auth, User] = {
     val authed = Kleisli(authenticator.extractAndValidate)
       .andThen(e => authorization.isAuthorized(e))
     TSecMiddleware(authed)
   }
 
-  def apply(pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]): HttpService[F]
+  def apply(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F]
 
   def authorized(authorization: Authorization[F, User])(
-      pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]
+      pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]
   ): HttpService[F]
 
 }
 
 object SecuredRequestHandler {
 
-  def apply[F[_], Alg, Identity, User, Auth[_]](
-      authenticator: Authenticator[F, Alg, Identity, User, Auth],
+  def apply[F[_], Identity, User, Auth](
+      authenticator: Authenticator[F, Identity, User, Auth],
       rolling: Boolean = false
-  )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Alg, Identity, User, Auth] = {
+  )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] = {
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate))
     if (rolling) {
-      new SecuredRequestHandler[F, Alg, Identity, User, Auth](authenticator) {
-        def apply(pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]): HttpService[F] =
+      new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
+        def apply(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf))
             .handleError(_ => Response[F](Status.Forbidden))
 
         def authorized(authorization: Authorization[F, User])(
-            pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]
+            pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]
         ): HttpService[F] =
           authorizedMiddleware(authorization)(TSecAuthService(pf))
             .handleError(_ => Response[F](Status.Forbidden))
       }
     } else
-      new SecuredRequestHandler[F, Alg, Identity, User, Auth](authenticator) {
-        def apply(pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]): HttpService[F] =
+      new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
+        def apply(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf, authenticator.afterBlock))
             .handleError(_ => Response[F](Status.Forbidden))
 
         def authorized(
             authorization: Authorization[F, User]
-        )(pf: PartialFunction[SecuredRequest[F, Auth[Alg], User], F[Response[F]]]): HttpService[F] =
+        )(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F] =
           authorizedMiddleware(authorization)(TSecAuthService(pf, authenticator.afterBlock))
             .handleError(_ => Response[F](Status.Forbidden))
       }
   }
-
-  private[authentication] final class DefaultEncrypted[F[_]](val dummy: Boolean = true) extends AnyVal {
-    def apply[Alg, Identity, User](
-        authenticator: Authenticator[F, Alg, Identity, User, AuthEncryptedCookie[?, Identity]],
-        rolling: Boolean = false
-    )(implicit F: MonadError[F, Throwable]) =
-      SecuredRequestHandler[F, Alg, Identity, User, AuthEncryptedCookie[?, Identity]](authenticator, rolling)
-  }
-
-  private[authentication] final class DefaultCookie[F[_]](val dummy: Boolean = true) extends AnyVal {
-    def apply[Alg, Identity, User](
-        authenticator: Authenticator[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]],
-        rolling: Boolean = false
-    )(implicit F: MonadError[F, Throwable]) =
-      SecuredRequestHandler[F, Alg, Identity, User, AuthenticatedCookie[?, Identity]](authenticator, rolling)
-  }
-
-  private[authentication] final class DefaultJWT[F[_]](val dummy: Boolean = true) extends AnyVal {
-    def apply[Alg, Identity, User](
-        authenticator: Authenticator[F, Alg, Identity, User, JWTMac],
-        rolling: Boolean = false
-    )(implicit F: MonadError[F, Throwable]) =
-      SecuredRequestHandler[F, Alg, Identity, User, JWTMac](authenticator, rolling)
-  }
-
-  final def encryptedCookie[F[_]]: DefaultEncrypted[F] = new DefaultEncrypted[F]()
-
-  final def signedCookie[F[_]]: DefaultCookie[F] = new DefaultCookie[F]()
-
-  final def jwt[F[_]]: DefaultJWT[F] = new DefaultJWT[F]()
-
 }

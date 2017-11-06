@@ -77,7 +77,7 @@ package object cookies {
 
   implicit object SignedCookie extends EVCookieMac[SignedCookie] {
     @inline def from[A: MacTag: ByteEV](signed: A, joined: String): SignedCookie[A] =
-      SignedCookie$$.is.flip.coerce(joined + "-" + signed.toArray.toB64String)
+      SignedCookie$$.is.flip.coerce(joined + "-" + signed.asByteArray.toB64String)
 
     @inline def fromRaw[A: MacTag](raw: String): SignedCookie[A] = SignedCookie$$.is.flip.coerce(raw)
 
@@ -92,15 +92,13 @@ package object cookies {
       }
     }
 
-    def fromDecodedString(original: String): Either[MacVerificationError, String] = {
-      val split = original.split("-")
-      if (split.length != 2)
-        Left(MacVerificationError("String encoded improperly"))
-      else {
-        Right(split(0).base64Bytes.toUtf8String)
+    def fromDecodedString(original: String): Either[MacVerificationError, String] =
+      original.split("-") match {
+        case Array(orig, nonce) =>
+          Right(orig.base64Bytes.toUtf8String)
+        case _ =>
+          Left(MacVerificationError("String encoded improperly"))
       }
-
-    }
 
     @inline def substitute[G[_], A: MacTag](fa: G[SignedCookie[A]]): G[String] = SignedCookie$$.is.substitute[G](fa)
   }

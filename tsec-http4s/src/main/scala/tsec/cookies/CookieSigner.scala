@@ -17,16 +17,13 @@ object CookieSigner {
 
   def verify[A: MacTag: ByteEV](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
-  ): MacErrorM[Boolean] = {
-    val split = signed.split("-")
-    if (split.length != 2)
-      Left(MacVerificationError("Invalid cookie"))
-    else {
-      val original = split(0).base64Bytes
-      val signed   = split(1).base64Bytes.toRepr[A]
-      signer.verify(original, signed, key)
+  ): MacErrorM[Boolean] =
+    signed.split("-") match {
+      case Array(original, signed) =>
+        signer.verify(original.base64Bytes, signed.base64Bytes.toRepr[A], key)
+      case _ =>
+        Left(MacVerificationError("Invalid cookie"))
     }
-  }
 
   def verifyAndRetrieve[A: MacTag: ByteEV](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]

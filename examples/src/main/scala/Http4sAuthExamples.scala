@@ -1,40 +1,42 @@
 import java.util.UUID
+
 import cats._
 import cats.data.OptionT
-import cats.effect.IO
+import cats.effect.{IO, Sync}
 import org.http4s.HttpService
 import tsec.authentication._
 import tsec.authorization._
 import tsec.cipher.symmetric.imports._
+
 import scala.collection.mutable
 import scala.concurrent.duration._
 import org.http4s.dsl.io._
 
 
 object Http4sAuthExamples {
-  def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Monad[F]) = new BackingStore[F, I, V] {
+  def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Sync[F]) = new BackingStore[F, I, V] {
     private val storageMap = mutable.HashMap.empty[I, V]
 
-    def put(elem: V): F[Int] = {
+    def put(elem: V): F[V] = {
       val map = storageMap.put(getId(elem), elem)
       if (map.isEmpty)
-        F.pure(0)
+        F.pure(elem)
       else
-        F.pure(1)
+        F.raiseError(new IllegalArgumentException)
     }
 
     def get(id: I): OptionT[F, V] =
       OptionT.fromOption[F](storageMap.get(id))
 
-    def update(v: V): F[Int] = {
+    def update(v: V): F[V] = {
       storageMap.update(getId(v), v)
-      F.pure(1)
+      F.pure(v)
     }
 
-    def delete(id: I): F[Int] =
+    def delete(id: I): F[Unit] =
       storageMap.remove(id) match {
-        case Some(_) => F.pure(1)
-        case None    => F.pure(0)
+        case Some(_) => F.unit
+        case None    => F.raiseError(new IllegalArgumentException)
       }
   }
 
@@ -59,8 +61,8 @@ object Http4sAuthExamples {
   case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)
 
   object User {
-    implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, User, Role] =
-      new AuthorizationInfo[F, User, Role] {
+    implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, Role, User] =
+      new AuthorizationInfo[F, Role, User] {
         def fetchInfo(u: User): F[Role] = F.pure(u.role)
       }
   }
@@ -103,10 +105,10 @@ object Http4sAuthExamples {
     )
 
   val Auth =
-    SecuredRequestHandler.encryptedCookie(encryptedCookieAuth)
+    SecuredRequestHandler(encryptedCookieAuth)
 
-  val onlyAdmins      = BasicRBAC[IO, User, Role](Role.Administrator, Role.Customer)
-  val adminsAndSeller = BasicRBAC[IO, User, Role](Role.Administrator, Role.Seller)
+  val onlyAdmins      = BasicRBAC[IO, Role, User](Role.Administrator, Role.Customer)
+  val adminsAndSeller = BasicRBAC[IO, Role, User](Role.Administrator, Role.Seller)
 
   /*
   Now from here, if want want to create services, we simply use the following

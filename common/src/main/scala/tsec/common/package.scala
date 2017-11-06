@@ -36,7 +36,7 @@ package object common {
   }
 
   class TaggedByteSyntax[A](val repr: A) extends AnyVal {
-    def toArray(implicit byteEV: ByteEV[A]): Array[Byte] = byteEV.toArray(repr)
+    def asByteArray(implicit byteEV: ByteEV[A]): Array[Byte] = byteEV.toArray(repr)
   }
 
   class TaggedStringSyntax[A](val repr: A) extends AnyVal {
@@ -63,5 +63,12 @@ package object common {
   implicit final def costanzaOps(jerry: String)            = new JerryStringer(jerry)
   implicit final def taggedByteOps[A: ByteEV](repr: A)     = new TaggedByteSyntax[A](repr)
   implicit final def taggedStringOps[A: StringEV](repr: A) = new TaggedStringSyntax[A](repr)
+
+  protected [tsec] val SecureRandomId$$: TaggedString = new TaggedString {
+    type I = String
+    val is: Is[I, String] = Is.refl[I]
+  }
+
+  type SecureRandomId = SecureRandomId$$.I
 
 }

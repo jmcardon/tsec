@@ -12,7 +12,7 @@ import io.circe.parser.decode
 import io.circe.generic.auto._
 import scala.concurrent.duration._
 
-class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncryptedCookie[?, Int]] {
+class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
   private val cookieName = "hi"
 
@@ -22,7 +22,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       implicit authEncryptor: AuthEncryptor[A],
       keygen: CipherKeyGen[A],
       store: BackingStore[IO, UUID, AuthEncryptedCookie[A, Int]]
-  ): AuthSpecTester[A, AuthEncryptedCookie[?, Int]] = {
+  ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val authenticator = EncryptedCookieAuthenticator.withBackingStore[IO, A, Int, DummyUser](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
@@ -30,11 +30,10 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       dummyStore,
       keygen.generateKeyUnsafe()
     )
-    new AuthSpecTester[A, AuthEncryptedCookie[?, Int]](authenticator, dummyStore) {
+    new AuthSpecTester[AuthEncryptedCookie[A, Int]](authenticator, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)
-
 
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
@@ -63,7 +62,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
   def genStatelessAuthenticator[A](
       implicit authEncryptor: AuthEncryptor[A],
       keygen: CipherKeyGen[A]
-  ): AuthSpecTester[A, AuthEncryptedCookie[?, Int]] = {
+  ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val secretKey  = keygen.generateKeyUnsafe()
     val authenticator = EncryptedCookieAuthenticator.stateless[IO, A, Int, DummyUser](
@@ -71,7 +70,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec[AuthEncr
       dummyStore,
       secretKey
     )
-    new AuthSpecTester[A, AuthEncryptedCookie[?, Int]](authenticator, dummyStore) {
+    new AuthSpecTester[AuthEncryptedCookie[A, Int]](authenticator, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)

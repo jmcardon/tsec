@@ -12,7 +12,7 @@ import tsec.common.ByteEV
 
 import scala.concurrent.duration._
 
-class CookieAuthenticatorTests extends RequestAuthenticatorSpec[AuthenticatedCookie[?, Int]] {
+class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
 
   private val cookieName                     = "hi"
   implicit def cookiebackingStore[A: MacTag] = dummyBackingStore[IO, UUID, AuthenticatedCookie[A, Int]](_.id)
@@ -20,7 +20,7 @@ class CookieAuthenticatorTests extends RequestAuthenticatorSpec[AuthenticatedCoo
   def genAuthenticator[A: MacTag: ByteEV](
       implicit keyGenerator: MacKeyGenerator[A],
       store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
-  ): AuthSpecTester[A, AuthenticatedCookie[?, Int]] = {
+  ): AuthSpecTester[AuthenticatedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val authenticator = CookieAuthenticator[IO, A, Int, DummyUser](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
@@ -28,7 +28,7 @@ class CookieAuthenticatorTests extends RequestAuthenticatorSpec[AuthenticatedCoo
       dummyStore,
       keyGenerator.generateKeyUnsafe(),
     )
-    new AuthSpecTester[A, AuthenticatedCookie[?, Int]](authenticator, dummyStore) {
+    new AuthSpecTester[AuthenticatedCookie[A, Int]](authenticator, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: AuthenticatedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)
@@ -56,14 +56,20 @@ class CookieAuthenticatorTests extends RequestAuthenticatorSpec[AuthenticatedCoo
     }
   }
 
-  AuthenticatorTest[HMACSHA1]("HMACSHA1 Authenticator", genAuthenticator[HMACSHA1])
-  AuthenticatorTest[HMACSHA256]("HMACSHA256 Authenticator", genAuthenticator[HMACSHA256])
-  AuthenticatorTest[HMACSHA384]("HMACSHA384 Authenticator", genAuthenticator[HMACSHA384])
-  AuthenticatorTest[HMACSHA512]("HMACSHA512 Authenticator", genAuthenticator[HMACSHA512])
+  def CookieAuthTest[A: MacTag: ByteEV](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
+    AuthenticatorTest[AuthenticatedCookie[A, Int]](string, auth)
 
-  RequestAuthTests[HMACSHA1]("HMACSHA1 Authenticator", genAuthenticator[HMACSHA1])
-  RequestAuthTests[HMACSHA256]("HMACSHA256 Authenticator", genAuthenticator[HMACSHA256])
-  RequestAuthTests[HMACSHA384]("HMACSHA384 Authenticator", genAuthenticator[HMACSHA384])
-  RequestAuthTests[HMACSHA512]("HMACSHA512 Authenticator", genAuthenticator[HMACSHA512])
+  def CookieReqTest[A: MacTag: ByteEV](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
+    requestAuthTests[AuthenticatedCookie[A, Int]](string, auth)
+
+  CookieAuthTest[HMACSHA1]("HMACSHA1 Authenticator", genAuthenticator[HMACSHA1])
+  CookieAuthTest[HMACSHA256]("HMACSHA256 Authenticator", genAuthenticator[HMACSHA256])
+  CookieAuthTest[HMACSHA384]("HMACSHA384 Authenticator", genAuthenticator[HMACSHA384])
+  CookieAuthTest[HMACSHA512]("HMACSHA512 Authenticator", genAuthenticator[HMACSHA512])
+
+  CookieReqTest[HMACSHA1]("HMACSHA1 Authenticator", genAuthenticator[HMACSHA1])
+  CookieReqTest[HMACSHA256]("HMACSHA256 Authenticator", genAuthenticator[HMACSHA256])
+  CookieReqTest[HMACSHA384]("HMACSHA384 Authenticator", genAuthenticator[HMACSHA384])
+  CookieReqTest[HMACSHA512]("HMACSHA512 Authenticator", genAuthenticator[HMACSHA512])
 
 }

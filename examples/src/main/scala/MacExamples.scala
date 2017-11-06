@@ -1,5 +1,3 @@
-
-
 object MacExamples {
 
   /** Example message authentication: Note, will use byteutils */
@@ -16,10 +14,11 @@ object MacExamples {
   } yield verified
 
   import cats.effect.IO
+
   /** For Interpetation into IO */
-  val macPureInstance: JCAMacPure[HMACSHA256] = JCAMacPure[HMACSHA256]
+  val macPureInstance: JCAMacPure[IO, HMACSHA256] = JCAMacPure[IO, HMACSHA256]
   val `mac'd-pure`: IO[Boolean] = for {
-    key       <- HMACSHA256.generateLift[IO]                     //Generate our key.
+    key       <- HMACSHA256.generateLift[IO]                        //Generate our key.
     macValue  <- macPureInstance.sign(toMac, key)                   //Generate our MAC bytes
     verified  <- macPureInstance.verify(toMac, macValue, key)       //Verify a byte array with a signed, typed instance
     verified2 <- macPureInstance.verifyArrays(toMac, macValue, key) //Alternatively, use arrays directly
