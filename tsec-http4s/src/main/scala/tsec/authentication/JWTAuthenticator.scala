@@ -207,7 +207,7 @@ object JWTAuthenticator {
         OptionT.liftF(tokenStore.update(authenticator))
 
       def discard(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] =
-          OptionT.liftF(tokenStore.delete(SecureRandomId.coerce(authenticator.id))).map(_ => authenticator)
+        OptionT.liftF(tokenStore.delete(SecureRandomId.coerce(authenticator.id))).map(_ => authenticator)
 
       def renew(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] = {
         val now           = Instant.now()

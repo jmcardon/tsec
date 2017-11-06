@@ -12,7 +12,6 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import org.http4s.dsl.io._
 
-
 object Http4sAuthExamples {
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Sync[F]) = new BackingStore[F, I, V] {
     private val storageMap = mutable.HashMap.empty[I, V]

@@ -1,5 +1,3 @@
-
-
 object SignatureExamples {
 
   import tsec.common._

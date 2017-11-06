@@ -1,5 +1,3 @@
-
-
 object JWTMacExamples {
 
   import tsec.jwt._
@@ -21,7 +19,6 @@ object JWTMacExamples {
   } yield parsed
 
   import cats.effect.IO
-
 
   /** You can also chose to interpret into any target Monad with an instance of MonadError[F, Throwable] using JwtMacM */
   val jwtMonadic: IO[JWTMac[HMACSHA256]] = for {

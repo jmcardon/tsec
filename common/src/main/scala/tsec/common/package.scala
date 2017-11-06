@@ -64,7 +64,7 @@ package object common {
   implicit final def taggedByteOps[A: ByteEV](repr: A)     = new TaggedByteSyntax[A](repr)
   implicit final def taggedStringOps[A: StringEV](repr: A) = new TaggedStringSyntax[A](repr)
 
-  protected [tsec] val SecureRandomId$$: TaggedString = new TaggedString {
+  protected[tsec] val SecureRandomId$$ : TaggedString = new TaggedString {
     type I = String
     val is: Is[I, String] = Is.refl[I]
   }

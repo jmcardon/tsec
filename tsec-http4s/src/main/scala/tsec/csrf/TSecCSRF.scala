@@ -81,6 +81,6 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
   def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embed(r)))
 
   def embed(response: Response[F]): F[Response[F]] =
-      generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t, httpOnly = true)))
+    generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t, httpOnly = true)))
 
 }

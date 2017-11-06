@@ -11,7 +11,7 @@ case class SecureRandomIdGenerator(sizeInBytes: Int = 32) extends ManagedRandom 
   }
 }
 
-object SecureRandomId extends SecureRandomIdGenerator(32){
+object SecureRandomId extends SecureRandomIdGenerator(32) {
   @inline def is: Is[SecureRandomId, String] = SecureRandomId$$.is
-  def coerce(s: String): SecureRandomId = is.flip.coerce(s)
+  def coerce(s: String): SecureRandomId      = is.flip.coerce(s)
 }
