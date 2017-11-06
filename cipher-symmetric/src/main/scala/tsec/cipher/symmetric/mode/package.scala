@@ -1,8 +1,9 @@
 package tsec.cipher.symmetric
 
 import java.security.spec.AlgorithmParameterSpec
+
 import cats.evidence.Is
-import tsec.common.CryptoTag
+import tsec.common.{CryptoTag, ManagedRandom}
 import java.security.SecureRandom
 import java.util.concurrent.atomic.LongAdder
 import javax.crypto.spec.IvParameterSpec
@@ -42,32 +43,10 @@ package object mode {
     */
   trait AEADMode[T] extends CipherMode[T]
 
-  abstract class DefaultModeKeySpec[T](repr: String, ivLen: Int) {
+  abstract class DefaultModeKeySpec[T](repr: String, ivLen: Int) extends ManagedRandom {
     implicit val spec = new CipherMode[T] { self =>
 
       val ivLength: Int = ivLen
-
-      /** Cache our random, and seed it properly as per
-        * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-        */
-      private var cachedRand: SecureRandom = {
-        val r = new SecureRandom()
-        r.nextBytes(new Array[Byte](20))
-        r
-      }
-
-      /** We will keep a reference to how many times our random is utilized
-        * After a sensible Integer.MaxValue/2 times, we should reseed
-        */
-      private val adder: LongAdder = new LongAdder
-      private val MaxBeforeReseed  = (Integer.MAX_VALUE / 5).toLong
-
-      private def reSeed(): Unit = {
-        adder.reset()
-        val tmpRand = new SecureRandom()
-        tmpRand.nextBytes(new Array[Byte](20))
-        cachedRand = tmpRand
-      }
 
       override lazy val algorithm: String = repr
 
@@ -75,12 +54,8 @@ package object mode {
         ParameterSpec.fromSpec[T](new IvParameterSpec(specBytes))(self)
 
       def genIv: ParameterSpec[T] = {
-        adder.increment()
-        if (adder.sum() == MaxBeforeReseed)
-          reSeed()
-
         val byteArray = new Array[Byte](ivLen)
-        cachedRand.nextBytes(byteArray)
+        nextBytes(byteArray)
         ParameterSpec.fromSpec[T](new IvParameterSpec(byteArray))(self)
       }
     }

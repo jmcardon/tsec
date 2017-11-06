@@ -4,6 +4,8 @@ import javax.crypto.spec.GCMParameterSpec
 import java.security.SecureRandom
 import java.util.concurrent.atomic.LongAdder
 
+import tsec.common.ManagedRandom
+
 trait CipherModes {
 
   /*
@@ -37,43 +39,17 @@ trait CipherModes {
       */
     val GCMTagLength        = 128
     val GCMIvOptionalLength = 12
-    implicit lazy val spec = new AEADMode[GCM] { self =>
+    implicit lazy val spec = new AEADMode[GCM] with ManagedRandom { self =>
 
       val ivLength: Int = GCMIvOptionalLength
-
-      /** Cache our random, and seed it properly as per
-        * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-        */
-      private var cachedRand: SecureRandom = {
-        val r = new SecureRandom()
-        r.nextBytes(new Array[Byte](20))
-        r
-      }
-
-      /** We will keep a reference to how many times our random is utilized
-        * After a sensible Integer.MaxValue/2 times, we should reseed
-        */
-      private val adder: LongAdder = new LongAdder
-      private val MaxBeforeReseed  = (Integer.MAX_VALUE / 2).toLong
-
-      private def reSeed(): Unit = {
-        adder.reset()
-        val tmpRand = new SecureRandom()
-        tmpRand.nextBytes(new Array[Byte](20))
-        cachedRand = tmpRand
-      }
 
       def algorithm: String = "GCM"
       def buildIvFromBytes(specBytes: Array[Byte]): ParameterSpec[GCM] =
         ParameterSpec.fromSpec[GCM](new GCMParameterSpec(GCMTagLength, specBytes))(self)
 
       def genIv: ParameterSpec[GCM] = {
-        adder.increment()
-        if (adder.sum() == MaxBeforeReseed)
-          reSeed()
-
         val newBytes = new Array[Byte](12)
-        cachedRand.nextBytes(newBytes)
+        nextBytes(newBytes)
         ParameterSpec.fromSpec[GCM](new GCMParameterSpec(GCMTagLength, newBytes))(self)
       }
     }
