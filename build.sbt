@@ -210,7 +210,8 @@ lazy val microsite = Project(id = "microsite", base = file("docs"))
     jwtMac,
     jwtSig,
     passwordHashers,
-    http4s
+    http4s,
+    examples
   )
 
 lazy val publishSettings = Seq(
