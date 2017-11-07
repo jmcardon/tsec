@@ -52,15 +52,15 @@ package object authentication {
     Middleware[OptionT[F, ?], SecuredRequest[F, I, A], Response[F], Request[F], Response[F]]
 
   object TSecMiddleware {
-    def apply[F[_]: Monad, A, I](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, A, I]]
-    ): TSecMiddleware[F, A, I] =
+    def apply[F[_]: Monad, Ident, Auth](
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
+    ): TSecMiddleware[F, Ident, Auth] =
       service => {
         service.compose(authedStuff)
       }
   }
 
-  type TSecAuthService[F[_], A, I] = Kleisli[OptionT[F, ?], SecuredRequest[F, A, I], Response[F]]
+  type TSecAuthService[F[_], Ident, A] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
 
   object TSecAuthService {
 
@@ -86,11 +86,11 @@ package object authentication {
 
     /** The empty service (all requests fallthrough).
       * @tparam F - Ignored
+      * @tparam Ident - Ignored
       * @tparam A - Ignored
-      * @tparam I - Ignored
       * @return
       */
-    def empty[F[_]: Applicative, A, I]: TSecAuthService[F, A, I] =
+    def empty[F[_]: Applicative, Ident, A]: TSecAuthService[F, Ident, A] =
       Kleisli.lift(OptionT.none)
   }
 

@@ -43,12 +43,12 @@ object Http4sAuthExamples {
   In our example, we will demonstrate how to use SimpleAuthEnum, as well as
   Role based authorization
    */
-  sealed abstract class Role(val roleRepr: String)
+  sealed abstract case class Role(roleRepr: String)
   object Role extends SimpleAuthEnum[Role, String] {
-    implicit case object Administrator extends Role("Administrator")
-    implicit case object Customer      extends Role("User")
-    implicit case object Seller        extends Role("Seller")
-    implicit case object CorruptedData extends Role("corrupted")
+    implicit object Administrator extends Role("Administrator")
+    implicit object Customer      extends Role("User")
+    implicit object Seller        extends Role("Seller")
+    implicit object CorruptedData extends Role("corrupted")
 
     implicit val E: Eq[Role]      = Eq.fromUniversalEquals[Role]
     val getRepr: (Role) => String = _.roleRepr
@@ -106,8 +106,8 @@ object Http4sAuthExamples {
   val Auth =
     SecuredRequestHandler(encryptedCookieAuth)
 
-  val onlyAdmins      = BasicRBAC[IO, Role, User](Role.Administrator, Role.Customer)
-  val adminsAndSeller = BasicRBAC[IO, Role, User](Role.Administrator, Role.Seller)
+  val onlyAdmins      = BasicRBAC[IO, Role, User, AuthEncryptedCookie[AES128, Int]](Role.Administrator, Role.Customer)
+  val adminsAndSeller = BasicRBAC[IO, Role, User, AuthEncryptedCookie[AES128, Int]](Role.Administrator, Role.Seller)
 
   /*
   Now from here, if want want to create services, we simply use the following
@@ -122,7 +122,7 @@ object Http4sAuthExamples {
       2. The Authenticator (i.e token)
       3. The identity (i.e in this case, User)
        */
-      val r: SecuredRequest[IO, AuthEncryptedCookie[AES128, Int], User] = request
+      val r: SecuredRequest[IO, User, AuthEncryptedCookie[AES128, Int]] = request
       Ok()
   }
 
