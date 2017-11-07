@@ -10,16 +10,16 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val authenticator: Authenticator[F, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
 
-  protected def authorizedMiddleware(authorization: Authorization[F, User]): TSecMiddleware[F, Auth, User] = {
+  protected def authorizedMiddleware(authorization: Authorization[F, User, Auth]): TSecMiddleware[F, User, Auth] = {
     val authed = Kleisli(authenticator.extractAndValidate)
       .andThen(e => authorization.isAuthorized(e))
     TSecMiddleware(authed)
   }
 
-  def apply(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F]
+  def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F]
 
-  def authorized(authorization: Authorization[F, User])(
-      pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]
+  def authorized(authorization: Authorization[F, User, Auth])(
+      pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]
   ): HttpService[F]
 
 }
@@ -33,25 +33,25 @@ object SecuredRequestHandler {
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate))
     if (rolling) {
       new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
-        def apply(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F] =
+        def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf))
             .handleError(_ => Response[F](Status.Forbidden))
 
-        def authorized(authorization: Authorization[F, User])(
-            pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]
+        def authorized(authorization: Authorization[F, User, Auth])(
+            pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]
         ): HttpService[F] =
           authorizedMiddleware(authorization)(TSecAuthService(pf))
             .handleError(_ => Response[F](Status.Forbidden))
       }
     } else
       new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
-        def apply(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F] =
+        def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf, authenticator.afterBlock))
             .handleError(_ => Response[F](Status.Forbidden))
 
         def authorized(
-            authorization: Authorization[F, User]
-        )(pf: PartialFunction[SecuredRequest[F, Auth, User], F[Response[F]]]): HttpService[F] =
+            authorization: Authorization[F, User, Auth]
+        )(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
           authorizedMiddleware(authorization)(TSecAuthService(pf, authenticator.afterBlock))
             .handleError(_ => Response[F](Status.Forbidden))
       }

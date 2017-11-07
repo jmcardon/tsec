@@ -20,24 +20,24 @@ import tsec.mac.imports.{MacSigningKey, MacTag}
 import cats.implicits._
 import scala.concurrent.duration.FiniteDuration
 
-sealed abstract class JWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
+sealed abstract class JWTAuthenticator[F[_], I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
     extends Authenticator[F, I, V, JWTMac[A]]
 
-sealed abstract class StatefulJWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
-    extends JWTAuthenticator[F, A, I, V] {
-  def withSettings(settings: TSecJWTSettings): StatefulJWTAuthenticator[F, A, I, V]
-  def withTokenStore(tokenStore: BackingStore[F, SecureRandomId, JWTMac[A]]): StatefulJWTAuthenticator[F, A, I, V]
-  def withIdentityStore(identityStore: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, A, I, V]
-  def withSigningKey(signingKey: MacSigningKey[A]): StatefulJWTAuthenticator[F, A, I, V]
-  def withEncryptionKey[E: Encryptor](encryptionKey: SecretKey[E]): StatefulJWTAuthenticator[F, A, I, V]
+sealed abstract class StatefulJWTAuthenticator[F[_], I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
+    extends JWTAuthenticator[F, I, V, A] {
+  def withSettings(settings: TSecJWTSettings): StatefulJWTAuthenticator[F, I, V, A]
+  def withTokenStore(tokenStore: BackingStore[F, SecureRandomId, JWTMac[A]]): StatefulJWTAuthenticator[F, I, V, A]
+  def withIdentityStore(identityStore: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A]
+  def withSigningKey(signingKey: MacSigningKey[A]): StatefulJWTAuthenticator[F, I, V, A]
+  def withEncryptionKey[E: Encryptor](encryptionKey: SecretKey[E]): StatefulJWTAuthenticator[F, I, V, A]
 }
 
-sealed abstract class StatelessJWTAuthenticator[F[_], A, I, V](implicit jWSMacCV: JWSMacCV[F, A])
-    extends JWTAuthenticator[F, A, I, V] {
-  def withSettings(settings: TSecJWTSettings): StatelessJWTAuthenticator[F, A, I, V]
-  def withIdentityStore(identityStore: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, A, I, V]
-  def withSigningKey(signingKey: MacSigningKey[A]): StatelessJWTAuthenticator[F, A, I, V]
-  def withEncryptionKey[E: Encryptor](encryptionKey: SecretKey[E]): StatelessJWTAuthenticator[F, A, I, V]
+sealed abstract class StatelessJWTAuthenticator[F[_], I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
+    extends JWTAuthenticator[F, I, V, A] {
+  def withSettings(settings: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A]
+  def withIdentityStore(identityStore: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A]
+  def withSigningKey(signingKey: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A]
+  def withEncryptionKey[E: Encryptor](encryptionKey: SecretKey[E]): StatelessJWTAuthenticator[F, I, V, A]
 }
 
 object JWTAuthenticator {
@@ -60,7 +60,7 @@ object JWTAuthenticator {
       )
   }
 
-  def withBackingStore[F[_], A: ByteEV: JWTMacAlgo: MacTag, I: Decoder: Encoder, V, E](
+  def withBackingStore[F[_], I: Decoder: Encoder, V, A: ByteEV: JWTMacAlgo: MacTag, E](
       settings: TSecJWTSettings,
       tokenStore: BackingStore[F, SecureRandomId, JWTMac[A]],
       identityStore: BackingStore[F, I, V],
@@ -70,23 +70,23 @@ object JWTAuthenticator {
       implicit cv: JWSMacCV[F, A],
       enc: Encryptor[E],
       M: MonadError[F, Throwable]
-  ): StatefulJWTAuthenticator[F, A, I, V] =
-    new StatefulJWTAuthenticator[F, A, I, V] {
+  ): StatefulJWTAuthenticator[F, I, V, A] =
+    new StatefulJWTAuthenticator[F, I, V, A] {
 
-      def withSettings(s: TSecJWTSettings): StatefulJWTAuthenticator[F, A, I, V] =
+      def withSettings(s: TSecJWTSettings): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStore(s, tokenStore, identityStore, signingKey, encryptionKey)
 
-      def withTokenStore(ts: BackingStore[F, SecureRandomId, JWTMac[A]]): StatefulJWTAuthenticator[F, A, I, V] =
+      def withTokenStore(ts: BackingStore[F, SecureRandomId, JWTMac[A]]): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStore(settings, ts, identityStore, signingKey, encryptionKey)
 
-      def withIdentityStore(is: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, A, I, V] =
+      def withIdentityStore(is: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStore(settings, tokenStore, is, signingKey, encryptionKey)
 
-      def withSigningKey(sk: MacSigningKey[A]): StatefulJWTAuthenticator[F, A, I, V] =
+      def withSigningKey(sk: MacSigningKey[A]): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStore(settings, tokenStore, identityStore, sk, encryptionKey)
 
-      def withEncryptionKey[EK: Encryptor](encryptionKey: SecretKey[EK]): StatefulJWTAuthenticator[F, A, I, V] =
-        withBackingStore[F, A, I, V, EK](settings, tokenStore, identityStore, signingKey, encryptionKey)
+      def withEncryptionKey[EK: Encryptor](encryptionKey: SecretKey[EK]): StatefulJWTAuthenticator[F, I, V, A] =
+        withBackingStore(settings, tokenStore, identityStore, signingKey, encryptionKey)
 
       /** Generate a message body, with some arbitrary I which signal an id,
         * the possible sliding window expiration last touched time, and the default CTR encryptor
@@ -169,7 +169,7 @@ object JWTAuthenticator {
         * @param request
         * @return
         */
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, JWTMac[A], V]] =
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, JWTMac[A]]] =
         for {
           encryptorInstance <- OptionT.liftF(M.fromEither(enc.instance))
           rawHeader <- OptionT.fromOption[F](
@@ -184,7 +184,7 @@ object JWTAuthenticator {
           _           <- verifyWithRawF(rawHeader.value, retrieved, internal)
           refreshed   <- refresh(extracted)
           identity    <- identityStore.get(decodedBody)
-        } yield SecuredRequest(request, refreshed, identity)
+        } yield SecuredRequest(request, identity, refreshed)
 
       def create(body: I): OptionT[F, JWTMac[A]] = {
         val now         = Instant.now()
@@ -284,7 +284,7 @@ object JWTAuthenticator {
         }
     }
 
-  def stateless[F[_], A: ByteEV: JWTMacAlgo: MacTag, I: Decoder: Encoder, V, E](
+  def stateless[F[_], I: Decoder: Encoder, V, A: ByteEV: JWTMacAlgo: MacTag, E](
       settings: TSecJWTSettings,
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
@@ -293,19 +293,19 @@ object JWTAuthenticator {
       implicit cv: JWSMacCV[F, A],
       enc: Encryptor[E],
       M: MonadError[F, Throwable]
-  ): StatelessJWTAuthenticator[F, A, I, V] =
-    new StatelessJWTAuthenticator[F, A, I, V] {
+  ): StatelessJWTAuthenticator[F, I, V, A] =
+    new StatelessJWTAuthenticator[F, I, V, A] {
 
-      def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, A, I, V] =
+      def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
         stateless(st, identityStore, signingKey, encryptionKey)
 
-      def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, A, I, V] =
+      def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
         stateless(settings, is, signingKey, encryptionKey)
 
-      def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, A, I, V] =
+      def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A] =
         stateless(settings, identityStore, sk, encryptionKey)
 
-      def withEncryptionKey[EK: Encryptor](ek: SecretKey[EK]): StatelessJWTAuthenticator[F, A, I, V] =
+      def withEncryptionKey[EK: Encryptor](ek: SecretKey[EK]): StatelessJWTAuthenticator[F, I, V, A] =
         stateless(settings, identityStore, signingKey, ek)
 
       /** Generate a message body, with some arbitrary I which signal an id,
@@ -368,7 +368,7 @@ object JWTAuthenticator {
         * @param request
         * @return
         */
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, JWTMac[A], V]] =
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, JWTMac[A]]] =
         for {
           encryptorInstance <- OptionT.liftF(M.fromEither(enc.instance))
           rawHeader <- OptionT.fromOption[F](
@@ -382,7 +382,7 @@ object JWTAuthenticator {
           decodedBody <- OptionT.liftF(decodeI(internal, encryptorInstance))
           refreshed   <- refresh(extracted)
           identity    <- identityStore.get(decodedBody)
-        } yield SecuredRequest(request, refreshed, identity)
+        } yield SecuredRequest(request, identity, refreshed)
 
       /** Create our JWT, and in our body, put our custom claims
         *

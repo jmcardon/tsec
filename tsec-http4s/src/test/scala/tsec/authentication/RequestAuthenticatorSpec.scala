@@ -18,13 +18,13 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
     val dummyBob = DummyUser(0)
 
-    val requestAuth: SecuredRequestHandler[IO, Int, DummyUser, A] = SecuredRequestHandler(authSpec.auth)
+    val requestAuth = SecuredRequestHandler(authSpec.auth)
 
     //Add bob to the db
     authSpec.dummyStore.put(dummyBob).unsafeRunSync()
 
-    val onlyAdmins = BasicRBAC[IO, DummyRole, DummyUser](DummyRole.Admin)
-    val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser]
+    val onlyAdmins = BasicRBAC[IO, DummyRole, DummyUser, A](DummyRole.Admin)
+    val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser, A]
 
     val testService: HttpService[IO] = requestAuth {
       case request @ GET -> Root / "api" asAuthed hi =>

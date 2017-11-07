@@ -37,44 +37,44 @@ object AuthLevel extends SimpleAuthEnum[AuthLevel, Int] {
 
 class AuthorizationTests extends TestSpec with MustMatchers {
 
-  val basicRBAC = BasicRBAC[IO, DummyRole, AuthDummyUser](Admin, Other)
+  val basicRBAC = BasicRBAC[IO, DummyRole, AuthDummyUser, Int](Admin, Other)
 
   val dummyRequest = Request[IO]()
 
   behavior of "BasicRBAC"
 
   it should "let a request pass through if in group" in {
-    val dummySreq = SecuredRequest[IO, Int, AuthDummyUser](dummyRequest, 0, AuthDummyUser(0, Admin))
+    val dummySreq = SecuredRequest[IO, AuthDummyUser, Int](dummyRequest, AuthDummyUser(0, Admin), 0)
     basicRBAC.isAuthorized(dummySreq).value.unsafeRunSync() mustBe Some(dummySreq)
   }
 
   it should "not let a request pass through if not contained" in {
-    val dummySreq = SecuredRequest[IO, Int, AuthDummyUser](dummyRequest, 0, AuthDummyUser(0, DummyRole.User))
+    val dummySreq = SecuredRequest[IO, AuthDummyUser, Int](dummyRequest, AuthDummyUser(0, DummyRole.User), 0)
     basicRBAC.isAuthorized(dummySreq).value.unsafeRunSync() mustBe None
   }
 
   behavior of "BasicDAC"
 
-  val basicDAC = new BasicDAC[IO, Int, AuthDummyUser] {
+  val basicDAC = new BasicDAC[IO, Int, AuthDummyUser, Int] {
     def fetchGroup: IO[AuthGroup[Int]] = IO.pure(AuthGroup(4, 5, 6))
 
     def fetchOwner: IO[Int] = IO.pure(1)
 
-    def fetchAccess[Auth](u: SecuredRequest[IO, Auth, AuthDummyUser]): IO[Int] = IO.pure(u.identity.id)
+    def fetchAccess(u: SecuredRequest[IO, AuthDummyUser, Int]): IO[Int] = IO.pure(u.identity.id)
   }
 
   it should "let a request pass if owner but not in group" in {
-    val dummySreq = SecuredRequest[IO, Int, AuthDummyUser](dummyRequest, 0, AuthDummyUser(1, DummyRole.User))
+    val dummySreq = SecuredRequest[IO, AuthDummyUser, Int](dummyRequest, AuthDummyUser(1, DummyRole.User), 0)
     basicDAC.isAuthorized(dummySreq).value.unsafeRunSync() mustBe Some(dummySreq)
   }
 
   it should "let a request pass if in group but not owner" in {
-    val dummySreq = SecuredRequest[IO, Int, AuthDummyUser](dummyRequest, 0, AuthDummyUser(4, DummyRole.User))
+    val dummySreq = SecuredRequest[IO, AuthDummyUser, Int](dummyRequest, AuthDummyUser(4, DummyRole.User), 0)
     basicDAC.isAuthorized(dummySreq).value.unsafeRunSync() mustBe Some(dummySreq)
   }
 
   it should "not let the request pass if in neither" in {
-    val dummySreq = SecuredRequest[IO, Int, AuthDummyUser](dummyRequest, 0, AuthDummyUser(14, DummyRole.User))
+    val dummySreq = SecuredRequest[IO, AuthDummyUser, Int](dummyRequest, AuthDummyUser(14, DummyRole.User), 0)
     basicDAC.isAuthorized(dummySreq).value.unsafeRunSync() mustBe None
   }
 
@@ -84,21 +84,21 @@ class AuthorizationTests extends TestSpec with MustMatchers {
     def fetchInfo(u: AuthLevel): IO[AuthLevel] = IO.pure(u)
   }
 
-  val hierarchyAuth = HierarchyAuth[IO, AuthLevel, AuthLevel](AuthLevel.Staff).unsafeRunSync()
+  val hierarchyAuth = HierarchyAuth[IO, AuthLevel, AuthLevel, Int](AuthLevel.Staff).unsafeRunSync()
 
   it should "let a user with lower than the required clearance pass" in {
-    val dummySReq = SecuredRequest[IO, Int, AuthLevel](dummyRequest, 0, AuthLevel.CEO)
-    hierarchyAuth.isAuthorized[Int](dummySReq).value.unsafeRunSync() mustBe Some(dummySReq)
+    val dummySReq = SecuredRequest[IO, AuthLevel, Int](dummyRequest, AuthLevel.CEO, 0)
+    hierarchyAuth.isAuthorized(dummySReq).value.unsafeRunSync() mustBe Some(dummySReq)
   }
 
   it should "let a user with equal clearance pass" in {
-    val dummySReq = SecuredRequest[IO, Int, AuthLevel](dummyRequest, 0, AuthLevel.Staff)
-    hierarchyAuth.isAuthorized[Int](dummySReq).value.unsafeRunSync() mustBe Some(dummySReq)
+    val dummySReq = SecuredRequest[IO, AuthLevel, Int](dummyRequest, AuthLevel.Staff, 0)
+    hierarchyAuth.isAuthorized(dummySReq).value.unsafeRunSync() mustBe Some(dummySReq)
   }
 
   it should "not a user with equal clearance pass" in {
-    val dummySReq = SecuredRequest[IO, Int, AuthLevel](dummyRequest, 0, AuthLevel.AugmentedUser)
-    hierarchyAuth.isAuthorized[Int](dummySReq).value.unsafeRunSync() mustBe None
+    val dummySReq = SecuredRequest[IO, AuthLevel, Int](dummyRequest, AuthLevel.AugmentedUser, 0)
+    hierarchyAuth.isAuthorized(dummySReq).value.unsafeRunSync() mustBe None
   }
 
   behavior of "DynamicRBAC"
@@ -107,48 +107,48 @@ class AuthorizationTests extends TestSpec with MustMatchers {
     def fetchGroupInfo: IO[AuthGroup[DummyRole]] = IO.pure(AuthGroup(DummyRole.Admin, DummyRole.User))
   }
 
-  val dynamicRBAC = DynamicRBAC[IO, DummyRole, AuthDummyUser](dynamicAuthGroup)
+  val dynamicRBAC = DynamicRBAC[IO, DummyRole, AuthDummyUser, Int](dynamicAuthGroup)
 
   it should "let a request pass through if in group" in {
-    val dummySreq = SecuredRequest[IO, Int, AuthDummyUser](dummyRequest, 0, AuthDummyUser(0, Admin))
+    val dummySreq = SecuredRequest[IO, AuthDummyUser, Int](dummyRequest, AuthDummyUser(0, Admin), 0)
     dynamicRBAC.isAuthorized(dummySreq).value.unsafeRunSync() mustBe Some(dummySreq)
   }
 
   it should "not let a request pass through if not contained" in {
-    val dummySreq = SecuredRequest[IO, Int, AuthDummyUser](dummyRequest, 0, AuthDummyUser(0, DummyRole.User))
+    val dummySreq = SecuredRequest[IO, AuthDummyUser, Int](dummyRequest, AuthDummyUser(0, DummyRole.User), 0)
     dynamicRBAC.isAuthorized(dummySreq).value.unsafeRunSync() mustBe None
   }
 
   behavior of "Bell La Padula"
-  val readAction  = BLPReadAction[IO, AuthLevel, AuthDummyUser](AuthLevel.Staff).unsafeRunSync()
-  val writeAction = BLPWriteAction[IO, AuthLevel, AuthDummyUser](AuthLevel.Staff).unsafeRunSync()
+  val readAction  = BLPReadAction[IO, AuthLevel, AuthDummyUser, Int](AuthLevel.Staff).unsafeRunSync()
+  val writeAction = BLPWriteAction[IO, AuthLevel, AuthDummyUser, Int](AuthLevel.Staff).unsafeRunSync()
 
   it should "read same level" in {
-    val dummySReq = SecuredRequest(dummyRequest, 0, AuthDummyUser(0, DummyRole.Admin, AuthLevel.Staff))
-    readAction.isAuthorized[Int](dummySReq).value.unsafeRunSync() mustBe Some(dummySReq)
+    val dummySReq = SecuredRequest(dummyRequest, AuthDummyUser(0, DummyRole.Admin, AuthLevel.Staff), 0)
+    readAction.isAuthorized(dummySReq).value.unsafeRunSync() mustBe Some(dummySReq)
   }
 
   it should "read lower level" in {
-    val dummySReq = SecuredRequest(dummyRequest, 0, AuthDummyUser(0, DummyRole.Admin, AuthLevel.Staff))
+    val dummySReq = SecuredRequest(dummyRequest, AuthDummyUser(0, DummyRole.Admin, AuthLevel.Staff), 0)
     (for {
-      ra <- BLPReadAction[IO, AuthLevel, AuthDummyUser](AuthLevel.RegularUser)
+      ra <- BLPReadAction[IO, AuthLevel, AuthDummyUser, Int](AuthLevel.RegularUser)
       r  <- ra.isAuthorized(dummySReq).value
     } yield r).unsafeRunSync() mustBe Some(dummySReq)
   }
   it should "not read up" in {
-    val dummySReq = SecuredRequest(dummyRequest, 0, AuthDummyUser(0, DummyRole.Admin, AuthLevel.AugmentedUser))
-    readAction.isAuthorized[Int](dummySReq).value.unsafeRunSync() mustBe None
+    val dummySReq = SecuredRequest(dummyRequest, AuthDummyUser(0, DummyRole.Admin, AuthLevel.AugmentedUser), 0)
+    readAction.isAuthorized(dummySReq).value.unsafeRunSync() mustBe None
   }
 
   it should "only write same level" in {
-    val dummySReq = SecuredRequest(dummyRequest, 0, AuthDummyUser(0, DummyRole.Admin, AuthLevel.Staff))
+    val dummySReq = SecuredRequest(dummyRequest, AuthDummyUser(0, DummyRole.Admin, AuthLevel.Staff), 0)
     (for {
       r1 <- writeAction.isAuthorized(dummySReq).value
       r2 <- writeAction
-        .isAuthorized(SecuredRequest(dummyRequest, 0, AuthDummyUser(0, DummyRole.Admin, AuthLevel.CEO)))
+        .isAuthorized(SecuredRequest(dummyRequest, AuthDummyUser(0, DummyRole.Admin, AuthLevel.CEO), 0))
         .value
       r3 <- writeAction
-        .isAuthorized(SecuredRequest(dummyRequest, 0, AuthDummyUser(0, DummyRole.Admin, AuthLevel.AugmentedUser)))
+        .isAuthorized(SecuredRequest(dummyRequest, AuthDummyUser(0, DummyRole.Admin, AuthLevel.AugmentedUser), 0))
         .value
     } yield (r1, r2, r3)).unsafeRunSync() mustBe ((Some(dummySReq), None, None))
   }

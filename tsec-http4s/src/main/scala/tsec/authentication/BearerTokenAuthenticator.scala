@@ -5,13 +5,8 @@ import java.time.Instant
 import cats.MonadError
 import cats.data.OptionT
 import org.http4s.headers.Authorization
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.{AuthScheme, Credentials, Request, Response}
-import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.imports._
 import tsec.common._
-import tsec.messagedigests._
-import tsec.messagedigests.imports._
 import cats.syntax.all._
 
 import scala.concurrent.duration._
@@ -60,14 +55,14 @@ object BearerTokenAuthenticator {
         !token.isExpired(now) && settings.maxIdle.forall(!token.isTimedout(now, _))
       }
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, TSecBearerToken[I], V]] =
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
         for {
           rawToken  <- OptionT.fromOption[F](extractBearerToken[F](request))
           token     <- tokenStore.get(SecureRandomId.coerce(rawToken))
           _         <- if (validate(token)) OptionT.pure(()) else OptionT.none
           refreshed <- refresh(token)
           identity  <- identityStore.get(token.messageId)
-        } yield SecuredRequest(request, refreshed, identity)
+        } yield SecuredRequest(request, identity, refreshed)
 
       def create(body: I): OptionT[F, TSecBearerToken[I]] = {
         val newID = SecureRandomId.generate

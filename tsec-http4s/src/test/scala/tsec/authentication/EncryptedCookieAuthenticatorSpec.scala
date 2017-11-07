@@ -24,7 +24,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       store: BackingStore[IO, UUID, AuthEncryptedCookie[A, Int]]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val authenticator = EncryptedCookieAuthenticator.withBackingStore[IO, A, Int, DummyUser](
+    val authenticator = EncryptedCookieAuthenticator.withBackingStore[IO, Int, DummyUser, A](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
@@ -49,7 +49,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =
         EncryptedCookieAuthenticator
-          .withBackingStore[IO, A, Int, DummyUser](
+          .withBackingStore[IO, Int, DummyUser, A](
             TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
             store,
             dummyStore,
@@ -65,7 +65,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val secretKey  = keygen.generateKeyUnsafe()
-    val authenticator = EncryptedCookieAuthenticator.stateless[IO, A, Int, DummyUser](
+    val authenticator = EncryptedCookieAuthenticator.stateless[IO, Int, DummyUser, A](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       dummyStore,
       secretKey
@@ -110,7 +110,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =
         EncryptedCookieAuthenticator
-          .stateless[IO, A, Int, DummyUser](
+          .stateless[IO, Int, DummyUser, A](
             TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
             dummyStore,
             keygen.generateKeyUnsafe()

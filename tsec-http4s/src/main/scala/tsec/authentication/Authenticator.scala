@@ -10,6 +10,7 @@ import org.http4s.{Request, Response}
   *
   * @tparam I The Identifier type
   * @tparam V The value type, i.e user, or possibly only partial information
+  * @tparam Authenticator the type of authenticator
   */
 trait Authenticator[F[_], I, V, Authenticator] {
 
@@ -17,7 +18,7 @@ trait Authenticator[F[_], I, V, Authenticator] {
     * @param request
     * @return
     */
-  def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, Authenticator, V]]
+  def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, Authenticator]]
 
   /** Create an authenticator from an identifier.
     * @param body

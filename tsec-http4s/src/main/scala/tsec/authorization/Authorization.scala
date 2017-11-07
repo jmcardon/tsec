@@ -5,20 +5,23 @@ import cats.data.OptionT
 import cats.kernel.Monoid
 import tsec.authentication.SecuredRequest
 
-trait Authorization[F[_], Identity] {
-  def isAuthorized[Auth](toAuth: SecuredRequest[F, Auth, Identity]): OptionT[F, SecuredRequest[F, Auth, Identity]]
+trait Authorization[F[_], Identity, Auth] {
+  def isAuthorized(toAuth: SecuredRequest[F, Identity, Auth]): OptionT[F, SecuredRequest[F, Identity, Auth]]
 }
 
 object Authorization {
-  implicit def authorizationMonoid[F[_]: Monad, I]: Monoid[Authorization[F, I]] = new Monoid[Authorization[F, I]] {
-    def empty: Authorization[F, I] = new Authorization[F, I] {
-      def isAuthorized[Auth](toAuth: SecuredRequest[F, Auth, I]): OptionT[F, SecuredRequest[F, Auth, I]] =
-        OptionT.pure(toAuth)
-    }
+  implicit def authorizationMonoid[F[_]: Monad, I, Auth]: Monoid[Authorization[F, I, Auth]] =
+    new Monoid[Authorization[F, I, Auth]] {
+      def empty: Authorization[F, I, Auth] = new Authorization[F, I, Auth] {
 
-    def combine(x: Authorization[F, I], y: Authorization[F, I]): Authorization[F, I] = new Authorization[F, I] {
-      def isAuthorized[Auth](toAuth: SecuredRequest[F, Auth, I]): OptionT[F, SecuredRequest[F, Auth, I]] =
-        x.isAuthorized(toAuth).flatMap(y.isAuthorized)
+        def isAuthorized(toAuth: SecuredRequest[F, I, Auth]): OptionT[F, SecuredRequest[F, I, Auth]] =
+          OptionT.pure(toAuth)
+      }
+
+      def combine(x: Authorization[F, I, Auth], y: Authorization[F, I, Auth]): Authorization[F, I, Auth] =
+        new Authorization[F, I, Auth] {
+          def isAuthorized(toAuth: SecuredRequest[F, I, Auth]): OptionT[F, SecuredRequest[F, I, Auth]] =
+            x.isAuthorized(toAuth).flatMap(y.isAuthorized)
+        }
     }
-  }
 }
