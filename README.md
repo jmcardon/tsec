@@ -11,11 +11,11 @@ ________________________________________
 [![Join the chat at https://gitter.im/tsecc/Lobby](https://badges.gitter.im/tsecc/Lobby.svg)](https://gitter.im/tsecc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/jmcardon/tsec.svg?branch=master)](https://travis-ci.org/jmcardon/tsec)
 
-### Latest Release: 0.0.1-M3
+### Latest Release: 0.0.1-M4
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
-0.0.1-M3 is here for scala 2.12+ and Cats 1.0.0-RC1!
+0.0.1-M4 is here for scala 2.12+ and Cats 1.0.0-RC1!
 
 To get started, if you are on sbt 0.13.16+, add
 
@@ -45,7 +45,7 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M3"
+val tsecV = "0.0.1-M4"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
