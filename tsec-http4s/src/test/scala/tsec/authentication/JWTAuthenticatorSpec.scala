@@ -39,7 +39,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()
-    val auth = JWTAuthenticator.withBackingStore[IO, A, Int, DummyUser, E](
+    val auth = JWTAuthenticator.withBackingStore[IO, Int, DummyUser, A, E](
       settings,
       store,
       dummyStore,
@@ -75,7 +75,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator
-          .withBackingStore[IO, A, Int, DummyUser, E](
+          .withBackingStore[IO, Int, DummyUser, A, E](
             settings,
             store,
             dummyStore,
@@ -95,7 +95,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()
-    val auth = JWTAuthenticator.stateless[IO, A, Int, DummyUser, E](
+    val auth = JWTAuthenticator.stateless[IO, Int, DummyUser, A, E](
       settings,
       dummyStore,
       macKey,
@@ -128,7 +128,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def wrongKeyAuthenticator: OptionT[IO, JWTMac[A]] =
         JWTAuthenticator
-          .stateless[IO, A, Int, DummyUser, E](
+          .stateless[IO, Int, DummyUser, A, E](
             settings,
             dummyStore,
             macKeyGen.generateKeyUnsafe(),

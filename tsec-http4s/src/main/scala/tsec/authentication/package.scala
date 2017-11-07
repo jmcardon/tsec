@@ -28,12 +28,12 @@ package object authentication {
     def delete(id: I): F[Unit]
   }
 
-  type AuthExtractorService[F[_], A, I] = Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, A, I]]
+  type AuthExtractorService[F[_], Ident, Auth] = Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
 
   /** Inspired from the Silhouette `SecuredRequest`
     *
     */
-  final case class SecuredRequest[F[_], Auth, Identity](request: Request[F], authenticator: Auth, identity: Identity)
+  final case class SecuredRequest[F[_], Identity, Auth](request: Request[F], identity: Identity, authenticator: Auth)
 
   object asAuthed {
 
@@ -44,23 +44,23 @@ package object authentication {
       * @tparam I
       * @return
       */
-    def unapply[F[_], A, I](ar: SecuredRequest[F, A, I]): Option[(Request[F], I)] =
+    def unapply[F[_], I, A](ar: SecuredRequest[F, I, A]): Option[(Request[F], I)] =
       Some(ar.request -> ar.identity)
   }
 
-  type TSecMiddleware[F[_], A, I] =
-    Middleware[OptionT[F, ?], SecuredRequest[F, A, I], Response[F], Request[F], Response[F]]
+  type TSecMiddleware[F[_], I, A] =
+    Middleware[OptionT[F, ?], SecuredRequest[F, I, A], Response[F], Request[F], Response[F]]
 
   object TSecMiddleware {
-    def apply[F[_]: Monad, A, I](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, A, I]]
-    ): TSecMiddleware[F, A, I] =
+    def apply[F[_]: Monad, Ident, Auth](
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
+    ): TSecMiddleware[F, Ident, Auth] =
       service => {
         service.compose(authedStuff)
       }
   }
 
-  type TSecAuthService[F[_], A, I] = Kleisli[OptionT[F, ?], SecuredRequest[F, A, I], Response[F]]
+  type TSecAuthService[F[_], Ident, A] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
 
   object TSecAuthService {
 
@@ -68,15 +68,15 @@ package object authentication {
       * [[org.http4s.Response.notFound]], which generates a 404, for any request
       * where `pf` is not defined.
       */
-    def apply[F[_], A, I](
-        pf: PartialFunction[SecuredRequest[F, A, I], F[Response[F]]]
-    )(implicit F: Monad[F]): TSecAuthService[F, A, I] =
+    def apply[F[_], I, A](
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+    )(implicit F: Monad[F]): TSecAuthService[F, I, A] =
       Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
-    def apply[F[_], A, I](
-        pf: PartialFunction[SecuredRequest[F, A, I], F[Response[F]]],
+    def apply[F[_], I, A](
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
         andThen: (Response[F], A) => OptionT[F, Response[F]]
-    )(implicit F: Monad[F]): TSecAuthService[F, A, I] =
+    )(implicit F: Monad[F]): TSecAuthService[F, I, A] =
       Kleisli(
         req =>
           pf.andThen(OptionT.liftF(_))
@@ -86,11 +86,11 @@ package object authentication {
 
     /** The empty service (all requests fallthrough).
       * @tparam F - Ignored
+      * @tparam Ident - Ignored
       * @tparam A - Ignored
-      * @tparam I - Ignored
       * @return
       */
-    def empty[F[_]: Applicative, A, I]: TSecAuthService[F, A, I] =
+    def empty[F[_]: Applicative, Ident, A]: TSecAuthService[F, Ident, A] =
       Kleisli.lift(OptionT.none)
   }
 

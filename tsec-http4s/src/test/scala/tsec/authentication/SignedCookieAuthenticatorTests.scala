@@ -22,7 +22,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
       store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
   ): AuthSpecTester[AuthenticatedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val authenticator = CookieAuthenticator[IO, A, Int, DummyUser](
+    val authenticator = CookieAuthenticator[IO, Int, DummyUser, A](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
@@ -32,7 +32,6 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
 
       def embedInRequest(request: Request[IO], authenticator: AuthenticatedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)
-
 
       def expireAuthenticator(b: AuthenticatedCookie[A, Int]): OptionT[IO, AuthenticatedCookie[A, Int]] = {
         val now     = Instant.now()
@@ -47,7 +46,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AuthenticatedCookie[A, Int]] =
-        CookieAuthenticator[IO, A, Int, DummyUser](
+        CookieAuthenticator[IO, Int, DummyUser, A](
           TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
           store,
           dummyStore,

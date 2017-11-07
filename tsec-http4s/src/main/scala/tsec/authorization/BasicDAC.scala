@@ -11,18 +11,19 @@ import tsec.authentication.SecuredRequest
   * @param eq
   * @tparam G
   */
-abstract class BasicDAC[F[_], G, U](implicit eq: Eq[G], F: MonadError[F, Throwable]) extends Authorization[F, U] {
+abstract class BasicDAC[F[_], G, U, Auth](implicit eq: Eq[G], F: MonadError[F, Throwable])
+    extends Authorization[F, U, Auth] {
   def fetchGroup: F[AuthGroup[G]]
 
   def fetchOwner: F[G]
 
-  def fetchAccess[Auth](u: SecuredRequest[F, Auth, U]): F[G]
+  def fetchAccess(u: SecuredRequest[F, U, Auth]): F[G]
 
-  def isAuthorized[Auth](toAuth: SecuredRequest[F, Auth, U]): OptionT[F, SecuredRequest[F, Auth, U]] = {
+  def isAuthorized(toAuth: SecuredRequest[F, U, Auth]): OptionT[F, SecuredRequest[F, U, Auth]] = {
     val out = for {
       owner  <- fetchOwner
       group  <- fetchGroup
-      access <- fetchAccess[Auth](toAuth)
+      access <- fetchAccess(toAuth)
     } yield {
       if (eq.eqv(access, owner) || group.contains(access))
         Some(toAuth)
