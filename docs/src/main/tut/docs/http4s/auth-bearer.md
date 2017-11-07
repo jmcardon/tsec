@@ -1,10 +1,31 @@
 ---
 layout: docs
-number: 8
+number: 10
 title: "Bearer Token Authenticator"
 ---
 
 # Bearer Token Authenticator
+
+The bearer token authenticator uses `TSecTokenSettings` for configuration:
+
+```scala
+  final case class TSecTokenSettings(
+      expirationTime: FiniteDuration,
+      maxIdle: Option[FiniteDuration]
+  )
+```
+
+And for token storage, it uses `TSecBearerToken` for storage:
+
+```scala
+final case class TSecBearerToken[I](
+    id: SecureRandomId, //Your secure random Id
+    messageId: I, //Your user ID type. in the case of our example, User has id type Int.
+    expiry: Instant, //The absolute expiration time
+    lastTouched: Option[Instant] //Possible rolling window expiration
+)
+```
+
 This authenticator uses a `SecureRandomId` (A 32-bit Id generated with a secure random number generator) as a bearer
  token to authenticate with information held server-side.
  

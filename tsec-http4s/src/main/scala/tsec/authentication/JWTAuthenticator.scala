@@ -42,15 +42,6 @@ sealed abstract class StatelessJWTAuthenticator[F[_], I, V, A](implicit jWSMacCV
 
 object JWTAuthenticator {
 
-  final case class JWTState[U, A: MacTag](user: U, jwt: JWTMac[A], lastTouched: Option[HttpDate] = None) {
-    def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
-      lastTouched.exists(
-        _.toInstant
-          .plusSeconds(timeOut.toSeconds)
-          .isBefore(now)
-      )
-  }
-
   /** An internal class that is meant to hold the encrypted value of some arbitrary
     * custom field in a b64 string
     *

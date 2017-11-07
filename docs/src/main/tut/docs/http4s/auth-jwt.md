@@ -6,6 +6,18 @@ title: "JWT Authentication"
 
 # JWT Authenticator
 
+JWT authenticator uses `TSecJWTSettings` for configuration:
+
+```scala
+  final case class TSecJWTSettings(
+      headerName: String = "X-TSec-JWT",
+      expirationTime: FiniteDuration,
+      maxIdle: Option[FiniteDuration]
+  )
+```
+
+And for storage, a `JWTMAC[A]`.
+
 This authenticator uses [JWT](https://jwt.io) for authentication. The contents of the actual identity 
 (i.e your User type id) are encrypted, then signed with underlying JWT algorithm.
 

@@ -86,7 +86,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
           case None =>
             OptionT.none
           case Some(rawCookie) =>
-            val coerced = AEADCookie.fromRaw[A](rawCookie.content)
+            val coerced = AEADCookie[A](rawCookie.content)
             for {
               contentRaw <- OptionT.fromOption[IO](
                 AEADCookieEncryptor.retrieveFromSigned[A](coerced, secretKey).toOption

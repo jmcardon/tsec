@@ -35,7 +35,7 @@ package object cookies {
 
     @inline def subst[G[_], A: AuthEncryptor](fa: G[AEADCookie[A]]): G[String] = AEADCookie$$.is.substitute[G](fa)
 
-    @inline def fromRaw[A: AuthEncryptor](raw: String): AEADCookie[A] = AEADCookie$$.is.flip.coerce(raw)
+    @inline def apply[A: AuthEncryptor](raw: String): AEADCookie[A] = AEADCookie$$.is.flip.coerce(raw)
 
     def getEncryptedContent[A](
         signed: AEADCookie[A]
@@ -49,7 +49,7 @@ package object cookies {
     }
 
     implicit def circeDecoder[A: AuthEncryptor]: Decoder[AEADCookie[A]] = new Decoder[AEADCookie[A]] {
-      def apply(c: HCursor) = c.as[String].map(AEADCookie.fromRaw[A])
+      def apply(c: HCursor) = c.as[String].map(AEADCookie.apply[A])
     }
 
     implicit def circeEncoder[A: AuthEncryptor]: Encoder[AEADCookie[A]] = new Encoder[AEADCookie[A]] {
@@ -68,7 +68,7 @@ package object cookies {
   sealed trait EVCookieMac[F[_]] {
     def from[A: MacTag: ByteEV](a: A, joined: String): F[A]
 
-    def fromRaw[A: MacTag](raw: String): F[A]
+    def apply[A: MacTag](raw: String): F[A]
 
     def toString[A: MacTag](a: F[A]): String
 
@@ -79,7 +79,7 @@ package object cookies {
     @inline def from[A: MacTag: ByteEV](signed: A, joined: String): SignedCookie[A] =
       SignedCookie$$.is.flip.coerce(joined + "-" + signed.asByteArray.toB64String)
 
-    @inline def fromRaw[A: MacTag](raw: String): SignedCookie[A] = SignedCookie$$.is.flip.coerce(raw)
+    @inline def apply[A: MacTag](raw: String): SignedCookie[A] = SignedCookie$$.is.flip.coerce(raw)
 
     @inline def toString[A: MacTag](a: SignedCookie[A]): String = SignedCookie$$.is.coerce(a)
 

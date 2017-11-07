@@ -20,6 +20,24 @@ Signed cookie authenticator uses `TsecCookieSettings` for configuration:
   )
 ```
 
+And for your backing store, you need to store:
+
+```scala
+final case class AuthenticatedCookie[A, Id](
+    id: UUID, //Cookie id
+    name: String, //Cookie name, it will be sent to the client with this name
+    content: SignedCookie[A], //Cookie contents. This is a newtype over String. Coerce using `SignedCookie[A](rawString)`
+    messageId: Id,
+    expiry: HttpDate,
+    lastTouched: Option[HttpDate],
+    secure: Boolean,
+    httpOnly: Boolean = true,
+    domain: Option[String] = None,
+    path: Option[String] = None,
+    extension: Option[String] = None
+)
+```
+
 This authenticator uses cookies as the underlying mechanism to track state. If your particular Id type is sensitive,
 _do not_ use this: the information is not encrypted. This is not a stateless authenticator.
 

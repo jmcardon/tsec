@@ -19,6 +19,25 @@ Encrypted cookie authenticator uses `TsecCookieSettings` for configuration:
   )
 ```
 
+And for backing store, in the non-stateless case,  `AuthEncryptedCookie`:
+
+```scala
+
+final case class AuthEncryptedCookie[A, Id](
+    id: UUID, //The cookie id
+    name: String, //Cookie name. This is what the cookie will be sent as to your client
+    content: AEADCookie[A], //The actual cookie content. This is a newtype over string. Coerce using `AEADCookie[A](rawString)`
+    messageId: Id, //Your user Id type. I.e for our example user class, this is Int
+    expiry: HttpDate, //The expiry time, as an HttpDate compatible with http4s
+    lastTouched: Option[HttpDate], //Rolling window expiration time last touched.
+    secure: Boolean, //TLS only?
+    httpOnly: Boolean = true,
+    domain: Option[String] = None,
+    path: Option[String] = None,
+    extension: Option[String] = None
+)
+```
+
 This authenticator uses cookies as the underlying mechanism to track state, however, any information such as expiry, 
 rolling window expiration or id is encrypted, as well as signed. This authenticator has both stateful and stateless modes.
 
