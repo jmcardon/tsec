@@ -22,7 +22,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
           key    <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
           stringer  = SignedCookie.toString[A](signed)
-          recoerced = SignedCookie.fromRaw[A](stringer)
+          recoerced = SignedCookie[A](stringer)
           verify <- CookieSigner.verify[A](recoerced, key)
         } yield verify
 
@@ -39,7 +39,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
           key    <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
           stringer  = SignedCookie.toString[A](signed)
-          recoerced = SignedCookie.fromRaw[A](stringer)
+          recoerced = SignedCookie[A](stringer)
           verify <- CookieSigner.verifyAndRetrieve[A](recoerced, key)
         } yield verify
 
@@ -72,7 +72,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
           key    <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s.toString, System.currentTimeMillis().toString, key)
           stringer  = SignedCookie.toString[A](signed)
-          recoerced = SignedCookie.fromRaw[A](stringer)
+          recoerced = SignedCookie[A](stringer)
           verify <- CookieSigner.verifyAndRetrieve[A](recoerced, key)
         } yield UUID.fromString(verify)
         verified mustBe Right(s)

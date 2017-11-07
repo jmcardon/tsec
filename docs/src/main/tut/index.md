@@ -18,7 +18,7 @@ technologies:
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
-0.0.1-M2 is here for scala 2.12+ and Cats 1.0.0-MF!
+0.0.1-M4 is here for scala 2.12+ and Cats 1.0.0-RC1!
 
 To get started, if you are on sbt 0.13.16+, add
 
@@ -48,7 +48,7 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M2"
+val tsecV = "0.0.1-M4"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
@@ -87,3 +87,7 @@ installed for tests that use Keys larger than 128 bits. More information under [
 [Fabio Labella](https://github.com/systemfw) (For the great FP help)
 
 [Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor)
+
+[Bjørn Madsen](https://github.com/aeons) (Contributor)
+
+[Will Sargent](https://github.com/wsargent) (Security Discussions)

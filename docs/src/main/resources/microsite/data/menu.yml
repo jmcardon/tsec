@@ -23,9 +23,30 @@ options:
     url: docs/http4s-auth.html
     section: http4-auth
 
+    nested_options:
+    - title: Overview
+      url: docs/http4s-auth.html
+      section: http4-auth
+    - title: Signed Cookies
+      url: docs/http4s/auth-scookie.html
+      section: http4-auth
+    - title: Encrypted Cookies
+      url: docs/http4s/auth-ecookie.html
+      section: http4-auth
+    - title: JWT
+      url: docs/http4s/auth-jwt.html
+      section: http4-auth
+    - title: Bearer Token
+      url: docs/http4s/auth-bearer.html
+      section: http4-auth
+    - title: Authorization
+      url: docs/http4s/authorization.html
+      section: http4-auth
+    - title: CSRF prevention
+      section: http4-auth
+      title: CSRF
+      url: docs/http4s/csrf.html
+
   - title: Digital Signatures
     url: docs/signatures.html
     section: signatures
-
-
-

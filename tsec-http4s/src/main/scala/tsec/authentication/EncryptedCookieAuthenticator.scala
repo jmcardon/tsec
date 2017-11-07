@@ -233,7 +233,7 @@ object EncryptedCookieAuthenticator {
         val now = Instant.now()
         for {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          coerced = AEADCookie.fromRaw[A](rawCookie.content)
+          coerced = AEADCookie[A](rawCookie.content)
           contentRaw <- OptionT.liftF(M.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
@@ -382,7 +382,7 @@ object EncryptedCookieAuthenticator {
         val now = Instant.now()
         for {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          coerced = AEADCookie.fromRaw[A](rawCookie.content)
+          coerced = AEADCookie[A](rawCookie.content)
           contentRaw <- OptionT.liftF(M.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
           internal   <- OptionT.liftF(M.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
           authed = AuthEncryptedCookie.build[A, I](internal, coerced, rawCookie)
@@ -438,7 +438,7 @@ object EncryptedCookieAuthenticator {
         * @return
         */
       def discard(authenticator: AuthEncryptedCookie[A, I]): OptionT[F, AuthEncryptedCookie[A, I]] =
-        OptionT.pure(authenticator.copy[A, I](content = AEADCookie.fromRaw[A]("invalid"), expiry = HttpDate.now))
+        OptionT.pure(authenticator.copy[A, I](content = AEADCookie[A]("invalid"), expiry = HttpDate.now))
 
       /** Renew all of our cookie's possible expirations.
         * If there is a timeout, refresh that as well. otherwise, simply update the expiry.

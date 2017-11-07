@@ -162,7 +162,7 @@ object CookieAuthenticator {
         val now = Instant.now()
         for {
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          coerced = SignedCookie.fromRaw[Alg](rawCookie.content)
+          coerced = SignedCookie[Alg](rawCookie.content)
           contentRaw <- OptionT.liftF(M.fromEither(CookieSigner.verifyAndRetrieve[Alg](coerced, key)))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)

@@ -30,7 +30,7 @@ Pure version with usage of IO monad:
 ```tut:silent
  import cats.effect.IO
  
- val macPureInstance: JCAMacPure[HMACSHA256] = JCAMacPure[HMACSHA256]
+ val macPureInstance: JCAMacPure[IO, HMACSHA256] = JCAMacPure[IO, HMACSHA256]
  val `mac'd-pure`: IO[Boolean] = for {
     key       <- HMACSHA256.generateLift[IO]                        //Generate our key.
     macValue  <- macPureInstance.sign(toMac, key)                   //Generate our MAC bytes
