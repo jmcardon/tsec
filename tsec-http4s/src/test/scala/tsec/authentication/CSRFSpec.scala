@@ -9,12 +9,14 @@ import cats.syntax.all._
 import org.http4s.{Header, Headers, HttpService, Request, Response, Status}
 import org.scalatest.MustMatchers
 import tsec.csrf.TSecCSRF
+import org.http4s.headers._
 import org.http4s.dsl.io._
 
 class CSRFSpec extends TestSpec with MustMatchers {
 
   val dummyService: HttpService[IO] = HttpService[IO] {
     case GET -> Root =>
+      Thread.sleep(1) //Necessary to advance the clock
       Ok()
   }
 
@@ -85,6 +87,16 @@ class CSRFSpec extends TestSpec with MustMatchers {
           dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Forbidden
+    }
+
+    it should "not return the same token to mitigate BREACH" in {
+      (for {
+        token <- OptionT.liftF(tsecCSRF.generateNewToken)
+        res <- tsecCSRF.apply(dummyService)(
+          dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token))).addCookie(tsecCSRF.cookieName, token)
+        )
+        r <- OptionT.fromOption[IO](res.cookies.find(_.name == tsecCSRF.cookieName).map(_.content))
+      } yield r == token).getOrElse(true).unsafeRunSync() mustBe false
     }
   }
 
