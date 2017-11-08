@@ -71,11 +71,13 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
     req =>
       Kleisli { r: Request[F] =>
         for {
-          c1  <- cookieFromRequest[F](cookieName, r)
-          c2  <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)).map(_.value))
-          eq  <- checkEqual(CSRFToken(c1.content), CSRFToken(c2))
-          res <- if (eq) req(r) else OptionT.pure(Response[F](Status.Forbidden))
-        } yield res
+          c1       <- cookieFromRequest[F](cookieName, r)
+          c2       <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)).map(_.value))
+          raw1     <- extractRaw(CSRFToken(c1.content))
+          raw2     <- extractRaw(CSRFToken(c2))
+          res      <- if (isEqual(raw1, raw2)) req(r) else OptionT.pure(Response[F](Status.Forbidden))
+          newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
+        } yield res.addCookie(Cookie(name = cookieName, content = newToken, httpOnly = true))
     }
 
   def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embed(r)))

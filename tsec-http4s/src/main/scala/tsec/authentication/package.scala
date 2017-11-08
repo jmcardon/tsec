@@ -56,7 +56,9 @@ package object authentication {
         authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
     ): TSecMiddleware[F, Ident, Auth] =
       service => {
-        service.compose(authedStuff)
+        authedStuff
+          .andThen(service.mapF(o => OptionT.liftF(o.fold(Response[F](Status.NotFound))(identity))))
+          .mapF(o => OptionT.liftF(o.fold(Response[F](Status.Unauthorized))(identity)))
       }
   }
 
