@@ -5,7 +5,7 @@ import java.util.UUID
 import cats._
 import cats.data.OptionT
 import cats.effect.{IO, Sync}
-import examples.Http4sAuthExample.{User, dummyBackingStore}
+import examples.Http4sAuthExample.{dummyBackingStore, User}
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
@@ -186,8 +186,10 @@ object JWTAuthExample {
     maxIdle = None
   )
 
-  val signingKey: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
-  val encryptionKey: SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key. Instantiate in a safe way using GenerateLift
+  val signingKey
+    : MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
+  val encryptionKey
+    : SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key. Instantiate in a safe way using GenerateLift
 
   val jwtStatelessauth =
     JWTAuthenticator.withBackingStore(
@@ -240,6 +242,11 @@ object BearerTokenAuthExample {
 
   val Auth =
     SecuredRequestHandler(bearerTokenAuth)
+
+  val authservice: TSecAuthService[IO, User, TSecBearerToken[Int]] = TSecAuthService {
+    case GET -> Root asAuthed user =>
+      Ok()
+  }
 
   /*
   Now from here, if want want to create services, we simply use the following

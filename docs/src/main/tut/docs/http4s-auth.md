@@ -25,24 +25,22 @@ Token type.
 
 Also please, for your sanity and ours **use TLS in prod**.
 
-### Examples Setup
+## Examples Setup
 
 Note: This class is the setup to our authentication and authorization examples
-```scala
-package examples
+
+
+```tut:silent
 
 import cats._
-import cats.data.OptionT
-import cats.effect.Sync
-import org.http4s.HttpService
+import cats.data._
+import cats.effect._
+import org.http4s._
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.authorization._
 import tsec.cipher.symmetric.imports._
 import tsec.common.SecureRandomId
-import tsec.jws.mac.JWTMac
-import tsec.mac.imports._
-
 import scala.collection.mutable
 import scala.concurrent.duration._
 
@@ -101,6 +99,61 @@ object Http4sAuthExample {
   }
 }
 ```
+
+## Authenticating Services
+
+A service with some token-based Authentication, be it cookie, jwt, bearer token, etc
+requires two things: A Identity, for example our `User` type, and the type of Authenticator you are using. We need a way to
+both extract and validate the Authenticator, as well as extract the identity type. Here is where `TSec` authenticators 
+shine, as this is their exact function.
+
+Let's make an example with [BearerTokenAuthenticator](./http4s/auth-bearer.md) from scratch:
+
+```tut:silent
+  import examples.Http4sAuthExample._
+  //We need a way to store our bearer tokens
+  val bearerTokenStore =
+    dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
+
+  //We create a way to store our users. You can attach this to say, your doobie accessor
+  val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
+
+  //These are the settings for our bearer token
+  val settings: TSecTokenSettings = TSecTokenSettings(
+    expirationTime = 10.minutes, //Absolute expiration time
+    maxIdle = None
+  )
+
+  val bearerTokenAuth = //This is our authenticator
+    BearerTokenAuthenticator(
+      bearerTokenStore,
+      userStore,
+      settings
+    )
+```
+
+From here, we can create a `TSecMiddleware`, which is simply 
+`Middleware[OptionT[F, ?], SecuredRequest[F, I, A], Response[F], Request[F], Response[F]]`
+
+```tut
+  val middleware = TSecMiddleware(Kleisli(bearerTokenAuth.extractAndValidate))
+```
+
+Then, we can create a `TSecAuthService`, which is similar to AuthedService, except it includes your token:
+
+```tut:silent
+  val authservice: TSecAuthService[IO, User, TSecBearerToken[Int]] = TSecAuthService {
+    case GET -> Root asAuthed user =>
+      Ok()
+  }
+```
+
+Then turn this into an `HttpService[F]`  by applying the middleware you used before!
+
+```tut
+  val service: HttpService[IO] = middleware(authservice)
+```
+
 
 ## Stateful vs Stateless
 
