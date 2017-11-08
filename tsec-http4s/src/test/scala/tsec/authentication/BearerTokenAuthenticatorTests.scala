@@ -30,7 +30,7 @@ class BearerTokenAuthenticatorTests extends RequestAuthenticatorSpec {
         authenticator.update(b.copy(lastTouched = Some(Instant.now.minusSeconds(300000))))
 
       def wrongKeyAuthenticator: OptionT[IO, TSecBearerToken[Int]] =
-        OptionT.none
+        OptionT.pure(TSecBearerToken(SecureRandomId.generate, -20, Instant.now(), None))
     }
   }
 

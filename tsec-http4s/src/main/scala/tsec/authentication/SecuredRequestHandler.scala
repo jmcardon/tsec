@@ -35,25 +35,25 @@ object SecuredRequestHandler {
       new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
         def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf))
-            .handleError(_ => Response[F](Status.Forbidden))
+            .handleError(_ => Response[F](Status.Unauthorized))
 
         def authorized(authorization: Authorization[F, User, Auth])(
             pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]
         ): HttpService[F] =
           authorizedMiddleware(authorization)(TSecAuthService(pf))
-            .handleError(_ => Response[F](Status.Forbidden))
+            .handleError(_ => Response[F](Status.Unauthorized))
       }
     } else
       new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
         def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
           middleware(TSecAuthService(pf, authenticator.afterBlock))
-            .handleError(_ => Response[F](Status.Forbidden))
+            .handleError(_ => Response[F](Status.Unauthorized))
 
         def authorized(
             authorization: Authorization[F, User, Auth]
         )(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
           authorizedMiddleware(authorization)(TSecAuthService(pf, authenticator.afterBlock))
-            .handleError(_ => Response[F](Status.Forbidden))
+            .handleError(_ => Response[F](Status.Unauthorized))
       }
   }
 }

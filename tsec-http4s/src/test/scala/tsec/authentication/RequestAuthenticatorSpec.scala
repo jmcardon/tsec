@@ -6,6 +6,8 @@ import io.circe.Json
 import org.http4s.dsl.io._
 import org.http4s.circe._
 import org.http4s._
+import cats.syntax.all._
+import org.http4s.implicits._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import tsec.authorization.BasicRBAC
@@ -49,7 +51,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- testService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .flatMap(_.attemptAs[Json].value.map(_.flatMap(_.as[DummyUser])))
         .unsafeRunSync() mustBe Right(dummyBob)
     }
@@ -62,9 +64,9 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- testService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .map(_.status)
-        .unsafeRunSync() mustBe Status.Forbidden
+        .unsafeRunSync() mustBe Status.Unauthorized
     }
 
     it should "work on a renewed token" in {
@@ -77,7 +79,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- testService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .flatMap(_.attemptAs[Json].value.map(_.flatMap(_.as[DummyUser])))
         .unsafeRunSync() mustBe Right(dummyBob)
     }
@@ -90,9 +92,9 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- testService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .map(_.status)
-        .unsafeRunSync() mustBe Status.Forbidden
+        .unsafeRunSync() mustBe Status.Unauthorized
     }
 
     it should "work on a refreshed token" in {
@@ -105,7 +107,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- testService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .flatMap(_.attemptAs[Json].value.map(_.flatMap(_.as[DummyUser])))
         .unsafeRunSync() mustBe Right(dummyBob)
     }
@@ -118,9 +120,9 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- testService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .map(_.status)
-        .unsafeRunSync() mustBe Status.Forbidden
+        .unsafeRunSync() mustBe Status.Unauthorized
     }
 
     //note: we feed it "discarded" because stateless tokens rely on this.
@@ -132,9 +134,9 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- testService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .map(_.status)
-        .unsafeRunSync() mustBe Status.Forbidden
+        .unsafeRunSync() mustBe Status.Unauthorized
     }
 
     it should "authorize for an allowed endpoint" in {
@@ -156,9 +158,9 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- adminService(embedded)
       } yield res
       response
-        .getOrElse(Response[IO](status = Status.Forbidden))
+        .getOrElse(Response.notFound)
         .map(_.status)
-        .unsafeRunSync() mustBe Status.Forbidden
+        .unsafeRunSync() mustBe Status.Unauthorized
     }
   }
 

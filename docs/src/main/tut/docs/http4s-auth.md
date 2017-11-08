@@ -154,6 +154,9 @@ Then turn this into an `HttpService[F]`  by applying the middleware you used bef
   val service: HttpService[IO] = middleware(authservice)
 ```
 
+In essence, this is captured by `SecuredRequestHandler`, which wraps the process of having to create the service
+and the middleware for you in a simple `apply` method, so you only have to worry about creating the route. See the examples
+on specific authenticators for more.
 
 ## Stateful vs Stateless
 
