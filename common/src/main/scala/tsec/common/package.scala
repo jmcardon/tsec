@@ -3,6 +3,8 @@ package tsec
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
+import cats.effect.Sync
+import org.apache.commons.codec.binary.Hex
 import cats.evidence.Is
 
 package object common {
@@ -44,11 +46,13 @@ package object common {
   }
 
   final class JerryStringer(val s: String) extends AnyVal {
-    def utf8Bytes: Array[Byte]                             = s.getBytes(StandardCharsets.UTF_8)
-    def asciiBytes: Array[Byte]                            = s.getBytes(StandardCharsets.US_ASCII)
-    def base64Bytes: Array[Byte]                           = Base64.getDecoder.decode(s)
-    def base64UrlBytes: Array[Byte]                        = Base64.getUrlDecoder.decode(s)
-    def toStringRepr[A](implicit stringEV: StringEV[A]): A = stringEV.fromString(s)
+    def utf8Bytes: Array[Byte]                              = s.getBytes(StandardCharsets.UTF_8)
+    def asciiBytes: Array[Byte]                             = s.getBytes(StandardCharsets.US_ASCII)
+    def base64Bytes: Array[Byte]                            = Base64.getDecoder.decode(s)
+    def base64UrlBytes: Array[Byte]                         = Base64.getUrlDecoder.decode(s)
+    def hexBytes[F[_]](implicit F: Sync[F]): F[Array[Byte]] = F.delay(Hex.decodeHex(s))
+    def hexBytesUnsafe: Array[Byte]                         = Hex.decodeHex(s)
+    def toStringRepr[A](implicit stringEV: StringEV[A]): A  = stringEV.fromString(s)
   }
 
   final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {
@@ -56,6 +60,7 @@ package object common {
     def toAsciiString                            = new String(array, StandardCharsets.US_ASCII)
     def toB64UrlString: String                   = Base64.getUrlEncoder.encodeToString(array)
     def toB64String: String                      = Base64.getEncoder.encodeToString(array)
+    def toHexString: String                      = Hex.encodeHexString(array)
     def toRepr[A](implicit byteEV: ByteEV[A]): A = byteEV.fromArray(array)
   }
 
