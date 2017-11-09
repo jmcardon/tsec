@@ -38,7 +38,7 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
 
   def signToken(string: String): F[CSRFToken] = {
     val joined = string + "-" + clock.millis()
-    mac.sign(joined.utf8Bytes, key).map(s => CSRFToken(joined + "-" + s.asByteArray.toB64UrlString))
+    mac.sign(joined.utf8Bytes, key).map(s => CSRFToken(joined + "-" + s.asByteArray.toB64String))
   }
 
   def generateNewToken: F[CSRFToken] =
@@ -54,7 +54,7 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
           mac
             .sign((raw + "-" + nonce).utf8Bytes, key)
             .map(
-              f => if (MessageDigest.isEqual(f.asByteArray, signed.base64UrlBytes)) Some(raw) else None
+              f => if (MessageDigest.isEqual(f.asByteArray, signed.base64Bytes)) Some(raw) else None
             )
         )
       case _ =>
