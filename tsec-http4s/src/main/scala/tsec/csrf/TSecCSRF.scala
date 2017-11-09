@@ -77,12 +77,12 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
           raw2     <- extractRaw(CSRFToken(c2))
           res      <- if (isEqual(raw1, raw2)) req(r) else OptionT.none
           newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-        } yield res.addCookie(Cookie(name = cookieName, content = newToken, httpOnly = true))
+        } yield res.addCookie(Cookie(name = cookieName, content = newToken))
     }.mapF(f => OptionT.liftF(f.getOrElse(Response[F](Status.Forbidden))))
 
-  def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embed(r)))
+  def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embedNew(r)))
 
-  def embed(response: Response[F]): F[Response[F]] =
-    generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t, httpOnly = true)))
+  def embedNew(response: Response[F]): F[Response[F]] =
+    generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
 
 }
