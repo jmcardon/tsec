@@ -1,11 +1,8 @@
-package examples
-
 import java.util.UUID
 
 import cats._
 import cats.data.OptionT
 import cats.effect.{IO, Sync}
-import examples.Http4sAuthExample.{dummyBackingStore, User}
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
@@ -74,7 +71,7 @@ object Http4sAuthExample {
 }
 
 object EncryptedCookieExample {
-
+  import Http4sAuthExample._
   val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]] =
     dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]](_.id)
 
@@ -128,7 +125,7 @@ object EncryptedCookieExample {
 }
 
 object CookieAuthExample {
-
+  import Http4sAuthExample._
   val cookieBackingStore: BackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]] =
     dummyBackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]](_.id)
 
@@ -175,6 +172,7 @@ object CookieAuthExample {
 }
 
 object JWTAuthExample {
+  import Http4sAuthExample._
   val jwtStore =
     dummyBackingStore[IO, SecureRandomId, JWTMac[HMACSHA256]](s => SecureRandomId.coerce(s.id))
 
@@ -222,6 +220,7 @@ object JWTAuthExample {
 }
 
 object BearerTokenAuthExample {
+  import Http4sAuthExample._
   val bearerTokenStore =
     dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
 

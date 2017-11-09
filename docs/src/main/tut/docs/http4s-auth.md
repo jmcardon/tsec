@@ -107,7 +107,7 @@ requires two things: A Identity, for example our `User` type, and the type of Au
 both extract and validate the Authenticator, as well as extract the identity type. Here is where `TSec` authenticators 
 shine, as this is their exact function.
 
-Let's make an example with [BearerTokenAuthenticator](./http4s/auth-bearer.md) from scratch:
+Let's make an example with [BearerTokenAuthenticator](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/Http4sAuthExample.scala#L224-L267) from scratch:
 
 ```tut:silent
   import examples.Http4sAuthExample._
