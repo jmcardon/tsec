@@ -98,6 +98,20 @@ class CSRFSpec extends TestSpec with MustMatchers {
         r <- OptionT.fromOption[IO](res.cookies.find(_.name == tsecCSRF.cookieName).map(_.content))
       } yield r == token).getOrElse(true).unsafeRunSync() mustBe false
     }
+
+    it should "not return a token for a failed CSRF check" in {
+      val response = (for {
+        token1 <- OptionT.liftF(tsecCSRF.generateNewToken)
+        token2 <- OptionT.liftF(tsecCSRF.generateNewToken)
+        res <- tsecCSRF.apply(dummyService)(
+          dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
+        )
+      } yield res).getOrElse(Response.notFound).unsafeRunSync()
+
+      response.status mustBe Status.Forbidden
+      !response.cookies.exists(_.name == tsecCSRF.cookieName) mustBe true
+    }
+
   }
 
 }
