@@ -1,6 +1,6 @@
 package tsec.authentication
 
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import org.http4s.{Request, Response}
 
 import scala.concurrent.duration.FiniteDuration
@@ -80,5 +80,28 @@ trait AuthenticatorService[F[_], I, V, Authenticator] {
     * @return
     */
   def afterBlock(response: Response[F], authenticator: Authenticator): OptionT[F, Response[F]]
+
+}
+
+object AuthenticatorService {
+
+  final class AuthServiceSyntax[F[_], I, V, A](val auth: AuthenticatorService[F, I, V, A]) extends AnyVal {
+    def composeExtract[B <: Authenticator[I]](
+        other: AuthenticatorService[F, I, V, B]
+    )(implicit ev: A <:< Authenticator[I]): Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Authenticator[I]]] =
+      Kleisli { r: Request[F] =>
+        auth.tryExtractRaw(r) match {
+          case Some(_) =>
+            auth.extractAndValidate(r).asInstanceOf[OptionT[F, SecuredRequest[F, I, Authenticator[I]]]]
+          case None =>
+            other.extractAndValidate(r).asInstanceOf[OptionT[F, SecuredRequest[F, I, Authenticator[I]]]]
+        }
+      }
+  }
+
+  implicit def authenticatorServiceSyntax[F[_], I, V, A](
+      auth: AuthenticatorService[F, I, V, A]
+  ): AuthServiceSyntax[F, I, V, A] =
+    new AuthServiceSyntax[F, I, V, A](auth)
 
 }
