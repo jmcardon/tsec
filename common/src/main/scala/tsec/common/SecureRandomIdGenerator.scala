@@ -7,7 +7,7 @@ case class SecureRandomIdGenerator(sizeInBytes: Int = 32) extends ManagedRandom 
   def generate: SecureRandomId = {
     val byteArray = new Array[Byte](sizeInBytes)
     nextBytes(byteArray)
-    SecureRandomId$$.is.flip.coerce(Hex.encodeHexString(byteArray))
+    SecureRandomId$$.is.flip.coerce(new String(Hex.encodeHex(byteArray)))
   }
 }
 

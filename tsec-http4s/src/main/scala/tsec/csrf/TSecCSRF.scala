@@ -38,7 +38,7 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
 
   def signToken(string: String): F[CSRFToken] = {
     val joined = string + "-" + clock.millis()
-    mac.sign(joined.utf8Bytes, key).map(s => CSRFToken(joined + "-" + s.asByteArray.toB64UrlString))
+    mac.sign(joined.utf8Bytes, key).map(s => CSRFToken(joined + "-" + s.asByteArray.toB64String))
   }
 
   def generateNewToken: F[CSRFToken] =
@@ -54,7 +54,7 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
           mac
             .sign((raw + "-" + nonce).utf8Bytes, key)
             .map(
-              f => if (MessageDigest.isEqual(f.asByteArray, signed.base64UrlBytes)) Some(raw) else None
+              f => if (MessageDigest.isEqual(f.asByteArray, signed.base64Bytes)) Some(raw) else None
             )
         )
       case _ =>
@@ -75,14 +75,14 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
           c2       <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)).map(_.value))
           raw1     <- extractRaw(CSRFToken(c1.content))
           raw2     <- extractRaw(CSRFToken(c2))
-          res      <- if (isEqual(raw1, raw2)) req(r) else OptionT.pure(Response[F](Status.Forbidden))
+          res      <- if (isEqual(raw1, raw2)) req(r) else OptionT.none
           newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-        } yield res.addCookie(Cookie(name = cookieName, content = newToken, httpOnly = true))
-    }
+        } yield res.addCookie(Cookie(name = cookieName, content = newToken))
+    }.mapF(f => OptionT.liftF(f.getOrElse(Response[F](Status.Forbidden))))
 
-  def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embed(r)))
+  def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embedNew(r)))
 
-  def embed(response: Response[F]): F[Response[F]] =
-    generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t, httpOnly = true)))
+  def embedNew(response: Response[F]): F[Response[F]] =
+    generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
 
 }
