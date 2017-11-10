@@ -60,20 +60,6 @@ final case class AugmentedJWT[A, I](
 
 object JWTAuthenticator {
 
-  /** An internal class that is meant to hold the encrypted value of some arbitrary
-    * custom field in a b64 string
-    */
-  final private[authentication] case class JWTInternal(
-      value: String,
-      lastTouched: Option[Instant]
-  ) {
-    def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
-      lastTouched.exists(
-        _.plusSeconds(timeOut.toSeconds)
-          .isBefore(now)
-      )
-  }
-
   /** Create a JWT Authenticator that will transport it as a
     * bearer token
     */
@@ -233,7 +219,8 @@ object JWTAuthenticator {
     }
 
   /** Create a JWT Authenticator that will transport it in
-    * an arbitrary header, with a backing store
+    * an arbitrary header, with a backing store.
+    *
     */
   def withBackingStoreArbitrary[F[_], I: Decoder: Encoder, V, A: ByteEV: JWTMacAlgo: MacTag](
       settings: TSecJWTSettings,
@@ -279,7 +266,6 @@ object JWTAuthenticator {
         *
         * @param raw
         * @param retrieved
-        * @param body
         * @return
         */
       private def verifyWithRawF(
@@ -390,6 +376,20 @@ object JWTAuthenticator {
 
     }
 
+  /** Create a JWT Authenticator that transports the token
+    * inside of the Authorization header as a bearer token,
+    * and the Id type I inside of the token in the subject parameter.
+    *
+    * @param expiry the token expiration time
+    * @param maxIdle the optional sliding window expiration
+    * @param identityStore the user store
+    * @param signingKey the MAC signing key
+    * @tparam F Your parametrized effect type
+    * @tparam I the identity type
+    * @tparam V the user value type
+    * @tparam A the mac signing algorithm
+    * @return
+    */
   def stateless[F[_], I: Decoder: Encoder, V, A: ByteEV: JWTMacAlgo: MacTag](
       expiry: FiniteDuration,
       maxIdle: Option[FiniteDuration],
@@ -426,21 +426,6 @@ object JWTAuthenticator {
       def tryExtractRaw(request: Request[F]): Option[String] =
         extractBearerToken(request)
 
-      /** We:
-        * 1. Get the encryptor instance
-        * 2. extract the header
-        * 3. verify and parse our jwt
-        * 4. decode our token UUID
-        * 5. retrieve the backing store copy
-        * 6. retrieve the `Internal` instance for the encoded data
-        * 7. Decode the body id.
-        * 6. A lil' extra verification, for that extract sec
-        * 7. refresh the token, if there is anything to refresh
-        * 8. Retrieve the identity from our identity store
-        *
-        * @param request
-        * @return
-        */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
           rawHeader   <- OptionT.fromOption[F](extractBearerToken(request))
@@ -466,7 +451,6 @@ object JWTAuthenticator {
         val lastTouched = maxIdle.map(_ => now)
         val subj        = Some(body.asJson.pretty(JWTPrinter))
         val claims = JWTClaims(
-          issuedAt = lastTouched.map(_.getEpochSecond),
           subject = subj,
           jwtId = cookieId,
           expiration = Some(expiryTime.getEpochSecond),
@@ -551,8 +535,29 @@ object JWTAuthenticator {
 
     }
 
+  /** Create a stateless JWT authenticator that is transported in the
+    * Authorization header as a bearer token.
+    *
+    * The Id type of the user is encrypted.
+    *
+    * @param expiryDuration the amount of time until a token expires
+    * @param maxIdle an optional parameter which will indicate sliding window expiration
+    * @param identityStore the user store
+    * @param signingKey the mac signin gkey
+    * @param encryptionKey
+    * @param cv
+    * @param enc
+    * @param M
+    * @tparam F
+    * @tparam I
+    * @tparam V
+    * @tparam A
+    * @tparam E
+    * @return
+    */
   def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: ByteEV: JWTMacAlgo: MacTag, E](
-      settings: TSecJWTSettings,
+      expiryDuration: FiniteDuration,
+      maxIdle: Option[FiniteDuration],
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
@@ -561,19 +566,19 @@ object JWTAuthenticator {
       enc: Encryptor[E],
       M: MonadError[F, Throwable]
   ): StatelessJWTAuthenticator[F, I, V, A] =
-    new StatelessJWTAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
+    new StatelessJWTAuthenticator[F, I, V, A](expiryDuration, maxIdle) {
 
       def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
-        statelessEncrypted(st, identityStore, signingKey, encryptionKey)
+        statelessEncrypted(st.expiryDuration, st.maxIdle, identityStore, signingKey, encryptionKey)
 
       def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
-        statelessEncrypted(settings, is, signingKey, encryptionKey)
+        statelessEncrypted(expiryDuration, maxIdle, is, signingKey, encryptionKey)
 
       def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A] =
-        statelessEncrypted(settings, identityStore, sk, encryptionKey)
+        statelessEncrypted(expiryDuration, maxIdle, identityStore, sk, encryptionKey)
 
       def withEncryptionKey[EK: Encryptor](ek: SecretKey[EK]): StatelessJWTAuthenticator[F, I, V, A] =
-        statelessEncrypted(settings, identityStore, signingKey, ek)
+        statelessEncrypted(expiryDuration, maxIdle, identityStore, signingKey, ek)
 
       /** Generate a message body, with some arbitrary I which signal an id,
         * the possible sliding window expiration last touched time, and the default CTR encryptor
@@ -586,14 +591,14 @@ object JWTAuthenticator {
         * @param lastTouched
         * @return
         */
-      private def encodeI(body: I, lastTouched: Option[Instant]): Either[CipherError, Json] =
+      private def encryptIdentity(body: I, lastTouched: Option[Instant]): Either[CipherError, String] =
         for {
           instance <- enc.instance
           encrypted <- instance.encrypt(
             PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes),
             encryptionKey
           )
-        } yield JWTInternal(encrypted.toSingleArray.toB64String, lastTouched).asJson
+        } yield encrypted.toSingleArray.toB64String
 
       /** Decode the body's internal value.
         * Such a value was encoded
@@ -602,61 +607,37 @@ object JWTAuthenticator {
         * @param instance
         * @return
         */
-      private def decodeI(body: JWTInternal, instance: EncryptorInstance[E]): F[I] =
+      private def decryptIdentity(body: String, instance: EncryptorInstance[E]): F[I] =
         M.fromEither(for {
-          cipherText <- enc.fromSingleArray(body.value.base64Bytes)
+          cipherText <- enc.fromSingleArray(body.base64Bytes)
           decrypted  <- instance.decrypt(cipherText, encryptionKey)
           decoded    <- decode[I](decrypted.content.toUtf8String)
         } yield decoded)
 
-      /** Same as verify, but tack on dat dere diddly OptionT.
-        *
-        * @param body
-        * @return
-        */
-      private def checkTimeout(body: JWTInternal): OptionT[F, Unit] =
-        if (!settings.maxIdle.exists(body.isTimedout(Instant.now(), _)))
-          OptionT.pure(())
+      private def checkTimeout(timeout: Option[Instant]): OptionT[F, Option[Instant]] =
+        if (!maxIdle.exists(t => timeout.exists(_.plusSeconds(t.toSeconds).isBefore(Instant.now()))))
+          OptionT.pure(timeout)
         else
           OptionT.none
 
       def tryExtractRaw(request: Request[F]): Option[String] =
-        request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
+        extractBearerToken[F](request)
 
-      /** We:
-        * 1. Get the encryptor instance
-        * 2. extract the header
-        * 3. verify and parse our jwt
-        * 4. decode our token UUID
-        * 5. retrieve the backing store copy
-        * 6. retrieve the `Internal` instance for the encoded data
-        * 7. Decode the body id.
-        * 6. A lil' extra verification, for that extract sec
-        * 7. refresh the token, if there is anything to refresh
-        * 8. Retrieve the identity from our identity store
-        *
-        * @param request
-        * @return
-        */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
-          encryptorInstance <- OptionT.liftF(M.fromEither(enc.instance))
-          rawHeader <- OptionT.fromOption[F](
-            request.headers.get(CaseInsensitiveString(settings.headerName))
-          )
-          extracted <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey))
-          internal <- OptionT.fromOption[F](
-            extracted.body.custom.flatMap(_.as[JWTInternal].toOption)
-          )
-          _           <- checkTimeout(internal)
-          decodedBody <- OptionT.liftF(decodeI(internal, encryptorInstance))
+          eInstance   <- OptionT.liftF(M.fromEither(enc.instance))
+          rawToken    <- OptionT.fromOption[F](tryExtractRaw(request))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(rawToken, signingKey))
+          rawId       <- OptionT.fromOption[F](extracted.body.subject)
+          lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
+          decodedBody <- OptionT.liftF(decryptIdentity(rawId, eInstance))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           augmented = AugmentedJWT(
             SecureRandomId.coerce(extracted.body.jwtId),
             extracted,
             decodedBody,
             Instant.ofEpochSecond(expiry),
-            internal.lastTouched
+            lastTouched
           )
           refreshed <- refresh(augmented)
           identity  <- identityStore.get(decodedBody)
@@ -665,13 +646,13 @@ object JWTAuthenticator {
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] = {
         val now         = Instant.now()
         val cookieId    = SecureRandomId.generate
-        val expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
-        val lastTouched = settings.maxIdle.map(_ => now)
-        val messageBody = encodeI(body, lastTouched).toOption
+        val expiry      = now.plusSeconds(expiryDuration.toSeconds)
+        val lastTouched = maxIdle.map(_ => now)
+        val messageBody = encryptIdentity(body, lastTouched).toOption
         val claims = JWTClaims(
+          subject = messageBody,
           jwtId = cookieId,
           expiration = Some(expiry.getEpochSecond),
-          custom = messageBody
         )
         OptionT.liftF(JWTMacM.build[F, A](claims, signingKey)).map(AugmentedJWT(cookieId, _, body, expiry, lastTouched))
       }
@@ -697,23 +678,189 @@ object JWTAuthenticator {
       }
 
       def renew(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = {
-        val updatedExpiry =
-          Instant.now.plusSeconds(settings.expiryDuration.toSeconds)
-        settings.maxIdle match {
-          case Some(idleTime) =>
-            val now = Instant.now()
-            val updatedInternal = authenticator.jwt.body.custom
-              .flatMap(
-                _.as[JWTInternal]
-                  .map(_.copy(lastTouched = Some(now)).asJson)
-                  .toOption
-              )
+        val now           = Instant.now()
+        val updatedExpiry = now.plusSeconds(expiryDuration.toSeconds)
+        maxIdle match {
+          case Some(_) =>
             OptionT
               .liftF(
                 JWTMacM
                   .build(
                     authenticator.jwt.body
-                      .copy(custom = updatedInternal, expiration = Some(updatedExpiry.getEpochSecond)),
+                      .copy(expiration = Some(updatedExpiry.getEpochSecond), issuedAt = Some(now.getEpochSecond)),
+                    signingKey
+                  )
+              )
+              .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, Some(now)))
+              .handleErrorWith(_ => OptionT.none)
+          case None =>
+            OptionT
+              .liftF(
+                JWTMacM
+                  .build(authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond)), signingKey)
+              )
+              .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, None))
+        }
+      }
+      def refresh(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = maxIdle match {
+        case Some(_) =>
+          val now = Instant.now()
+          OptionT
+            .liftF(JWTMacM.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey))
+            .map(newToken => authenticator.copy(jwt = newToken, lastTouched = Some(now)))
+            .handleErrorWith(_ => OptionT.none)
+        case None =>
+          OptionT.pure[F](authenticator)
+      }
+
+      def embed(response: Response[F], authenticator: AugmentedJWT[A, I]): Response[F] =
+        response.putHeaders(buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt)))
+
+      def afterBlock(response: Response[F], authenticator: AugmentedJWT[A, I]): OptionT[F, Response[F]] =
+        maxIdle match {
+          case Some(_) =>
+            OptionT.pure[F](
+              response.putHeaders(
+                buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt))
+              )
+            )
+          case None =>
+            OptionT.pure[F](response)
+        }
+
+    }
+
+  /** Create a JWT with an encrypted user Id in the `subject` claim,
+    * transported in an arbitrary header
+    *
+    */
+  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: ByteEV: JWTMacAlgo: MacTag, E](
+      settings: TSecJWTSettings,
+      identityStore: BackingStore[F, I, V],
+      signingKey: MacSigningKey[A],
+      encryptionKey: SecretKey[E]
+  )(
+      implicit cv: JWSMacCV[F, A],
+      enc: Encryptor[E],
+      M: MonadError[F, Throwable]
+  ): StatelessJWTAuthenticator[F, I, V, A] =
+    new StatelessJWTAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
+
+      def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
+        statelessEncryptedArbitrary(st, identityStore, signingKey, encryptionKey)
+
+      def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
+        statelessEncryptedArbitrary(settings, is, signingKey, encryptionKey)
+
+      def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A] =
+        statelessEncryptedArbitrary(settings, identityStore, sk, encryptionKey)
+
+      def withEncryptionKey[EK: Encryptor](ek: SecretKey[EK]): StatelessJWTAuthenticator[F, I, V, A] =
+        statelessEncryptedArbitrary(settings, identityStore, signingKey, ek)
+
+      /** Generate a message body, with some arbitrary I which signal an id,
+        * the possible sliding window expiration last touched time, and the default CTR encryptor
+        *
+        * The body is encrypted by encoding it to json, pretty printing it with our nospaces, no nulls printer,
+        * then retrieving the utf8 bytes.
+        * After encryption, the body bytes are encoded as a base 64 string
+        *
+        * @param body
+        * @param lastTouched
+        * @return
+        */
+      private def encryptIdentity(body: I, lastTouched: Option[Instant]): Either[CipherError, String] =
+        for {
+          instance <- enc.instance
+          encrypted <- instance.encrypt(
+            PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes),
+            encryptionKey
+          )
+        } yield encrypted.toSingleArray.toB64String
+
+      /** Decode the body's internal Id type value **/
+      private def decryptIdentity(body: String, instance: EncryptorInstance[E]): F[I] =
+        M.fromEither(for {
+          cipherText <- enc.fromSingleArray(body.base64Bytes)
+          decrypted  <- instance.decrypt(cipherText, encryptionKey)
+          decoded    <- decode[I](decrypted.content.toUtf8String)
+        } yield decoded)
+
+      private def checkTimeout(timeout: Option[Instant]): OptionT[F, Option[Instant]] =
+        if (!settings.maxIdle.exists(t => timeout.exists(_.plusSeconds(t.toSeconds).isBefore(Instant.now()))))
+          OptionT.pure(timeout)
+        else
+          OptionT.none
+
+      def tryExtractRaw(request: Request[F]): Option[String] =
+        request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
+
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+        for {
+          eInstance   <- OptionT.liftF(M.fromEither(enc.instance))
+          rawHeader   <- OptionT.fromOption[F](request.headers.get(CaseInsensitiveString(settings.headerName)))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey))
+          rawId       <- OptionT.fromOption[F](extracted.body.subject)
+          lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
+          decodedBody <- OptionT.liftF(decryptIdentity(rawId, eInstance))
+          expiry      <- OptionT.fromOption(extracted.body.expiration)
+          augmented = AugmentedJWT(
+            SecureRandomId.coerce(extracted.body.jwtId),
+            extracted,
+            decodedBody,
+            Instant.ofEpochSecond(expiry),
+            lastTouched
+          )
+          refreshed <- refresh(augmented)
+          identity  <- identityStore.get(decodedBody)
+        } yield SecuredRequest(request, identity, refreshed)
+
+      def create(body: I): OptionT[F, AugmentedJWT[A, I]] = {
+        val now         = Instant.now()
+        val cookieId    = SecureRandomId.generate
+        val expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
+        val lastTouched = settings.maxIdle.map(_ => now)
+        val messageBody = encryptIdentity(body, lastTouched).toOption
+        val claims = JWTClaims(
+          subject = messageBody,
+          jwtId = cookieId,
+          expiration = Some(expiry.getEpochSecond),
+        )
+        OptionT.liftF(JWTMacM.build[F, A](claims, signingKey)).map(AugmentedJWT(cookieId, _, body, expiry, lastTouched))
+      }
+      def update(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] =
+        OptionT.pure[F](authenticator)
+
+      /** The only "discarding" we can do to a stateless token is make it invalid. */
+      def discard(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = {
+        val now = Instant.now()
+        OptionT
+          .liftF(
+            JWTMacM.build(
+              authenticator.jwt.body.copy(
+                subject = None,
+                expiration = Some(Instant.now().getEpochSecond),
+                custom = None,
+                jwtId = SecureRandomId.generate
+              ),
+              signingKey
+            )
+          )
+          .map(AugmentedJWT(authenticator.id, _, authenticator.identity, now, authenticator.lastTouched))
+          .handleErrorWith(_ => OptionT.none)
+      }
+
+      def renew(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = {
+        val now           = Instant.now()
+        val updatedExpiry = now.plusSeconds(settings.expiryDuration.toSeconds)
+        settings.maxIdle match {
+          case Some(idleTime) =>
+            OptionT
+              .liftF(
+                JWTMacM
+                  .build(
+                    authenticator.jwt.body
+                      .copy(expiration = Some(updatedExpiry.getEpochSecond), issuedAt = Some(now.getEpochSecond)),
                     signingKey
                   )
               )
@@ -731,14 +878,8 @@ object JWTAuthenticator {
       def refresh(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = settings.maxIdle match {
         case Some(_) =>
           val now = Instant.now()
-          val updatedInternal = authenticator.jwt.body.custom
-            .flatMap(
-              _.as[JWTInternal]
-                .map(_.copy(lastTouched = Some(now)).asJson)
-                .toOption
-            )
           OptionT
-            .liftF(JWTMacM.build(authenticator.jwt.body.copy(custom = updatedInternal), signingKey))
+            .liftF(JWTMacM.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey))
             .map(newToken => authenticator.copy(jwt = newToken, lastTouched = Some(now)))
             .handleErrorWith(_ => OptionT.none)
         case None =>
@@ -767,215 +908,4 @@ object JWTAuthenticator {
         }
 
     }
-
-  def bearerStatelessEncrypted[F[_], I: Decoder: Encoder, V, A: ByteEV: JWTMacAlgo: MacTag, E](
-      expiryDuration: FiniteDuration,
-      maxIdle: Option[FiniteDuration],
-      identityStore: BackingStore[F, I, V],
-      signingKey: MacSigningKey[A],
-      encryptionKey: SecretKey[E]
-  )(
-      implicit cv: JWSMacCV[F, A],
-      enc: Encryptor[E],
-      M: MonadError[F, Throwable]
-  ): StatelessJWTAuthenticator[F, I, V, A] =
-    new StatelessJWTAuthenticator[F, I, V, A](expiryDuration, maxIdle) {
-
-      def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
-        bearerStatelessEncrypted(st.expiryDuration, st.maxIdle, identityStore, signingKey, encryptionKey)
-
-      def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
-        bearerStatelessEncrypted(expiryDuration, maxIdle, is, signingKey, encryptionKey)
-
-      def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A] =
-        bearerStatelessEncrypted(expiryDuration, maxIdle, identityStore, sk, encryptionKey)
-
-      def withEncryptionKey[EK: Encryptor](ek: SecretKey[EK]): StatelessJWTAuthenticator[F, I, V, A] =
-        bearerStatelessEncrypted(expiryDuration, maxIdle, identityStore, signingKey, ek)
-
-      /** Generate a message body, with some arbitrary I which signal an id,
-        * the possible sliding window expiration last touched time, and the default CTR encryptor
-        *
-        * The body is encrypted by encoding it to json, pretty printing it with our nospaces, no nulls printer,
-        * then retrieving the utf8 bytes.
-        * After encryption, the body bytes are encoded as a base 64 string
-        *
-        * @param body
-        * @param lastTouched
-        * @return
-        */
-      private def encodeI(body: I, lastTouched: Option[Instant]): Either[CipherError, Json] =
-        for {
-          instance <- enc.instance
-          encrypted <- instance.encrypt(
-            PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes),
-            encryptionKey
-          )
-        } yield JWTInternal(encrypted.toSingleArray.toB64String, lastTouched).asJson
-
-      /** Decode the body's internal value.
-        * Such a value was encoded
-        *
-        * @param body
-        * @param instance
-        * @return
-        */
-      private def decodeI(body: JWTInternal, instance: EncryptorInstance[E]): F[I] =
-        M.fromEither(for {
-          cipherText <- enc.fromSingleArray(body.value.base64Bytes)
-          decrypted  <- instance.decrypt(cipherText, encryptionKey)
-          decoded    <- decode[I](decrypted.content.toUtf8String)
-        } yield decoded)
-
-      /** Same as verify, but tack on dat dere diddly OptionT.
-        *
-        * @param body
-        * @return
-        */
-      private def checkTimeout(body: JWTInternal): OptionT[F, Unit] =
-        if (!maxIdle.exists(body.isTimedout(Instant.now(), _)))
-          OptionT.pure(())
-        else
-          OptionT.none
-
-      def tryExtractRaw(request: Request[F]): Option[String] =
-        extractBearerToken[F](request)
-
-      /** We:
-        * 1. Get the encryptor instance
-        * 2. extract the header
-        * 3. verify and parse our jwt
-        * 4. decode our token UUID
-        * 5. retrieve the backing store copy
-        * 6. retrieve the `Internal` instance for the encoded data
-        * 7. Decode the body id.
-        * 6. A lil' extra verification, for that extract sec
-        * 7. refresh the token, if there is anything to refresh
-        * 8. Retrieve the identity from our identity store
-        *
-        * @param request
-        * @return
-        */
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
-          encryptorInstance <- OptionT.liftF(M.fromEither(enc.instance))
-          rawToken          <- OptionT.fromOption[F](tryExtractRaw(request))
-          extracted         <- OptionT.liftF(cv.verifyAndParse(rawToken, signingKey))
-          internal <- OptionT.fromOption[F](
-            extracted.body.custom.flatMap(_.as[JWTInternal].toOption)
-          )
-          _           <- checkTimeout(internal)
-          decodedBody <- OptionT.liftF(decodeI(internal, encryptorInstance))
-          expiry      <- OptionT.fromOption(extracted.body.expiration)
-          augmented = AugmentedJWT(
-            SecureRandomId.coerce(extracted.body.jwtId),
-            extracted,
-            decodedBody,
-            Instant.ofEpochSecond(expiry),
-            internal.lastTouched
-          )
-          refreshed <- refresh(augmented)
-          identity  <- identityStore.get(decodedBody)
-        } yield SecuredRequest(request, identity, refreshed)
-
-      def create(body: I): OptionT[F, AugmentedJWT[A, I]] = {
-        val now         = Instant.now()
-        val cookieId    = SecureRandomId.generate
-        val expiry      = now.plusSeconds(expiryDuration.toSeconds)
-        val lastTouched = maxIdle.map(_ => now)
-        val messageBody = encodeI(body, lastTouched).toOption
-        val claims = JWTClaims(
-          jwtId = cookieId,
-          expiration = Some(expiry.getEpochSecond),
-          custom = messageBody
-        )
-        OptionT.liftF(JWTMacM.build[F, A](claims, signingKey)).map(AugmentedJWT(cookieId, _, body, expiry, lastTouched))
-      }
-      def update(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] =
-        OptionT.pure[F](authenticator)
-
-      /** The only "discarding" we can do to a stateless token is make it invalid. */
-      def discard(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = {
-        val now = Instant.now()
-        OptionT
-          .liftF(
-            JWTMacM.build(
-              authenticator.jwt.body.copy(
-                expiration = Some(Instant.now().getEpochSecond),
-                custom = None,
-                jwtId = SecureRandomId.generate
-              ),
-              signingKey
-            )
-          )
-          .map(AugmentedJWT(authenticator.id, _, authenticator.identity, now, authenticator.lastTouched))
-          .handleErrorWith(_ => OptionT.none)
-      }
-
-      def renew(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = {
-        val updatedExpiry =
-          Instant.now.plusSeconds(expiryDuration.toSeconds)
-        maxIdle match {
-          case Some(idleTime) =>
-            val now = Instant.now()
-            val updatedInternal = authenticator.jwt.body.custom
-              .flatMap(
-                _.as[JWTInternal]
-                  .map(_.copy(lastTouched = Some(now)).asJson)
-                  .toOption
-              )
-            OptionT
-              .liftF(
-                JWTMacM
-                  .build(
-                    authenticator.jwt.body
-                      .copy(custom = updatedInternal, expiration = Some(updatedExpiry.getEpochSecond)),
-                    signingKey
-                  )
-              )
-              .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, Some(now)))
-              .handleErrorWith(_ => OptionT.none)
-          case None =>
-            OptionT
-              .liftF(
-                JWTMacM
-                  .build(authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond)), signingKey)
-              )
-              .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, None))
-        }
-      }
-      def refresh(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] = maxIdle match {
-        case Some(_) =>
-          val now = Instant.now()
-          val updatedInternal = authenticator.jwt.body.custom
-            .flatMap(
-              _.as[JWTInternal]
-                .map(_.copy(lastTouched = Some(now)).asJson)
-                .toOption
-            )
-          OptionT
-            .liftF(JWTMacM.build(authenticator.jwt.body.copy(custom = updatedInternal), signingKey))
-            .map(newToken => authenticator.copy(jwt = newToken, lastTouched = Some(now)))
-            .handleErrorWith(_ => OptionT.none)
-        case None =>
-          OptionT.pure[F](authenticator)
-      }
-
-      def embed(response: Response[F], authenticator: AugmentedJWT[A, I]): Response[F] =
-        response.putHeaders(buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt)))
-
-      def afterBlock(response: Response[F], authenticator: AugmentedJWT[A, I]): OptionT[F, Response[F]] =
-        maxIdle match {
-          case Some(_) =>
-            OptionT.pure[F](
-              response.putHeaders(
-                buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt))
-              )
-            )
-          case None =>
-            OptionT.pure[F](response)
-        }
-
-    }
-
 }

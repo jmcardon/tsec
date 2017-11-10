@@ -7,7 +7,6 @@ import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.{Header, HttpDate, Request}
 import io.circe.syntax._
-import tsec.authentication.JWTAuthenticator.JWTInternal
 import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
 import tsec.common.{ByteEV, SecureRandomId}
 import tsec.jws.mac.{JWSMacCV, JWTMac, JWTMacM}
@@ -178,7 +177,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()
-    val authenticator = JWTAuthenticator.statelessEncrypted[IO, Int, DummyUser, A, E](
+    val authenticator = JWTAuthenticator.statelessEncryptedArbitrary[IO, Int, DummyUser, A, E](
       settings,
       dummyStore,
       macKey,
@@ -202,13 +201,11 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def timeoutAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
-          internal <- OptionT.fromOption[IO](b.jwt.body.custom.flatMap(_.as[JWTInternal].toOption))
-          newInternal = internal.copy(lastTouched = Some(expiredInstant))
           newToken <- OptionT.liftF[IO, JWTMac[A]] {
             JWTMacM
-              .build[IO, A](b.jwt.body.copy(custom = Some(newInternal.asJson)), macKey)
+              .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
           }
-        } yield b.copy(jwt = newToken, lastTouched = newInternal.lastTouched)
+        } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AugmentedJWT[A, Int]] =
@@ -228,7 +225,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()
-    val authenticator = JWTAuthenticator.bearerStatelessEncrypted[IO, Int, DummyUser, A, E](
+    val authenticator = JWTAuthenticator.statelessEncrypted[IO, Int, DummyUser, A, E](
       settings.expiryDuration,
       settings.maxIdle,
       dummyStore,
@@ -253,13 +250,11 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def timeoutAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
-          internal <- OptionT.fromOption[IO](b.jwt.body.custom.flatMap(_.as[JWTInternal].toOption))
-          newInternal = internal.copy(lastTouched = Some(expiredInstant))
           newToken <- OptionT.liftF[IO, JWTMac[A]] {
             JWTMacM
-              .build[IO, A](b.jwt.body.copy(custom = Some(newInternal.asJson)), macKey)
+              .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
           }
-        } yield b.copy(jwt = newToken, lastTouched = newInternal.lastTouched)
+        } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AugmentedJWT[A, Int]] =

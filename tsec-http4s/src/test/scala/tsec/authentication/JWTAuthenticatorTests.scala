@@ -123,7 +123,6 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
   )
 
   /** End Stateless Encrypted  Arbitrary Header Tests **/
-
   /** Stateless Encrypted Auth Bearer Header tests **/
   AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
     "HMACSHA256 JWT Encrypted Bearer Token Stateless Authenticator",
@@ -150,9 +149,8 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
     "HMACSHA512 JWT Encrypted Bearer Token Stateless Authenticator",
     statelessBearerEncrypted[HMACSHA512, AES128]
   )
+
   /** End Stateless Encrypted Auth Bearer Header Tests **/
-
-
   def checkAuthHeader[A: ByteEV: JWTMacAlgo: MacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGenerator[A]) = {
     behavior of MacTag[A].algorithm + " JWT Token64 check"
     macKeyGen
