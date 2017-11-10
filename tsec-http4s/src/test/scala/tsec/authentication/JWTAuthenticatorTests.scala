@@ -13,58 +13,148 @@ import tsec.mac.imports._
 
 class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
 
+  /** Stateful Bearer Auth **/
   AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateful Authenticator",
-    genStatefulAuthenticator[HMACSHA256]
+    "HMACSHA256 JWT Stateful Bearer Authenticator",
+    stateful[HMACSHA256]
   )
   AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateful Authenticator",
-    genStatefulAuthenticator[HMACSHA384]
+    "HMACSHA384 JWT Stateful Bearer Authenticator",
+    stateful[HMACSHA384]
   )
   AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateful Authenticator",
-    genStatefulAuthenticator[HMACSHA512]
+    "HMACSHA512 JWT Stateful Bearer Authenticator",
+    stateful[HMACSHA512]
   )
+  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
+    "HMACSHA256 JWT Stateful Bearer Authenticator",
+    stateful[HMACSHA256]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
+    "HMACSHA384 JWT Stateful Bearer Authenticator",
+    stateful[HMACSHA384]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
+    "HMACSHA512 JWT Stateful Bearer Authenticator",
+    stateful[HMACSHA512]
+  )
+
+  /** End Stateful Bearer Auth **/
+  /** Stateful Arbitrary Header Auth **/
+  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
+    "HMACSHA256 JWT Stateful Arbitrary Header Authenticator",
+    statefulArbitraryH[HMACSHA256]
+  )
+  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
+    "HMACSHA384 JWT Stateful Arbitrary Header Authenticator",
+    statefulArbitraryH[HMACSHA384]
+  )
+  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
+    "HMACSHA512 JWT Stateful Arbitrary Header Authenticator",
+    statefulArbitraryH[HMACSHA512]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
+    "HMACSHA256 JWT Stateful Arbitrary Header Authenticator",
+    statefulArbitraryH[HMACSHA256]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
+    "HMACSHA384 JWT Stateful Arbitrary Header Authenticator",
+    statefulArbitraryH[HMACSHA384]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
+    "HMACSHA512 JWT Stateful Arbitrary Header Authenticator",
+    statefulArbitraryH[HMACSHA512]
+  )
+
+  /** End Stateful Arbitrary Header Auth **/
+  /** Basic Stateless tests **/
   AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
     "HMACSHA256 JWT Stateless Authenticator",
-    genStateless[HMACSHA256, AES128]
+    stateless[HMACSHA256]
   )
   AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
     "HMACSHA384 JWT Stateless Authenticator",
-    genStateless[HMACSHA384, AES128]
+    stateless[HMACSHA384]
   )
   AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
     "HMACSHA512 JWT Stateless Authenticator",
-    genStateless[HMACSHA512, AES128]
+    stateless[HMACSHA512]
   )
 
   requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateful Authenticator",
-    genStatefulAuthenticator[HMACSHA256]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateful Authenticator",
-    genStatefulAuthenticator[HMACSHA384]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateful Authenticator",
-    genStatefulAuthenticator[HMACSHA512]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
     "HMACSHA256 JWT Stateless Authenticator",
-    genStateless[HMACSHA256, AES128]
+    stateless[HMACSHA256]
   )
   requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
     "HMACSHA384 JWT Stateless Authenticator",
-    genStateless[HMACSHA384, AES128]
+    stateless[HMACSHA384]
   )
   requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
     "HMACSHA512 JWT Stateless Authenticator",
-    genStateless[HMACSHA512, AES128]
+    stateless[HMACSHA512]
   )
+
+  /**End Basic Stateless tests **/
+  /** Stateless Encrypted Arbitrary Header tests **/
+  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
+    "HMACSHA256 JWT Encrypted Stateless Authenticator",
+    statelessEncrypted[HMACSHA256, AES128]
+  )
+  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
+    "HMACSHA384 JWT Encrypted Stateless Authenticator",
+    statelessEncrypted[HMACSHA384, AES128]
+  )
+  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
+    "HMACSHA512 JWT Encrypted Stateless Authenticator",
+    statelessEncrypted[HMACSHA512, AES128]
+  )
+
+  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
+    "HMACSHA256 JWT Encrypted Stateless Authenticator",
+    statelessEncrypted[HMACSHA256, AES128]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
+    "HMACSHA384 JWT Encrypted Stateless Authenticator",
+    statelessEncrypted[HMACSHA384, AES128]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
+    "HMACSHA512 JWT Encrypted Stateless Authenticator",
+    statelessEncrypted[HMACSHA512, AES128]
+  )
+
+  /** End Stateless Encrypted  Arbitrary Header Tests **/
+
+  /** Stateless Encrypted Auth Bearer Header tests **/
+  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
+    "HMACSHA256 JWT Encrypted Bearer Token Stateless Authenticator",
+    statelessBearerEncrypted[HMACSHA256, AES128]
+  )
+  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
+    "HMACSHA384 JWT Encrypted Bearer Token Stateless Authenticator",
+    statelessBearerEncrypted[HMACSHA384, AES128]
+  )
+  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
+    "HMACSHA512 JWT Encrypted Bearer Token Stateless Authenticator",
+    statelessBearerEncrypted[HMACSHA512, AES128]
+  )
+
+  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
+    "HMACSHA256 JWT Encrypted Bearer Token Stateless Authenticator",
+    statelessBearerEncrypted[HMACSHA256, AES128]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
+    "HMACSHA384 JWT Encrypted Bearer Token Stateless Authenticator",
+    statelessBearerEncrypted[HMACSHA384, AES128]
+  )
+  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
+    "HMACSHA512 JWT Encrypted Bearer Token Stateless Authenticator",
+    statelessBearerEncrypted[HMACSHA512, AES128]
+  )
+  /** End Stateless Encrypted Auth Bearer Header Tests **/
+
 
   def checkAuthHeader[A: ByteEV: JWTMacAlgo: MacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGenerator[A]) = {
-    behavior of MacTag[A] + " JWT Token64 check"
+    behavior of MacTag[A].algorithm + " JWT Token64 check"
     macKeyGen
       .generateLift[IO]
       .map { key =>

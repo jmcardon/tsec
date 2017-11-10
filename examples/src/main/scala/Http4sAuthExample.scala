@@ -188,7 +188,7 @@ object JWTAuthExample {
     : MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
 
   val jwtStatelessauth =
-    JWTAuthenticator.withBackingStore(
+    JWTAuthenticator.withBackingStoreArbitrary(
       settings,
       jwtStore,
       userStore,
