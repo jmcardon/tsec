@@ -11,7 +11,7 @@ import cats.syntax.all._
 
 import scala.concurrent.duration._
 
-sealed abstract class BearerTokenAuthenticator[F[_], I, V] private[tsec]  (
+sealed abstract class BearerTokenAuthenticator[F[_], I, V] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 ) extends AuthenticatorService[F, I, V, TSecBearerToken[I]] {
@@ -50,6 +50,8 @@ object BearerTokenAuthenticator {
         val now = Instant.now()
         !token.isExpired(now) && settings.maxIdle.forall(!token.isTimedout(now, _))
       }
+
+      def tryExtractRaw(request: Request[F]): Option[String] = extractBearerToken[F](request)
 
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
         for {

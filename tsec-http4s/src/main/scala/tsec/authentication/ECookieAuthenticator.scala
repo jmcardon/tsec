@@ -24,7 +24,7 @@ import tsec.jwt.JWTPrinter
 sealed abstract class ECookieAuthenticator[F[_], I, V, A](implicit auth: AuthEncryptor[A])
     extends AuthenticatorService[F, I, V, AuthEncryptedCookie[A, I]]
 
-sealed abstract class StatefulECAuthenticator[F[_], I, V, A] private[tsec]  (
+sealed abstract class StatefulECAuthenticator[F[_], I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 )(implicit auth: AuthEncryptor[A])
@@ -223,7 +223,10 @@ object ECookieAuthenticator {
       ): OptionT[F, Unit] =
         if (validateCookie(internal, raw, now)) OptionT.pure[F](()) else OptionT.none
 
-      /** Extract our encrypted cookie frmo a request.
+      def tryExtractRaw(request: Request[F]): Option[String] =
+        unliftedCookieFromRequest(settings.cookieName, request).map(_.content)
+
+      /** Extract our encrypted cookie from a request.
         * We validate using our symmetric key, extracting the tokenId from the encrypted value, and then retrieving
         * the identity from the retrieved object.
         *
@@ -374,6 +377,9 @@ object ECookieAuthenticator {
           now: Instant
       ): OptionT[F, Unit] =
         if (validateCookie(internal, now)) OptionT.pure[F](()) else OptionT.none
+
+      def tryExtractRaw(request: Request[F]): Option[String] =
+        unliftedCookieFromRequest(settings.cookieName, request).map(_.content)
 
       /** Extract and validate our cookie from a request
         *

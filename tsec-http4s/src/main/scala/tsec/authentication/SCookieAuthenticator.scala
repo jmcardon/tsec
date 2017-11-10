@@ -150,6 +150,9 @@ object SCookieAuthenticator {
       ): OptionT[F, Unit] =
         if (validateCookie(internal, raw, now)) OptionT.pure[F](()) else OptionT.none
 
+      def tryExtractRaw(request: Request[F]): Option[String] =
+        unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
+
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] = {
         val now = Instant.now()
         for {

@@ -15,6 +15,15 @@ trait AuthenticatorService[F[_], I, V, Authenticator] {
   val expiry: FiniteDuration
   val maxIdle: Option[FiniteDuration]
 
+  /** Attempt to retrieve the raw representation of an Authenticator
+    * This is primarily useful when attempting to combine AuthenticatorService,
+    * to be able to evaluate an endpoint with more than one token type.
+    * or simply just to prod whether the request is malformed.
+    *
+    * @return
+    */
+  def tryExtractRaw(request: Request[F]): Option[String]
+
   /** Return a secured request from a request, that carries our authenticator
     * @param request
     * @return

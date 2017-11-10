@@ -49,9 +49,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     new AuthSpecTester[AugmentedJWT[A, Int]](auth, dummyStore) {
 
       def embedInRequest(request: Request[IO], authenticator: AugmentedJWT[A, Int]): Request[IO] =
-        request.withHeaders(
-          request.headers.put(Header(settings.headerName, JWTMacM.toEncodedString[IO, A](authenticator.jwt)))
-        )
+        request.putHeaders(Header(settings.headerName, JWTMacM.toEncodedString[IO, A](authenticator.jwt)))
 
       def expireAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] =
         for {

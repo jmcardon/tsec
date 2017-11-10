@@ -131,6 +131,9 @@ object JWTAuthenticator {
         else
           OptionT.none
 
+      def tryExtractRaw(request: Request[F]): Option[String] =
+        request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
+
       /** We:
         * 1. Get the encryptor instance
         * 2. extract the header
@@ -148,14 +151,12 @@ object JWTAuthenticator {
         */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
-          rawHeader <- OptionT.fromOption[F](
-            request.headers.get(CaseInsensitiveString(settings.headerName))
-          )
-          extracted <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey))
-          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
-          _         <- verifyWithRawF(rawHeader.value, retrieved)
-          refreshed <- refresh(retrieved)
-          identity  <- identityStore.get(retrieved.identity)
+          headerValue <- OptionT.fromOption[F](tryExtractRaw(request))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(headerValue, signingKey))
+          retrieved   <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
+          _           <- verifyWithRawF(headerValue, retrieved)
+          refreshed   <- refresh(retrieved)
+          identity    <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] = {
@@ -298,6 +299,9 @@ object JWTAuthenticator {
           OptionT.pure(())
         else
           OptionT.none
+
+      def tryExtractRaw(request: Request[F]): Option[String] =
+        request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
 
       /** We:
         * 1. Get the encryptor instance

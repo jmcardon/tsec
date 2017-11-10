@@ -131,6 +131,9 @@ package object authentication {
   def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, Cookie] =
     OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))
 
+  def unliftedCookieFromRequest[F[_]](name: String, request: Request[F]): Option[Cookie] =
+    C.from(request.headers).flatMap(_.values.find(_.name === name))
+
   def extractBearerToken[F[_]: Monad](request: Request[F]): Option[String] =
     request.headers.get(Authorization).flatMap { t =>
       t.credentials match {
@@ -142,8 +145,14 @@ package object authentication {
 
   implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
     def apply(c: HCursor): Either[DecodingFailure, Instant] =
-      c.value.as[Long].flatMap(l => Either.catchNonFatal(Instant.ofEpochSecond(l))
-        .leftMap(_ => DecodingFailure("InvalidEpoch", Nil)))
+      c.value
+        .as[Long]
+        .flatMap(
+          l =>
+            Either
+              .catchNonFatal(Instant.ofEpochSecond(l))
+              .leftMap(_ => DecodingFailure("InvalidEpoch", Nil))
+        )
   }
 
   implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
