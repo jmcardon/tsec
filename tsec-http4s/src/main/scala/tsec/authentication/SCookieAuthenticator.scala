@@ -16,43 +16,36 @@ import cats.syntax.eq._
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class CookieAuthenticator[F[_], I, V, Alg: MacTag: ByteEV]
-    extends Authenticator[F, I, V, AuthenticatedCookie[Alg, I]]
+abstract class SCookieAuthenticator[F[_], I, V, Alg: MacTag: ByteEV] private[tsec] (
+    val expiry: FiniteDuration,
+    val maxIdle: Option[FiniteDuration]
+) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]]
 
 /** An authenticated cookie implementation
   *
   * @param id the cookie id
   * @param content the raw cookie: The full thing, including the nonce
-  * @param messageId The id of what
-  * @param expiry
-  * @param lastTouched
-  * @tparam A
+  * @param identity The id of what
+  * @tparam A Our Mac algorithm we are signing the cookie with.
   * @tparam Id
   */
 final case class AuthenticatedCookie[A, Id](
     id: UUID,
     name: String,
     content: SignedCookie[A],
-    messageId: Id,
-    expiry: HttpDate,
-    lastTouched: Option[HttpDate],
+    identity: Id,
+    expiry: Instant,
+    lastTouched: Option[Instant],
     secure: Boolean,
     httpOnly: Boolean = true,
     domain: Option[String] = None,
     path: Option[String] = None,
     extension: Option[String] = None
-) {
-  def isExpired(now: Instant): Boolean = expiry.toInstant.isBefore(now)
-  def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
-    lastTouched.exists(
-      _.toInstant
-        .plusSeconds(timeOut.toSeconds)
-        .isBefore(now)
-    )
+) extends Authenticator[Id] {
   def toCookie = Cookie(
     name,
     content,
-    Some(expiry),
+    Some(HttpDate.unsafeFromInstant(expiry)),
     None,
     domain,
     path,
@@ -67,8 +60,8 @@ object AuthenticatedCookie {
       id: UUID,
       content: SignedCookie[A],
       messageId: Id,
-      expiry: HttpDate,
-      lastTouched: Option[HttpDate],
+      expiry: Instant,
+      lastTouched: Option[Instant],
       settings: TSecCookieSettings
   ): AuthenticatedCookie[A, Id] =
     AuthenticatedCookie[A, Id](
@@ -84,20 +77,19 @@ object AuthenticatedCookie {
       settings.path,
       settings.extension
     )
-
 }
 
-object CookieAuthenticator {
+object SCookieAuthenticator {
 
   def apply[F[_], I: Decoder: Encoder, V, Alg: MacTag: ByteEV](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
       idStore: BackingStore[F, I, V],
       key: MacSigningKey[Alg]
-  )(implicit M: MonadError[F, Throwable]): CookieAuthenticator[F, I, V, Alg] =
-    new CookieAuthenticator[F, I, V, Alg] {
+  )(implicit M: MonadError[F, Throwable]): SCookieAuthenticator[F, I, V, Alg] =
+    new SCookieAuthenticator[F, I, V, Alg](settings.expiryDuration, settings.maxIdle) {
 
-      def withNewKey(newKey: MacSigningKey[Alg]): CookieAuthenticator[F, I, V, Alg] =
+      def withNewKey(newKey: MacSigningKey[Alg]): SCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           settings: TSecCookieSettings,
           tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -107,7 +99,7 @@ object CookieAuthenticator {
 
       def withTokenStore(
           newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]]
-      ): CookieAuthenticator[F, I, V, Alg] =
+      ): SCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           settings: TSecCookieSettings,
           newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -115,7 +107,7 @@ object CookieAuthenticator {
           key
         )
 
-      def withIdStore(newStore: BackingStore[F, I, V]): CookieAuthenticator[F, I, V, Alg] =
+      def withIdStore(newStore: BackingStore[F, I, V]): SCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           settings: TSecCookieSettings,
           tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -123,7 +115,7 @@ object CookieAuthenticator {
           key
         )
 
-      def withSettings(newSettings: TSecCookieSettings): CookieAuthenticator[F, I, V, Alg] =
+      def withSettings(newSettings: TSecCookieSettings): SCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           newSettings: TSecCookieSettings,
           tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -168,7 +160,7 @@ object CookieAuthenticator {
           authed     <- tokenStore.get(tokenId)
           _          <- validateCookieT(authed, coerced, now)
           refreshed  <- refresh(authed)
-          identity   <- idStore.get(authed.messageId)
+          identity   <- idStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
       }
 
@@ -181,8 +173,8 @@ object CookieAuthenticator {
         val cookieId    = UUID.randomUUID()
         val messageBody = cookieId.toString
         val now         = Instant.now()
-        val expiry      = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
-        val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
+        val expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
+        val lastTouched = settings.maxIdle.map(_ => now)
         for {
           signed <- OptionT.liftF(M.fromEither(CookieSigner.sign[Alg](messageBody, generateNonce(messageBody), key)))
           cookie <- OptionT.pure[F](
@@ -208,13 +200,13 @@ object CookieAuthenticator {
         settings.maxIdle match {
           case Some(idleTime) =>
             val updated = authenticator.copy[Alg, I](
-              lastTouched = Some(HttpDate.unsafeFromInstant(now)),
-              expiry = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+              lastTouched = Some(now),
+              expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
             )
             OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
           case None =>
             val updated = authenticator.copy[Alg, I](
-              expiry = HttpDate.unsafeFromInstant(now.plusSeconds(settings.expiryDuration.toSeconds))
+              expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
             )
             OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
         }
@@ -230,7 +222,7 @@ object CookieAuthenticator {
           case Some(idleTime) =>
             val now = Instant.now()
             val updated = authenticator.copy[Alg, I](
-              lastTouched = Some(HttpDate.unsafeFromInstant(now))
+              lastTouched = Some(now)
             )
             OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
           case None =>

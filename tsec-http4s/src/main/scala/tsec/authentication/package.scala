@@ -1,5 +1,6 @@
 package tsec
 
+import java.time.Instant
 import java.util.UUID
 
 import cats.{Applicative, Monad}
@@ -117,13 +118,13 @@ package object authentication {
   )
 
   final case class TSecTokenSettings(
-      expirationTime: FiniteDuration,
+      expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
   )
 
   final case class TSecJWTSettings(
       headerName: String = "X-TSec-JWT",
-      expirationTime: FiniteDuration,
+      expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
   )
 
@@ -139,13 +140,14 @@ package object authentication {
       }
     }
 
-  implicit val HttpDateLongDecoder: Decoder[HttpDate] = new Decoder[HttpDate] {
-    def apply(c: HCursor): Result[HttpDate] =
-      c.value.as[Long].flatMap(HttpDate.fromEpochSecond(_).leftMap(_ => DecodingFailure("InvalidEpoch", Nil)))
+  implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
+    def apply(c: HCursor): Either[DecodingFailure, Instant] =
+      c.value.as[Long].flatMap(l => Either.catchNonFatal(Instant.ofEpochSecond(l))
+        .leftMap(_ => DecodingFailure("InvalidEpoch", Nil)))
   }
 
-  implicit val HttpDateLongEncoder: Encoder[HttpDate] = new Encoder[HttpDate] {
-    def apply(a: HttpDate): Json = Json.fromLong(a.epochSecond)
+  implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
+    def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
   }
 
   def uuidFromRaw[F[_]: Applicative](string: String): OptionT[F, UUID] =

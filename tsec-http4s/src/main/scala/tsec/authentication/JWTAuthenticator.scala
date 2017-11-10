@@ -21,9 +21,12 @@ import cats.implicits._
 import scala.concurrent.duration.FiniteDuration
 
 sealed abstract class JWTAuthenticator[F[_], I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
-    extends Authenticator[F, I, V, JWTMac[A]]
+    extends AuthenticatorService[F, I, V, JWTMac[A]]
 
-sealed abstract class StatefulJWTAuthenticator[F[_], I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
+sealed abstract class StatefulJWTAuthenticator[F[_], I, V, A] private [tsec] (
+    val expiry: FiniteDuration,
+    val maxIdle: Option[FiniteDuration]
+)(implicit jWSMacCV: JWSMacCV[F, A])
     extends JWTAuthenticator[F, I, V, A] {
   def withSettings(settings: TSecJWTSettings): StatefulJWTAuthenticator[F, I, V, A]
   def withTokenStore(tokenStore: BackingStore[F, SecureRandomId, JWTMac[A]]): StatefulJWTAuthenticator[F, I, V, A]
@@ -32,7 +35,10 @@ sealed abstract class StatefulJWTAuthenticator[F[_], I, V, A](implicit jWSMacCV:
   def withEncryptionKey[E: Encryptor](encryptionKey: SecretKey[E]): StatefulJWTAuthenticator[F, I, V, A]
 }
 
-sealed abstract class StatelessJWTAuthenticator[F[_], I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
+sealed abstract class StatelessJWTAuthenticator[F[_], I, V, A] private[tsec]  (
+    val expiry: FiniteDuration,
+    val maxIdle: Option[FiniteDuration]
+)(implicit jWSMacCV: JWSMacCV[F, A])
     extends JWTAuthenticator[F, I, V, A] {
   def withSettings(settings: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A]
   def withIdentityStore(identityStore: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A]
@@ -50,12 +56,11 @@ object JWTAuthenticator {
     */
   final private[authentication] case class JWTInternal(
       value: String,
-      lastTouched: Option[HttpDate]
+      lastTouched: Option[Instant]
   ) {
     def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
       lastTouched.exists(
-        _.toInstant
-          .plusSeconds(timeOut.toSeconds)
+        _.plusSeconds(timeOut.toSeconds)
           .isBefore(now)
       )
   }
@@ -71,7 +76,7 @@ object JWTAuthenticator {
       enc: Encryptor[E],
       M: MonadError[F, Throwable]
   ): StatefulJWTAuthenticator[F, I, V, A] =
-    new StatefulJWTAuthenticator[F, I, V, A] {
+    new StatefulJWTAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
 
       def withSettings(s: TSecJWTSettings): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStore(s, tokenStore, identityStore, signingKey, encryptionKey)
@@ -99,7 +104,7 @@ object JWTAuthenticator {
         * @param lastTouched
         * @return
         */
-      private def encodeI(body: I, lastTouched: Option[HttpDate]): Either[CipherError, Json] =
+      private def encodeI(body: I, lastTouched: Option[Instant]): Either[CipherError, Json] =
         for {
           instance <- enc.instance
           encrypted <- instance.encrypt(
@@ -189,8 +194,8 @@ object JWTAuthenticator {
       def create(body: I): OptionT[F, JWTMac[A]] = {
         val now         = Instant.now()
         val cookieId    = SecureRandomId.generate
-        val expiry      = now.plusSeconds(settings.expirationTime.toSeconds).getEpochSecond
-        val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
+        val expiry      = now.plusSeconds(settings.expiryDuration.toSeconds).getEpochSecond
+        val lastTouched = settings.maxIdle.map(_ => now)
         val messageBody = encodeI(body, lastTouched).toOption
         val claims = JWTClaims(
           jwtId = cookieId,
@@ -211,13 +216,13 @@ object JWTAuthenticator {
 
       def renew(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] = {
         val now           = Instant.now()
-        val updatedExpiry = now.plusSeconds(settings.expirationTime.toSeconds).getEpochSecond
+        val updatedExpiry = now.plusSeconds(settings.expiryDuration.toSeconds).getEpochSecond
         settings.maxIdle match {
           case Some(idleTime) =>
             val updatedInternal = authenticator.body.custom
               .flatMap(
                 _.as[JWTInternal]
-                  .map(_.copy(lastTouched = Some(HttpDate.unsafeFromInstant(now))).asJson)
+                  .map(_.copy(lastTouched = Some(now)).asJson)
                   .toOption
               )
             for {
@@ -249,7 +254,7 @@ object JWTAuthenticator {
             val updatedInternal = authenticator.body.custom
               .flatMap(
                 _.as[JWTInternal]
-                  .map(_.copy(lastTouched = Some(HttpDate.unsafeFromInstant(now))).asJson)
+                  .map(_.copy(lastTouched = Some(now)).asJson)
                   .toOption
               )
             for {
@@ -294,7 +299,7 @@ object JWTAuthenticator {
       enc: Encryptor[E],
       M: MonadError[F, Throwable]
   ): StatelessJWTAuthenticator[F, I, V, A] =
-    new StatelessJWTAuthenticator[F, I, V, A] {
+    new StatelessJWTAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
 
       def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
         stateless(st, identityStore, signingKey, encryptionKey)
@@ -319,7 +324,7 @@ object JWTAuthenticator {
         * @param lastTouched
         * @return
         */
-      private def encodeI(body: I, lastTouched: Option[HttpDate]): Either[CipherError, Json] =
+      private def encodeI(body: I, lastTouched: Option[Instant]): Either[CipherError, Json] =
         for {
           instance <- enc.instance
           encrypted <- instance.encrypt(
@@ -390,8 +395,8 @@ object JWTAuthenticator {
       def create(body: I): OptionT[F, JWTMac[A]] = {
         val now         = Instant.now()
         val cookieId    = SecureRandomId.generate
-        val expiry      = now.plusSeconds(settings.expirationTime.toSeconds).getEpochSecond
-        val lastTouched = settings.maxIdle.map(_ => HttpDate.unsafeFromInstant(now))
+        val expiry      = now.plusSeconds(settings.expiryDuration.toSeconds).getEpochSecond
+        val lastTouched = settings.maxIdle.map(_ => now)
         val messageBody = encodeI(body, lastTouched).toOption
         val claims = JWTClaims(
           jwtId = cookieId,
@@ -421,14 +426,14 @@ object JWTAuthenticator {
 
       def renew(authenticator: JWTMac[A]): OptionT[F, JWTMac[A]] = {
         val updatedExpiry =
-          Instant.now.plusSeconds(settings.expirationTime.toSeconds).getEpochSecond
+          Instant.now.plusSeconds(settings.expiryDuration.toSeconds).getEpochSecond
         settings.maxIdle match {
           case Some(idleTime) =>
             val now = Instant.now()
             val updatedInternal = authenticator.body.custom
               .flatMap(
                 _.as[JWTInternal]
-                  .map(_.copy(lastTouched = Some(HttpDate.unsafeFromInstant(now))).asJson)
+                  .map(_.copy(lastTouched = Some(now)).asJson)
                   .toOption
               )
             OptionT
@@ -456,7 +461,7 @@ object JWTAuthenticator {
           val updatedInternal = authenticator.body.custom
             .flatMap(
               _.as[JWTInternal]
-                .map(_.copy(lastTouched = Some(HttpDate.unsafeFromInstant(now))).asJson)
+                .map(_.copy(lastTouched = Some(now)).asJson)
                 .toOption
             )
           OptionT

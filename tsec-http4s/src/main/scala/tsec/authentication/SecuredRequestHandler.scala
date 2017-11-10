@@ -7,7 +7,7 @@ import cats.syntax.all._
 import tsec.authorization._
 
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
-    val authenticator: Authenticator[F, Identity, User, Auth]
+    val authenticator: AuthenticatorService[F, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
 
   protected def authorizedMiddleware(authorization: Authorization[F, User, Auth]): TSecMiddleware[F, User, Auth] = {
@@ -27,7 +27,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
 object SecuredRequestHandler {
 
   def apply[F[_], Identity, User, Auth](
-      authenticator: Authenticator[F, Identity, User, Auth],
+      authenticator: AuthenticatorService[F, Identity, User, Auth],
       rolling: Boolean = false
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] = {
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate))

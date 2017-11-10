@@ -11,7 +11,10 @@ import cats.syntax.all._
 
 import scala.concurrent.duration._
 
-sealed abstract class BearerTokenAuthenticator[F[_], I, V] extends Authenticator[F, I, V, TSecBearerToken[I]] {
+sealed abstract class BearerTokenAuthenticator[F[_], I, V] private[tsec]  (
+    val expiry: FiniteDuration,
+    val maxIdle: Option[FiniteDuration]
+) extends AuthenticatorService[F, I, V, TSecBearerToken[I]] {
 
   def withIdentityStore(newStore: BackingStore[F, I, V]): BearerTokenAuthenticator[F, I, V]
 
@@ -22,17 +25,10 @@ sealed abstract class BearerTokenAuthenticator[F[_], I, V] extends Authenticator
 
 final case class TSecBearerToken[I](
     id: SecureRandomId,
-    messageId: I,
+    identity: I,
     expiry: Instant,
     lastTouched: Option[Instant]
-) {
-  def isExpired(now: Instant): Boolean = expiry.isBefore(now)
-  def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
-    lastTouched.exists(
-      _.plusSeconds(timeOut.toSeconds)
-        .isBefore(now)
-    )
-}
+) extends Authenticator[I]
 
 object BearerTokenAuthenticator {
   def apply[F[_], I, V](
@@ -40,7 +36,7 @@ object BearerTokenAuthenticator {
       identityStore: BackingStore[F, I, V],
       settings: TSecTokenSettings,
   )(implicit M: MonadError[F, Throwable]): BearerTokenAuthenticator[F, I, V] =
-    new BearerTokenAuthenticator[F, I, V] {
+    new BearerTokenAuthenticator[F, I, V](settings.expiryDuration, settings.maxIdle) {
 
       def withIdentityStore(newStore: BackingStore[F, I, V]): BearerTokenAuthenticator[F, I, V] =
         apply(tokenStore, newStore, settings)
@@ -61,7 +57,7 @@ object BearerTokenAuthenticator {
           token     <- tokenStore.get(SecureRandomId.coerce(rawToken))
           _         <- if (validate(token)) OptionT.pure(()) else OptionT.none
           refreshed <- refresh(token)
-          identity  <- identityStore.get(token.messageId)
+          identity  <- identityStore.get(token.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
       def create(body: I): OptionT[F, TSecBearerToken[I]] = {
@@ -70,7 +66,7 @@ object BearerTokenAuthenticator {
         val newToken: TSecBearerToken[I] = TSecBearerToken(
           newID,
           body,
-          now.plusSeconds(settings.expirationTime.toSeconds),
+          now.plusSeconds(settings.expiryDuration.toSeconds),
           settings.maxIdle.map(_ => now)
         )
         OptionT.liftF(tokenStore.put(newToken))
@@ -85,7 +81,7 @@ object BearerTokenAuthenticator {
       def renew(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] = {
         val now = Instant.now()
         val newToken = authenticator.copy(
-          expiry = now.plusSeconds(settings.expirationTime.toSeconds),
+          expiry = now.plusSeconds(settings.expiryDuration.toSeconds),
           lastTouched = settings.maxIdle.map(_ => now)
         )
         update(newToken)

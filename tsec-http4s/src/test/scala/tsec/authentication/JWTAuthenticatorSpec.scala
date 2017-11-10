@@ -65,7 +65,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def timeoutAuthenticator(b: JWTMac[A]): OptionT[IO, JWTMac[A]] =
         for {
           internal <- OptionT.fromOption[IO](b.body.custom.flatMap(_.as[JWTInternal].toOption))
-          newInternal = internal.copy(lastTouched = Some(HttpDate.unsafeFromInstant(Instant.now().minusSeconds(10000))))
+          newInternal = internal.copy(lastTouched = Some(Instant.now().minusSeconds(10000)))
           newToken <- OptionT.liftF[IO, JWTMac[A]] {
             JWTMacM
               .build[IO, A](b.body.copy(custom = Some(newInternal.asJson)), macKey)
@@ -119,7 +119,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def timeoutAuthenticator(b: JWTMac[A]): OptionT[IO, JWTMac[A]] =
         for {
           internal <- OptionT.fromOption[IO](b.body.custom.flatMap(_.as[JWTInternal].toOption))
-          newInternal = internal.copy(lastTouched = Some(HttpDate.unsafeFromInstant(Instant.now().minusSeconds(20000))))
+          newInternal = internal.copy(lastTouched = Some(Instant.now().minusSeconds(20000)))
           newToken <- OptionT.liftF[IO, JWTMac[A]] {
             JWTMacM
               .build[IO, A](b.body.copy(custom = Some(newInternal.asJson)), macKey)

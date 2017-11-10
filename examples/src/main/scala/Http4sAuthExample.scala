@@ -88,7 +88,7 @@ object EncryptedCookieExample {
   val key: SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key
 
   val authWithBackingStore = //Instantiate a stateful authenticator
-    EncryptedCookieAuthenticator.withBackingStore(
+    ECookieAuthenticator.withBackingStore(
       settings,
       cookieBackingStore,
       userStore,
@@ -96,7 +96,7 @@ object EncryptedCookieExample {
     )
 
   val stateless = //Instantiate a stateless authenticator
-    EncryptedCookieAuthenticator.stateless(
+    ECookieAuthenticator.stateless(
       settings,
       userStore,
       key
@@ -142,7 +142,7 @@ object CookieAuthExample {
   val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift
 
   val cookieAuth =
-    CookieAuthenticator(
+    SCookieAuthenticator(
       settings,
       cookieBackingStore,
       userStore,
@@ -180,7 +180,7 @@ object JWTAuthExample {
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val settings: TSecJWTSettings = TSecJWTSettings(
-    expirationTime = 10.minutes, //Absolute expiration time
+    expiryDuration = 10.minutes, //Absolute expiration time
     maxIdle = None
   )
 
@@ -228,7 +228,7 @@ object BearerTokenAuthExample {
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val settings: TSecTokenSettings = TSecTokenSettings(
-    expirationTime = 10.minutes, //Absolute expiration time
+    expiryDuration = 10.minutes, //Absolute expiration time
     maxIdle = None
   )
 
