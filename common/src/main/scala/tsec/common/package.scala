@@ -2,6 +2,7 @@ package tsec
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
+import org.apache.commons.codec.binary.{Base64 => AB64}
 
 import cats.effect.Sync
 import org.apache.commons.codec.binary.Hex
@@ -49,7 +50,7 @@ package object common {
     def utf8Bytes: Array[Byte]                              = s.getBytes(StandardCharsets.UTF_8)
     def asciiBytes: Array[Byte]                             = s.getBytes(StandardCharsets.US_ASCII)
     def base64Bytes: Array[Byte]                            = Base64.getDecoder.decode(s)
-    def base64UrlBytes: Array[Byte]                         = Base64.getUrlDecoder.decode(s)
+    def base64UrlBytes: Array[Byte]                         = AB64.decodeBase64(s)
     def hexBytes[F[_]](implicit F: Sync[F]): F[Array[Byte]] = F.delay(Hex.decodeHex(s))
     def hexBytesUnsafe: Array[Byte]                         = Hex.decodeHex(s)
     def toStringRepr[A](implicit stringEV: StringEV[A]): A  = stringEV.fromString(s)
@@ -58,7 +59,7 @@ package object common {
   final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {
     def toUtf8String                             = new String(array, StandardCharsets.UTF_8)
     def toAsciiString                            = new String(array, StandardCharsets.US_ASCII)
-    def toB64UrlString: String                   = Base64.getUrlEncoder.encodeToString(array)
+    def toB64UrlString: String                   = AB64.encodeBase64URLSafeString(array)
     def toB64String: String                      = Base64.getEncoder.encodeToString(array)
     def toHexString: String                      = Hex.encodeHexString(array)
     def toRepr[A](implicit byteEV: ByteEV[A]): A = byteEV.fromArray(array)
