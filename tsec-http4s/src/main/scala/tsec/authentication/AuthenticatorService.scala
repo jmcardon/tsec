@@ -1,9 +1,6 @@
 package tsec.authentication
 
 import cats.data.OptionT
-import tsec.cipher.symmetric.imports.AuthEncryptor
-import tsec.cookies._
-import tsec.jws.mac.{JWSMacCV, JWTMac}
 import org.http4s.{Request, Response}
 
 import scala.concurrent.duration.FiniteDuration
