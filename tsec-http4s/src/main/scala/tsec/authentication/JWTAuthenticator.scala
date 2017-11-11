@@ -117,6 +117,15 @@ object JWTAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] =
         extractBearerToken[F](request)
 
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+        for {
+          now       <- OptionT.liftF(F.delay(Instant.now()))
+          extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
+          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
+          refreshed <- verifyAndRefresh(raw, retrieved, now)
+          identity  <- identityStore.get(retrieved.identity)
+        } yield SecuredRequest(request, identity, refreshed)
+
       /** We:
         * 1. extract the header
         * 3. verify and parse our jwt
@@ -132,14 +141,10 @@ object JWTAuthenticator {
         * @return
         */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
-          now         <- OptionT.liftF(F.delay(Instant.now()))
-          headerValue <- OptionT.fromOption[F](extractRawOption(request))
-          extracted   <- OptionT.liftF(cv.verifyAndParse(headerValue, signingKey))
-          retrieved   <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
-          refreshed   <- verifyAndRefresh(headerValue, retrieved, now)
-          identity    <- identityStore.get(retrieved.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
@@ -266,6 +271,15 @@ object JWTAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] =
         request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
 
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+        for {
+          now       <- OptionT.liftF(F.delay(Instant.now()))
+          extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
+          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
+          refreshed <- verifyAndRefresh(raw, retrieved, now)
+          identity  <- identityStore.get(retrieved.identity)
+        } yield SecuredRequest(request, identity, refreshed)
+
       /** We:
         * 1. extract the header
         * 3. verify and parse our jwt
@@ -281,14 +295,10 @@ object JWTAuthenticator {
         * @return
         */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
-          now         <- OptionT.liftF(F.delay(Instant.now()))
-          headerValue <- OptionT.fromOption[F](extractRawOption(request))
-          extracted   <- OptionT.liftF(cv.verifyAndParse(headerValue, signingKey))
-          retrieved   <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
-          refreshed   <- verifyAndRefresh(headerValue, retrieved, now)
-          identity    <- identityStore.get(retrieved.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
@@ -412,10 +422,9 @@ object JWTAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] =
         extractBearerToken(request)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
-          rawHeader   <- OptionT.fromOption[F](extractBearerToken(request))
-          extracted   <- OptionT.liftF(cv.verifyAndParse(rawHeader, signingKey))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
           id          <- OptionT.fromOption[F](extracted.body.subject.flatMap(decode[I](_).toOption))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           lastTouched <- verify(extracted)
@@ -429,6 +438,12 @@ object JWTAuthenticator {
           refreshed <- refresh(augmented)
           identity  <- identityStore.get(id)
         } yield SecuredRequest(request, identity, refreshed)
+
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
@@ -598,11 +613,10 @@ object JWTAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] =
         extractBearerToken[F](request)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
           eInstance   <- OptionT.liftF(F.fromEither(enc.instance))
-          rawToken    <- OptionT.fromOption[F](extractRawOption(request))
-          extracted   <- OptionT.liftF(cv.verifyAndParse(rawToken, signingKey))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
           lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
           decodedBody <- OptionT.liftF(decryptIdentity(rawId, eInstance))
@@ -617,6 +631,12 @@ object JWTAuthenticator {
           refreshed <- refresh(augmented)
           identity  <- identityStore.get(decodedBody)
         } yield SecuredRequest(request, identity, refreshed)
+
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
@@ -764,11 +784,10 @@ object JWTAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] =
         request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
           eInstance   <- OptionT.liftF(F.fromEither(enc.instance))
-          rawHeader   <- OptionT.fromOption[F](request.headers.get(CaseInsensitiveString(settings.headerName)))
-          extracted   <- OptionT.liftF(cv.verifyAndParse(rawHeader.value, signingKey))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
           lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
           decodedBody <- OptionT.liftF(decryptIdentity(rawId, eInstance))
@@ -783,6 +802,12 @@ object JWTAuthenticator {
           refreshed <- refresh(augmented)
           identity  <- identityStore.get(decodedBody)
         } yield SecuredRequest(request, identity, refreshed)
+
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {

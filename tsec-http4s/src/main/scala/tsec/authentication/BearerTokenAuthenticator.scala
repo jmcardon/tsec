@@ -57,13 +57,18 @@ object BearerTokenAuthenticator {
 
       def extractRawOption(request: Request[F]): Option[String] = extractBearerToken[F](request)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
         for {
-          rawToken  <- OptionT.fromOption[F](extractBearerToken[F](request))
-          token     <- tokenStore.get(SecureRandomId.coerce(rawToken))
+          token     <- tokenStore.get(SecureRandomId.coerce(raw))
           refreshed <- validateAndRefresh(token)
           identity  <- identityStore.get(token.identity)
         } yield SecuredRequest(request, identity, refreshed)
+
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       def create(body: I): OptionT[F, TSecBearerToken[I]] =
         OptionT.liftF(for {

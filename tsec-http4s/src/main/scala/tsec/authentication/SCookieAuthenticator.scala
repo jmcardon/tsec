@@ -155,17 +155,22 @@ object SCookieAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
         for {
-          now       <- OptionT.liftF(F.delay(Instant.now()))
-          rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          coerced = SignedCookie[Alg](rawCookie.content)
+          now <- OptionT.liftF(F.delay(Instant.now()))
+          coerced = SignedCookie[Alg](raw)
           contentRaw <- OptionT.liftF(F.fromEither(CookieSigner.verifyAndRetrieve[Alg](coerced, key)))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
           refreshed  <- validateAndRefresh(authed, coerced, now)
           identity   <- idStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
+
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       /** Create an authenticator from an identifier.
         *

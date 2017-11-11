@@ -1,7 +1,9 @@
 package tsec.authentication
 
-import cats.data.{Kleisli, OptionT}
-import org.http4s.{Request, Response}
+import cats.Applicative
+import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.effect.Sync
+import org.http4s.{HttpService, Request, Response, Status}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -23,6 +25,11 @@ trait AuthenticatorService[F[_], I, V, Authenticator] {
     * @return
     */
   def extractRawOption(request: Request[F]): Option[String]
+
+  /** Parse the raw representation from `extractRawOption`
+    *
+    */
+  def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, Authenticator]]
 
   /** Return a secured request from a request, that carries our authenticator
     * @param request
@@ -88,22 +95,68 @@ object AuthenticatorService {
   final class AuthServiceSyntax[F[_], I, V, A](val auth: AuthenticatorService[F, I, V, A]) extends AnyVal {
     def composeExtract[B <: Authenticator[I]](
         other: AuthenticatorService[F, I, V, B]
-    )(
-        implicit ev: A <:< Authenticator[I]
-    ): Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Authenticator[I]]] =
+    )(implicit ev: A <:< Authenticator[I]): AuthExtractorService[F, V, Authenticator[I]] =
       Kleisli { r: Request[F] =>
         auth.extractRawOption(r) match {
           case Some(_) =>
-            auth.extractAndValidate(r).asInstanceOf[OptionT[F, SecuredRequest[F, I, Authenticator[I]]]]
+            auth
+              .extractAndValidate(r)
+              .asInstanceOf[OptionT[F, SecuredRequest[F, V, Authenticator[I]]]] //we need to do this :(
           case None =>
-            other.extractAndValidate(r).asInstanceOf[OptionT[F, SecuredRequest[F, I, Authenticator[I]]]]
+            other
+              .extractAndValidate(r)
+              .asInstanceOf[OptionT[F, SecuredRequest[F, V, Authenticator[I]]]]
+        }
+      }
+
+    def foldAuthenticate(others: AuthenticatorService[F, I, V, _ <: Authenticator[I]]*)(
+        service: TSecAuthService[F, V, Authenticator[I]]
+    )(implicit F: Sync[F]): HttpService[F] =
+      Kleisli { request: Request[F] =>
+        auth.extractRawOption(request) match {
+          case Some(raw) =>
+            val coerced = auth.asInstanceOf[AuthenticatorService[F, I, V, Authenticator[I]]]
+            coerced
+              .parseRaw(raw, request)
+              .asInstanceOf[OptionT[F, SecuredRequest[F, V, Authenticator[I]]]]
+              .flatMap(r => service.andThen(coerced.afterBlock(_, r.authenticator)).run(r))
+          case None =>
+            tailRecAuth(service, request, others.toList)
         }
       }
   }
+
+  /** Apply a fold on AuthenticatorServices, which rejects the request if none pass **/
+  def tailRecAuth[F[_], I, V, A](
+      service: TSecAuthService[F, V, Authenticator[I]],
+      request: Request[F],
+      tail: List[AuthenticatorService[F, I, V, _ <: Authenticator[I]]]
+  )(implicit F: Sync[F]): OptionT[F, Response[F]] =
+    tail match {
+      case Nil => OptionT.pure[F](Response[F](Status.Unauthorized))
+      case x :: xs =>
+        x.extractRawOption(request) match {
+          case Some(raw) =>
+            val coerced = x.asInstanceOf[AuthenticatorService[F, I, V, Authenticator[I]]]
+            coerced
+              .parseRaw(raw, request)
+              .asInstanceOf[OptionT[F, SecuredRequest[F, V, Authenticator[I]]]]
+              .flatMap(r => service.andThen(coerced.afterBlock(_, r.authenticator)).run(r))
+          case None =>
+            tailRecAuth(service, request, xs)
+        }
+    }
 
   implicit def authenticatorServiceSyntax[F[_], I, V, A](
       auth: AuthenticatorService[F, I, V, A]
   ): AuthServiceSyntax[F, I, V, A] =
     new AuthServiceSyntax[F, I, V, A](auth)
+
+  def foldAuthenticate[F[_], I, V, A](others: AuthenticatorService[F, I, V, _ <: Authenticator[I]]*)(
+      service: TSecAuthService[F, V, Authenticator[I]]
+  )(implicit F: Sync[F]): HttpService[F] =
+    Kleisli { request: Request[F] =>
+      tailRecAuth(service, request, others.toList)
+    }
 
 }

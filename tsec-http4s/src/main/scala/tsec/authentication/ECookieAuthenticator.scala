@@ -228,6 +228,17 @@ object ECookieAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest(settings.cookieName, request).map(_.content)
 
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
+        for {
+          now <- OptionT.liftF(F.delay(Instant.now()))
+          coerced = AEADCookie[A](raw)
+          contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
+          tokenId    <- uuidFromRaw[F](contentRaw)
+          authed     <- tokenStore.get(tokenId)
+          refreshed  <- validateAndRefresh(authed, coerced, now)
+          identity   <- identityStore.get(authed.identity)
+        } yield SecuredRequest(request, identity, refreshed)
+
       /** Extract our encrypted cookie from a request.
         * We validate using our symmetric key, extracting the tokenId from the encrypted value, and then retrieving
         * the identity from the retrieved object.
@@ -235,16 +246,10 @@ object ECookieAuthenticator {
         * @return
         */
       def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
-        for {
-          now       <- OptionT.liftF(F.delay(Instant.now()))
-          rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          coerced = AEADCookie[A](rawCookie.content)
-          contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
-          tokenId    <- uuidFromRaw[F](contentRaw)
-          authed     <- tokenStore.get(tokenId)
-          refreshed  <- validateAndRefresh(authed, coerced, now)
-          identity   <- identityStore.get(authed.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        extractRawOption(request) match {
+          case Some(raw) => parseRaw(raw, request)
+          case None      => OptionT.none
+        }
 
       /** Create a new cookie from the id field of a particular user.
         *
@@ -381,6 +386,19 @@ object ECookieAuthenticator {
 
       def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest(settings.cookieName, request).map(_.content)
+
+      /** Unfortunately, parseRaw is not enough **/
+      def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
+        for {
+          now       <- OptionT.liftF(F.delay(Instant.now()))
+          rawCookie <- cookieFromRequest[F](settings.cookieName, request)
+          coerced = AEADCookie[A](rawCookie.content)
+          contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
+          internal   <- OptionT.liftF(F.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
+          authed = AuthEncryptedCookie.build[A, I](internal, coerced, rawCookie)
+          refreshed <- validateAndReferesh(authed, now)
+          identity  <- identityStore.get(authed.identity)
+        } yield SecuredRequest(request, identity, refreshed)
 
       /** Extract and validate our cookie from a request
         *
