@@ -18,7 +18,7 @@ import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class SignedCookieAuthenticator[F[_], I, V, Alg: MacTag: ByteEV] private[tsec] (
+abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg: MacTag: ByteEV] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 ) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]]
@@ -166,11 +166,6 @@ object SignedCookieAuthenticator {
           identity   <- idStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
 
       /** Create an authenticator from an identifier.
         *

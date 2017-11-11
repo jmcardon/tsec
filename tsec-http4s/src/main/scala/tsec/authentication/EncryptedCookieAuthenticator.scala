@@ -23,10 +23,10 @@ import cats.syntax.all._
 import cats.instances.string._
 import tsec.jwt.JWTPrinter
 
-sealed abstract class EncryptedCookieAuthenticator[F[_], I, V, A](implicit auth: AuthEncryptor[A])
+sealed abstract class EncryptedCookieAuthenticator[F[_]: Sync, I, V, A](implicit auth: AuthEncryptor[A])
     extends AuthenticatorService[F, I, V, AuthEncryptedCookie[A, I]]
 
-sealed abstract class StatefulECAuthenticator[F[_], I, V, A] private[tsec] (
+sealed abstract class StatefulECAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 )(implicit auth: AuthEncryptor[A])
@@ -42,7 +42,7 @@ sealed abstract class StatefulECAuthenticator[F[_], I, V, A] private[tsec] (
   ): StatefulECAuthenticator[F, I, V, A]
 }
 
-sealed abstract class StatelessECAuthenticator[F[_], I, V, A] private[tsec] (
+sealed abstract class StatelessECAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 )(implicit auth: AuthEncryptor[A])
@@ -239,18 +239,6 @@ object EncryptedCookieAuthenticator {
           identity   <- identityStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
-      /** Extract our encrypted cookie from a request.
-        * We validate using our symmetric key, extracting the tokenId from the encrypted value, and then retrieving
-        * the identity from the retrieved object.
-        *
-        * @return
-        */
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
-
       /** Create a new cookie from the id field of a particular user.
         *
         */
@@ -400,20 +388,6 @@ object EncryptedCookieAuthenticator {
           identity  <- identityStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
-      /** Extract and validate our cookie from a request
-        *
-        */
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
-        for {
-          now       <- OptionT.liftF(F.delay(Instant.now()))
-          rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          coerced = AEADCookie[A](rawCookie.content)
-          contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
-          internal   <- OptionT.liftF(F.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
-          authed = AuthEncryptedCookie.build[A, I](internal, coerced, rawCookie)
-          refreshed <- validateAndReferesh(authed, now)
-          identity  <- identityStore.get(authed.identity)
-        } yield SecuredRequest(request, identity, refreshed)
 
       /** Create our cookie
         * In the case of encrypted cookies, we cannot trust the client to avoid tampering.

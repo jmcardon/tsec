@@ -12,7 +12,7 @@ import cats.syntax.all._
 
 import scala.concurrent.duration._
 
-sealed abstract class BearerTokenAuthenticator[F[_], I, V] private[tsec] (
+sealed abstract class BearerTokenAuthenticator[F[_]: Sync, I, V] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 ) extends AuthenticatorService[F, I, V, TSecBearerToken[I]] {
@@ -64,11 +64,6 @@ object BearerTokenAuthenticator {
           identity  <- identityStore.get(token.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
 
       def create(body: I): OptionT[F, TSecBearerToken[I]] =
         OptionT.liftF(for {

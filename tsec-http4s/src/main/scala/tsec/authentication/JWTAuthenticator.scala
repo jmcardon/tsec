@@ -23,10 +23,10 @@ import cats.instances.string._
 
 import scala.concurrent.duration.FiniteDuration
 
-sealed abstract class JWTAuthenticator[F[_], I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
+sealed abstract class JWTAuthenticator[F[_]: Sync, I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
     extends AuthenticatorService[F, I, V, AugmentedJWT[A, I]]
 
-sealed abstract class StatefulJWTAuthenticator[F[_], I, V, A] private[tsec] (
+sealed abstract class StatefulJWTAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 )(implicit jWSMacCV: JWSMacCV[F, A])
@@ -39,7 +39,7 @@ sealed abstract class StatefulJWTAuthenticator[F[_], I, V, A] private[tsec] (
   def withSigningKey(signingKey: MacSigningKey[A]): StatefulJWTAuthenticator[F, I, V, A]
 }
 
-sealed abstract class StatelessJWTAuthenticator[F[_], I, V, A] private[tsec] (
+sealed abstract class StatelessJWTAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 )(implicit jWSMacCV: JWSMacCV[F, A])
@@ -125,26 +125,6 @@ object JWTAuthenticator {
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed)
-
-      /** We:
-        * 1. extract the header
-        * 3. verify and parse our jwt
-        * 4. decode our token UUID
-        * 5. retrieve the backing store copy
-        * 6. retrieve the `Internal` instance for the encoded data
-        * 7. Decode the body id.
-        * 6. A lil' extra verification, for that extract sec
-        * 7. refresh the token, if there is anything to refresh
-        * 8. Retrieve the identity from our identity store
-        *
-        * @param request
-        * @return
-        */
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
@@ -279,26 +259,6 @@ object JWTAuthenticator {
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed)
-
-      /** We:
-        * 1. extract the header
-        * 3. verify and parse our jwt
-        * 4. decode our token UUID
-        * 5. retrieve the backing store copy
-        * 6. retrieve the `Internal` instance for the encoded data
-        * 7. Decode the body id.
-        * 6. A lil' extra verification, for that extract sec
-        * 7. refresh the token, if there is anything to refresh
-        * 8. Retrieve the identity from our identity store
-        *
-        * @param request
-        * @return
-        */
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
@@ -438,12 +398,6 @@ object JWTAuthenticator {
           refreshed <- refresh(augmented)
           identity  <- identityStore.get(id)
         } yield SecuredRequest(request, identity, refreshed)
-
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
@@ -632,12 +586,6 @@ object JWTAuthenticator {
           identity  <- identityStore.get(decodedBody)
         } yield SecuredRequest(request, identity, refreshed)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
-
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
           cookieId <- F.delay(SecureRandomId.generate)
@@ -802,12 +750,6 @@ object JWTAuthenticator {
           refreshed <- refresh(augmented)
           identity  <- identityStore.get(decodedBody)
         } yield SecuredRequest(request, identity, refreshed)
-
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        extractRawOption(request) match {
-          case Some(raw) => parseRaw(raw, request)
-          case None      => OptionT.none
-        }
 
       def create(body: I): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {

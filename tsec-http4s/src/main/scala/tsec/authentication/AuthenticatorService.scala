@@ -13,7 +13,7 @@ import scala.concurrent.duration.FiniteDuration
   * @tparam V The value type, i.e user, or possibly only partial information
   * @tparam Authenticator the type of authenticator
   */
-trait AuthenticatorService[F[_], I, V, Authenticator] {
+abstract class AuthenticatorService[F[_]: Sync, I, V, Authenticator] {
   val expiry: FiniteDuration
   val maxIdle: Option[FiniteDuration]
 
@@ -35,7 +35,13 @@ trait AuthenticatorService[F[_], I, V, Authenticator] {
     * @param request
     * @return
     */
-  def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, Authenticator]]
+  def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, Authenticator]] =
+    extractRawOption(request) match {
+      case Some(raw) =>
+        parseRaw(raw, request)
+      case None =>
+        OptionT.none
+    }
 
   /** Create an authenticator from an identifier.
     * @param body
