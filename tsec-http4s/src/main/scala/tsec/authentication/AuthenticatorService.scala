@@ -22,7 +22,7 @@ trait AuthenticatorService[F[_], I, V, Authenticator] {
     *
     * @return
     */
-  def tryExtractRaw(request: Request[F]): Option[String]
+  def extractRawOption(request: Request[F]): Option[String]
 
   /** Return a secured request from a request, that carries our authenticator
     * @param request
@@ -88,9 +88,11 @@ object AuthenticatorService {
   final class AuthServiceSyntax[F[_], I, V, A](val auth: AuthenticatorService[F, I, V, A]) extends AnyVal {
     def composeExtract[B <: Authenticator[I]](
         other: AuthenticatorService[F, I, V, B]
-    )(implicit ev: A <:< Authenticator[I]): Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Authenticator[I]]] =
+    )(
+        implicit ev: A <:< Authenticator[I]
+    ): Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Authenticator[I]]] =
       Kleisli { r: Request[F] =>
-        auth.tryExtractRaw(r) match {
+        auth.extractRawOption(r) match {
           case Some(_) =>
             auth.extractAndValidate(r).asInstanceOf[OptionT[F, SecuredRequest[F, I, Authenticator[I]]]]
           case None =>

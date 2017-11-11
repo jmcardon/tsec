@@ -2,8 +2,10 @@ package tsec.authentication
 
 import java.time.Instant
 import java.util.UUID
+
 import cats.MonadError
 import cats.data.OptionT
+import cats.effect.Sync
 import io.circe.{Decoder, Encoder}
 import org.http4s._
 import tsec.common.ByteEV
@@ -12,7 +14,7 @@ import tsec.mac.imports._
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import tsec.common._
-import cats.syntax.eq._
+import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -86,7 +88,7 @@ object SCookieAuthenticator {
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
       idStore: BackingStore[F, I, V],
       key: MacSigningKey[Alg]
-  )(implicit M: MonadError[F, Throwable]): SCookieAuthenticator[F, I, V, Alg] =
+  )(implicit F: Sync[F]): SCookieAuthenticator[F, I, V, Alg] =
     new SCookieAuthenticator[F, I, V, Alg](settings.expiryDuration, settings.maxIdle) {
 
       def withNewKey(newKey: MacSigningKey[Alg]): SCookieAuthenticator[F, I, V, Alg] =
@@ -143,49 +145,46 @@ object SCookieAuthenticator {
       ): Boolean =
         internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedout(now, _))
 
-      private def validateCookieT(
+      private def validateAndRefresh(
           internal: AuthenticatedCookie[Alg, I],
           raw: SignedCookie[Alg],
           now: Instant
-      ): OptionT[F, Unit] =
-        if (validateCookie(internal, raw, now)) OptionT.pure[F](()) else OptionT.none
+      ): OptionT[F, AuthenticatedCookie[Alg, I]] =
+        if (validateCookie(internal, raw, now)) refresh(internal) else OptionT.none
 
-      def tryExtractRaw(request: Request[F]): Option[String] =
+      def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
 
-      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] = {
-        val now = Instant.now()
+      def extractAndValidate(request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
         for {
+          now       <- OptionT.liftF(F.delay(Instant.now()))
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = SignedCookie[Alg](rawCookie.content)
-          contentRaw <- OptionT.liftF(M.fromEither(CookieSigner.verifyAndRetrieve[Alg](coerced, key)))
+          contentRaw <- OptionT.liftF(F.fromEither(CookieSigner.verifyAndRetrieve[Alg](coerced, key)))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
-          _          <- validateCookieT(authed, coerced, now)
-          refreshed  <- refresh(authed)
+          refreshed  <- validateAndRefresh(authed, coerced, now)
           identity   <- idStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
-      }
 
       /** Create an authenticator from an identifier.
         *
         * @param body
         * @return
         */
-      def create(body: I): OptionT[F, AuthenticatedCookie[Alg, I]] = {
-        val cookieId    = UUID.randomUUID()
-        val messageBody = cookieId.toString
-        val now         = Instant.now()
-        val expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
-        val lastTouched = settings.maxIdle.map(_ => now)
-        for {
-          signed <- OptionT.liftF(M.fromEither(CookieSigner.sign[Alg](messageBody, generateNonce(messageBody), key)))
-          cookie <- OptionT.pure[F](
+      def create(body: I): OptionT[F, AuthenticatedCookie[Alg, I]] =
+        OptionT.liftF(for {
+          cookieId <- F.delay(UUID.randomUUID())
+          messageBody = cookieId.toString
+          now <- F.delay(Instant.now())
+          expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
+          lastTouched = settings.maxIdle.map(_ => now)
+          signed <- F.fromEither(CookieSigner.sign[Alg](messageBody, generateNonce(messageBody), key))
+          cookie <- F.pure(
             AuthenticatedCookie.build[Alg, I](cookieId, signed, body, expiry, lastTouched, settings)
           )
-          _ <- OptionT.liftF(tokenStore.put(cookie))
-        } yield cookie
-      }
+          _ <- tokenStore.put(cookie)
+        } yield cookie)
 
       def update(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
         OptionT.liftF(tokenStore.update(authenticator))
@@ -198,22 +197,22 @@ object SCookieAuthenticator {
         * @param authenticator
         * @return
         */
-      def renew(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] = {
-        val now = Instant.now()
-        settings.maxIdle match {
-          case Some(idleTime) =>
-            val updated = authenticator.copy[Alg, I](
-              lastTouched = Some(now),
-              expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
-            )
-            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
-          case None =>
-            val updated = authenticator.copy[Alg, I](
-              expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
-            )
-            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
-        }
-      }
+      def renew(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
+        OptionT.liftF(F.delay(Instant.now()).flatMap { now =>
+          settings.maxIdle match {
+            case Some(idleTime) =>
+              val updated = authenticator.copy[Alg, I](
+                lastTouched = Some(now),
+                expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
+              )
+              tokenStore.update(updated).map(_ => updated)
+            case None =>
+              val updated = authenticator.copy[Alg, I](
+                expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
+              )
+              tokenStore.update(updated).map(_ => updated)
+          }
+        })
 
       /** Refresh an authenticator: Primarily used for sliding window expiration
         *
@@ -221,16 +220,17 @@ object SCookieAuthenticator {
         * @return
         */
       def refresh(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        settings.maxIdle match {
-          case Some(idleTime) =>
-            val now = Instant.now()
-            val updated = authenticator.copy[Alg, I](
-              lastTouched = Some(now)
-            )
-            OptionT.liftF(tokenStore.update(updated)).map(_ => updated)
-          case None =>
-            OptionT.pure[F](authenticator)
-        }
+        OptionT.liftF(F.delay(Instant.now()).flatMap { now =>
+          settings.maxIdle match {
+            case Some(idleTime) =>
+              val updated = authenticator.copy[Alg, I](
+                lastTouched = Some(now)
+              )
+              tokenStore.update(updated).map(_ => updated)
+            case None =>
+              F.pure(authenticator)
+          }
+        })
 
       def embed(response: Response[F], authenticator: AuthenticatedCookie[Alg, I]): Response[F] =
         response.addCookie(authenticator.toCookie)

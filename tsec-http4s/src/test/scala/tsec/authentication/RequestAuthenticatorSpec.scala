@@ -48,7 +48,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
       val response: OptionT[IO, Option[String]] = for {
         auth <- requestAuth.authenticator.create(dummyBob.id)
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
-      } yield authSpec.auth.tryExtractRaw(embedded)
+      } yield authSpec.auth.extractRawOption(embedded)
       response
         .getOrElse(None)
         .unsafeRunSync()
