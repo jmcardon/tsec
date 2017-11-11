@@ -15,19 +15,31 @@ import org.http4s.{Cookie, Request, Response, Status}
 import org.http4s.util.CaseInsensitiveString
 import tsec.authentication.cookieFromRequest
 
-/** A CSRF Token Signer, adapted from:
-  * https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/play/api/libs/crypto/CSRFTokenSigner.scala
-  * by Will Sargent, to use the tsec crypto primitives
+/** Middleware to avoid Cross-site request forgery attacks.
+  * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
   *
-  * Also very similar to cryptobits, but with a variable argument mac signer, thus we have more than
-  * one mac algorithm to choose from
+  * This middleware is modeled after the double submit cookie pattern:
+  * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#Double_Submit_Cookie
   *
+  * The idea in the first place, is, on authentication, to use the `embedNew` method or
+  * `withNewToken` middleware in your request. i.e, your user logs in, then they are sent, on top of their credentials
+  * token, the CSRF value in the cookie.
+  *
+  * Then, on every authenticated endpoint, that's either modifying sensitive data via POST or retrieving
+  * sensitive data via GET, to send the value stored in the csrf cookie in the header specified by the name in
+  * `headerName`. An attacker, due to the Same-Origin policy, will be unable to reproduce this value in a custom header,
+  * thus it will forbid his request
+  *
+  * @param headerName your csrf header name
+  * @param cookieName the csrf cookie name
+  * @param key the csrf signing key
+  * @param clock clock used as a nonce
   */
 final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
     key: MacSigningKey[A],
     headerName: String = "X-TSec-Csrf",
     cookieName: String = "tsec-csrf",
-    tokenLength: Int = 16,
+    tokenLength: Int = 32,
     clock: Clock = Clock.systemUTC()
 )(
     implicit mac: JCAMacPure[F, A]
