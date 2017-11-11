@@ -5,6 +5,7 @@ import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.Sync
 import org.http4s.{HttpService, Request, Response, Status}
 
+import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 
 /** A base typeclass for generating authenticators, i.e cookies, tokens, JWTs etc.
@@ -133,6 +134,7 @@ object AuthenticatorService {
   }
 
   /** Apply a fold on AuthenticatorServices, which rejects the request if none pass **/
+  @tailrec
   def tailRecAuth[F[_], I, V, A](
       service: TSecAuthService[F, V, Authenticator[I]],
       request: Request[F],
