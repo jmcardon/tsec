@@ -35,25 +35,25 @@ import tsec.authentication.cookieFromRequest
   * @param key the csrf signing key
   * @param clock clock used as a nonce
   */
-final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
+final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
     key: MacSigningKey[A],
-    headerName: String = "X-TSec-Csrf",
-    cookieName: String = "tsec-csrf",
-    tokenLength: Int = 32,
-    clock: Clock = Clock.systemUTC()
-)(
-    implicit mac: JCAMacPure[F, A]
-) {
+    val headerName: String,
+    val cookieName: String,
+    val tokenLength: Int,
+    clock: Clock
+)(implicit mac: JCAMacPure[F, A], F: Sync[F]) {
 
   def isEqual(s1: String, s2: String): Boolean =
     MessageDigest.isEqual(s1.utf8Bytes, s2.utf8Bytes)
 
-  def signToken(string: String): F[CSRFToken] = {
-    val joined = string + "-" + clock.millis()
-    mac.sign(joined.utf8Bytes, key).map(s => CSRFToken(joined + "-" + s.asByteArray.toB64String))
-  }
+  def signToken(string: String): F[CSRFToken] =
+    for {
+      millis <- F.delay(clock.millis())
+      joined = string + "-" + millis
+      signed <- mac.sign(joined.utf8Bytes, key)
+    } yield CSRFToken(joined + "-" + signed.asByteArray.toB64String)
 
-  def generateNewToken: F[CSRFToken] =
+  def generateToken: F[CSRFToken] =
     signToken(CSRFToken.generateHexBase(tokenLength))
 
   /**
@@ -79,7 +79,7 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
       raw2 <- extractRaw(token2)
     } yield isEqual(raw1, raw2)
 
-  def apply: CSRFMiddleware[F] =
+  def validate: CSRFMiddleware[F] =
     req =>
       Kleisli { r: Request[F] =>
         for {
@@ -95,6 +95,17 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
   def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embedNew(r)))
 
   def embedNew(response: Response[F]): F[Response[F]] =
-    generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
+    generateToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
 
+}
+
+object TSecCSRF {
+  def apply[F[_]: Sync, A: MacTag: ByteEV](
+      key: MacSigningKey[A],
+      headerName: String = "X-TSec-Csrf",
+      cookieName: String = "tsec-csrf",
+      tokenLength: Int = 32,
+      clock: Clock = Clock.systemUTC()
+  )(implicit mac: JCAMacPure[F, A]): TSecCSRF[F, A] =
+    new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock)
 }
