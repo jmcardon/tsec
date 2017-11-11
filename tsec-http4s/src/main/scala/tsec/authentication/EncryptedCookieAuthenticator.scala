@@ -23,14 +23,14 @@ import cats.syntax.all._
 import cats.instances.string._
 import tsec.jwt.JWTPrinter
 
-sealed abstract class ECookieAuthenticator[F[_], I, V, A](implicit auth: AuthEncryptor[A])
+sealed abstract class EncryptedCookieAuthenticator[F[_], I, V, A](implicit auth: AuthEncryptor[A])
     extends AuthenticatorService[F, I, V, AuthEncryptedCookie[A, I]]
 
 sealed abstract class StatefulECAuthenticator[F[_], I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 )(implicit auth: AuthEncryptor[A])
-    extends ECookieAuthenticator[F, I, V, A] {
+    extends EncryptedCookieAuthenticator[F, I, V, A] {
   def withKey(newKey: SecretKey[A]): StatefulECAuthenticator[F, I, V, A]
 
   def withSettings(settings: TSecCookieSettings): StatefulECAuthenticator[F, I, V, A]
@@ -46,7 +46,7 @@ sealed abstract class StatelessECAuthenticator[F[_], I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 )(implicit auth: AuthEncryptor[A])
-    extends ECookieAuthenticator[F, I, V, A] {
+    extends EncryptedCookieAuthenticator[F, I, V, A] {
   def withKey(newKey: SecretKey[A]): StatelessECAuthenticator[F, I, V, A]
 
   def withSettings(settings: TSecCookieSettings): StatelessECAuthenticator[F, I, V, A]
@@ -138,7 +138,7 @@ object AuthEncryptedCookie {
 
 }
 
-object ECookieAuthenticator {
+object EncryptedCookieAuthenticator {
 
   /** The default Encrypted cookie Authenticator, with a backing store.
     *

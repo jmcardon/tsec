@@ -41,7 +41,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
   val bearerTokenAuthenticator =
     BearerTokenAuthenticator(backingStore2, dummyStore, TSecTokenSettings(10.minutes, None))
 
-  val cookieAuthenticator = SCookieAuthenticator(
+  val cookieAuthenticator = SignedCookieAuthenticator(
     TSecCookieSettings(secure = false, expiryDuration = 10.minutes, maxIdle = None),
     backingStore3,
     dummyStore,

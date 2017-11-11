@@ -18,7 +18,7 @@ import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class SCookieAuthenticator[F[_], I, V, Alg: MacTag: ByteEV] private[tsec] (
+abstract class SignedCookieAuthenticator[F[_], I, V, Alg: MacTag: ByteEV] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 ) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]]
@@ -81,17 +81,17 @@ object AuthenticatedCookie {
     )
 }
 
-object SCookieAuthenticator {
+object SignedCookieAuthenticator {
 
   def apply[F[_], I: Decoder: Encoder, V, Alg: MacTag: ByteEV](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
       idStore: BackingStore[F, I, V],
       key: MacSigningKey[Alg]
-  )(implicit F: Sync[F]): SCookieAuthenticator[F, I, V, Alg] =
-    new SCookieAuthenticator[F, I, V, Alg](settings.expiryDuration, settings.maxIdle) {
+  )(implicit F: Sync[F]): SignedCookieAuthenticator[F, I, V, Alg] =
+    new SignedCookieAuthenticator[F, I, V, Alg](settings.expiryDuration, settings.maxIdle) {
 
-      def withNewKey(newKey: MacSigningKey[Alg]): SCookieAuthenticator[F, I, V, Alg] =
+      def withNewKey(newKey: MacSigningKey[Alg]): SignedCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           settings: TSecCookieSettings,
           tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -101,7 +101,7 @@ object SCookieAuthenticator {
 
       def withTokenStore(
           newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]]
-      ): SCookieAuthenticator[F, I, V, Alg] =
+      ): SignedCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           settings: TSecCookieSettings,
           newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -109,7 +109,7 @@ object SCookieAuthenticator {
           key
         )
 
-      def withIdStore(newStore: BackingStore[F, I, V]): SCookieAuthenticator[F, I, V, Alg] =
+      def withIdStore(newStore: BackingStore[F, I, V]): SignedCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           settings: TSecCookieSettings,
           tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -117,7 +117,7 @@ object SCookieAuthenticator {
           key
         )
 
-      def withSettings(newSettings: TSecCookieSettings): SCookieAuthenticator[F, I, V, Alg] =
+      def withSettings(newSettings: TSecCookieSettings): SignedCookieAuthenticator[F, I, V, Alg] =
         apply[F, I, V, Alg](
           newSettings: TSecCookieSettings,
           tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],

@@ -24,7 +24,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       store: BackingStore[IO, UUID, AuthEncryptedCookie[A, Int]]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val authenticator = ECookieAuthenticator.withBackingStore[IO, Int, DummyUser, A](
+    val authenticator = EncryptedCookieAuthenticator.withBackingStore[IO, Int, DummyUser, A](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
@@ -48,7 +48,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =
-        ECookieAuthenticator
+        EncryptedCookieAuthenticator
           .withBackingStore[IO, Int, DummyUser, A](
             TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
             store,
@@ -65,7 +65,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val secretKey  = keygen.generateKeyUnsafe()
-    val authenticator = ECookieAuthenticator.stateless[IO, Int, DummyUser, A](
+    val authenticator = EncryptedCookieAuthenticator.stateless[IO, Int, DummyUser, A](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       dummyStore,
       secretKey
@@ -109,7 +109,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =
-        ECookieAuthenticator
+        EncryptedCookieAuthenticator
           .stateless[IO, Int, DummyUser, A](
             TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
             dummyStore,

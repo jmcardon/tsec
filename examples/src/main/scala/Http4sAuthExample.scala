@@ -88,7 +88,7 @@ object EncryptedCookieExample {
   val key: SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key
 
   val authWithBackingStore = //Instantiate a stateful authenticator
-    ECookieAuthenticator.withBackingStore(
+    EncryptedCookieAuthenticator.withBackingStore(
       settings,
       cookieBackingStore,
       userStore,
@@ -96,7 +96,7 @@ object EncryptedCookieExample {
     )
 
   val stateless = //Instantiate a stateless authenticator
-    ECookieAuthenticator.stateless(
+    EncryptedCookieAuthenticator.stateless(
       settings,
       userStore,
       key
@@ -142,7 +142,7 @@ object CookieAuthExample {
   val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift
 
   val cookieAuth =
-    SCookieAuthenticator(
+    SignedCookieAuthenticator(
       settings,
       cookieBackingStore,
       userStore,
