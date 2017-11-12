@@ -37,13 +37,13 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
-        val updated = b.copy[A, Int](expiry = HttpDate.unsafeFromInstant(now.minusSeconds(2000)))
+        val updated = b.copy[A, Int](expiry = now.minusSeconds(2000))
         OptionT.liftF(store.update(updated)).map(_ => updated)
       }
 
       def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
-        val updated = b.copy[A, Int](lastTouched = Some(HttpDate.unsafeFromInstant(now.minusSeconds(2000))))
+        val updated = b.copy[A, Int](lastTouched = Some(now.minusSeconds(2000)))
         OptionT.liftF(store.update(updated)).map(_ => updated)
       }
 
@@ -98,13 +98,13 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
-        val updated = b.copy[A, Int](expiry = HttpDate.unsafeFromInstant(now.minusSeconds(2000)))
+        val updated = b.copy[A, Int](expiry = now.minusSeconds(2000))
         auth.update(updated)
       }
 
       def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
-        val updated = b.copy[A, Int](lastTouched = Some(HttpDate.unsafeFromInstant(now.minusSeconds(2000))))
+        val updated = b.copy[A, Int](lastTouched = Some(now.minusSeconds(2000)))
         auth.update(updated)
       }
 

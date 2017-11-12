@@ -43,6 +43,18 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         Ok(hi.asJson)
     }
 
+    it should "TryExtractRaw properly" in {
+
+      val response: OptionT[IO, Option[String]] = for {
+        auth <- requestAuth.authenticator.create(dummyBob.id)
+        embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
+      } yield authSpec.auth.extractRawOption(embedded)
+      response
+        .getOrElse(None)
+        .unsafeRunSync()
+        .isDefined mustBe true
+    }
+
     it should "Return a proper deserialized user" in {
 
       val response: OptionT[IO, Response[IO]] = for {

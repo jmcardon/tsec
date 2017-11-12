@@ -142,7 +142,7 @@ object CookieAuthExample {
   val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift
 
   val cookieAuth =
-    CookieAuthenticator(
+    SignedCookieAuthenticator(
       settings,
       cookieBackingStore,
       userStore,
@@ -174,28 +174,25 @@ object CookieAuthExample {
 object JWTAuthExample {
   import Http4sAuthExample._
   val jwtStore =
-    dummyBackingStore[IO, SecureRandomId, JWTMac[HMACSHA256]](s => SecureRandomId.coerce(s.id))
+    dummyBackingStore[IO, SecureRandomId, AugmentedJWT[HMACSHA256, Int]](s => SecureRandomId.coerce(s.id))
 
   //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val settings: TSecJWTSettings = TSecJWTSettings(
-    expirationTime = 10.minutes, //Absolute expiration time
+    expiryDuration = 10.minutes, //Absolute expiration time
     maxIdle = None
   )
 
   val signingKey
     : MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
-  val encryptionKey
-    : SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key. Instantiate in a safe way using GenerateLift
 
   val jwtStatelessauth =
-    JWTAuthenticator.withBackingStore(
+    JWTAuthenticator.withBackingStoreArbitrary(
       settings,
       jwtStore,
       userStore,
       signingKey,
-      encryptionKey
     )
 
   val Auth =
@@ -214,7 +211,7 @@ object JWTAuthExample {
       2. The Authenticator (i.e token)
       3. The identity (i.e in this case, User)
        */
-      val r: SecuredRequest[IO, User, JWTMac[HMACSHA256]] = request
+      val r: SecuredRequest[IO, User, AugmentedJWT[HMACSHA256, Int]] = request
       Ok()
   }
 }
@@ -228,7 +225,7 @@ object BearerTokenAuthExample {
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val settings: TSecTokenSettings = TSecTokenSettings(
-    expirationTime = 10.minutes, //Absolute expiration time
+    expiryDuration = 10.minutes, //Absolute expiration time
     maxIdle = None
   )
 

@@ -25,7 +25,7 @@ package object csrf {
 
     def apply(s: String): CSRFToken = is.flip.coerce(s)
 
-    def generateHexBase(tokenLength: Int = 16): String = {
+    def generateHexBase(tokenLength: Int = 32): String = {
       val tokenBytes = new Array[Byte](tokenLength)
       nextBytes(tokenBytes)
       Hex.toHexString(tokenBytes)

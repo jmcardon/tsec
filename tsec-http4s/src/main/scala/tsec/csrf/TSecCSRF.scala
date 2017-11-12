@@ -11,37 +11,59 @@ import tsec.common._
 import tsec.mac._
 import tsec.mac.imports._
 import cats.syntax.all._
-import org.http4s.{Cookie, Request, Response, Status}
+import org.http4s.{Cookie, HttpService, Request, Response, Status}
 import org.http4s.util.CaseInsensitiveString
-import tsec.authentication.cookieFromRequest
+import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
 
-/** A CSRF Token Signer, adapted from:
-  * https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/play/api/libs/crypto/CSRFTokenSigner.scala
-  * by Will Sargent, to use the tsec crypto primitives
+/** Middleware to avoid Cross-site request forgery attacks.
+  * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
   *
-  * Also very similar to cryptobits, but with a variable argument mac signer, thus we have more than
-  * one mac algorithm to choose from
+  * This middleware is modeled after the double submit cookie pattern:
+  * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#Double_Submit_Cookie
   *
+  * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.  (Alternatively,
+  * an authenticating service can be wrapped in `withNewToken`).
+  *
+  * For requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the `validated` method in the
+  * middleware will check that the csrf token is present in both the header `headerName` and the cookie `cookieName`.
+  * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
+  * custom header, resulting in a `401 Unauthorized` response.
+  *
+  * Requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
+  * or will receive a refreshed token based off of the previous token to mitigate the BREACH vulnerability. If a request
+  * contains an invalid token, regardless of whether it is a safe method, this middleware will fail it with
+  * `401 Unauthorized`. In this situation, your user(s) should clear their cookies for your page, to receive a new
+  * token.
+  *
+  * We'd like to emphasize that you please follow proper design principles in creating endpoints, as to
+  * not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
+  * user data). If you choose to not to, this middleware cannot protect you.
+  *
+  *
+  * @param headerName your CSRF header name
+  * @param cookieName the CSRF cookie name
+  * @param key the CSRF signing key
+  * @param clock clock used as a nonce
   */
-final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
+final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
     key: MacSigningKey[A],
-    headerName: String = "X-TSec-Csrf",
-    cookieName: String = "tsec-csrf",
-    tokenLength: Int = 16,
-    clock: Clock = Clock.systemUTC()
-)(
-    implicit mac: JCAMacPure[F, A]
-) {
+    val headerName: String,
+    val cookieName: String,
+    val tokenLength: Int,
+    clock: Clock
+)(implicit mac: JCAMacPure[F, A], F: Sync[F]) {
 
   def isEqual(s1: String, s2: String): Boolean =
     MessageDigest.isEqual(s1.utf8Bytes, s2.utf8Bytes)
 
-  def signToken(string: String): F[CSRFToken] = {
-    val joined = string + "-" + clock.millis()
-    mac.sign(joined.utf8Bytes, key).map(s => CSRFToken(joined + "-" + s.asByteArray.toB64String))
-  }
+  def signToken(string: String): F[CSRFToken] =
+    for {
+      millis <- F.delay(clock.millis())
+      joined = string + "-" + millis
+      signed <- mac.sign(joined.utf8Bytes, key)
+    } yield CSRFToken(joined + "-" + signed.asByteArray.toB64String)
 
-  def generateNewToken: F[CSRFToken] =
+  def generateToken: F[CSRFToken] =
     signToken(CSRFToken.generateHexBase(tokenLength))
 
   /**
@@ -61,28 +83,64 @@ final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
         OptionT.none
     }
 
+  private[tsec] def validateOrEmbed(request: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
+    unliftedCookieFromRequest[F](cookieName, request) match {
+      case Some(c) =>
+        OptionT.liftF(
+          (for {
+            raw      <- extractRaw(CSRFToken(c.content))
+            response <- service(request)
+            newToken <- OptionT.liftF(signToken(raw))
+          } yield response.addCookie(Cookie(name = cookieName, content = newToken)))
+            .getOrElse(Response[F](Status.Unauthorized))
+        )
+      case None =>
+        service(request).semiflatMap(embedNew)
+    }
+
+  private[tsec] def checkCSRF(r: Request[F], service: HttpService[F]): F[Response[F]] =
+    (for {
+      c1       <- cookieFromRequest[F](cookieName, r)
+      c2       <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)).map(_.value))
+      raw1     <- extractRaw(CSRFToken(c1.content))
+      raw2     <- extractRaw(CSRFToken(c2))
+      res      <- if (isEqual(raw1, raw2)) service(r) else OptionT.none
+      newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
+    } yield res.addCookie(Cookie(name = cookieName, content = newToken)))
+      .getOrElse(Response[F](Status.Unauthorized))
+
+  def filter(request: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
+    if (request.method.isSafe)
+      validateOrEmbed(request, service)
+    else
+      OptionT.liftF(checkCSRF(request, service))
+
   def checkEqual(token1: CSRFToken, token2: CSRFToken): OptionT[F, Boolean] =
     for {
       raw1 <- extractRaw(token1)
       raw2 <- extractRaw(token2)
     } yield isEqual(raw1, raw2)
 
-  def apply: CSRFMiddleware[F] =
+  def validate: CSRFMiddleware[F] =
     req =>
       Kleisli { r: Request[F] =>
-        for {
-          c1       <- cookieFromRequest[F](cookieName, r)
-          c2       <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)).map(_.value))
-          raw1     <- extractRaw(CSRFToken(c1.content))
-          raw2     <- extractRaw(CSRFToken(c2))
-          res      <- if (isEqual(raw1, raw2)) req(r) else OptionT.none
-          newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-        } yield res.addCookie(Cookie(name = cookieName, content = newToken))
-    }.mapF(f => OptionT.liftF(f.getOrElse(Response[F](Status.Forbidden))))
+        filter(r, req)
+    }
 
   def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embedNew(r)))
 
   def embedNew(response: Response[F]): F[Response[F]] =
-    generateNewToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
+    generateToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
 
+}
+
+object TSecCSRF {
+  def apply[F[_]: Sync, A: MacTag: ByteEV](
+      key: MacSigningKey[A],
+      headerName: String = "X-TSec-Csrf",
+      cookieName: String = "tsec-csrf",
+      tokenLength: Int = 32,
+      clock: Clock = Clock.systemUTC()
+  )(implicit mac: JCAMacPure[F, A]): TSecCSRF[F, A] =
+    new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock)
 }

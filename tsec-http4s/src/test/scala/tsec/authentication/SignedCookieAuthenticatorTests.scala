@@ -22,7 +22,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
       store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
   ): AuthSpecTester[AuthenticatedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val authenticator = CookieAuthenticator[IO, Int, DummyUser, A](
+    val authenticator = SignedCookieAuthenticator[IO, Int, DummyUser, A](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
@@ -35,18 +35,18 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
 
       def expireAuthenticator(b: AuthenticatedCookie[A, Int]): OptionT[IO, AuthenticatedCookie[A, Int]] = {
         val now     = Instant.now()
-        val updated = b.copy[A, Int](expiry = HttpDate.unsafeFromInstant(now.minusSeconds(2000)))
+        val updated = b.copy[A, Int](expiry = now.minusSeconds(2000))
         OptionT.liftF(store.update(updated)).map(_ => updated)
       }
 
       def timeoutAuthenticator(b: AuthenticatedCookie[A, Int]): OptionT[IO, AuthenticatedCookie[A, Int]] = {
         val now     = Instant.now()
-        val updated = b.copy[A, Int](lastTouched = Some(HttpDate.unsafeFromInstant(now.minusSeconds(2000))))
+        val updated = b.copy[A, Int](lastTouched = Some(now.minusSeconds(2000)))
         OptionT.liftF(store.update(updated)).map(_ => updated)
       }
 
       def wrongKeyAuthenticator: OptionT[IO, AuthenticatedCookie[A, Int]] =
-        CookieAuthenticator[IO, Int, DummyUser, A](
+        SignedCookieAuthenticator[IO, Int, DummyUser, A](
           TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
           store,
           dummyStore,

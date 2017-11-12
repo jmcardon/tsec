@@ -1,5 +1,6 @@
 package tsec
 
+import java.time.Instant
 import java.util.UUID
 
 import cats.{Applicative, Monad}
@@ -117,18 +118,21 @@ package object authentication {
   )
 
   final case class TSecTokenSettings(
-      expirationTime: FiniteDuration,
+      expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
   )
 
   final case class TSecJWTSettings(
       headerName: String = "X-TSec-JWT",
-      expirationTime: FiniteDuration,
+      expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
   )
 
   def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, Cookie] =
     OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))
+
+  def unliftedCookieFromRequest[F[_]](name: String, request: Request[F]): Option[Cookie] =
+    C.from(request.headers).flatMap(_.values.find(_.name === name))
 
   def extractBearerToken[F[_]: Monad](request: Request[F]): Option[String] =
     request.headers.get(Authorization).flatMap { t =>
@@ -139,13 +143,23 @@ package object authentication {
       }
     }
 
-  implicit val HttpDateLongDecoder: Decoder[HttpDate] = new Decoder[HttpDate] {
-    def apply(c: HCursor): Result[HttpDate] =
-      c.value.as[Long].flatMap(HttpDate.fromEpochSecond(_).leftMap(_ => DecodingFailure("InvalidEpoch", Nil)))
+  def buildBearerAuthHeader(content: String): Authorization =
+    Authorization(Credentials.Token(AuthScheme.Bearer, content))
+
+  implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
+    def apply(c: HCursor): Either[DecodingFailure, Instant] =
+      c.value
+        .as[Long]
+        .flatMap(
+          l =>
+            Either
+              .catchNonFatal(Instant.ofEpochSecond(l))
+              .leftMap(_ => DecodingFailure("InvalidEpoch", Nil))
+        )
   }
 
-  implicit val HttpDateLongEncoder: Encoder[HttpDate] = new Encoder[HttpDate] {
-    def apply(a: HttpDate): Json = Json.fromLong(a.epochSecond)
+  implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
+    def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
   }
 
   def uuidFromRaw[F[_]: Applicative](string: String): OptionT[F, UUID] =
