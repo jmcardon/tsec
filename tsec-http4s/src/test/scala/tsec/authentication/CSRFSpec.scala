@@ -7,8 +7,9 @@ import org.http4s.dsl.io._
 import org.scalatest.MustMatchers
 import tsec.TestSpec
 import tsec.common.ByteEV
-import tsec.csrf.TSecCSRF
+import tsec.csrf.{CSRFToken, TSecCSRF}
 import tsec.mac.imports._
+import cats.syntax.all._
 
 class CSRFSpec extends TestSpec with MustMatchers {
 
@@ -50,7 +51,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
 
     it should "pass through and embed for a fresh request in a safe method" in {
 
-      val response = tsecCSRF.validate(dummyService)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
+      val response = tsecCSRF.validate()(dummyService)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
 
       response.status mustBe Status.Ok
       response.cookies.exists(_.name == tsecCSRF.cookieName) mustBe true
@@ -59,7 +60,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
     it should "fail and not embed a new token for a safe method but invalid cookie" in {
 
       val response = tsecCSRF
-        .validate(dummyService)(passThroughRequest.addCookie(Cookie(tsecCSRF.cookieName, "MOOSE")))
+        .validate()(dummyService)(passThroughRequest.addCookie(Cookie(tsecCSRF.cookieName, "MOOSE")))
         .getOrElse(orElse)
         .unsafeRunSync()
 
@@ -67,10 +68,28 @@ class CSRFSpec extends TestSpec with MustMatchers {
       !response.cookies.exists(_.name == tsecCSRF.cookieName) mustBe true
     }
 
+    it should "pass through and embed a slightly different token for a safe request" in {
+
+      val (origToken, origRaw, response, newToken, newRaw) =
+        (for {
+          t1     <- OptionT.liftF[IO, CSRFToken](tsecCSRF.generateToken)
+          raw1   <- tsecCSRF.extractRaw(t1)
+          resp   <- tsecCSRF.validate()(dummyService)(passThroughRequest.addCookie(Cookie(tsecCSRF.cookieName, t1)))
+          cookie <- OptionT.fromOption[IO](resp.cookies.find(_.name == tsecCSRF.cookieName))
+          raw2   <- tsecCSRF.extractRaw(CSRFToken(cookie.content))
+        } yield (t1, raw1, resp, CSRFToken(cookie.content), raw2))
+          .getOrElse(throw new IllegalStateException("ruh orh"))
+          .unsafeRunSync()
+
+      response.status mustBe Status.Ok
+      origToken mustNot be(newToken)
+      origRaw mustBe newRaw
+    }
+
     it should "validate for the correct csrf token" in {
       (for {
         token <- OptionT.liftF(tsecCSRF.generateToken)
-        res <- tsecCSRF.validate(dummyService)(
+        res <- tsecCSRF.validate()(dummyService)(
           dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token))).addCookie(tsecCSRF.cookieName, token)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Ok
@@ -78,14 +97,14 @@ class CSRFSpec extends TestSpec with MustMatchers {
 
     it should "not validate if token is missing in both" in {
       (for {
-        res <- tsecCSRF.validate(dummyService)(dummyRequest)
+        res <- tsecCSRF.validate()(dummyService)(dummyRequest)
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Unauthorized
     }
 
     it should "not validate for token missing in header" in {
       (for {
         token <- OptionT.liftF(tsecCSRF.generateToken)
-        res <- tsecCSRF.validate(dummyService)(
+        res <- tsecCSRF.validate()(dummyService)(
           dummyRequest.addCookie(tsecCSRF.cookieName, token)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Unauthorized
@@ -94,7 +113,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
     it should "not validate for token missing in cookie" in {
       (for {
         token <- OptionT.liftF(tsecCSRF.generateToken)
-        res <- tsecCSRF.validate(dummyService)(
+        res <- tsecCSRF.validate()(dummyService)(
           dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token)))
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Unauthorized
@@ -104,7 +123,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
       (for {
         token1 <- OptionT.liftF(tsecCSRF.generateToken)
         token2 <- OptionT.liftF(tsecCSRF.generateToken)
-        res <- tsecCSRF.validate(dummyService)(
+        res <- tsecCSRF.validate()(dummyService)(
           dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Unauthorized
@@ -113,18 +132,20 @@ class CSRFSpec extends TestSpec with MustMatchers {
     it should "not return the same token to mitigate BREACH" in {
       (for {
         token <- OptionT.liftF(tsecCSRF.generateToken)
-        res <- tsecCSRF.validate(dummyService)(
+        raw1  <- tsecCSRF.extractRaw(token)
+        res <- tsecCSRF.validate()(dummyService)(
           dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token))).addCookie(tsecCSRF.cookieName, token)
         )
-        r <- OptionT.fromOption[IO](res.cookies.find(_.name == tsecCSRF.cookieName).map(_.content))
-      } yield r == token).getOrElse(true).unsafeRunSync() mustBe false
+        r    <- OptionT.fromOption[IO](res.cookies.find(_.name == tsecCSRF.cookieName).map(_.content))
+        raw2 <- tsecCSRF.extractRaw(CSRFToken(r))
+      } yield r != token && raw1 == raw2).getOrElse(false).unsafeRunSync() mustBe true
     }
 
     it should "not return a token for a failed CSRF check" in {
       val response = (for {
         token1 <- OptionT.liftF(tsecCSRF.generateToken)
         token2 <- OptionT.liftF(tsecCSRF.generateToken)
-        res <- tsecCSRF.validate(dummyService)(
+        res <- tsecCSRF.validate()(dummyService)(
           dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
         )
       } yield res).getOrElse(Response.notFound).unsafeRunSync()

@@ -109,8 +109,8 @@ final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
     } yield res.addCookie(Cookie(name = cookieName, content = newToken)))
       .getOrElse(Response[F](Status.Unauthorized))
 
-  def filter(request: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
-    if (request.method.isSafe)
+  def filter(predicate: Request[F] => Boolean, request: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
+    if (predicate(request))
       validateOrEmbed(request, service)
     else
       OptionT.liftF(checkCSRF(request, service))
@@ -121,10 +121,10 @@ final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
       raw2 <- extractRaw(token2)
     } yield isEqual(raw1, raw2)
 
-  def validate: CSRFMiddleware[F] =
+  def validate(predicate: Request[F] => Boolean = _.method.isSafe): CSRFMiddleware[F] =
     req =>
       Kleisli { r: Request[F] =>
-        filter(r, req)
+        filter(predicate, r, req)
     }
 
   def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embedNew(r)))
