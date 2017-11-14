@@ -26,10 +26,10 @@ And for your backing store, you need to store:
 final case class AuthenticatedCookie[A, Id](
     id: UUID, //Cookie id
     name: String, //Cookie name, it will be sent to the client with this name
-    content: SignedCookie[A], //Cookie contents. This is a newtype over String. Coerce using `SignedCookie[A](rawString)`
-    messageId: Id,
-    expiry: HttpDate,
-    lastTouched: Option[HttpDate],
+    content: SignedCookie[A], //Cookie name, it will be sent to the client with this name
+    identity: Id,
+    expiry: Instant,
+    lastTouched: Option[Instant],
     secure: Boolean,
     httpOnly: Boolean = true,
     domain: Option[String] = None,
@@ -53,59 +53,64 @@ harder to simply brute force the key.
 ### Authenticator Creation
 
 ```tut:silent
-  import java.util.UUID
-  import cats.effect.IO
-  import examples.Http4sAuthExample._
-  import examples.Http4sAuthExample.User._
-  import examples.Http4sAuthExample.Role._
-  import tsec.authentication._
-  import tsec.authorization._
-  import tsec.mac.imports._
-  import org.http4s.HttpService
-  import org.http4s.dsl.io._
-  import scala.concurrent.duration._
+ import java.util.UUID
+ import cats._
+ import cats.data.OptionT
+ import cats.effect.{IO, Sync}
+ import org.http4s.HttpService
+ import org.http4s.dsl.io._
+ import tsec.authentication._
+ import tsec.authorization._
+ import tsec.cipher.symmetric.imports._
+ import tsec.common.SecureRandomId
+ import tsec.jws.mac.JWTMac
+ import tsec.mac.imports._
+ import scala.collection.mutable
+ import scala.concurrent.duration._
+ import Http4sAuthExample._
 
- val cookieBackingStore: BackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]] =
-    dummyBackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]](_.id)
-
-  //We create a way to store our users. You can attach this to say, your doobie accessor
-  val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
-
-  val settings: TSecCookieSettings = TSecCookieSettings(
-    cookieName = "tsec-auth",
-    secure = false,
-    expiryDuration = 10.minutes, // Absolute expiration time
-    maxIdle = None // Rolling window expiration. Set this to a Finiteduration if you intend to have one
-  )
-
-  val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift
-
-  val cookieAuth =
-    CookieAuthenticator(
-      settings,
-      cookieBackingStore,
-      userStore,
-      key
-    )
-
-  val Auth =
-    SecuredRequestHandler(cookieAuth)
-
-  /*
-  Now from here, if want want to create services, we simply use the following
-  (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
-   */
-  val service: HttpService[IO] = Auth {
-    //Where user is the case class User above
-    case request @ GET -> Root / "api" asAuthed user =>
-      /*
-      Note: The request is of type: SecuredRequest, which carries:
-      1. The request
-      2. The Authenticator (i.e token)
-      3. The identity (i.e in this case, User)
-       */
-      val r: SecuredRequest[IO, User, AuthenticatedCookie[HMACSHA256, Int]] = request
-      Ok()
-  }
+  import Http4sAuthExample._
+   val cookieBackingStore: BackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]] =
+     dummyBackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]](_.id)
+ 
+   //We create a way to store our users. You can attach this to say, your doobie accessor
+   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
+ 
+   val settings: TSecCookieSettings = TSecCookieSettings(
+     cookieName = "tsec-auth",
+     secure = false,
+     expiryDuration = 10.minutes, // Absolute expiration time
+     maxIdle = None // Rolling window expiration. Set this to a Finiteduration if you intend to have one
+   )
+ 
+   val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift
+ 
+   val cookieAuth =
+     SignedCookieAuthenticator(
+       settings,
+       cookieBackingStore,
+       userStore,
+       key
+     )
+ 
+   val Auth =
+     SecuredRequestHandler(cookieAuth)
+ 
+   /*
+   Now from here, if want want to create services, we simply use the following
+   (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
+    */
+   val service: HttpService[IO] = Auth {
+     //Where user is the case class User above
+     case request @ GET -> Root / "api" asAuthed user =>
+       /*
+       Note: The request is of type: SecuredRequest, which carries:
+       1. The request
+       2. The Authenticator (i.e token)
+       3. The identity (i.e in this case, User)
+        */
+       val r: SecuredRequest[IO, User, AuthenticatedCookie[HMACSHA256, Int]] = request
+       Ok()
+   }
 
 ```
