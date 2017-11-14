@@ -27,13 +27,13 @@ using `embed`
 
 A truncated signature of the class looks like this:
 ```scala
-final case class TSecCSRF[F[_]: Sync, A: MacTag: ByteEV](
+final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
     key: MacSigningKey[A],
-    headerName: String = "X-TSec-Csrf",
-    cookieName: String = "tsec-csrf",
-    tokenLength: Int = 16,
-    clock: Clock = Clock.systemUTC()
-)
+    val headerName: String,
+    val cookieName: String,
+    val tokenLength: Int,
+    clock: Clock
+)(
 ```
 
 The `apply` method on this new class is of type:
@@ -61,7 +61,7 @@ Thus, you can use it as such:
       Ok()
   }) // This endpoint now provides a user with a new csrf token.
   
-  val dummyService2: HttpService[IO] = tsecCSRF.apply(HttpService[IO] {
+  val dummyService2: HttpService[IO] = tsecCSRF.validate()(HttpService[IO] {
     case GET -> Root / "hi" =>
       Ok()
   })//This endpoint is csrf checked
