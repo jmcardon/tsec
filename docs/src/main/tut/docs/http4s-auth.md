@@ -31,18 +31,22 @@ Note: This class is the setup to our authentication and authorization examples
 
 
 ```tut:silent
+import java.util.UUID
 
 import cats._
-import cats.data._
-import cats.effect._
-import org.http4s._
+import cats.data.OptionT
+import cats.effect.{IO, Sync}
+import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.authorization._
 import tsec.cipher.symmetric.imports._
 import tsec.common.SecureRandomId
+import tsec.jws.mac.JWTMac
+
 import scala.collection.mutable
 import scala.concurrent.duration._
+
 
 object Http4sAuthExample {
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Sync[F]) = new BackingStore[F, I, V] {
@@ -110,21 +114,20 @@ shine, as this is their exact function.
 Let's make an example with [BearerTokenAuthenticator](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/Http4sAuthExample.scala#L224-L267) from scratch:
 
 ```tut:silent
-  import examples.Http4sAuthExample._
-  //We need a way to store our bearer tokens
+
+ import Http4sAuthExample._
   val bearerTokenStore =
     dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
 
   //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
-  //These are the settings for our bearer token
   val settings: TSecTokenSettings = TSecTokenSettings(
-    expirationTime = 10.minutes, //Absolute expiration time
+    expiryDuration = 10.minutes, //Absolute expiration time
     maxIdle = None
   )
 
-  val bearerTokenAuth = //This is our authenticator
+  val bearerTokenAuth =
     BearerTokenAuthenticator(
       bearerTokenStore,
       userStore,
@@ -132,26 +135,30 @@ Let's make an example with [BearerTokenAuthenticator](https://github.com/jmcardo
     )
 ```
 
-From here, we can create a `TSecMiddleware`, which is simply 
-`Middleware[OptionT[F, ?], SecuredRequest[F, I, A], Response[F], Request[F], Response[F]]`
+From here, we can create a `SecureRequestHandler`, which detecting whether it is
+rolling window or not.
+
 
 ```tut
-  val middleware = TSecMiddleware(Kleisli(bearerTokenAuth.extractAndValidate))
+  val Auth =
+    SecuredRequestHandler(bearerTokenAuth)
 ```
 
-Then, we can create a `TSecAuthService`, which is similar to AuthedService, except it includes your token:
+Then, we can our `SecureRequestHandler` Auth:
 
 ```tut:silent
-  val authservice: TSecAuthService[IO, User, TSecBearerToken[Int]] = TSecAuthService {
-    case GET -> Root asAuthed user =>
-      Ok()
-  }
-```
-
-Then turn this into an `HttpService[F]`  by applying the middleware you used before!
-
-```tut
-  val service: HttpService[IO] = middleware(authservice)
+  val service: HttpService[IO] = Auth {
+      //Where user is the case class User above
+      case request @ GET -> Root / "api" asAuthed user =>
+        /*
+        Note: The request is of type: SecuredRequest, which carries:
+        1. The request
+        2. The Authenticator (i.e token)
+        3. The identity (i.e in this case, User)
+         */
+        val r: SecuredRequest[IO, User, TSecBearerToken[Int]] = request
+        Ok()
+    }
 ```
 
 In essence, this is captured by `SecuredRequestHandler`, which wraps the process of having to create the service
