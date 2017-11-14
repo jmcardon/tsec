@@ -120,7 +120,7 @@ object JWTAuthenticator {
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
-          extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
+          extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
@@ -254,7 +254,7 @@ object JWTAuthenticator {
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
-          extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
+          extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
@@ -384,7 +384,8 @@ object JWTAuthenticator {
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
-          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
+          now         <- OptionT.liftF(F.delay(Instant.now()))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           id          <- OptionT.fromOption[F](extracted.body.subject.flatMap(decode[I](_).toOption))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           lastTouched <- verify(extracted)
@@ -570,7 +571,8 @@ object JWTAuthenticator {
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
           eInstance   <- OptionT.liftF(F.fromEither(enc.instance))
-          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
+          now         <- OptionT.liftF(F.delay(Instant.now))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
           lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
           decodedBody <- OptionT.liftF(decryptIdentity(rawId, eInstance))
@@ -735,7 +737,8 @@ object JWTAuthenticator {
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
         for {
           eInstance   <- OptionT.liftF(F.fromEither(enc.instance))
-          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey))
+          now         <- OptionT.liftF(F.delay(Instant.now))
+          extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
           lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
           decodedBody <- OptionT.liftF(decryptIdentity(rawId, eInstance))
