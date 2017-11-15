@@ -33,7 +33,7 @@ final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
     val cookieName: String,
     val tokenLength: Int,
     clock: Clock
-)(
+)
 ```
 
 The `apply` method on this new class is of type:
@@ -65,5 +65,4 @@ Thus, you can use it as such:
     case GET -> Root / "hi" =>
       Ok()
   })//This endpoint is csrf checked
-
 ```

@@ -48,7 +48,7 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 
 
-object Http4sAuthExample {
+object ExampleAuthHelpers {
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: Sync[F]) = new BackingStore[F, I, V] {
     private val storageMap = mutable.HashMap.empty[I, V]
 
@@ -111,27 +111,28 @@ requires two things: A Identity, for example our `User` type, and the type of Au
 both extract and validate the Authenticator, as well as extract the identity type. Here is where `TSec` authenticators 
 shine, as this is their exact function.
 
-Let's make an example with [BearerTokenAuthenticator](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/Http4sAuthExample.scala#L224-L267) from scratch:
+Let's make an example with [BearerTokenAuthenticator](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/http4sExamples/BearerTokenExample.scala) from scratch:
 
 ```tut:silent
 
- import Http4sAuthExample._
+ import ExampleAuthHelpers._ // import dummyBackingStore factory
+ 
   val bearerTokenStore =
-    dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
+      dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
 
   //We create a way to store our users. You can attach this to say, your doobie accessor
-  val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
-
-  val settings: TSecTokenSettings = TSecTokenSettings(
-    expiryDuration = 10.minutes, //Absolute expiration time
-    maxIdle = None
-  )
-
-  val bearerTokenAuth =
-    BearerTokenAuthenticator(
-      bearerTokenStore,
-      userStore,
-      settings
+    val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
+  
+    val settings: TSecTokenSettings = TSecTokenSettings(
+      expiryDuration = 10.minutes, //Absolute expiration time
+      maxIdle = None
+    )
+    
+    val bearerTokenAuth =
+        BearerTokenAuthenticator(
+          bearerTokenStore,
+          userStore,
+          settings
     )
 ```
 
@@ -144,21 +145,30 @@ rolling window or not.
     SecuredRequestHandler(bearerTokenAuth)
 ```
 
-Then, we can our `SecureRequestHandler` Auth:
+Then, we can use our `TSecAuthService`:
 
 ```tut:silent
-  val service: HttpService[IO] = Auth {
-      //Where user is the case class User above
-      case request @ GET -> Root / "api" asAuthed user =>
-        /*
-        Note: The request is of type: SecuredRequest, which carries:
-        1. The request
-        2. The Authenticator (i.e token)
-        3. The identity (i.e in this case, User)
-         */
-        val r: SecuredRequest[IO, User, TSecBearerToken[Int]] = request
-        Ok()
-    }
+ val authservice: TSecAuthService[IO, User, TSecBearerToken[Int]] = TSecAuthService {
+     case GET -> Root asAuthed user =>
+       Ok()
+   }
+ 
+   /*
+   Now from here, if want want to create services, we simply use the following
+   (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
+    */
+   val service: HttpService[IO] = Auth {
+     //Where user is the case class User above
+     case request@GET -> Root / "api" asAuthed user =>
+       /*
+       Note: The request is of type: SecuredRequest, which carries:
+       1. The request
+       2. The Authenticator (i.e token)
+       3. The identity (i.e in this case, User)
+        */
+       val r: SecuredRequest[IO, User, TSecBearerToken[Int]] = request
+       Ok()
+   }
 ```
 
 In essence, this is captured by `SecuredRequestHandler`, which wraps the process of having to create the service
