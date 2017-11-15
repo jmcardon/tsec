@@ -194,6 +194,21 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     jwtMac
   )
 
+lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"))
+  .settings(commonSettings)
+  .settings(jwtCommonLibs)
+  .settings(passwordHasherLibs)
+  .settings(http4sDeps)
+  .settings(libraryDependencies += "com.github.jnr" % "jnr-ffi" % "2.0.5")
+  .dependsOn(common % "compile->compile;test->test")
+  .dependsOn(
+    symmetricCipher,
+    mac,
+    messageDigests,
+    passwordHashers,
+    jwtMac
+  )
+
 lazy val microsite = Project(id = "microsite", base = file("docs"))
   .settings(commonSettings)
   .settings(micrositeSettings)
