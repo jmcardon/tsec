@@ -51,20 +51,16 @@ object jwtStatelessExample {
   //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
-  val settings: TSecJWTSettings = TSecJWTSettings(
-    expiryDuration = 10.minutes, //Absolute expiration time
-    maxIdle = None
-  )
-
   val signingKey
   : MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
 
   val jwtStatelessauth =
-    JWTAuthenticator.withBackingStoreArbitrary(
-      settings,
-      jwtStore,
-      userStore,
-      signingKey,
+    JWTAuthenticator.withBackingStore(
+    expiryDuration = 10.minutes, //Absolute expiration time
+    maxIdle        = None,
+    tokenStore     = jwtStore,
+    identityStore  = userStore,
+    signingKey     = signingKey
     )
 
   val Auth =
