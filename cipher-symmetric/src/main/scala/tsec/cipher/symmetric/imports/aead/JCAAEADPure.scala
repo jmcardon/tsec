@@ -14,7 +14,7 @@ class JCAAEADPure[F[_], A, M, P](queue: JQueue[JCipher])(
     modeSpec: AEADMode[M],
     paddingTag: Padding[P],
     F: Sync[F]
-) extends SymmetricCipherAlgebra[F, A, M, P, SecretKey] {
+) extends JSymmetricCipherAlgebra[F, A, M, P, SecretKey] {
 
   type C = JCipher
 

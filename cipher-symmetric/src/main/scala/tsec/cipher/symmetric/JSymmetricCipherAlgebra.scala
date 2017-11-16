@@ -1,6 +1,52 @@
 package tsec.cipher.symmetric
 
 trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
+
+  /** Encrypt our plaintext with a tagged secret key
+    *
+    * @param plainText the plaintext to encrypt
+    * @param key the SecretKey to use
+    * @return
+    */
+  def encrypt(plainText: PlainText, key: K[A]): F[CipherText[A, M, P]]
+
+  /** Decrypt our ciphertext
+    *
+    * @param cipherText the plaintext to encrypt
+    * @param key the SecretKey to use
+    * @return
+    */
+  def decrypt(cipherText: CipherText[A, M, P], key: K[A]): F[PlainText]
+
+}
+
+trait AEADCipherAlg[F[_], A, M, P, K[_]] extends SymmetricCipherAlgebra[F, A, M, P, K] {
+
+  /** Encrypt our plaintext using additional authentication parameters,
+    * Primarily for GCM mode and CCM mode
+    * Other modes will return a cipherError attempting this
+    *
+    * @param plainText the plaintext to encrypt
+    * @param key the SecretKey to use
+    * @param aad The additional authentication information
+    * @return
+    */
+  def encryptAAD(plainText: PlainText, key: K[A], aad: AAD): F[CipherText[A, M, P]]
+
+  /** Decrypt our ciphertext using additional authentication parameters,
+    * Primarily for GCM mode and CCM mode
+    * Other modes will return a cipherError attempting this
+    *
+    * @param cipherText the plaintext to encrypt
+    * @param key the SecretKey to use
+    * @param aad The additional authentication information
+    * @return
+    */
+  def decryptAAD(cipherText: CipherText[A, M, P], key: K[A], aad: AAD): F[PlainText]
+
+}
+
+trait JSymmetricCipherAlgebra[F[_], A, M, P, K[_]] extends SymmetricCipherAlgebra[F, A, M, P, K] {
   type C
 
   def genInstance: F[C]
@@ -35,30 +81,10 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
 
 }
 
-trait AEADCipherAlg[F[_], A, M, P, K[_]] extends SymmetricCipherAlgebra[F, A, M, P, K] {
+trait JAEADCipherAlg[F[_], A, M, P, K[_]]
+    extends JSymmetricCipherAlgebra[F, A, M, P, K]
+    with AEADCipherAlg[F, A, M, P, K] {
 
   protected[symmetric] def setAAD(e: C, aad: AAD): F[Unit]
-
-  /** Encrypt our plaintext using additional authentication parameters,
-    * Primarily for GCM mode and CCM mode
-    * Other modes will return a cipherError attempting this
-    *
-    * @param plainText the plaintext to encrypt
-    * @param key the SecretKey to use
-    * @param aad The additional authentication information
-    * @return
-    */
-  def encryptAAD(plainText: PlainText, key: K[A], aad: AAD): F[CipherText[A, M, P]]
-
-  /** Decrypt our ciphertext using additional authentication parameters,
-    * Primarily for GCM mode and CCM mode
-    * Other modes will return a cipherError attempting this
-    *
-    * @param cipherText the plaintext to encrypt
-    * @param key the SecretKey to use
-    * @param aad The additional authentication information
-    * @return
-    */
-  def decryptAAD(cipherText: CipherText[A, M, P], key: K[A], aad: AAD): F[PlainText]
 
 }

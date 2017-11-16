@@ -6,14 +6,14 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.mode._
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.JSymmetricCipherAlgebra
 import tsec.common.ErrorConstruct._
 
 class JCAAEAD[A, M, P](
     implicit algoTag: AEADCipher[A],
     modeSpec: AEADMode[M],
     paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
+) extends JSymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
 
   type C = JCipher
 

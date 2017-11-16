@@ -166,7 +166,6 @@ object SignedCookieAuthenticator {
           identity   <- idStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
-
       /** Create an authenticator from an identifier.
         *
         * @param body

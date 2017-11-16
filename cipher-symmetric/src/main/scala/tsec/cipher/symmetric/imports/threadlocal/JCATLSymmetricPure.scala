@@ -13,7 +13,7 @@ sealed abstract class JCATLSymmetricPure[A, M, P](queueAlloc: QueueAlloc[JCipher
     implicit algoTag: SymmetricCipher[A],
     modeSpec: CipherMode[M],
     paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[IO, A, M, P, SecretKey] {
+) extends JSymmetricCipherAlgebra[IO, A, M, P, SecretKey] {
 
   type C = JCipher
 

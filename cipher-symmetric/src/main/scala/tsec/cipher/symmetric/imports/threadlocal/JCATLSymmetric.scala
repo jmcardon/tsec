@@ -6,7 +6,7 @@ import cats.syntax.either._
 import tsec.cipher.common._
 import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.JSymmetricCipherAlgebra
 import tsec.cipher.symmetric.imports.{SecretKey, SymmetricCipher}
 import tsec.cipher.symmetric.mode._
 import tsec.common.ErrorConstruct._
@@ -15,7 +15,7 @@ abstract class JCATLSymmetric[A, M, P](
     implicit algoTag: SymmetricCipher[A],
     modeSpec: CipherMode[M],
     paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
+) extends JSymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
 
   type C = JCipher
 

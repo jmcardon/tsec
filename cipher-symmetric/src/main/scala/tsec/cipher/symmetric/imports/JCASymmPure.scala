@@ -7,7 +7,7 @@ import cats.syntax.functor._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.mode._
 import tsec.cipher.common.padding.Padding
-import tsec.cipher.symmetric.SymmetricCipherAlgebra
+import tsec.cipher.symmetric.JSymmetricCipherAlgebra
 import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 
 sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
@@ -15,7 +15,7 @@ sealed abstract class JCASymmPure[F[_], A, M, P](queue: JQueue[JCipher])(
     modeSpec: CipherMode[M],
     paddingTag: Padding[P],
     F: Sync[F]
-) extends SymmetricCipherAlgebra[F, A, M, P, SecretKey] {
+) extends JSymmetricCipherAlgebra[F, A, M, P, SecretKey] {
 
   type C = JCipher
 
