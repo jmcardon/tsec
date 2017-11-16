@@ -4,16 +4,11 @@ language: scala
 before_install:
 - git clone git://github.com/jedisct1/libsodium.git
 - cd libsodium
-- git checkout 0.4.5
+- git checkout 1.0.15
 - ./autogen.sh
-- ./configure && make check
-- make install
-- ldconfig
-- cd ..
- - ./autogen.sh
- - ./configure
- - make
- - sudo make install
+- ./configure
+- make && make check
+- sudo make install
 
 scala:
   - 2.12.4
