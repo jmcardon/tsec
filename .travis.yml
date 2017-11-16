@@ -6,9 +6,14 @@ before_install:
 - cd libsodium
 - git checkout 1.0.15
 - ./autogen.sh
-- ./configure
-- make && make check
+- ./configure && make check
 - sudo make install
+- sudo ldconfig
+- cd ..
+ - ./autogen.sh
+ - ./configure
+ - make
+ - sudo make install
 
 scala:
   - 2.12.4
