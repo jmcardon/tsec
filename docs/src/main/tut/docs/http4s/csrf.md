@@ -17,12 +17,17 @@ In short, to guard against this vulnerability, all you need to do is use the mid
 send such a token along with a custom header value. Given that an attacker forging a request cannot access the values
 of a cookie due to same-origin policy, this simple mechanism will guard against `CSRF`.
 
-With good application design, this only means that you should only need to
+With good application design, you should only need to
  guard your [unsafe methods](http://restcookbook.com/HTTP%20Methods/idempotency/),
-aka any http methods that could possibly make any changes to data or alter state. The `validate` method takes a 
+aka any http methods that could possibly make any changes to data or alter state, as this is what a
+CSRF attacker is after. The `validate` method takes a 
 predicate `Request[F] => Boolean`, which defaults to `_.methods.isSafe`. Any action which results in `true` for
 the predicate will skip the csrf check, and embed a new token if there isn't one. It is highly recommended you 
 leave the predicate as is, unless you _must_ make exceptions for specific routes that should be csrf-check free.
+
+I.e If you mutate in a `GET` request (god forbid), you might want to alter the predicate to csrf check `GET`s as well.
+
+Please, however, follow proper design principles, and keep idempotent methods idempotent.
 
 All you need to use the CSRF middleware for tsec is:
 

@@ -8,8 +8,12 @@ title: "JWT Authentication"
 
 This authenticator uses [JWT](https://jwt.io) for authentication. The contents of the actual identity 
 are transported in the `subject` claim, and are encrypted if you choose the `statelessEncrypted` or
-`statelessEncryptedArbitrary` option. The authenticator `stateless` and `withBackingStore` methods default
-to transporting it in the `Authorization` header as a Bearer token. If you must transport it in an arbitrary token,
+`statelessEncryptedArbitrary` option. 
+
+
+### Defaults
+The authenticator `stateless` and `withBackingStore` methods default
+to transporting it in the `Authorization` header as a Bearer token. If you must transport it in an arbitrary header,
 use the methods that end in `Arbitrary`, i.e `statelessArbitrary`.
 
 For the cases of a custom header, JWT authenticator uses `TSecJWTSettings` for configuration:

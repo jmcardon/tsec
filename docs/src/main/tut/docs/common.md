@@ -27,7 +27,7 @@ importing `tsec.common._` brings in:
 import tsec.common._
 
 "hi".utf8Bytes //Get the utf-8 bytes of a string
-"hi".hexBytesUnsafe
+"FF0952".hexBytesUnsafe //Note: This can throw!
 
 ```
 

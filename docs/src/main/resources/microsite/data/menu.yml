@@ -39,6 +39,9 @@ options:
     - title: Bearer Token
       url: docs/http4s/auth-bearer.html
       section: http4-auth
+    - title: Composing Authenticators
+      url: docs/http4s/composing-authenticators.html
+      section: http4-auth
     - title: Authorization
       url: docs/http4s/authorization.html
       section: http4-auth

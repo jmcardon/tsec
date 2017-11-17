@@ -11,7 +11,7 @@ Stateless (No need for a  backing store) or Stateful(Requires backing store), th
 
 1. Signed Cookie Authentication (Stateful)
 2. Encrypted and Signed Cookie Authentication (Stateless and Stateful)
-3. JWT using HS256, HS384 and HS512 (Stateless and Stateful)
+3. JWT using HS256, HS384 and HS512 (Stateless and Stateful, unencrypted and encrypted user IDs)
 4. Bearer Tokens using `SecureRandomId`
 
 In general, to use an authenticator, you need:
@@ -20,8 +20,8 @@ In general, to use an authenticator, you need:
 and `U` is the user class.
 2. An instance of either `TSecCookieSettings` or `TSecJWTSettings` based on the type of authenticator
 3. Either a Signing Key or an Encryption Key, based on the kind of Authenticator
-4. For Stateful Authenticators, you will require a `BackingStore[F, UUID, Token]` where `Token` is the
-Token type.
+4. For Stateful Authenticators, you will require a `BackingStore[F, Id, Token]` where `Token` is the
+Token type, and `Id` is the authenticator Id type, which may vary
 
 Also please, for your sanity and ours **use TLS in prod**.
 
@@ -107,7 +107,7 @@ object ExampleAuthHelpers {
 ## Authenticating Services
 
 A service with some token-based Authentication, be it cookie, jwt, bearer token, etc
-requires two things: A Identity, for example our `User` type, and the type of Authenticator you are using. We need a way to
+requires two things: A Identity, for example our `User` type, and the type of AuthenticatorService you are using. We need a way to
 both extract and validate the Authenticator, as well as extract the identity type. Here is where `TSec` authenticators 
 shine, as this is their exact function.
 
