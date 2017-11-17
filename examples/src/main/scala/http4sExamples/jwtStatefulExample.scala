@@ -9,7 +9,7 @@ import tsec.common.SecureRandomId
 import tsec.mac.imports.{HMACSHA256, MacSigningKey}
 import scala.concurrent.duration._
 
-object jwtStatelessExample {
+object jwtStatefulExample {
 
   import ExampleAuthHelpers._
 
@@ -22,7 +22,7 @@ object jwtStatelessExample {
   val signingKey
   : MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
 
-  val jwtStatelessauth =
+  val jwtStatefulAuth =
     JWTAuthenticator.withBackingStore(
       expiryDuration = 10.minutes, //Absolute expiration time
       maxIdle        = None,
@@ -32,7 +32,7 @@ object jwtStatelessExample {
     )
 
   val Auth =
-    SecuredRequestHandler(jwtStatelessauth)
+    SecuredRequestHandler(jwtStatefulAuth)
 
   /*
   Now from here, if want want to create services, we simply use the following
