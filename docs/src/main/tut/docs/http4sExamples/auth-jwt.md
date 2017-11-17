@@ -6,7 +6,13 @@ title: "JWT Authentication"
 
 # JWT Authenticator
 
-JWT authenticator uses `TSecJWTSettings` for configuration:
+This authenticator uses [JWT](https://jwt.io) for authentication. The contents of the actual identity 
+are transported in the `subject` claim, and are encrypted if you choose the `statelessEncrypted` or
+`statelessEncryptedArbitrary` option. The authenticator `stateless` and `withBackingStore` methods default
+to transporting it in the `Authorization` header as a Bearer token. If you must transport it in an arbitrary token,
+use the methods that end in `Arbitrary`, i.e `statelessArbitrary`.
+
+For the cases of a custom header, JWT authenticator uses `TSecJWTSettings` for configuration:
 
 ```scala
   final case class TSecJWTSettings(
@@ -16,14 +22,10 @@ JWT authenticator uses `TSecJWTSettings` for configuration:
   )
 ```
 
-And for storage, a `JWTMAC[A]`.
-
-This authenticator uses [JWT](https://jwt.io) for authentication. The contents of the actual identity 
-(i.e your User type id) are encrypted, then signed with underlying JWT algorithm.
-
-* Choose between one of HMACSHA256, HMACSHA384 or HMACSHA512. **Recommended default: HMACSHA256**.
+And for storage, a `AugmentedJWT[A, Id]`, where `Id` is your Id type (i.e UUID, Int, etc).
 
 Notes:
+* Choose between one of HMACSHA256, HMACSHA384 or HMACSHA512. **Recommended default: HMACSHA256**.
 * Not vulnerable to [CSRF](https://en.wikipedia.org/wiki/Cross-site_request_forgery).
 * Okay to use with `CORS`
 * Tsec jwts are typed, so not vulnerable to [this](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/)

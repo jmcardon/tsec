@@ -5,10 +5,7 @@ title: "JWT"
 ---
 # JWT 
 
-The TSec implementation is more opinionated than most JWT libraries, thus requires a `UUID` for the `jwtId` field.
-This is secure, given Java UUIDs are UUIDv4, with an extremely low probability of collision.
-
-Our JWT implementation also addresses [this](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/) vulnerability
+Our JWT implementation addresses [this](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/) vulnerability
 through the scala type system. As all `JWTs` are typed, both during encoding and decoding, there is no way to parse an arbitray JWT for
 an endpoint before knowing the expected algorithm, thus, we avoid the ol' switcheroo.
 

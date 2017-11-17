@@ -47,6 +47,10 @@ options:
       title: CSRF
       url: docs/http4s/csrf.html
 
+  - title: Common Utils
+    url: docs/common.html
+    section: common
+
   - title: Digital Signatures
     url: docs/signatures.html
     section: signatures

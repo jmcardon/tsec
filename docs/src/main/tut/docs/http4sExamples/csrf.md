@@ -7,7 +7,8 @@ title: "CSRF prevention"
 # CSRF Prevention
 
 [CSRF](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)) attacks have been losing popularity over
-the past years, but they are still no joke. If you are using any cookie-based authentication, or any sort of authentication
+the past years, but they are still a possible way your application security can suffer. 
+If you are using any cookie-based authentication, or any sort of authentication
 wherein you are _not_ sending your authentication in a custom header, this concerns you.
 
 Fortunately, TSec provides a simple CSRF prevention middleware.
@@ -16,6 +17,13 @@ In short, to guard against this vulnerability, all you need to do is use the mid
 send such a token along with a custom header value. Given that an attacker forging a request cannot access the values
 of a cookie due to same-origin policy, this simple mechanism will guard against `CSRF`.
 
+With good application design, this only means that you should only need to
+ guard your [unsafe methods](http://restcookbook.com/HTTP%20Methods/idempotency/),
+aka any http methods that could possibly make any changes to data or alter state. The `validate` method takes a 
+predicate `Request[F] => Boolean`, which defaults to `_.methods.isSafe`. Any action which results in `true` for
+the predicate will skip the csrf check, and embed a new token if there isn't one. It is highly recommended you 
+leave the predicate as is, unless you _must_ make exceptions for specific routes that should be csrf-check free.
+
 All you need to use the CSRF middleware for tsec is:
 
 * An `F: Sync` 
@@ -23,6 +31,7 @@ All you need to use the CSRF middleware for tsec is:
 * A MacSigningKey
 * An endpoint where you can give a token to a user, either by default using `withNewToken` or directly into the response
 using `embed`
+* (Optional) A condition which does not csrf-validate requests that cause it to be true.
 
 
 A truncated signature of the class looks like this:
