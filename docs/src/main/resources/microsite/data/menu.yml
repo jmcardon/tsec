@@ -39,6 +39,9 @@ options:
     - title: Bearer Token
       url: docs/http4s/auth-bearer.html
       section: http4-auth
+    - title: Composing Authenticators
+      url: docs/http4s/composing-authenticators.html
+      section: http4-auth
     - title: Authorization
       url: docs/http4s/authorization.html
       section: http4-auth
@@ -46,6 +49,10 @@ options:
       section: http4-auth
       title: CSRF
       url: docs/http4s/csrf.html
+
+  - title: Common Utils
+    url: docs/common.html
+    section: common
 
   - title: Digital Signatures
     url: docs/signatures.html
