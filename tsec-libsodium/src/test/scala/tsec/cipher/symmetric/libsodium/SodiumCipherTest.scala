@@ -9,11 +9,7 @@ import tsec.cipher.symmetric.PlainText
 import tsec.cipher.symmetric.libsodium.internal.SodiumCipherPlatform
 import tsec.common._
 
-class SodiumCipherTest extends TestSpec with MustMatchers with PropertyChecks {
-
-  //Todo: As property tests
-
-  implicit val sodium: ScalaSodium = ScalaSodium.getSodiumUnsafe
+class SodiumCipherTest extends SodiumSpec {
 
   final def testSecretBoxCipher[A](platform: SodiumCipherPlatform[A]) = {
     behavior of s"${platform.algorithm} symmetric key"
@@ -21,12 +17,19 @@ class SodiumCipherTest extends TestSpec with MustMatchers with PropertyChecks {
     it should "generate key, encrypt and decrypt properly" in {
       forAll { (s: String) =>
         val pt = PlainText(s.utf8Bytes)
+        val program = for {
+          key     <- platform.generateKey[IO]
+          encrypt <- platform.encrypt[IO](pt, key)
+          decrypt <- platform.decrypt[IO](encrypt, key)
+        } yield decrypt
+        val attempted = program.attempt.unsafeRunSync()
+        if (attempted.map(_.content.toHexString) != Right(pt.content.toHexString)) {
+          println(attempted.map(_.content.toHexString))
+          println(pt.content.toHexString)
+        }
+
         if (!s.isEmpty)
-          (for {
-            key     <- platform.generateKey[IO]
-            encrypt <- platform.encrypt[IO](pt, key)
-            decrypt <- platform.decrypt[IO](encrypt, key)
-          } yield decrypt).unsafeRunSync().content.toUtf8String mustBe pt.content.toUtf8String
+          program.unsafeRunSync().content.toHexString mustBe pt.content.toHexString
       }
     }
 
@@ -51,7 +54,7 @@ class SodiumCipherTest extends TestSpec with MustMatchers with PropertyChecks {
             key           <- platform.generateKey[IO]
             encryptedPair <- platform.encryptDetached[IO](pt, key)
             decrypt       <- platform.decryptDetached[IO](encryptedPair._1, key, encryptedPair._2)
-          } yield decrypt).unsafeRunSync().content.toUtf8String mustBe pt.content.toUtf8String
+          } yield decrypt).unsafeRunSync().content.toHexString mustBe pt.content.toHexString
       }
     }
 

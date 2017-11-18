@@ -74,7 +74,8 @@ object ScalaSodium
       .search("/opt/local/lib")
       .search("lib")
       .load(libraryName)
-    sodium.sodium_init
+    if (sodium.sodium_init < 0)
+      throw new RuntimeException("ScalaSodium is not safe to use")
     sodium
   }
 

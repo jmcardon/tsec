@@ -141,7 +141,7 @@ trait SecretBox {
   def crypto_secretbox_xchacha20poly1305_open_easy(
       @Out plaintext: Array[Byte],
       @In cipherText: Array[Byte],
-      @In @u_int8_t cLen: Long,
+      @In @u_int8_t cLen: Int,
       @In nonce: Array[Byte],
       @In key: Array[Byte]
   ): Int
