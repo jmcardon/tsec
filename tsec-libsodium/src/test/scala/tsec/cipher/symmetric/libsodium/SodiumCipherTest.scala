@@ -22,12 +22,6 @@ class SodiumCipherTest extends SodiumSpec {
           encrypt <- platform.encrypt[IO](pt, key)
           decrypt <- platform.decrypt[IO](encrypt, key)
         } yield decrypt
-        val attempted = program.attempt.unsafeRunSync()
-        if (attempted.map(_.content.toHexString) != Right(pt.content.toHexString)) {
-          println(attempted.map(_.content.toHexString))
-          println(pt.content.toHexString)
-        }
-
         if (!s.isEmpty)
           program.unsafeRunSync().content.toHexString mustBe pt.content.toHexString
       }

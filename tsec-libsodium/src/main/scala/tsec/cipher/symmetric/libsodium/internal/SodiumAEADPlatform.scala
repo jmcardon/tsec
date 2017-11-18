@@ -29,6 +29,7 @@ trait SodiumAEADPlatform[A]
     val outArray = new Array[Byte](plaintext.content.length + authTagLen)
     val nonce    = new Array[Byte](nonceLen)
     S.randombytes_buf(nonce, nonceLen)
+
     if (sodiumEncryptAAD(outArray, plaintext, nonce, key, aad) != 0)
       throw EncryptError("Invalid encryption Info")
 
@@ -53,7 +54,14 @@ trait SodiumAEADPlatform[A]
     val macOut   = new Array[Byte](authTagLen)
     val nonce    = new Array[Byte](nonceLen)
     S.randombytes_buf(nonce, nonceLen)
-    if (sodiumEncryptDetachedAAD(outArray, macOut, plainText, nonce, key, aad) != 0)
+    if (sodiumEncryptDetachedAAD(
+          outArray,
+          macOut,
+          plainText,
+          nonce,
+          key,
+          aad
+        ) != 0)
       throw EncryptError("Invalid encryption Info")
 
     (SodiumCipherText[A](outArray, nonce), AuthTag.is[A].coerce(macOut))
@@ -64,7 +72,13 @@ trait SodiumAEADPlatform[A]
       S: Sodium
   ): F[PlainText] = F.delay {
     val originalMessage = new Array[Byte](cipherText.content.length)
-    if (sodiumDecryptDetachedAAD(originalMessage, cipherText, authTag, key, aad) != 0)
+    if (sodiumDecryptDetachedAAD(
+          originalMessage,
+          cipherText,
+          authTag,
+          key,
+          aad
+        ) != 0)
       throw DecryptError("Invalid Decryption info")
     PlainText(originalMessage)
   }

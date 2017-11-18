@@ -36,14 +36,20 @@ object Main extends App {
 //  sodium.crypto_aead_chacha20poly1305_keygen(arrayBytes)
 //  println(Hex.encodeHexString(arrayBytes))
 
-  implicit val sodium = ScalaSodium.Sodium
+//  implicit val sodium = ScalaSodium.ScalaSodium
+//
+//  val program: IO[(SodiumCipherText[XSalsa20Poly1305], PlainText)] = for {
+//    key       <- XSalsa20Poly1305.generateKey[IO]
+//    encrypted <- XSalsa20Poly1305.encrypt[IO](PlainText("sup jimbo".utf8Bytes), key)
+//    decrypted <- XSalsa20Poly1305.decrypt[IO](encrypted, key)
+//  } yield (encrypted, decrypted)
 
-  val program: IO[(SodiumCipherText[XSalsa20Poly1305], PlainText)] = for {
-    key       <- XSalsa20Poly1305.generateKey[IO]
-    encrypted <- XSalsa20Poly1305.encrypt[IO](PlainText("sup jimbo".utf8Bytes), key)
-    decrypted <- XSalsa20Poly1305.decrypt[IO](encrypted, key)
-  } yield (encrypted, decrypted)
+  import tsec.jni._
 
-  program.unsafeRunSync()
+//  val bytes = new Array[Byte](20)
+//  println(bytes.toHexString)
+//  ScalaSodium.randombytes_buf(bytes, bytes.length)
+//  println(bytes.toHexString)
+//  program.unsafeRunSync()
 
 }

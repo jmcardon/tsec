@@ -23,12 +23,12 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_encrypt(
       cout,
-      null,
+      Array(0),
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      null,
+      Array(0),
       nonce,
       key
     )
@@ -41,8 +41,8 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_decrypt(
       origOut,
-      null,
-      null,
+      Array(0),
+      Array(0),
       ct.content,
       ct.content.length,
       aad,
@@ -62,12 +62,12 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
     S.crypto_aead_chacha20poly1305_encrypt_detached(
       cout,
       tagOut,
-      null,
+      Array(0),
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      null,
+      Array(0),
       nonce,
       key
     )
@@ -81,7 +81,7 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_decrypt_detached(
       origOut,
-      null,
+      Array(0),
       ct.content,
       ct.content.length,
       tagIn,
