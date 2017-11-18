@@ -39,7 +39,7 @@ package object libsodium {
 
   object AuthTag {
     def apply[A: SodiumAuthCipher](bytes: Array[Byte]): AuthTag[A] = AuthTag$$.is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], AuthTag[A]] = AuthTag$$.is[A]
+    @inline def is[A]: Is[Array[Byte], AuthTag[A]]                 = AuthTag$$.is[A]
   }
 
   object SodiumKey {
@@ -62,7 +62,9 @@ package object libsodium {
       * @param key the encryption key
       * @return 0 if successful, any other number means unsuccessful
       */
-    def sodiumEncrypt(cout: Array[Byte], pt: PlainText, nonce: Array[Byte], key: SodiumKey[A])(implicit S: Sodium): Int
+    private[tsec] def sodiumEncrypt(cout: Array[Byte], pt: PlainText, nonce: Array[Byte], key: SodiumKey[A])(
+        implicit S: Sodium
+    ): Int
 
     /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
       *
@@ -71,7 +73,9 @@ package object libsodium {
       * @param key the key
       * @return 0 if successful, any other number indicates unsuccessful
       */
-    def sodiumDecrypt(origOut: Array[Byte], ct: SodiumCipherText[A], key: SodiumKey[A])(implicit S: Sodium): Int
+    private[tsec] def sodiumDecrypt(origOut: Array[Byte], ct: SodiumCipherText[A], key: SodiumKey[A])(
+        implicit S: Sodium
+    ): Int
 
     /** Encrypt the plaintext using the nonce (in other words initialization vector)
       * in an api-compatible way with libsodium
@@ -84,7 +88,7 @@ package object libsodium {
       * @param key the encryption key
       * @return 0 if successful, any other number means unsuccessful
       */
-    def sodiumEncryptDetached(
+    private[tsec] def sodiumEncryptDetached(
         cout: Array[Byte],
         tagOut: Array[Byte],
         pt: PlainText,
@@ -99,9 +103,12 @@ package object libsodium {
       * @param key the key
       * @return 0 if successful, any other number indicates unsuccessful
       */
-    def sodiumDecryptDetached(origOut: Array[Byte], ct: SodiumCipherText[A], tagIn: AuthTag[A], key: SodiumKey[A])(
-        implicit S: Sodium
-    ): Int
+    private[tsec] def sodiumDecryptDetached(
+        origOut: Array[Byte],
+        ct: SodiumCipherText[A],
+        tagIn: AuthTag[A],
+        key: SodiumKey[A]
+    )(implicit S: Sodium): Int
 
   }
 
