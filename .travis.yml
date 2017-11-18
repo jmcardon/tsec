@@ -14,6 +14,7 @@ before_install:
  - ./configure
  - make
  - sudo make install
+- sudo -E apt-get -yq --no-install-suggests --no-install-recommends install swig
 
 scala:
   - 2.12.4
@@ -24,12 +25,14 @@ before_cache:
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
 
 script:
-  - sodium_setup.sh
+  - bash sodium_setup.sh
+  - sbt test
 
 cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt
+    - $HOME/libsodium
 
 jdk:
   - oraclejdk8
