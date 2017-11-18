@@ -23,6 +23,9 @@ rm -f *.so
 export PATH=/usr/local/bin:$PATH
 
 swig -java -package tsec.jni sodium.i
+rm -f ../src/main/scala/tsec/jni/SodiumJNI.java
+cp SodiumJNI.java ../src/main/scala/tsec/jni
+
 
 
 jnilib=libsodiumjni.so

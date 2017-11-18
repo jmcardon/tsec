@@ -14,8 +14,6 @@ before_install:
  - ./configure
  - make
  - sudo make install
- - cd ..
- - sudo ./sodium_setup.sh
 
 scala:
   - 2.12.4
@@ -24,6 +22,9 @@ scala:
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
+
+script:
+  - sodium_setup.sh
 
 cache:
   directories:
