@@ -24,11 +24,11 @@ sealed trait ScalaSodium
     with SCrypt
     with SecretBox
     with CryptoAEAD
-    with Chacha20Poly1305
+    with OriginalChacha20Poly1305
     with Chacha20Poly1305IETF
-    with XChacha20Poly1305 {
+    with XChacha20Poly1305IETF {
 
-  def randombytes_buf(@Out buf: Array[Byte], @In @size_t size: Long): Unit
+  def randombytes_buf(@Out buf: Array[Byte], @In @size_t size: Int): Unit
 
   /**
     * This function isn't thread safe. Be sure to call it once, and before
@@ -52,9 +52,9 @@ object ScalaSodium
     with SCryptConstants
     with SecretBoxConstants
     with CryptoAEADConstants
-    with Chacha20Poly1305Constants
+    with OriginalChacha20Poly1305Constants
     with Chacha20Poly1305IETFConstants
-    with XChacha20Poly1305Constants {
+    with XChacha20Poly1305IETFConstants {
 
   val MIN_SUPPORTED_VERSION: Array[Integer] = Array[Integer](1, 0, 3)
 
@@ -81,5 +81,11 @@ object ScalaSodium
   def getSodiumUnsafe: ScalaSodium = Sodium
 
   def getSodium[F[_]](implicit F: Sync[F]): F[ScalaSodium] = F.delay(Sodium)
+
+  def randomBytes[F[_]](len: Int)(implicit F: Sync[F], S: ScalaSodium): F[Array[Byte]] = F.delay {
+    val bytes = new Array[Byte](len)
+    S.randombytes_buf(bytes, len)
+    bytes
+  }
 
 }

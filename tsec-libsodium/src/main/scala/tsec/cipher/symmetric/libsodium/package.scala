@@ -2,11 +2,12 @@ package tsec.cipher.symmetric
 
 import cats.effect.Sync
 import cats.evidence.Is
-import tsec.ScalaSodium
+import tsec.{ScalaSodium => Sodium}
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.libsodium.internal.{SodiumCipherAlgebra, SodiumKeyGenerator}
 import cats.syntax.all._
+import tsec.cipher.symmetric.libsodium.AuthTag$$
 import tsec.common._
 
 package object libsodium {
@@ -25,7 +26,21 @@ package object libsodium {
     def is[G] = Is.refl[Array[Byte]]
   }
 
+  /** Our newtype over private keys **/
   type SodiumKey[A] = SodiumKey$$.AuthRepr[A]
+
+  private[tsec] val AuthTag$$ : LiftedKey = new LiftedKey {
+    type AuthRepr[A] = Array[Byte]
+
+    def is[G] = Is.refl[Array[Byte]]
+  }
+
+  type AuthTag[A] = AuthTag$$.AuthRepr[A]
+
+  object AuthTag {
+    def apply[A: SodiumAuthCipher](bytes: Array[Byte]): AuthTag[A] = AuthTag$$.is[A].coerce(bytes)
+    @inline def is[A]: Is[Array[Byte], AuthTag[A]] = AuthTag$$.is[A]
+  }
 
   object SodiumKey {
     def apply[A: SodiumAuthCipher](bytes: Array[Byte]): SodiumKey[A] = is[A].coerce(bytes)
@@ -35,72 +50,61 @@ package object libsodium {
   trait SodiumAuthCipher[A] extends SymmetricCipher[A] {
     val nonceLen: Int
     val macLen: Int
+
+    /** Encrypt the plaintext using the nonce (in other words initialization vector)
+      * in an api-compatible way with libsodium
+      *
+      * Mutates the cout array, same as libsodium
+      *
+      * @param cout ciphertext
+      * @param pt plaintext
+      * @param nonce Initializaiton vector
+      * @param key the encryption key
+      * @return 0 if successful, any other number means unsuccessful
+      */
+    def sodiumEncrypt(cout: Array[Byte], pt: PlainText, nonce: Array[Byte], key: SodiumKey[A])(implicit S: Sodium): Int
+
+    /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
+      *
+      * @param origOut the original message
+      * @param ct the ciphertext
+      * @param key the key
+      * @return 0 if successful, any other number indicates unsuccessful
+      */
+    def sodiumDecrypt(origOut: Array[Byte], ct: SodiumCipherText[A], key: SodiumKey[A])(implicit S: Sodium): Int
+
+    /** Encrypt the plaintext using the nonce (in other words initialization vector)
+      * in an api-compatible way with libsodium
+      *
+      * Mutates the cout array, same as libsodium
+      *
+      * @param cout ciphertext
+      * @param pt plaintext
+      * @param nonce Initializaiton vector
+      * @param key the encryption key
+      * @return 0 if successful, any other number means unsuccessful
+      */
+    def sodiumEncryptDetached(
+        cout: Array[Byte],
+        tagOut: Array[Byte],
+        pt: PlainText,
+        nonce: Array[Byte],
+        key: SodiumKey[A]
+    )(implicit S: Sodium): Int
+
+    /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
+      *
+      * @param origOut the original message
+      * @param ct the ciphertext
+      * @param key the key
+      * @return 0 if successful, any other number indicates unsuccessful
+      */
+    def sodiumDecryptDetached(origOut: Array[Byte], ct: SodiumCipherText[A], tagIn: AuthTag[A], key: SodiumKey[A])(
+        implicit S: Sodium
+    ): Int
+
   }
+
   trait SodiumAEADCipher[A] extends SymmetricCipher[A]
-
-  abstract class SodiumCipherPlatform[A]
-      extends SodiumKeyGenerator[A, SodiumKey]
-      with SodiumAuthCipher[A]
-      with SodiumCipherAlgebra[A, SodiumKey] {
-    implicit val authCiper: SodiumAuthCipher[A] = this
-  }
-
-  sealed trait XSalsa20Poly1305
-
-  object XSalsa20Poly1305 extends SodiumCipherPlatform[XSalsa20Poly1305] {
-
-    def algorithm: String = "XSalsa20Poly1305"
-
-    val nonceLen: Int = ScalaSodium.crypto_secretbox_xsalsa20poly1305_NONCEBYTES
-
-    val keyLength: Int = ScalaSodium.crypto_secretbox_xsalsa20poly1305_KEYBYTES
-
-    val macLen: Int = ScalaSodium.crypto_secretbox_xsalsa20poly1305_MACBYTES
-
-    def generateKey[F[_]](implicit F: Sync[F], s: ScalaSodium): F[SodiumKey[XSalsa20Poly1305]] =
-      F.delay(generateKeyUnsafe)
-
-    def generateKeyUnsafe(implicit s: ScalaSodium): SodiumKey[XSalsa20Poly1305] = {
-      val bytes = new Array[Byte](keyLength)
-      s.crypto_secretbox_keygen(bytes)
-      SodiumKey[XSalsa20Poly1305](bytes)
-    }
-
-    def buildKey[F[_]](key: Array[Byte])(implicit F: Sync[F], s: ScalaSodium): F[SodiumKey[XSalsa20Poly1305]] =
-      if (key.length != keyLength)
-        F.raiseError(CipherKeyBuildError("Invalid Key length f"))
-      else
-        F.pure(SodiumKey[XSalsa20Poly1305](key))
-
-    def buildKeyUnsafe(key: Array[Byte])(implicit s: ScalaSodium): SodiumKey[XSalsa20Poly1305] =
-      SodiumKey[XSalsa20Poly1305](key)
-
-    def encrypt[F[_]](plainText: PlainText, key: SodiumKey[XSalsa20Poly1305])(
-        implicit F: Sync[F],
-        S: ScalaSodium
-    ): F[SodiumCipherText[XSalsa20Poly1305]] = F.delay {
-      val outArray = new Array[Byte](plainText.content.length + macLen)
-      val nonce    = new Array[Byte](nonceLen)
-      S.randombytes_buf(nonce, nonceLen)
-      val r = S.crypto_secretbox_easy(outArray, plainText.content, plainText.content.length, nonce, key)
-      if (r != 0)
-        throw EncryptError("Invalid encryption Info")
-
-      SodiumCipherText[XSalsa20Poly1305](outArray, nonce)
-    }
-
-    def decrypt[F[_]](cipherText: SodiumCipherText[XSalsa20Poly1305], key: SodiumKey[XSalsa20Poly1305])(
-        implicit F: Sync[F],
-        S: ScalaSodium
-    ): F[PlainText] = F.delay {
-      val originalMessage = new Array[Byte](cipherText.content.length - macLen)
-      val r =
-        S.crypto_secretbox_open_easy(originalMessage, cipherText.content, cipherText.content.length, cipherText.iv, key)
-      if (r != 0)
-        throw DecryptError("Invalid Decryption info")
-
-      PlainText(originalMessage)
-    }
-  }
 
 }

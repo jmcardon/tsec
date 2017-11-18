@@ -20,7 +20,8 @@ protected[tsec] trait SodiumKeyGenerator[A, K[_]] {
   /** Generate a Key, or return a key error for a missing provider
     * @return Either the Key, or an error
     */
-  def generateKey[F[_]](implicit F: Sync[F], s: ScalaSodium): F[K[A]]
+  def generateKey[F[_]](implicit F: Sync[F], s: ScalaSodium): F[K[A]] =
+    F.delay(generateKeyUnsafe)
 
   /** Generate key, but with errors uncaught
     * This does not shield you from JCA exceptions
@@ -35,7 +36,8 @@ protected[tsec] trait SodiumKeyGenerator[A, K[_]] {
     * @param key
     * @return
     */
-  def buildKey[F[_]](key: Array[Byte])(implicit F: Sync[F], s: ScalaSodium): F[K[A]]
+  def buildKey[F[_]](key: Array[Byte])(implicit F: Sync[F], s: ScalaSodium): F[K[A]] =
+    F.delay(buildKeyUnsafe(key))
 
   /** Same as prior, except yolo out the exceptions.
     *

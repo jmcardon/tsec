@@ -4,7 +4,7 @@ import jnr.ffi.annotations.{In, Out}
 import jnr.ffi.byref.LongLongByReference
 import jnr.ffi.types.u_int64_t
 
-trait Chacha20Poly1305 {
+trait OriginalChacha20Poly1305 {
 
   def crypto_aead_chacha20poly1305_keygen(@Out keyBytes: Array[Byte]): Int
 
@@ -34,7 +34,7 @@ trait Chacha20Poly1305 {
 
 }
 
-trait Chacha20Poly1305Constants {
+trait OriginalChacha20Poly1305Constants {
 
   val crypto_aead_chacha20poly1305_KEYBYTES = 32
 

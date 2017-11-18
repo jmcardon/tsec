@@ -4,7 +4,7 @@ import jnr.ffi.annotations.{In, Out}
 import jnr.ffi.byref.LongLongByReference
 import jnr.ffi.types.u_int64_t
 
-trait XChacha20Poly1305 {
+trait XChacha20Poly1305IETF {
 
   def crypto_aead_xchacha20poly1305_ietf_encrypt(
       @Out ct: Array[Byte],
@@ -58,14 +58,14 @@ trait XChacha20Poly1305 {
   def crypto_aead_xchacha20poly1305_ietf_keygen(@Out keyBytes: Array[Byte]): Int
 }
 
-trait XChacha20Poly1305Constants {
-  val crypto_aead_xchacha20poly1305_ietf_KEYBYTES = 32L
+trait XChacha20Poly1305IETFConstants {
+  val crypto_aead_xchacha20poly1305_ietf_KEYBYTES = 32
 
-  val crypto_aead_xchacha20poly1305_ietf_NSECBYTES = 0L
+  val crypto_aead_xchacha20poly1305_ietf_NSECBYTES = 0
 
-  val crypto_aead_xchacha20poly1305_ietf_NPUBBYTES = 24L
+  val crypto_aead_xchacha20poly1305_ietf_NPUBBYTES = 24
 
-  val crypto_aead_xchacha20poly1305_ietf_ABYTES = 16L
+  val crypto_aead_xchacha20poly1305_ietf_ABYTES = 16
 
   val crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX = Long.MaxValue - crypto_aead_xchacha20poly1305_ietf_ABYTES
 }
