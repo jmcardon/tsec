@@ -32,6 +32,31 @@ trait OriginalChacha20Poly1305 {
       @In key: Array[Byte]
   ): Int
 
+  def crypto_aead_chacha20poly1305_encrypt_detached(
+    @Out ct: Array[Byte],
+    @Out mac: Array[Byte],
+    @Out macLen: LongLongByReference,
+    @In msg: Array[Byte],
+    @In @u_int64_t msgLen: Int,
+    @In ad: Array[Byte],
+    @In @u_int64_t adLen: Int,
+    @In nsec: Array[Byte],
+    @In npub: Array[Byte],
+    @In key: Array[Byte]
+  ): Int
+
+  def crypto_aead_chacha20poly1305_decrypt_detached(
+    @Out msg: Array[Byte],
+    @Out nsec: Array[Byte],
+    @In ct: Array[Byte],
+    @In @u_int64_t ctLen: Int,
+    @In mac: Array[Byte],
+    @In ad: Array[Byte],
+    @In @u_int64_t adLen: Int,
+    @In npub: Array[Byte],
+    @In key: Array[Byte]
+  ): Int
+
 }
 
 trait OriginalChacha20Poly1305Constants {

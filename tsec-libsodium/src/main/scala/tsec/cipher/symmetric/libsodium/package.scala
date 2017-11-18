@@ -7,7 +7,7 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.libsodium.internal.{SodiumCipherAlgebra, SodiumKeyGenerator}
 import cats.syntax.all._
-import tsec.cipher.symmetric.libsodium.AuthTag$$
+import tsec.cipher.symmetric.libsodium.AADLS$$
 import tsec.common._
 
 package object libsodium {
@@ -35,83 +35,29 @@ package object libsodium {
     def is[G] = Is.refl[Array[Byte]]
   }
 
+  /** Our newtype over authentication tags **/
   type AuthTag[A] = AuthTag$$.AuthRepr[A]
 
   object AuthTag {
-    def apply[A: SodiumAuthCipher](bytes: Array[Byte]): AuthTag[A] = AuthTag$$.is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], AuthTag[A]]                 = AuthTag$$.is[A]
+    def apply[A](bytes: Array[Byte]): AuthTag[A]   = AuthTag$$.is[A].coerce(bytes)
+    @inline def is[A]: Is[Array[Byte], AuthTag[A]] = AuthTag$$.is[A]
   }
 
   object SodiumKey {
-    def apply[A: SodiumAuthCipher](bytes: Array[Byte]): SodiumKey[A] = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], SodiumKey[A]]                 = SodiumKey$$.is[A]
+    def apply[A](bytes: Array[Byte]): SodiumKey[A]   = is[A].coerce(bytes)
+    @inline def is[A]: Is[Array[Byte], SodiumKey[A]] = SodiumKey$$.is[A]
   }
 
-  trait SodiumAuthCipher[A] extends SymmetricCipher[A] {
-    val nonceLen: Int
-    val macLen: Int
-
-    /** Encrypt the plaintext using the nonce (in other words initialization vector)
-      * in an api-compatible way with libsodium
-      *
-      * Mutates the cout array, same as libsodium
-      *
-      * @param cout ciphertext
-      * @param pt plaintext
-      * @param nonce Initializaiton vector
-      * @param key the encryption key
-      * @return 0 if successful, any other number means unsuccessful
-      */
-    private[tsec] def sodiumEncrypt(cout: Array[Byte], pt: PlainText, nonce: Array[Byte], key: SodiumKey[A])(
-        implicit S: Sodium
-    ): Int
-
-    /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
-      *
-      * @param origOut the original message
-      * @param ct the ciphertext
-      * @param key the key
-      * @return 0 if successful, any other number indicates unsuccessful
-      */
-    private[tsec] def sodiumDecrypt(origOut: Array[Byte], ct: SodiumCipherText[A], key: SodiumKey[A])(
-        implicit S: Sodium
-    ): Int
-
-    /** Encrypt the plaintext using the nonce (in other words initialization vector)
-      * in an api-compatible way with libsodium
-      *
-      * Mutates the cout array, same as libsodium
-      *
-      * @param cout ciphertext
-      * @param pt plaintext
-      * @param nonce Initializaiton vector
-      * @param key the encryption key
-      * @return 0 if successful, any other number means unsuccessful
-      */
-    private[tsec] def sodiumEncryptDetached(
-        cout: Array[Byte],
-        tagOut: Array[Byte],
-        pt: PlainText,
-        nonce: Array[Byte],
-        key: SodiumKey[A]
-    )(implicit S: Sodium): Int
-
-    /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
-      *
-      * @param origOut the original message
-      * @param ct the ciphertext
-      * @param key the key
-      * @return 0 if successful, any other number indicates unsuccessful
-      */
-    private[tsec] def sodiumDecryptDetached(
-        origOut: Array[Byte],
-        ct: SodiumCipherText[A],
-        tagIn: AuthTag[A],
-        key: SodiumKey[A]
-    )(implicit S: Sodium): Int
-
+  private[tsec] val AADLS$$ : TaggedByteArray = new TaggedByteArray {
+    type I = Array[Byte]
+    val is = Is.refl[I]
   }
 
-  trait SodiumAEADCipher[A] extends SymmetricCipher[A]
+  type SodiumAAD = AADLS$$.I
+
+  object SodiumAAD {
+    def apply[A](bytes: Array[Byte]): SodiumAAD = is.flip.coerce(bytes)
+    @inline def is: Is[SodiumAAD, Array[Byte]]  = AADLS$$.is
+  }
 
 }

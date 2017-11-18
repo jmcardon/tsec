@@ -4,7 +4,7 @@ import jnr.ffi.annotations.{In, Out}
 import jnr.ffi.byref.LongLongByReference
 import jnr.ffi.types.u_int64_t
 
-trait XChacha20Poly1305IETF {
+private[tsec] trait XChacha20Poly1305IETF {
 
   def crypto_aead_xchacha20poly1305_ietf_encrypt(
       @Out ct: Array[Byte],
