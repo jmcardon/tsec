@@ -95,7 +95,7 @@ class SodiumAEADTest extends SodiumSpec {
           encrypt <- p.encryptAADDetached[IO](pt, key, saad)
           decrypt <- p.decryptAADDetached[IO](encrypt._1, key2, encrypt._2, saad)
         } yield decrypt
-        if (aad != aad2 || s.isEmpty)
+        if (aad != aad2 || s.isEmpty || aad.isEmpty || aad2.isEmpty)
           program.attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
         else
           program.unsafeRunSync().content.toUtf8String mustBe pt.content.toUtf8String
