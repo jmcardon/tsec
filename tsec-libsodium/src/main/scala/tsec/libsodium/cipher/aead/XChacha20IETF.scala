@@ -15,6 +15,41 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
   val authTagLen: Int = ScalaSodium.crypto_aead_xchacha20poly1305_ietf_ABYTES
   val keyLength: Int  = ScalaSodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES
 
+  private[tsec] def sodiumEncrypt(
+      cout: Array[Byte],
+      pt: symmetric.PlainText,
+      nonce: Array[Byte],
+      key: SodiumKey[XChacha20IETF]
+  )(implicit S: ScalaSodium): Int =
+    S.crypto_aead_xchacha20poly1305_ietf_encrypt(
+      cout,
+      NullLongLong,
+      pt.content,
+      pt.content.length,
+      NullLongBytes,
+      0,
+      NullLongBytes,
+      nonce,
+      key
+    )
+
+  private[tsec] def sodiumDecrypt(
+      origOut: Array[Byte],
+      ct: SodiumCipherText[XChacha20IETF],
+      key: SodiumKey[XChacha20IETF]
+  )(implicit S: ScalaSodium): Int =
+    S.crypto_aead_xchacha20poly1305_ietf_decrypt(
+      origOut,
+      NullLongLong,
+      NullLongBytes,
+      ct.content,
+      ct.content.length,
+      NullLongBytes,
+      0,
+      ct.iv,
+      key
+    )
+
   private[tsec] def sodiumEncryptAAD(
       cout: Array[Byte],
       pt: symmetric.PlainText,

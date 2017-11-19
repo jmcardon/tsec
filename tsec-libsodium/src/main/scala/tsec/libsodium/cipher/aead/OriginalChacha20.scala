@@ -15,6 +15,41 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
 
   def algorithm: String = "Chacha20Poly1305"
 
+  private[tsec] def sodiumEncrypt(
+      cout: Array[Byte],
+      pt: symmetric.PlainText,
+      nonce: Array[Byte],
+      key: SodiumKey[OriginalChacha20]
+  )(implicit S: ScalaSodium): Int =
+    S.crypto_aead_chacha20poly1305_encrypt(
+      cout,
+      NullLongLong,
+      pt.content,
+      pt.content.length,
+      NullLongBytes,
+      0,
+      NullLongBytes,
+      nonce,
+      key
+    )
+
+  private[tsec] def sodiumDecrypt(
+      origOut: Array[Byte],
+      ct: SodiumCipherText[OriginalChacha20],
+      key: SodiumKey[OriginalChacha20]
+  )(implicit S: ScalaSodium): Int =
+    S.crypto_aead_chacha20poly1305_decrypt(
+      origOut,
+      NullLongLong,
+      NullLongBytes,
+      ct.content,
+      ct.content.length,
+      NullLongBytes,
+      0,
+      ct.iv,
+      key
+    )
+
   private[tsec] def sodiumEncryptAAD(
       cout: Array[Byte],
       pt: symmetric.PlainText,

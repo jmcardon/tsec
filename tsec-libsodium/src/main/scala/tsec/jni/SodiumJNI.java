@@ -103,6 +103,10 @@ public class SodiumJNI {
   public final static native int crypto_onetimeauth_init(byte[] jarg1, byte[] jarg2);
   public final static native int crypto_onetimeauth_update(byte[] jarg1, byte[] jarg2, int jarg3);
   public final static native int crypto_onetimeauth_final(byte[] jarg1, byte[] jarg2);
+  public final static native int crypto_aead_aes256gcm_encrypt(byte[] jarg1, int[] jarg2, byte[] jarg3, int jarg4, byte[] jarg5, int jarg6, byte[] jarg7, byte[] jarg8, byte[] jarg9);
+  public final static native int crypto_aead_aes256gcm_decrypt(byte[] jarg1, int[] jarg2, byte[] jarg3, byte[] jarg4, int jarg5, byte[] jarg6, int jarg7, byte[] jarg8, byte[] jarg9);
+  public final static native int crypto_aead_aes256gcm_encrypt_detached(byte[] jarg1, byte[] jarg2, int[] jarg3, byte[] jarg4, int jarg5, byte[] jarg6, int jarg7, byte[] jarg8, byte[] jarg9, byte[] jarg10);
+  public final static native int crypto_aead_aes256gcm_decrypt_detached(byte[] jarg1, byte[] jarg2, byte[] jarg3, int jarg4, byte[] jarg5, byte[] jarg6, int jarg7, byte[] jarg8, byte[] jarg9);
   public final static native int crypto_aead_chacha20poly1305_encrypt(byte[] jarg1, int[] jarg2, byte[] jarg3, int jarg4, byte[] jarg5, int jarg6, byte[] jarg7, byte[] jarg8, byte[] jarg9);
   public final static native int crypto_aead_chacha20poly1305_decrypt(byte[] jarg1, int[] jarg2, byte[] jarg3, byte[] jarg4, int jarg5, byte[] jarg6, int jarg7, byte[] jarg8, byte[] jarg9);
   public final static native int crypto_aead_chacha20poly1305_encrypt_detached(byte[] jarg1, byte[] jarg2, int[] jarg3, byte[] jarg4, int jarg5, byte[] jarg6, int jarg7, byte[] jarg8, byte[] jarg9, byte[] jarg10);

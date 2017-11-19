@@ -12,6 +12,24 @@ trait SodiumAEADAlgebra[A, K[_]] {
     * using additional authentication data
     *
     */
+  def encrypt[F[_]](plaintext: PlainText, key: K[A])(
+      implicit F: Sync[F],
+      S: ScalaSodium
+  ): F[SodiumCipherText[A]]
+
+  /** Decrypt our ciphertext, that has the authentication tag in a joined
+    * manner.
+    */
+  def decrypt[F[_]](cipherText: SodiumCipherText[A], key: K[A])(
+    implicit F: Sync[F],
+    S: ScalaSodium
+  ): F[PlainText]
+
+  /** Encrypt our plaintext with a typed secret key,
+    * and append the authentication tag to the ciphertext,
+    * using additional authentication data
+    *
+    */
   def encryptAAD[F[_]](plaintext: PlainText, key: K[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: ScalaSodium

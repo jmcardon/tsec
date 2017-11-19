@@ -10,6 +10,8 @@ import tsec.jni._
 sealed class ScalaSodium {
   def sodium_init: Int = SodiumJNI.sodium_init
 
+  def sodium_version_string: Array[Byte] = SodiumJNI.sodium_version_string
+
   def randombytes(dst_buf: Array[Byte], buf_len: Int): Unit =
     SodiumJNI.randombytes(dst_buf, buf_len)
 
@@ -390,6 +392,55 @@ sealed class ScalaSodium {
 
   def crypto_onetimeauth_final(final_state: Array[Byte], dst_out: Array[Byte]): Int =
     SodiumJNI.crypto_onetimeauth_final(final_state, dst_out)
+
+  def crypto_aead_aes256gcm_encrypt(
+      c: Array[Byte],
+      clen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
+  ): Int = SodiumJNI.crypto_aead_aes256gcm_encrypt(c, clen_p, m, mlen, ad, adlen, nsec, npub, k)
+
+  def crypto_aead_aes256gcm_decrypt(
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
+  ): Int = SodiumJNI.crypto_aead_aes256gcm_decrypt(m, mlen_p, nsec, c, clen, ad, adlen, npub, k)
+
+  def crypto_aead_aes256gcm_encrypt_detached(
+      c: Array[Byte],
+      mac: Array[Byte],
+      maclen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
+  ): Int = SodiumJNI.crypto_aead_aes256gcm_encrypt_detached(c, mac, maclen_p, m, mlen, ad, adlen, nsec, npub, k)
+
+  def crypto_aead_aes256gcm_decrypt_detached(
+      m: Array[Byte],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      mac: Array[Byte],
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
+  ): Int = SodiumJNI.crypto_aead_aes256gcm_decrypt_detached(m, nsec, c, clen, mac, ad, adlen, npub, k)
 
   def crypto_aead_chacha20poly1305_encrypt(
       c: Array[Byte],
@@ -1088,7 +1139,6 @@ sealed class ScalaSodium {
       ic: Int,
       k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_xsalsa20_xor_ic(c, m, mlen, n, ic, k)
-
 }
 
 object ScalaSodium
