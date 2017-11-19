@@ -1,7 +1,7 @@
 package tsec.libsodium.cipher
 
-import tsec.ScalaSodium
 import tsec.cipher.symmetric
+import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 
 sealed trait XChacha20Poly1305

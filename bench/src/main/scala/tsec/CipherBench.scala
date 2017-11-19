@@ -1,14 +1,13 @@
 package tsec
 
 import java.util.concurrent.TimeUnit
-import javax.crypto.{SecretKey => JSK}
-
 import org.openjdk.jmh.annotations._
 import cats.effect.IO
 import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.imports.aead._
+import tsec.libsodium._
 import tsec.libsodium.cipher._
 import tsec.common._
 
@@ -17,7 +16,7 @@ import scala.util.Random
 @State(Scope.Thread)
 @BenchmarkMode(Array(Mode.Throughput))
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-class CipherBench extends App {
+class CipherBench {
 
   implicit lazy val sodium        = ScalaSodium.getSodiumUnsafe
   lazy val lsKey                  = XChacha20Poly1305.generateKeyUnsafe

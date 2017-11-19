@@ -1,7 +1,7 @@
 package tsec.libsodium.passwordhashers.internal
 
 import cats.effect.Sync
-import tsec.ScalaSodium
+import tsec.libsodium.ScalaSodium
 import tsec.libsodium.passwordhashers.{PWStrengthParam => PS}
 import tsec.libsodium.passwordhashers._
 

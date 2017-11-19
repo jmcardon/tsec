@@ -160,6 +160,7 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)
   .dependsOn(libsodium)
+  .dependsOn(mac)
   .settings(publish := {})
   .enablePlugins(JmhPlugin)
 
@@ -200,8 +201,7 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.jnr"             % "jnr-ffi"        % "2.0.5",
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2"
+      "com.github.jnr" % "jnr-ffi" % "2.0.5"
     )
   )
   .dependsOn(common % "compile->compile;test->test")

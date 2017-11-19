@@ -1,7 +1,7 @@
 package tsec.libsodium.cipher.internal
 
 import cats.effect.Sync
-import tsec.ScalaSodium
+import tsec.libsodium.ScalaSodium
 
 /** Our symmetric key generator, abstracted out
   * This is not so easy given keyError is useful to CipherError as well, but

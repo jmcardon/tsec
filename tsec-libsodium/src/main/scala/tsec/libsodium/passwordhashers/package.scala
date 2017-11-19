@@ -4,7 +4,6 @@ import java.nio.charset.Charset
 
 import cats.effect.Sync
 import cats.evidence.Is
-import tsec.ScalaSodium
 import tsec.common._
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 

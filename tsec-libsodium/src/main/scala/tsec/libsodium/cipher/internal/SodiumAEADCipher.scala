@@ -1,8 +1,8 @@
 package tsec.libsodium.cipher.internal
 
-import tsec.{ScalaSodium => Sodium}
 import tsec.cipher.symmetric.PlainText
 import tsec.cipher.symmetric.imports.SymmetricCipher
+import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 
 trait SodiumAEADCipher[A] extends SymmetricCipher[A] {
@@ -26,7 +26,7 @@ trait SodiumAEADCipher[A] extends SymmetricCipher[A] {
     nonce: Array[Byte],
     key: SodiumKey[A],
     aad: SodiumAAD
-  )(implicit S: Sodium): Int
+  )(implicit S: ScalaSodium): Int
 
   /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
     *
@@ -36,7 +36,7 @@ trait SodiumAEADCipher[A] extends SymmetricCipher[A] {
     * @return 0 if successful, any other number indicates unsuccessful
     */
   private[tsec] def sodiumDecryptAAD(origOut: Array[Byte], ct: SodiumCipherText[A], key: SodiumKey[A], aad: SodiumAAD)(
-    implicit S: Sodium
+    implicit S: ScalaSodium
   ): Int
 
   /** Encrypt the plaintext using the nonce (in other words initialization vector)
@@ -57,7 +57,7 @@ trait SodiumAEADCipher[A] extends SymmetricCipher[A] {
     nonce: Array[Byte],
     key: SodiumKey[A],
     aad: SodiumAAD
-  )(implicit S: Sodium): Int
+  )(implicit S: ScalaSodium): Int
 
   /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
     *
@@ -72,6 +72,6 @@ trait SodiumAEADCipher[A] extends SymmetricCipher[A] {
     tagIn: AuthTag[A],
     key: SodiumKey[A],
     aad: SodiumAAD
-  )(implicit S: Sodium): Int
+  )(implicit S: ScalaSodium): Int
 
 }

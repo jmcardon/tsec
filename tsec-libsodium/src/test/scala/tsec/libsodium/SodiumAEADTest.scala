@@ -1,7 +1,6 @@
 package tsec.libsodium
 
 import cats.effect.IO
-import tsec.ScalaSodium
 import tsec.common._
 import tsec.cipher.symmetric.{CipherError, PlainText}
 import tsec.libsodium.cipher._

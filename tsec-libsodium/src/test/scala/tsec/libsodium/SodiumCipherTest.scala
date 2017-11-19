@@ -1,7 +1,7 @@
 package tsec.libsodium
 
 import cats.effect.IO
-import tsec.{ScalaSodium, TestSpec}
+import tsec.TestSpec
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.PlainText
 import tsec.libsodium.cipher._

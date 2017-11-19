@@ -32,7 +32,7 @@ private[tsec] trait HmacSha256 {
 
 private[tsec] trait HmacSha256Constants {
 
-  val crypto_auth_hmacsha256_BYTES = 32L
+  val crypto_auth_hmacsha256_BYTES = 32
 
-  val crypto_auth_hmacsha256_KEYBYTES = 32L
+  val crypto_auth_hmacsha256_KEYBYTES = 32
 }

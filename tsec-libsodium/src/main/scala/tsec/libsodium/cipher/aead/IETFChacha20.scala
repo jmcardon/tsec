@@ -1,10 +1,10 @@
 package tsec.libsodium.cipher.aead
 
-import tsec.ScalaSodium
-import tsec.ScalaSodium.{NullLongBytes, NullLongLong}
 import tsec.cipher.symmetric
+import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.internal.SodiumAEADPlatform
+import tsec.libsodium.ScalaSodium.{NullLongBytes, NullLongLong}
 
 sealed trait IETFChacha20
 

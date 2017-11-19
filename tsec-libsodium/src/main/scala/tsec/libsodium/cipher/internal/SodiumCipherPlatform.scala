@@ -1,8 +1,8 @@
 package tsec.libsodium.cipher.internal
 
 import cats.effect.Sync
-import tsec.{ScalaSodium => Sodium}
 import tsec.cipher.symmetric._
+import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 
 private[tsec] trait SodiumCipherPlatform[A]
@@ -11,13 +11,13 @@ private[tsec] trait SodiumCipherPlatform[A]
     with SodiumCipherAlgebra[A, SodiumKey] {
   implicit val authCipher: SodiumAuthCipher[A] = this
 
-  def generateKeyUnsafe(implicit s: Sodium): SodiumKey[A] = {
+  def generateKeyUnsafe(implicit s: ScalaSodium): SodiumKey[A] = {
     val bytes = new Array[Byte](keyLength)
     s.randombytes_buf(bytes, keyLength)
     SodiumKey.is[A].coerce(bytes)
   }
 
-  def buildKeyUnsafe(key: Array[Byte])(implicit s: Sodium): SodiumKey[A] =
+  def buildKeyUnsafe(key: Array[Byte])(implicit s: ScalaSodium): SodiumKey[A] =
     if (key.length != keyLength)
       throw CipherKeyError("Invalid key length")
     else
@@ -25,7 +25,7 @@ private[tsec] trait SodiumCipherPlatform[A]
 
   def encrypt[F[_]](plainText: PlainText, key: SodiumKey[A])(
       implicit F: Sync[F],
-      S: Sodium
+      S: ScalaSodium
   ): F[SodiumCipherText[A]] = F.delay {
     val outArray = new Array[Byte](plainText.content.length + macLen)
     val nonce    = new Array[Byte](nonceLen)
@@ -38,7 +38,7 @@ private[tsec] trait SodiumCipherPlatform[A]
 
   def decrypt[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A])(
       implicit F: Sync[F],
-      S: Sodium
+      S: ScalaSodium
   ): F[PlainText] = F.delay {
     val originalMessage = new Array[Byte](cipherText.content.length - macLen)
     if (sodiumDecrypt(originalMessage, cipherText, key) != 0)
@@ -48,7 +48,7 @@ private[tsec] trait SodiumCipherPlatform[A]
 
   def encryptDetached[F[_]](plainText: PlainText, key: SodiumKey[A])(
       implicit F: Sync[F],
-      S: Sodium
+      S: ScalaSodium
   ): F[(SodiumCipherText[A], AuthTag[A])] = F.delay {
     val outArray = new Array[Byte](plainText.content.length)
     val macOut   = new Array[Byte](macLen)
@@ -62,7 +62,7 @@ private[tsec] trait SodiumCipherPlatform[A]
 
   def decryptDetached[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], authTag: AuthTag[A])(
       implicit F: Sync[F],
-      S: Sodium
+      S: ScalaSodium
   ): F[PlainText] = F.delay {
     val originalMessage = new Array[Byte](cipherText.content.length)
     if (sodiumDecryptDetached(originalMessage, cipherText, authTag, key) != 0)
