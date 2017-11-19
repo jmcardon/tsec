@@ -43,6 +43,13 @@ class CipherBench {
     jcaRAWInstance.doFinal(longPlaintext.content)
   }
 
+  @Benchmark
+  def testJCARawCreateInstance(): Unit = {
+    val j = Cipher.getInstance("AES/GCM/NoPadding")
+    j.init(Cipher.ENCRYPT_MODE, jcaRAWKey)
+    j.doFinal(longPlaintext.content)
+  }
+
   /** We test each io action
     * to view the related overhead, but we do not care about sequencing them
     */
