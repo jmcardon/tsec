@@ -2,9 +2,9 @@ package tsec.libsodium
 
 import cats.effect.IO
 import org.scalacheck.{Arbitrary, Gen}
-import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 import tsec.libsodium.passwordhashers._
-import tsec.passwordhashers.core.PasswordError
+import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
+
 
 class SodiumPWHashTest extends SodiumSpec {
 
@@ -29,7 +29,7 @@ class SodiumPWHashTest extends SodiumSpec {
         if (!s.isEmpty) {
           program.unsafeRunSync() mustBe true
         } else
-          program.attempt.unsafeRunSync() mustBe a[Left[PasswordError, _]]
+          program.attempt.unsafeRunSync() mustBe a[Left[SodiumPasswordError, _]]
       }
     }
 
@@ -43,7 +43,7 @@ class SodiumPWHashTest extends SodiumSpec {
         if (!s.isEmpty) {
           program.unsafeRunSync() mustBe (())
         } else
-          program.attempt.unsafeRunSync() mustBe a[Left[PasswordError, _]]
+          program.attempt.unsafeRunSync() mustBe a[Left[SodiumPasswordError, _]]
       }
     }
 
@@ -56,7 +56,7 @@ class SodiumPWHashTest extends SodiumSpec {
         if (!s.isEmpty)
           program.unsafeRunSync() mustBe s == s2
         else
-          program.attempt.unsafeRunSync() mustBe a[Left[PasswordError, _]]
+          program.attempt.unsafeRunSync() mustBe a[Left[SodiumPasswordError, _]]
       }
     }
 
@@ -69,7 +69,7 @@ class SodiumPWHashTest extends SodiumSpec {
         if (!s.isEmpty && s == s2)
           program.unsafeRunSync() mustBe (())
         else
-          program.attempt.unsafeRunSync() mustBe a[Left[PasswordError, _]]
+          program.attempt.unsafeRunSync() mustBe a[Left[SodiumPasswordError, _]]
       }
     }
 

@@ -6,11 +6,16 @@ import cats.effect.Sync
 import cats.evidence.Is
 import tsec.ScalaSodium
 import tsec.common._
-import tsec.libsodium.passwordhashers.Argon2$$
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
-import tsec.passwordhashers.core.PasswordError
 
 package object passwordhashers {
+
+  final case class SodiumPasswordError(reason: String) extends Exception {
+    override def getMessage: String = reason
+
+    override def fillInStackTrace(): Throwable = this
+  }
+
   private val asciiEncoder = Charset.forName("US-ASCII").newEncoder()
 
   trait PWStrengthParam[PTyp, Str] {
@@ -40,9 +45,9 @@ package object passwordhashers {
       val passBytes = p.asciiBytes
       val out       = new Array[Byte](outLen)
       if (p.isEmpty || !asciiEncoder.canEncode(p))
-        throw PasswordError("Incorrect format")
+        throw SodiumPasswordError("Incorrect format")
       else if (S.crypto_pwhash_str(out, passBytes, passBytes.length, pws.opLimit, pws.memLimit) != 0)
-        throw PasswordError("Could not hash password. Possibly out of memory")
+        throw SodiumPasswordError("Could not hash password. Possibly out of memory")
       else
         Argon2(out.toAsciiString)
     }
@@ -55,7 +60,7 @@ package object passwordhashers {
     def checkPassShortCircuit[F[_]](raw: String, hash: Argon2)(implicit F: Sync[F], S: ScalaSodium): F[Unit] = F.delay {
       val rawBytes = raw.asciiBytes
       if (!asciiEncoder.canEncode(raw) || S.crypto_pwhash_str_verify(hash.asciiBytes, rawBytes, raw.length) != 0)
-        throw PasswordError("Invalid password")
+        throw SodiumPasswordError("Invalid password")
     }
 
   }
@@ -82,9 +87,9 @@ package object passwordhashers {
       val passBytes = p.asciiBytes
       val out       = new Array[Byte](outLen)
       if (p.isEmpty || !asciiEncoder.canEncode(p))
-        throw PasswordError("Incorrect format")
+        throw SodiumPasswordError("Incorrect format")
       else if (S.crypto_pwhash_scryptsalsa208sha256_str(out, passBytes, passBytes.length, pws.opLimit, pws.memLimit) != 0)
-        throw PasswordError("Could not hash password. Possibly out of memory")
+        throw SodiumPasswordError("Could not hash password. Possibly out of memory")
       else
         SodiumSCrypt(out.toAsciiString)
     }
@@ -103,7 +108,7 @@ package object passwordhashers {
               rawBytes,
               raw.length
             ) != 0)
-          throw PasswordError("Invalid password")
+          throw SodiumPasswordError("Invalid password")
       }
   }
 

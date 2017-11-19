@@ -26,7 +26,7 @@ before_cache:
 
 script:
   - bash sodium_setup.sh
-  - sbt test
+  - sbt test tut
 
 cache:
   directories:
@@ -36,3 +36,4 @@ cache:
 
 jdk:
   - oraclejdk8
+  - openjdk8
