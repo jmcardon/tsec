@@ -17,6 +17,7 @@ package object imports {
   type MD2withRSA = MD2withRSA$$.I
 
   implicit object MD2withRSA extends GeneralSignature[MD2withRSA]("MD2withRSA", "RSA") with ByteEV[MD2withRSA] {
+    @inline def is: Is[MD2withRSA, Array[Byte]] = MD2withRSA$$.is
 
     @inline def fromArray(array: Array[Byte]): MD2withRSA = MD2withRSA$$.is.flip.coerce(array)
 
@@ -31,6 +32,7 @@ package object imports {
   type MD5withRSA = MD5withRSA$$.I
 
   implicit object MD5withRSA extends GeneralSignature[MD5withRSA]("MD5withRSA", "RSA") with ByteEV[MD5withRSA] {
+    @inline def is: Is[MD5withRSA, Array[Byte]] = MD5withRSA$$.is
 
     @inline def fromArray(array: Array[Byte]): MD5withRSA = MD5withRSA$$.is.flip.coerce(array)
 
@@ -45,6 +47,7 @@ package object imports {
   type SHA1withRSA = SHA1withRSA$$.I
 
   implicit object SHA1withRSA extends GeneralSignature[SHA1withRSA]("SHA1withRSA", "RSA") with ByteEV[SHA1withRSA] {
+    @inline def is: Is[SHA1withRSA, Array[Byte]] = SHA1withRSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA1withRSA = SHA1withRSA$$.is.flip.coerce(array)
 
@@ -75,6 +78,7 @@ package object imports {
   type SHA256withRSA = SHA256withRSA$$.I
 
   implicit object SHA256withRSA extends RSASignature[SHA256withRSA]("SHA256withRSA") with ByteEV[SHA256withRSA] {
+    @inline def is: Is[SHA256withRSA, Array[Byte]] = SHA256withRSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA256withRSA = SHA256withRSA$$.is.flip.coerce(array)
 
@@ -89,6 +93,7 @@ package object imports {
   type SHA384withRSA = SHA384withRSA$$.I
 
   implicit object SHA384withRSA extends RSASignature[SHA384withRSA]("SHA384withRSA") with ByteEV[SHA384withRSA] {
+    @inline def is: Is[SHA384withRSA, Array[Byte]] = SHA384withRSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA384withRSA = SHA384withRSA$$.is.flip.coerce(array)
 
@@ -103,6 +108,7 @@ package object imports {
   type SHA512withRSA = SHA512withRSA$$.I
 
   implicit object SHA512withRSA extends RSASignature[SHA512withRSA]("SHA512withRSA") with ByteEV[SHA512withRSA] {
+    @inline def is: Is[SHA512withRSA, Array[Byte]] = SHA512withRSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA512withRSA = SHA512withRSA$$.is.flip.coerce(array)
 
@@ -117,6 +123,7 @@ package object imports {
   type SHA1withDSA = SHA1withDSA$$.I
 
   implicit object SHA1withDSA extends GeneralSignature[SHA1withDSA]("SHA1withDSA", "DSA") with ByteEV[SHA1withDSA] {
+    @inline def is: Is[SHA1withDSA, Array[Byte]] = SHA1withDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA1withDSA = SHA1withDSA$$.is.flip.coerce(array)
 
@@ -133,6 +140,7 @@ package object imports {
   implicit object SHA224withDSA
       extends GeneralSignature[SHA224withDSA]("SHA224withDSA", "DSA")
       with ByteEV[SHA224withDSA] {
+    @inline def is: Is[SHA224withDSA, Array[Byte]] = SHA224withDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA224withDSA = SHA224withDSA$$.is.flip.coerce(array)
 
@@ -149,6 +157,7 @@ package object imports {
   implicit object SHA256withDSA
       extends GeneralSignature[SHA256withDSA]("SHA256withDSA", "DSA")
       with ByteEV[SHA256withDSA] {
+    @inline def is: Is[SHA256withDSA, Array[Byte]] = SHA256withDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA256withDSA = SHA256withDSA$$.is.flip.coerce(array)
 
@@ -165,6 +174,7 @@ package object imports {
   implicit object NONEwithECDSA
       extends GeneralSignature[NONEwithECDSA]("NONEwithECDSA", "ECDSA")
       with ByteEV[NONEwithECDSA] {
+    @inline def is: Is[NONEwithECDSA, Array[Byte]] = NONEwithECDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): NONEwithECDSA = NONEwithECDSA$$.is.flip.coerce(array)
 
@@ -184,6 +194,7 @@ package object imports {
   implicit object SHA1withECDSA
       extends GeneralSignature[SHA1withECDSA]("SHA1withECDSA", "ECDSA")
       with ByteEV[SHA1withECDSA] {
+    @inline def is: Is[SHA1withECDSA, Array[Byte]] = SHA1withECDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA1withECDSA = SHA1withECDSA$$.is.flip.coerce(array)
 
@@ -203,6 +214,7 @@ package object imports {
   implicit object SHA224withECDSA
       extends GeneralSignature[SHA224withECDSA]("SHA224withECDSA", "ECDSA")
       with ByteEV[SHA224withECDSA] {
+    @inline def is: Is[SHA224withECDSA, Array[Byte]] = SHA224withECDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA224withECDSA = SHA224withECDSA$$.is.flip.coerce(array)
 
@@ -222,6 +234,7 @@ package object imports {
   implicit object SHA256withECDSA
       extends ECDSASignature[SHA256withECDSA]("SHA256withECDSA", "P-256", 64)
       with ByteEV[SHA256withECDSA] {
+    @inline def is: Is[SHA256withECDSA, Array[Byte]] = SHA256withECDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA256withECDSA = SHA256withECDSA$$.is.flip.coerce(array)
 
@@ -238,6 +251,7 @@ package object imports {
   implicit object SHA384withECDSA
       extends ECDSASignature[SHA384withECDSA]("SHA384withECDSA", "P-384", 96)
       with ByteEV[SHA384withECDSA] {
+    @inline def is: Is[SHA384withECDSA, Array[Byte]] = SHA384withECDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA384withECDSA = SHA384withECDSA$$.is.flip.coerce(array)
 
@@ -254,6 +268,7 @@ package object imports {
   implicit object SHA512withECDSA
       extends ECDSASignature[SHA512withECDSA]("SHA512withECDSA", "P-521", 132)
       with ByteEV[SHA512withECDSA] {
+    @inline def is: Is[SHA512withECDSA, Array[Byte]] = SHA512withECDSA$$.is
 
     @inline def fromArray(array: Array[Byte]): SHA512withECDSA = SHA512withECDSA$$.is.flip.coerce(array)
 
