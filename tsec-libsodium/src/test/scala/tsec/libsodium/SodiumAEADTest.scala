@@ -12,6 +12,32 @@ class SodiumAEADTest extends SodiumSpec {
   def testAEAD[A](p: SodiumAEADPlatform[A]) = {
     behavior of s"${p.algorithm} aead"
 
+    it should "generate key, encrypt and decrypt properly" in {
+      forAll { (s: String) =>
+        val pt = PlainText(s.utf8Bytes)
+        val program = for {
+          key     <- p.generateKey[IO]
+          encrypt <- p.encrypt[IO](pt, key)
+          decrypt <- p.decrypt[IO](encrypt, key)
+        } yield decrypt
+        if (!s.isEmpty)
+          program.unsafeRunSync().content.toHexString mustBe pt.content.toHexString
+      }
+    }
+
+    it should "not decrypt properly for a wrong key" in {
+      forAll { (s: String) =>
+        val pt = PlainText(s.utf8Bytes)
+        if (!s.isEmpty)
+          (for {
+            key     <- p.generateKey[IO]
+            key2    <- p.generateKey[IO]
+            encrypt <- p.encrypt[IO](pt, key)
+            decrypt <- p.decrypt[IO](encrypt, key2)
+          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+      }
+    }
+
     it should "generate key, encrypt and decrypt properly for aad" in {
       forAll { (s: String, aad: String) =>
         val pt   = PlainText(s.utf8Bytes)
@@ -120,5 +146,6 @@ class SodiumAEADTest extends SodiumSpec {
   testAEAD(XChacha20IETF)
   testAEAD(IETFChacha20)
   testAEAD(OriginalChacha20)
+  testAEAD(AES256GCM)
 
 }

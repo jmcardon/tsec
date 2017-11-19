@@ -1,36 +1,5 @@
 package tsec.internal
 
-import jnr.ffi.annotations.{In, Out}
-import jnr.ffi.types.{size_t, u_int64_t}
-
-private[tsec] trait SCrypt {
-
-  def crypto_pwhash_scryptsalsa208sha256(
-      @Out out: Array[Byte],
-      @In @u_int64_t outLen: Int,
-      @In passwd: Array[Byte],
-      @In @u_int64_t passwdLen: Int,
-      @In salt: Array[Byte],
-      @In @u_int64_t opsLimit: Long,
-      @In @size_t memLimit: Long
-  ): Int
-
-  def crypto_pwhash_scryptsalsa208sha256_str(
-      @Out out: Array[Byte],
-      @In passwd: Array[Byte],
-      @In @u_int64_t passwdLen: Int,
-      @In @u_int64_t opsLimit: Long,
-      @In @size_t memLimit: Long
-  ): Int
-
-  def crypto_pwhash_scryptsalsa208sha256_str_verify(
-      @In str: Array[Byte],
-      @In passwd: Array[Byte],
-      @In @u_int64_t passwdLen: Int
-  ): Int
-
-}
-
 private[tsec] trait SCryptConstants {
 
   val crypto_pwhash_scryptsalsa208sha256_BYTES_MIN  = 16

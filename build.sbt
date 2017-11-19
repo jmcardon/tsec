@@ -199,11 +199,6 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
 
 lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"))
   .settings(commonSettings)
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.github.jnr" % "jnr-ffi" % "2.0.5"
-    )
-  )
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
     symmetricCipher

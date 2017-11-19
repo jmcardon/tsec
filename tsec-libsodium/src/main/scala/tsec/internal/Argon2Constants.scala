@@ -1,33 +1,5 @@
 package tsec.internal
 
-import jnr.ffi.annotations.{In, Out}
-import jnr.ffi.types.{size_t, u_int64_t}
-
-private[tsec] trait Argon2 {
-
-  def crypto_pwhash(
-      @Out out: Array[Byte],
-      @In @u_int64_t outLen: Int,
-      @In passwd: Array[Byte],
-      @In @u_int64_t passwdLen: Int,
-      @In salt: Array[Byte],
-      @In @u_int64_t opsLimit: Long,
-      @In @size_t memLimit: Long,
-      @In @u_int64_t alg: Int
-  ): Int
-
-  def crypto_pwhash_str(
-      @Out out: Array[Byte],
-      @In passwd: Array[Byte],
-      @In @u_int64_t passwdLen: Long,
-      @In @u_int64_t opsLimit: Long,
-      @In @size_t memLimit: Long
-  ): Int
-
-  def crypto_pwhash_str_verify(@In str: Array[Byte], @In passwd: Array[Byte], @In @u_int64_t passwdLen: Int): Int
-
-}
-
 private[tsec] trait Argon2Constants {
 
   val crypto_pwhash_argon2id_ALG_ARGON2ID13       = 2
