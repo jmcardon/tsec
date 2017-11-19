@@ -1,42 +1,5 @@
----
-layout: docs
-number: 10
-title: "Bearer Token Authenticator"
----
+package http4sExamples
 
-# Bearer Token Authenticator
-
-The bearer token authenticator uses `TSecTokenSettings` for configuration:
-
-```scala
-  final case class TSecTokenSettings(
-      expirationTime: FiniteDuration,
-      maxIdle: Option[FiniteDuration]
-  )
-```
-
-And for token storage, it uses `TSecBearerToken` for storage:
-
-```scala
-final case class TSecBearerToken[I](
-    id: SecureRandomId,             //Your secure random Id
-    identity: I,                   //Your user ID type. in the case of our example, User has id type Int.
-    expiry: Instant,              //The absolute expiration time
-    lastTouched: Option[Instant] //Possible rolling window expiration
-) extends Authenticator[I]
-```
-
-This authenticator uses a `SecureRandomId` (A 32-bit Id generated with a secure random number generator) as a bearer
- token to authenticate with information held server-side.
- 
-Notes:
-* Not vulnerable to [CSRF](https://en.wikipedia.org/wiki/Cross-site_request_forgery).
-* Okay to use with `CORS`
-* Requires synchronized backing store.
-
-### Authenticator creation
-
-```tut:silent
 import cats.effect.IO
 import org.http4s.HttpService
 import org.http4s.dsl.io._
@@ -47,7 +10,7 @@ import concurrent.duration._
 
 object BearerTokenExample {
 
-  import http4sExamples.ExampleAuthHelpers._
+  import ExampleAuthHelpers._
 
   val bearerTokenStore =
     dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
@@ -92,4 +55,3 @@ object BearerTokenExample {
       Ok()
   }
 }
-```

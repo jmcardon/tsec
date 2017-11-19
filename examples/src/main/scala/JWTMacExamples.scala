@@ -1,3 +1,6 @@
+
+
+
 object JWTMacExamples {
 
   import tsec.jwt._
@@ -18,17 +21,18 @@ object JWTMacExamples {
     parsed          <- JWTMac.verifyAndParse[HMACSHA256](stringjwt, key) //Or verify and return the actual instance
   } yield parsed
 
-  import cats.effect.IO
+  import cats.syntax.all._
+  import cats.effect.Sync
 
   /** You can also chose to interpret into any target Monad with an instance of MonadError[F, Throwable] using JwtMacM */
-  val jwtMonadic: IO[JWTMac[HMACSHA256]] = for {
-    key <- HMACSHA256.generateLift[IO]
-    jwt <- JWTMacM.build[IO, HMACSHA256](claims, key) //You can sign and build a jwt object directly
+  def jwtMonadic[F[_]: Sync]: F[JWTMac[HMACSHA256]] = for {
+    key <- HMACSHA256.generateLift[F]
+    jwt <- JWTMacM.build[F, HMACSHA256](claims, key) //You can sign and build a jwt object directly
     verifiedFromObj <- JWTMacM
-      .verifyFromInstance[IO, HMACSHA256](jwt, key) //You can verify the jwt straight from an object
-    stringjwt  <- JWTMacM.buildToString[IO, HMACSHA256](claims, key)       //Or build it straight to string
-    isverified <- JWTMacM.verifyFromString[IO, HMACSHA256](stringjwt, key) //You can verify straight from a string
-    parsed     <- JWTMacM.verifyAndParse[IO, HMACSHA256](stringjwt, key)   //Or verify and return the actual instance
+      .verifyFromInstance[F, HMACSHA256](jwt, key) //You can verify the jwt straight from an object
+    stringjwt  <- JWTMacM.buildToString[F, HMACSHA256](claims, key)       //Or build it straight to string
+    isverified <- JWTMacM.verifyFromString[F, HMACSHA256](stringjwt, key) //You can verify straight from a string
+    parsed     <- JWTMacM.verifyAndParse[F, HMACSHA256](stringjwt, key)   //Or verify and return the actual instance
   } yield parsed
 
 }

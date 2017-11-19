@@ -13,14 +13,14 @@ ________________________________________
 [ ![Latest Version](https://api.bintray.com/packages/jmcardon/tsec/tsec-common/images/download.svg) ](https://bintray.com/jmcardon/tsec/tsec-common/_latestVersion)
 
 
-### Latest Release: 0.0.1-M4
+### Latest Release: 0.0.1-M5
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
 For version changes and additions, including breaking changes, see either [release notes](https://github.com/jmcardon/tsec/releases)
 or the [Version Changes](https://github.com/jmcardon/tsec/wiki/Version-Changes) page.
 
-0.0.1-M4 is here for scala 2.12+ and Cats 1.0.0-RC1!
+0.0.1-M5 is here for scala 2.12+ and Cats 1.0.0-RC1!
 
 To get started, if you are on sbt 0.13.16+, add
 
@@ -45,12 +45,12 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 | tsec-md               | Message Digests (Hashing)                                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala)|
 | tsec-jwt-mac          | JWT implementation for Message Authentication signatures | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTMacExamples.scala)|
 | tsec-jwt-sig          | JWT implementation for Digital signatures                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTSignatureExamples.scala)|
-| tsec-http4s           | Http4s Request Authentication and Authorization          | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/Http4sAuthExamples.scala)|
+| tsec-http4s           | Http4s Request Authentication and Authorization          | [here](https://github.com/jmcardon/tsec/tree/master/examples/src/main/scala/http4sExamples)|
 
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M4"
+val tsecV = "0.0.1-M5"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
