@@ -5,6 +5,7 @@ import tsec.passwordhashers.core._
 import org.mindrot.jbcrypt.{BCrypt => JBCrypt}
 import com.lambdaworks.crypto.{SCryptUtil => JSCrypt}
 import tsec.common.{StringEV, TaggedString}
+import tsec.passwordhashers.imports.{BCrypt$$, HardenedSCrypt$$, SCrypt$$}
 
 package object imports {
 
@@ -31,6 +32,8 @@ package object imports {
   type BCrypt = BCrypt$$.I
 
   implicit object BCrypt extends PasswordHasher[BCrypt] with StringEV[BCrypt] {
+    @inline def is: Is[BCrypt, String] = BCrypt$$.is
+
     @inline def fromString(a: String): BCrypt = BCrypt$$.is.flip.coerce(a)
 
     @inline def asString(a: BCrypt): String = BCrypt$$.is.coerce(a)
@@ -57,6 +60,8 @@ package object imports {
   type SCrypt = SCrypt$$.I
 
   implicit object SCrypt extends PasswordHasher[SCrypt] with StringEV[SCrypt] {
+    @inline def is: Is[SCrypt, String] = SCrypt$$.is
+
     @inline def fromString(a: String): SCrypt = SCrypt$$.is.flip.coerce(a)
 
     @inline def asString(a: SCrypt): String = SCrypt$$.is.coerce(a)
@@ -76,7 +81,7 @@ package object imports {
   implicit object SCryptPasswordHasher
       extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(DefaultSCryptN))(SCrypt)
 
-  val HardenedSCrypt$$ : TaggedString = new TaggedString {
+  protected val HardenedSCrypt$$ : TaggedString = new TaggedString {
     type I = String
     val is = Is.refl[String]
   }
@@ -84,6 +89,7 @@ package object imports {
   type HardenedSCrypt = HardenedSCrypt$$.I
 
   implicit object HardenedSCrypt extends PasswordHasher[HardenedSCrypt] with StringEV[HardenedSCrypt] {
+    @inline def is: Is[HardenedSCrypt, String] = HardenedSCrypt$$.is
 
     @inline def fromString(a: String): HardenedSCrypt = HardenedSCrypt$$.is.flip.coerce(a)
 
