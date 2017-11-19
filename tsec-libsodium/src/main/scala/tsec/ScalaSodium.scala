@@ -1114,14 +1114,14 @@ object ScalaSodium
   private def libraryName = "sodiumjni"
 
   def checkVersion(sodiumString: String) =
-    sodiumString.split(".") match {
+    sodiumString.trim.split("\\.") match {
       case Array(major, _, minor) =>
-        if (minor.toInt < 12)
-          throw new RuntimeException("Unsupported libsodium version. Please upgrade to version 1.0.12+")
-        else
+        if (minor.toInt < 12) {
+          throw new RuntimeException(s"Unsupported libsodium version $sodiumString. Please upgrade to version 1.0.12+")
+        } else
           logger.info("Loading libsodium jni... Hold tight Asznee")
       case _ =>
-        throw new RuntimeException("Unsupported libsodium version. Please upgrade to version 1.0.12+")
+        throw new RuntimeException(s"Unsupported libsodium version $sodiumString. Please upgrade to version 1.0.12+")
     }
 
   private[tsec] lazy val Sodium: ScalaSodium = {
