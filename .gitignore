@@ -3,3 +3,6 @@ target
 *.sc
 t.scala
 *.log
+tsec-libsodium/jni/*.java
+tsec-libsodium/jni/*.c
+tsec-libsodium/jni/*.so

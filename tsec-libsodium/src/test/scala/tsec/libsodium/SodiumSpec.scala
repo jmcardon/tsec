@@ -1,4 +1,4 @@
-package tsec.cipher.symmetric.libsodium
+package tsec.libsodium
 
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks

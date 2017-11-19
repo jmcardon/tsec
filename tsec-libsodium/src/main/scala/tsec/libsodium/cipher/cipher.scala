@@ -1,16 +1,9 @@
-package tsec.cipher.symmetric
+package tsec.libsodium
 
-import cats.effect.Sync
 import cats.evidence.Is
-import tsec.{ScalaSodium => Sodium}
-import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.imports._
-import tsec.cipher.symmetric.libsodium.internal.{SodiumCipherAlgebra, SodiumKeyGenerator}
-import cats.syntax.all._
-import tsec.cipher.symmetric.libsodium.AADLS$$
-import tsec.common._
+import tsec.common.TaggedByteArray
 
-package object libsodium {
+package object cipher {
 
   /** Parametrically polymorphic existential over crypto keys
     *

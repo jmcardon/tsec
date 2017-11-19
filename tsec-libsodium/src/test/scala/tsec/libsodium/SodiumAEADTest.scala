@@ -1,11 +1,12 @@
-package tsec.cipher.symmetric.libsodium
+package tsec.libsodium
 
 import cats.effect.IO
 import tsec.ScalaSodium
 import tsec.common._
 import tsec.cipher.symmetric.{CipherError, PlainText}
-import tsec.cipher.symmetric.libsodium.aead._
-import tsec.cipher.symmetric.libsodium.internal.SodiumAEADPlatform
+import tsec.libsodium.cipher._
+import tsec.libsodium.cipher.aead._
+import tsec.libsodium.cipher.internal.SodiumAEADPlatform
 
 class SodiumAEADTest extends SodiumSpec {
 

@@ -1,15 +1,14 @@
-package tsec.cipher.symmetric.libsodium.internal
+package tsec.libsodium.cipher.internal
 
 import cats.effect.Sync
 import tsec.{ScalaSodium => Sodium}
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.libsodium._
+import tsec.libsodium.cipher._
 
-private[tsec] trait SodiumCipherPlatform[A]
+trait SodiumAEADPlatform[A]
     extends SodiumKeyGenerator[A, SodiumKey]
-    with SodiumAuthCipher[A]
-    with SodiumCipherAlgebra[A, SodiumKey] {
-  implicit val authCipher: SodiumAuthCipher[A] = this
+    with SodiumAEADCipher[A]
+    with SodiumAEADAlgebra[A, SodiumKey] {
 
   def generateKeyUnsafe(implicit s: Sodium): SodiumKey[A] = {
     val bytes = new Array[Byte](keyLength)
@@ -23,49 +22,50 @@ private[tsec] trait SodiumCipherPlatform[A]
     else
       SodiumKey[A](key)
 
-  def encrypt[F[_]](plainText: PlainText, key: SodiumKey[A])(
+  def encryptAAD[F[_]](plaintext: PlainText, key: SodiumKey[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: Sodium
   ): F[SodiumCipherText[A]] = F.delay {
-    val outArray = new Array[Byte](plainText.content.length + macLen)
+    val outArray = new Array[Byte](plaintext.content.length + authTagLen)
     val nonce    = new Array[Byte](nonceLen)
     S.randombytes_buf(nonce, nonceLen)
-    if (sodiumEncrypt(outArray, plainText, nonce, key) != 0)
+
+    if (sodiumEncryptAAD(outArray, plaintext, nonce, key, aad) != 0)
       throw EncryptError("Invalid encryption Info")
 
     SodiumCipherText[A](outArray, nonce)
   }
 
-  def decrypt[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A])(
+  def decryptAAD[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: Sodium
   ): F[PlainText] = F.delay {
-    val originalMessage = new Array[Byte](cipherText.content.length - macLen)
-    if (sodiumDecrypt(originalMessage, cipherText, key) != 0)
+    val originalMessage = new Array[Byte](cipherText.content.length - authTagLen)
+    if (sodiumDecryptAAD(originalMessage, cipherText, key, aad) != 0)
       throw DecryptError("Invalid Decryption info")
     PlainText(originalMessage)
   }
 
-  def encryptDetached[F[_]](plainText: PlainText, key: SodiumKey[A])(
+  def encryptAADDetached[F[_]](plainText: PlainText, key: SodiumKey[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: Sodium
   ): F[(SodiumCipherText[A], AuthTag[A])] = F.delay {
     val outArray = new Array[Byte](plainText.content.length)
-    val macOut   = new Array[Byte](macLen)
+    val macOut   = new Array[Byte](authTagLen)
     val nonce    = new Array[Byte](nonceLen)
     S.randombytes_buf(nonce, nonceLen)
-    if (sodiumEncryptDetached(outArray, macOut, plainText, nonce, key) != 0)
+    if (sodiumEncryptDetachedAAD(outArray, macOut, plainText, nonce, key, aad) != 0)
       throw EncryptError("Invalid encryption Info")
 
     (SodiumCipherText[A](outArray, nonce), AuthTag.is[A].coerce(macOut))
   }
 
-  def decryptDetached[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], authTag: AuthTag[A])(
+  def decryptAADDetached[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], authTag: AuthTag[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: Sodium
   ): F[PlainText] = F.delay {
     val originalMessage = new Array[Byte](cipherText.content.length)
-    if (sodiumDecryptDetached(originalMessage, cipherText, authTag, key) != 0)
+    if (sodiumDecryptDetachedAAD(originalMessage, cipherText, authTag, key, aad) != 0)
       throw DecryptError("Invalid Decryption info")
     PlainText(originalMessage)
   }

@@ -1,8 +1,8 @@
-package tsec.cipher.symmetric.libsodium
+package tsec.libsodium.cipher
 
-import tsec.{ScalaSodium => Sodium}
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.libsodium.internal.SodiumCipherPlatform
+import tsec.libsodium.cipher.internal.SodiumCipherPlatform
+import tsec.{ScalaSodium => Sodium}
 
 sealed trait XSalsa20Poly1305
 

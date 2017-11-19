@@ -1,12 +1,11 @@
-package tsec.cipher.symmetric.libsodium
+package tsec.libsodium
 
 import cats.effect.IO
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
 import tsec.{ScalaSodium, TestSpec}
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.PlainText
-import tsec.cipher.symmetric.libsodium.internal.SodiumCipherPlatform
+import tsec.libsodium.cipher._
+import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 import tsec.common._
 
 class SodiumCipherTest extends SodiumSpec {

@@ -1,9 +1,9 @@
-package tsec.cipher.symmetric.libsodium.internal
+package tsec.libsodium.cipher.internal
 
 import tsec.{ScalaSodium => Sodium}
 import tsec.cipher.symmetric.PlainText
 import tsec.cipher.symmetric.imports.SymmetricCipher
-import tsec.cipher.symmetric.libsodium._
+import tsec.libsodium.cipher._
 
 trait SodiumAuthCipher[A] extends SymmetricCipher[A] {
   val nonceLen: Int

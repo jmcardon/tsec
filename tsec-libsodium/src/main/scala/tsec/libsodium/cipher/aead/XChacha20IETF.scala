@@ -1,48 +1,49 @@
-package tsec.cipher.symmetric.libsodium.aead
+package tsec.libsodium.cipher.aead
 
 import tsec.ScalaSodium
+import tsec.ScalaSodium.{NullLongBytes, NullLongLong}
 import tsec.cipher.symmetric
-import tsec.cipher.symmetric.libsodium.{AuthTag, SodiumAAD, SodiumCipherText, SodiumKey}
-import tsec.cipher.symmetric.libsodium.internal.SodiumAEADPlatform
+import tsec.libsodium.cipher._
+import tsec.libsodium.cipher.internal._
 
-sealed trait IETFChacha20
+sealed trait XChacha20IETF
 
-object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
-  val nonceLen: Int = ScalaSodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES
-  val authTagLen: Int = ScalaSodium.crypto_aead_chacha20poly1305_ietf_ABYTES
-  val keyLength: Int = ScalaSodium.crypto_aead_chacha20poly1305_ietf_KEYBYTES
+object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
+  def algorithm: String = "XChacha20Poly1305IETF"
 
-  def algorithm: String = "Chacha20Poly1305IETF"
+  val nonceLen: Int   = ScalaSodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES
+  val authTagLen: Int = ScalaSodium.crypto_aead_xchacha20poly1305_ietf_ABYTES
+  val keyLength: Int  = ScalaSodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES
 
   private[tsec] def sodiumEncryptAAD(
       cout: Array[Byte],
       pt: symmetric.PlainText,
       nonce: Array[Byte],
-      key: SodiumKey[IETFChacha20],
+      key: SodiumKey[XChacha20IETF],
       aad: SodiumAAD
   )(implicit S: ScalaSodium): Int =
-    S.crypto_aead_chacha20poly1305_ietf_encrypt(
+    S.crypto_aead_xchacha20poly1305_ietf_encrypt(
       cout,
-      Array(0),
+      NullLongLong,
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      Array(0),
+      NullLongBytes,
       nonce,
       key
     )
 
   private[tsec] def sodiumDecryptAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[IETFChacha20],
-      key: SodiumKey[IETFChacha20],
+      ct: SodiumCipherText[XChacha20IETF],
+      key: SodiumKey[XChacha20IETF],
       aad: SodiumAAD
   )(implicit S: ScalaSodium): Int =
-    S.crypto_aead_chacha20poly1305_ietf_decrypt(
+    S.crypto_aead_xchacha20poly1305_ietf_decrypt(
       origOut,
-      Array(0),
-      Array(0),
+      NullLongLong,
+      NullLongBytes,
       ct.content,
       ct.content.length,
       aad,
@@ -56,32 +57,32 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
       tagOut: Array[Byte],
       pt: symmetric.PlainText,
       nonce: Array[Byte],
-      key: SodiumKey[IETFChacha20],
+      key: SodiumKey[XChacha20IETF],
       aad: SodiumAAD
   )(implicit S: ScalaSodium): Int =
-    S.crypto_aead_chacha20poly1305_ietf_encrypt_detached(
+    S.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
       cout,
       tagOut,
-      Array(0),
+      NullLongLong,
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      Array(0),
+      NullLongBytes,
       nonce,
       key
     )
 
   private[tsec] def sodiumDecryptDetachedAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[IETFChacha20],
-      tagIn: AuthTag[IETFChacha20],
-      key: SodiumKey[IETFChacha20],
+      ct: SodiumCipherText[XChacha20IETF],
+      tagIn: AuthTag[XChacha20IETF],
+      key: SodiumKey[XChacha20IETF],
       aad: SodiumAAD
   )(implicit S: ScalaSodium): Int =
-    S.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
+    S.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
       origOut,
-      Array(0),
+      NullLongBytes,
       ct.content,
       ct.content.length,
       tagIn,

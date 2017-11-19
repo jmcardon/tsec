@@ -1,4 +1,4 @@
-package tsec.cipher.symmetric.libsodium.internal
+package tsec.libsodium.cipher.internal
 
 import cats.effect.Sync
 import tsec.ScalaSodium

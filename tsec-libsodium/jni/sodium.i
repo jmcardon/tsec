@@ -16,6 +16,26 @@
 %apply int {uint32_t};
 %apply long {uint64_t};
 
+/*
+Long typemap: Requires testing
+%typemap(jni) unsigned long long, const unsigned long long & "jlong"
+%typemap(jtype) unsigned long long, const unsigned long long & "long"
+%typemap(jstype) unsigned long long, const unsigned long long & "long"
+%typemap(jboxtype) unsigned long long, const unsigned long long & "Long"
+%typemap(in) unsigned long long {
+   $1 = ($1_ltype)$input;
+}
+%typemap(directorout) unsigned long long
+%{ $result = ($1_ltype)$input; %}
+
+%typemap(directorin, descriptor="J") unsigned long long  "$input = (jlong) $1;"
+%typemap(javain) unsigned long long"$javainput"
+%typemap(javadirectorin) unsigned long long  "$jniinput"
+%typemap(javadirectorout) unsigned long long "$javacall"
+%typemap(out) unsigned long long  %{ $result = (jlong)$1; %}
+%typemap(freearg) unsigned long long "" --The default freearg should be fine
+*/
+
 /* unsigned char */
 %typemap(jni) unsigned char *       "jbyteArray"
 %typemap(jtype) unsigned char *     "byte[]"

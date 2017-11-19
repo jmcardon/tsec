@@ -1,9 +1,9 @@
-package tsec.cipher.symmetric.libsodium.internal
+package tsec.libsodium.cipher.internal
 
 import cats.effect.Sync
 import tsec.ScalaSodium
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.libsodium._
+import tsec.libsodium.cipher._
 
 trait SodiumAEADAlgebra[A, K[_]] {
 
