@@ -1,7 +1,7 @@
 package tsec.jws.mac
 
 import cats.{Monad, MonadError}
-import cats.effect.{Effect, IO}
+import cats.effect.{Effect, IO, Sync}
 import cats.implicits._
 import tsec.common._
 import tsec.jws._
@@ -45,8 +45,7 @@ sealed abstract class JWSMacCV[F[_], A](
     programs.sign(toSign.asciiBytes, key).map(s => toSign + "." + aux.toArray(s).toB64UrlString)
   }
 
-  def verify(jwt: String, key: MacSigningKey[A]): F[Boolean] = {
-    val now: Instant         = Instant.now()
+  def verify(jwt: String, key: MacSigningKey[A], now: Instant): F[Boolean] = {
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length < 3)
       M.pure(false)
@@ -68,8 +67,7 @@ sealed abstract class JWSMacCV[F[_], A](
     }
   }
 
-  def verifyAndParse(jwt: String, key: MacSigningKey[A]): F[JWTMac[A]] = {
-    val now   = Instant.now
+  def verifyAndParse(jwt: String, key: MacSigningKey[A], now: Instant): F[JWTMac[A]] = {
     val split = jwt.split("\\.", 3)
     if (split.length != 3)
       M.raiseError(defaultError)
@@ -95,20 +93,14 @@ sealed abstract class JWSMacCV[F[_], A](
 
 object JWSMacCV {
 
-  implicit def genSigner[F[_], A: ByteEV](
+  implicit def genSigner[F[_]: Sync, A: ByteEV: MacTag](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: MacPrograms[F, A, MacSigningKey],
-      monadError: MonadError[F, Throwable]
+      alg: JCAMacPure[F, A],
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
-  implicit def genSignerIO[A: ByteEV](
-      implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMacPure[IO, A]
-  ): JWSMacCV[IO, A] =
-    new JWSMacCV[IO, A]() {}
 
-  implicit def genSignerEither[A: ByteEV](
+  implicit def genSignerEither[A: MacTag: ByteEV](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       alg: JCAMacImpure[A]
   ): JWSMacCV[MacErrorM, A] =
