@@ -82,16 +82,17 @@ installed for tests that use Keys larger than 128 bits. More information under [
 
 [jwt-scala](https://github.com/pauldijou/jwt-scala)
 
-## Big Thanks to:
-
+## Big Thank you to our contributors (direct or indirect):
 [Robert Soeldner](https://github.com/rsoeldner) (Contributor)
-
-[Edmund Noble](https://github.com/edmundnoble) (For the dank tagless)
-
-[Fabio Labella](https://github.com/systemfw) (For the great FP help)
 
 [Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor)
 
 [Bjørn Madsen](https://github.com/aeons) (Contributor)
+
+[André Rouél](https://github.com/before)(Contributor)
+
+[Edmund Noble](https://github.com/edmundnoble) (For the dank tagless)
+
+[Fabio Labella](https://github.com/systemfw) (For the great FP help)
 
 [Will Sargent](https://github.com/wsargent) (Security Discussions)
