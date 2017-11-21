@@ -216,7 +216,7 @@ lazy val microsite = Project(id = "microsite", base = file("docs"))
 
 lazy val publishSettings = Seq(
   homepage := Some(url("https://github.com/jmcardon/tsec")),
-  licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
+  licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
   scmInfo := Some(ScmInfo(url("https://github.com/jmcardon/tsec"), "scm:git:git@github.com:jmcardon/tsec.git")),
   autoAPIMappings := true,
   apiURL := None,
