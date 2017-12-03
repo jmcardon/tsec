@@ -50,6 +50,20 @@ Long typemap: Requires testing
 /* Prevent default freearg typemap from being used */
 %typemap(freearg) unsigned char *""
 
+/* unsigned char array */
+%typemap(jni) unsigned char [ANY]       "jbyteArray"
+%typemap(jtype) unsigned char [ANY]     "byte[]"
+%typemap(jstype) unsigned char [ANY]    "byte[]"
+%typemap(in) unsigned char [ANY]{
+    $1 = (unsigned char *) JCALL2(GetByteArrayElements, jenv, $input, 0);
+}
+%typemap(argout) unsigned char [ANY]{
+    JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0);
+}
+%typemap(javain) unsigned char [ANY]"$javainput"
+/* Prevent default freearg typemap from being used */
+%typemap(freearg) unsigned char [ANY]""
+
 /* uint8_t */
 %typemap(jni) uint8_t *"jbyteArray"
 %typemap(jtype) uint8_t *"byte[]"
@@ -110,6 +124,22 @@ Long typemap: Requires testing
     TYPEMAPS FOR CRYPTO_*_STATE DATATYPES
 
 ============================================================================= */
+
+/*
+  Crypto secret stream
+*/
+%typemap(jni) crypto_secretstream_xchacha20poly1305_state *"jbyteArray"
+%typemap(jtype) crypto_secretstream_xchacha20poly1305_state *"byte[]"
+%typemap(jstype) crypto_secretstream_xchacha20poly1305_state *"byte[]"
+%typemap(in) crypto_secretstream_xchacha20poly1305_state *{
+    $1 = (crypto_secretstream_xchacha20poly1305_state *) JCALL2(GetByteArrayElements, jenv, $input, 0);
+}
+%typemap(argout) crypto_secretstream_xchacha20poly1305_state *{
+    JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0);
+}
+%typemap(javain) crypto_secretstream_xchacha20poly1305_state *"$javainput"
+%typemap(freearg) crypto_secretstream_xchacha20poly1305_state *""
+
 
 /*
     crypto_generichash_state
@@ -320,6 +350,31 @@ int crypto_secretbox_open_easy(unsigned char *dst_plain,
                                unsigned long long cipher_len,
                                const unsigned char *nonce,
                                const unsigned char *secret_key);
+
+/*
+ crypto secretstream stuff
+*/
+int crypto_secretstream_xchacha20poly1305_init_push
+   (crypto_secretstream_xchacha20poly1305_state *state,
+    unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES],
+    const unsigned char k[crypto_secretstream_xchacha20poly1305_KEYBYTES]);
+
+int crypto_secretstream_xchacha20poly1305_push
+   (crypto_secretstream_xchacha20poly1305_state *state,
+    unsigned char *c, unsigned long long *clen_p,
+    const unsigned char *m, unsigned long long mlen,
+    const unsigned char *ad, unsigned long long adlen, unsigned char tag);
+
+int crypto_secretstream_xchacha20poly1305_init_pull
+   (crypto_secretstream_xchacha20poly1305_state *state,
+    const unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES],
+    const unsigned char k[crypto_secretstream_xchacha20poly1305_KEYBYTES]);
+
+int crypto_secretstream_xchacha20poly1305_pull
+   (crypto_secretstream_xchacha20poly1305_state *state,
+    unsigned char *m, unsigned long long *mlen_p, unsigned char *tag_p,
+    const unsigned char *c, unsigned long long clen,
+    const unsigned char *ad, unsigned long long adlen);
 
 /*
     crypto_secretbox_detached API
