@@ -61,7 +61,7 @@ package object cipher {
 
   type CryptoStreamHeader = StreamHeader$$.I
 
-  object StreamHeader {
+  object CryptoStreamHeader {
     def apply[A](bytes: Array[Byte]): CryptoStreamHeader = is.flip.coerce(bytes)
     @inline def is: Is[CryptoStreamHeader, Array[Byte]] = StreamHeader$$.is
   }
@@ -73,7 +73,7 @@ package object cipher {
 
   type CryptoStreamState = StreamState$$.I
 
-  object StreamState {
+  object CryptoStreamState {
     def apply[A](bytes: Array[Byte]): CryptoStreamState = is.flip.coerce(bytes)
     @inline def is: Is[CryptoStreamState, Array[Byte]] = StreamState$$.is
   }
