@@ -1,6 +1,5 @@
 package tsec.libsodium.cipher.aead
 
-import tsec.cipher.symmetric
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
@@ -17,15 +16,15 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
 
   private[tsec] def sodiumEncrypt(
       cout: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[OriginalChacha20]
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_encrypt(
       cout,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       NullPtrBytes,
       0,
       NullPtrBytes,
@@ -52,7 +51,7 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
 
   private[tsec] def sodiumEncryptAAD(
       cout: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[OriginalChacha20],
       aad: SodiumAAD
@@ -60,8 +59,8 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
     S.crypto_aead_chacha20poly1305_encrypt(
       cout,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       aad,
       aad.length,
       NullPtrBytes,
@@ -90,7 +89,7 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
   private[tsec] def sodiumEncryptDetachedAAD(
       cout: Array[Byte],
       tagOut: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[OriginalChacha20],
       aad: SodiumAAD
@@ -99,8 +98,8 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
       cout,
       tagOut,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       aad,
       aad.length,
       NullPtrBytes,

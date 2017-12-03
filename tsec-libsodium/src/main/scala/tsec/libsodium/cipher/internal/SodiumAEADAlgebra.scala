@@ -1,7 +1,6 @@
 package tsec.libsodium.cipher.internal
 
 import cats.effect.Sync
-import tsec.cipher.symmetric._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 

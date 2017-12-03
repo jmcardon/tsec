@@ -2,7 +2,6 @@ package tsec.libsodium
 
 import cats.effect.IO
 import tsec.common._
-import tsec.cipher.symmetric.{CipherError, PlainText}
 import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.aead._
 import tsec.libsodium.cipher.internal.SodiumAEADPlatform
@@ -21,7 +20,7 @@ class SodiumAEADTest extends SodiumSpec {
           decrypt <- p.decrypt[IO](encrypt, key)
         } yield decrypt
         if (!s.isEmpty)
-          program.unsafeRunSync().content.toHexString mustBe pt.content.toHexString
+          program.unsafeRunSync().toHexString mustBe pt.toHexString
       }
     }
 
@@ -34,7 +33,7 @@ class SodiumAEADTest extends SodiumSpec {
             key2    <- p.generateKey[IO]
             encrypt <- p.encrypt[IO](pt, key)
             decrypt <- p.decrypt[IO](encrypt, key2)
-          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }
 
@@ -47,7 +46,7 @@ class SodiumAEADTest extends SodiumSpec {
           encrypt <- p.encryptAAD[IO](pt, key, saad)
           decrypt <- p.decryptAAD[IO](encrypt, key, saad)
         } yield decrypt
-        program.unsafeRunSync().content.toUtf8String mustBe pt.content.toUtf8String
+        program.unsafeRunSync().toUtf8String mustBe pt.toUtf8String
       }
     }
 
@@ -61,7 +60,7 @@ class SodiumAEADTest extends SodiumSpec {
           encrypt <- p.encryptAAD[IO](pt, key, saad)
           decrypt <- p.decryptAAD[IO](encrypt, key2, saad)
         } yield decrypt
-        program.attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+        program.attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }
 
@@ -76,9 +75,9 @@ class SodiumAEADTest extends SodiumSpec {
           decrypt <- p.decryptAAD[IO](encrypt, key, saad2)
         } yield decrypt
         if (aad != aad2)
-          program.attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+          program.attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
         else
-          program.unsafeRunSync().content.toUtf8String mustBe pt.content.toUtf8String
+          program.unsafeRunSync().toUtf8String mustBe pt.toUtf8String
       }
     }
 
@@ -91,7 +90,7 @@ class SodiumAEADTest extends SodiumSpec {
             key           <- p.generateKey[IO]
             encryptedPair <- p.encryptAADDetached[IO](pt, key, saad)
             decrypt       <- p.decryptAADDetached[IO](encryptedPair._1, key, encryptedPair._2, saad)
-          } yield decrypt).unsafeRunSync().content.toUtf8String mustBe pt.content.toUtf8String
+          } yield decrypt).unsafeRunSync().toUtf8String mustBe pt.toUtf8String
       }
     }
 
@@ -105,7 +104,7 @@ class SodiumAEADTest extends SodiumSpec {
             key2    <- p.generateKey[IO]
             encrypt <- p.encryptAADDetached[IO](pt, key, saad)
             decrypt <- p.decryptAADDetached[IO](encrypt._1, key2, encrypt._2, saad)
-          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }
 
@@ -121,9 +120,9 @@ class SodiumAEADTest extends SodiumSpec {
           decrypt <- p.decryptAADDetached[IO](encrypt._1, key2, encrypt._2, saad)
         } yield decrypt
         if (aad != aad2 || s.isEmpty || aad.isEmpty || aad2.isEmpty)
-          program.attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+          program.attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
         else
-          program.unsafeRunSync().content.toUtf8String mustBe pt.content.toUtf8String
+          program.unsafeRunSync().toUtf8String mustBe pt.toUtf8String
       }
     }
 
@@ -137,7 +136,7 @@ class SodiumAEADTest extends SodiumSpec {
           randomBytes <- ScalaSodium.randomBytes[IO](p.authTagLen)
           decrypt     <- p.decryptAADDetached[IO](encrypt._1, key, AuthTag.is[A].coerce(randomBytes), saad)
         } yield decrypt
-        program.attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+        program.attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }
 

@@ -1,6 +1,5 @@
 package tsec.libsodium.cipher
 
-import tsec.cipher.symmetric._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 
@@ -22,7 +21,7 @@ object XSalsa20Poly1305 extends SodiumCipherPlatform[XSalsa20Poly1305] {
       nonce: Array[Byte],
       key: SodiumKey[XSalsa20Poly1305]
   )(implicit S: ScalaSodium): Int =
-    S.crypto_secretbox_easy(cout, plaintext.content, plaintext.content.length, nonce, key)
+    S.crypto_secretbox_easy(cout, plaintext, plaintext.length, nonce, key)
 
   @inline private[tsec] def sodiumDecrypt(
       origOut: Array[Byte],
@@ -38,7 +37,7 @@ object XSalsa20Poly1305 extends SodiumCipherPlatform[XSalsa20Poly1305] {
       nonce: Array[Byte],
       key: SodiumKey[XSalsa20Poly1305]
   )(implicit S: ScalaSodium): Int =
-    S.crypto_secretbox_detached(cout, tagOut, pt.content, pt.content.length, nonce, key)
+    S.crypto_secretbox_detached(cout, tagOut, pt, pt.length, nonce, key)
 
   @inline private[tsec] def sodiumDecryptDetached(
       origOut: Array[Byte],

@@ -1,9 +1,6 @@
 package tsec.libsodium
 
 import cats.effect.IO
-import tsec.TestSpec
-import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.PlainText
 import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 import tsec.common._
@@ -22,7 +19,7 @@ class SodiumCipherTest extends SodiumSpec {
           decrypt <- platform.decrypt[IO](encrypt, key)
         } yield decrypt
         if (!s.isEmpty)
-          program.unsafeRunSync().content.toHexString mustBe pt.content.toHexString
+          program.unsafeRunSync().toHexString mustBe pt.toHexString
       }
     }
 
@@ -35,7 +32,7 @@ class SodiumCipherTest extends SodiumSpec {
             key2    <- platform.generateKey[IO]
             encrypt <- platform.encrypt[IO](pt, key)
             decrypt <- platform.decrypt[IO](encrypt, key2)
-          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }
 
@@ -47,7 +44,7 @@ class SodiumCipherTest extends SodiumSpec {
             key           <- platform.generateKey[IO]
             encryptedPair <- platform.encryptDetached[IO](pt, key)
             decrypt       <- platform.decryptDetached[IO](encryptedPair._1, key, encryptedPair._2)
-          } yield decrypt).unsafeRunSync().content.toHexString mustBe pt.content.toHexString
+          } yield decrypt).unsafeRunSync().toHexString mustBe pt.toHexString
       }
     }
 
@@ -60,7 +57,7 @@ class SodiumCipherTest extends SodiumSpec {
             key2    <- platform.generateKey[IO]
             encrypt <- platform.encryptDetached[IO](pt, key)
             decrypt <- platform.decryptDetached[IO](encrypt._1, key2, encrypt._2)
-          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }
 
@@ -73,7 +70,7 @@ class SodiumCipherTest extends SodiumSpec {
             encrypt     <- platform.encryptDetached[IO](pt, key)
             randomBytes <- ScalaSodium.randomBytes[IO](platform.macLen)
             decrypt     <- platform.decryptDetached[IO](encrypt._1, key, AuthTag.is[A].coerce(randomBytes))
-          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[CipherError, _]]
+          } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }
   }

@@ -26,7 +26,7 @@ before_cache:
 
 script:
   - bash sodium_setup.sh
-  - sbt test tut
+  - sbt clean test tut
 
 cache:
   directories:

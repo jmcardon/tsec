@@ -1,13 +1,13 @@
 package tsec.libsodium.cipher.internal
 
-import tsec.cipher.symmetric.PlainText
-import tsec.cipher.symmetric.imports.SymmetricCipher
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 
-trait SodiumAuthCipher[A] extends SymmetricCipher[A] {
+trait SodiumAuthCipher[A]  {
   val nonceLen: Int
   val macLen: Int
+
+  def algorithm: String
 
   /** Encrypt the plaintext using the nonce (in other words initialization vector)
     * in an api-compatible way with libsodium

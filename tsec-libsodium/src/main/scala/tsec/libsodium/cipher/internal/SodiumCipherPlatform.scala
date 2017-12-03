@@ -1,9 +1,9 @@
 package tsec.libsodium.cipher.internal
 
 import cats.effect.Sync
-import tsec.cipher.symmetric._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
+import tsec.libsodium.cipher.SodiumCipherError._
 
 private[tsec] trait SodiumCipherPlatform[A]
     extends SodiumKeyGenerator[A, SodiumKey]
@@ -27,7 +27,7 @@ private[tsec] trait SodiumCipherPlatform[A]
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[SodiumCipherText[A]] = F.delay {
-    val outArray = new Array[Byte](plainText.content.length + macLen)
+    val outArray = new Array[Byte](plainText.length + macLen)
     val nonce    = new Array[Byte](nonceLen)
     S.randombytes_buf(nonce, nonceLen)
     if (sodiumEncrypt(outArray, plainText, nonce, key) != 0)
@@ -50,7 +50,7 @@ private[tsec] trait SodiumCipherPlatform[A]
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[(SodiumCipherText[A], AuthTag[A])] = F.delay {
-    val outArray = new Array[Byte](plainText.content.length)
+    val outArray = new Array[Byte](plainText.length)
     val macOut   = new Array[Byte](macLen)
     val nonce    = new Array[Byte](nonceLen)
     S.randombytes_buf(nonce, nonceLen)

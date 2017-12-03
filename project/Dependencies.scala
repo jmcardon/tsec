@@ -15,9 +15,12 @@ object Dependencies {
     val http4sV       = "0.18.0-M5"
     val scalacheckV   = "1.13.4"
     val commonsCodecV = "1.11"
+    val fs2Version    = "0.10.0-M8"
   }
 
   object Libraries {
+    val fs2                = "co.fs2"             %% "fs2-core"             % Versions.fs2Version
+    val fs2IO              = "co.fs2"             %% "fs2-io"               % Versions.fs2Version
     val cats               = "org.typelevel"      %% "cats-core"            % Versions.catsV
     val catsEffect         = "org.typelevel"      %% "cats-effect"          % Versions.catsEffV
     val jBCrypt            = "de.svenkubiak"      % "jBCrypt"               % Versions.jBCryptV

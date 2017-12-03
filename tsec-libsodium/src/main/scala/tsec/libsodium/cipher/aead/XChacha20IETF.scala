@@ -1,6 +1,5 @@
 package tsec.libsodium.cipher.aead
 
-import tsec.cipher.symmetric
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
@@ -17,15 +16,15 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
 
   private[tsec] def sodiumEncrypt(
       cout: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[XChacha20IETF]
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_encrypt(
       cout,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       NullPtrBytes,
       0,
       NullPtrBytes,
@@ -52,7 +51,7 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
 
   private[tsec] def sodiumEncryptAAD(
       cout: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[XChacha20IETF],
       aad: SodiumAAD
@@ -60,8 +59,8 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
     S.crypto_aead_xchacha20poly1305_ietf_encrypt(
       cout,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       aad,
       aad.length,
       NullPtrBytes,
@@ -90,7 +89,7 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
   private[tsec] def sodiumEncryptDetachedAAD(
       cout: Array[Byte],
       tagOut: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[XChacha20IETF],
       aad: SodiumAAD
@@ -99,8 +98,8 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
       cout,
       tagOut,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       aad,
       aad.length,
       NullPtrBytes,

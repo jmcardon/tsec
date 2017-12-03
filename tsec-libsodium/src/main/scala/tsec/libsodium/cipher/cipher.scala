@@ -2,9 +2,20 @@ package tsec.libsodium
 
 import cats.evidence.Is
 import tsec.common.TaggedByteArray
-import tsec.libsodium.cipher.StreamHeader$$
 
 package object cipher {
+
+  private[tsec] val Plaintext$$ : TaggedByteArray = new TaggedByteArray {
+    type I = Array[Byte]
+    val is = Is.refl[I]
+  }
+
+  type PlainText = Plaintext$$.I
+
+  object PlainText {
+    def apply[A](bytes: Array[Byte]): PlainText = is.flip.coerce(bytes)
+    @inline def is: Is[PlainText, Array[Byte]] = Plaintext$$.is
+  }
 
   /** Parametrically polymorphic existential over crypto keys
     *

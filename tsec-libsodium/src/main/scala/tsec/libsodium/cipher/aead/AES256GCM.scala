@@ -1,9 +1,8 @@
 package tsec.libsodium.cipher.aead
 
-import tsec.cipher.symmetric
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
-import tsec.libsodium.cipher.{AuthTag, SodiumAAD, SodiumCipherText, SodiumKey}
+import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.internal.SodiumAEADPlatform
 
 sealed trait AES256GCM
@@ -16,15 +15,15 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
 
   private[tsec] def sodiumEncrypt(
       cout: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[AES256GCM]
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_aes256gcm_encrypt(
       cout,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       NullPtrBytes,
       0,
       NullPtrBytes,
@@ -48,7 +47,7 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
 
   private[tsec] def sodiumEncryptAAD(
       cout: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[AES256GCM],
       aad: SodiumAAD
@@ -56,8 +55,8 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
     S.crypto_aead_aes256gcm_encrypt(
       cout,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       aad,
       aad.length,
       NullPtrBytes,
@@ -86,7 +85,7 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
   private[tsec] def sodiumEncryptDetachedAAD(
       cout: Array[Byte],
       tagOut: Array[Byte],
-      pt: symmetric.PlainText,
+      pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[AES256GCM],
       aad: SodiumAAD
@@ -95,8 +94,8 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
       cout,
       tagOut,
       NullPtrInt,
-      pt.content,
-      pt.content.length,
+      pt,
+      pt.length,
       aad,
       aad.length,
       NullPtrBytes,
