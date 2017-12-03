@@ -3,7 +3,7 @@ package tsec.libsodium.cipher.aead
 import tsec.cipher.symmetric
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
-import tsec.libsodium.ScalaSodium.{NullLongBytes, NullLongLong}
+import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
 import tsec.libsodium.cipher.internal._
 
 sealed trait XChacha20IETF
@@ -23,12 +23,12 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_encrypt(
       cout,
-      NullLongLong,
+      NullPtrInt,
       pt.content,
       pt.content.length,
-      NullLongBytes,
+      NullPtrBytes,
       0,
-      NullLongBytes,
+      NullPtrBytes,
       nonce,
       key
     )
@@ -40,11 +40,11 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_decrypt(
       origOut,
-      NullLongLong,
-      NullLongBytes,
+      NullPtrInt,
+      NullPtrBytes,
       ct.content,
       ct.content.length,
-      NullLongBytes,
+      NullPtrBytes,
       0,
       ct.iv,
       key
@@ -59,12 +59,12 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_encrypt(
       cout,
-      NullLongLong,
+      NullPtrInt,
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      NullLongBytes,
+      NullPtrBytes,
       nonce,
       key
     )
@@ -77,8 +77,8 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_decrypt(
       origOut,
-      NullLongLong,
-      NullLongBytes,
+      NullPtrInt,
+      NullPtrBytes,
       ct.content,
       ct.content.length,
       aad,
@@ -98,12 +98,12 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
     S.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
       cout,
       tagOut,
-      NullLongLong,
+      NullPtrInt,
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      NullLongBytes,
+      NullPtrBytes,
       nonce,
       key
     )
@@ -117,7 +117,7 @@ object XChacha20IETF extends SodiumAEADPlatform[XChacha20IETF] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
       origOut,
-      NullLongBytes,
+      NullPtrBytes,
       ct.content,
       ct.content.length,
       tagIn,

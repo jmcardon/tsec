@@ -2,7 +2,7 @@ package tsec.libsodium.cipher.aead
 
 import tsec.cipher.symmetric
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.ScalaSodium.{NullLongBytes, NullLongLong}
+import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
 import tsec.libsodium.cipher.{AuthTag, SodiumAAD, SodiumCipherText, SodiumKey}
 import tsec.libsodium.cipher.internal.SodiumAEADPlatform
 
@@ -22,12 +22,12 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_aes256gcm_encrypt(
       cout,
-      NullLongLong,
+      NullPtrInt,
       pt.content,
       pt.content.length,
-      NullLongBytes,
+      NullPtrBytes,
       0,
-      NullLongBytes,
+      NullPtrBytes,
       nonce,
       key
     )
@@ -36,11 +36,11 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
       implicit S: ScalaSodium
   ): Int = S.crypto_aead_aes256gcm_decrypt(
     origOut,
-    NullLongLong,
-    NullLongBytes,
+    NullPtrInt,
+    NullPtrBytes,
     ct.content,
     ct.content.length,
-    NullLongBytes,
+    NullPtrBytes,
     0,
     ct.iv,
     key
@@ -55,12 +55,12 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_aes256gcm_encrypt(
       cout,
-      NullLongLong,
+      NullPtrInt,
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      NullLongBytes,
+      NullPtrBytes,
       nonce,
       key
     )
@@ -73,8 +73,8 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_aes256gcm_decrypt(
       origOut,
-      NullLongLong,
-      NullLongBytes,
+      NullPtrInt,
+      NullPtrBytes,
       ct.content,
       ct.content.length,
       aad,
@@ -94,12 +94,12 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
     S.crypto_aead_aes256gcm_encrypt_detached(
       cout,
       tagOut,
-      NullLongLong,
+      NullPtrInt,
       pt.content,
       pt.content.length,
       aad,
       aad.length,
-      NullLongBytes,
+      NullPtrBytes,
       nonce,
       key
     )
@@ -113,7 +113,7 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_aes256gcm_decrypt_detached(
       origOut,
-      NullLongBytes,
+      NullPtrBytes,
       ct.content,
       ct.content.length,
       tagIn,

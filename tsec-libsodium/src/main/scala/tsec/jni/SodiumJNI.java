@@ -30,6 +30,7 @@ public class SodiumJNI {
   public final static native int crypto_secretstream_xchacha20poly1305_push(byte[] jarg1, byte[] jarg2, int[] jarg3, byte[] jarg4, int jarg5, byte[] jarg6, int jarg7, short jarg8);
   public final static native int crypto_secretstream_xchacha20poly1305_init_pull(byte[] jarg1, byte[] jarg2, byte[] jarg3);
   public final static native int crypto_secretstream_xchacha20poly1305_pull(byte[] jarg1, byte[] jarg2, int[] jarg3, byte[] jarg4, byte[] jarg5, int jarg6, byte[] jarg7, int jarg8);
+  public final static native int crypto_secretstream_xchacha20poly1305_statebytes();
   public final static native int crypto_secretbox_detached(byte[] jarg1, byte[] jarg2, byte[] jarg3, int jarg4, byte[] jarg5, byte[] jarg6);
   public final static native int crypto_secretbox_open_detached(byte[] jarg1, byte[] jarg2, byte[] jarg3, int jarg4, byte[] jarg5, byte[] jarg6);
   public final static native int crypto_scalarmult_bytes();

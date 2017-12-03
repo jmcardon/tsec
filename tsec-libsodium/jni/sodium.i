@@ -126,7 +126,7 @@ Long typemap: Requires testing
 ============================================================================= */
 
 /*
-  Crypto secret stream
+  Crypto secret stream state
 */
 %typemap(jni) crypto_secretstream_xchacha20poly1305_state *"jbyteArray"
 %typemap(jtype) crypto_secretstream_xchacha20poly1305_state *"byte[]"
@@ -375,6 +375,8 @@ int crypto_secretstream_xchacha20poly1305_pull
     unsigned char *m, unsigned long long *mlen_p, unsigned char *tag_p,
     const unsigned char *c, unsigned long long clen,
     const unsigned char *ad, unsigned long long adlen);
+
+size_t crypto_secretstream_xchacha20poly1305_statebytes(void);
 
 /*
     crypto_secretbox_detached API

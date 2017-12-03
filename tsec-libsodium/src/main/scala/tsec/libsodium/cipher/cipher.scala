@@ -2,18 +2,19 @@ package tsec.libsodium
 
 import cats.evidence.Is
 import tsec.common.TaggedByteArray
+import tsec.libsodium.cipher.StreamHeader$$
 
 package object cipher {
 
   /** Parametrically polymorphic existential over crypto keys
     *
     */
-  sealed trait LiftedKey {
+  sealed trait LiftedByteArray {
     type AuthRepr[A] <: Array[Byte]
     def is[G]: Is[Array[Byte], AuthRepr[G]]
   }
 
-  private[tsec] val SodiumKey$$ : LiftedKey = new LiftedKey {
+  private[tsec] val SodiumKey$$ : LiftedByteArray = new LiftedByteArray {
     type AuthRepr[A] = Array[Byte]
 
     def is[G] = Is.refl[Array[Byte]]
@@ -22,7 +23,7 @@ package object cipher {
   /** Our newtype over private keys **/
   type SodiumKey[A] = SodiumKey$$.AuthRepr[A]
 
-  private[tsec] val AuthTag$$ : LiftedKey = new LiftedKey {
+  private[tsec] val AuthTag$$ : LiftedByteArray = new LiftedByteArray {
     type AuthRepr[A] = Array[Byte]
 
     def is[G] = Is.refl[Array[Byte]]
@@ -52,5 +53,31 @@ package object cipher {
     def apply[A](bytes: Array[Byte]): SodiumAAD = is.flip.coerce(bytes)
     @inline def is: Is[SodiumAAD, Array[Byte]]  = AADLS$$.is
   }
+
+  private[tsec] val StreamHeader$$: TaggedByteArray = new TaggedByteArray {
+    type I = Array[Byte]
+    val is = Is.refl[I]
+  }
+
+  type CryptoStreamHeader = StreamHeader$$.I
+
+  object StreamHeader {
+    def apply[A](bytes: Array[Byte]): CryptoStreamHeader = is.flip.coerce(bytes)
+    @inline def is: Is[CryptoStreamHeader, Array[Byte]] = StreamHeader$$.is
+  }
+
+  private[tsec] val StreamState$$: TaggedByteArray = new TaggedByteArray {
+    type I = Array[Byte]
+    val is = Is.refl[I]
+  }
+
+  type CryptoStreamState = StreamState$$.I
+
+  object StreamState {
+    def apply[A](bytes: Array[Byte]): CryptoStreamState = is.flip.coerce(bytes)
+    @inline def is: Is[CryptoStreamState, Array[Byte]] = StreamState$$.is
+  }
+
+  case class CryptoStreamST(state: CryptoStreamState, header: CryptoStreamHeader)
 
 }

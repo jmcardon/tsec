@@ -3,7 +3,7 @@ package tsec.libsodium
 import cats.effect.Sync
 import cats.evidence.Is
 import tsec.common.{ByteUtils, TaggedByteArray}
-import tsec.libsodium.ScalaSodium.{NullLongBytes, NullLongLong}
+import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
 import tsec.libsodium.hashing.SodiumHS256$$
 
 package object hashing {
@@ -58,7 +58,7 @@ package object hashing {
 
     def hash[F[_]](in: Array[Byte])(implicit F: Sync[F], S: ScalaSodium): F[Blake2b] = F.delay {
       val out = new Array[Byte](DefaultHashLen)
-      S.crypto_generichash(out, DefaultHashLen, in, in.length, NullLongBytes, 0)
+      S.crypto_generichash(out, DefaultHashLen, in, in.length, NullPtrBytes, 0)
       Blake2b(out)
     }
 
@@ -66,7 +66,7 @@ package object hashing {
       F.delay {
         val outLen = math.max(MinHashLen, math.min(MaxHashLen, len))
         val out    = new Array[Byte](outLen)
-        S.crypto_generichash(out, outLen, in, in.length, NullLongBytes, 0)
+        S.crypto_generichash(out, outLen, in, in.length, NullPtrBytes, 0)
         Blake2b(out)
       }
 

@@ -58,6 +58,36 @@ sealed class ScalaSodium {
       secret_key: Array[Byte]
   ): Int = SodiumJNI.crypto_secretbox_open_easy(dst_plain, src_cipher, cipher_len, nonce, secret_key)
 
+  def crypto_secretstream_xchacha20poly1305_init_push(state: Array[Byte], header: Array[Byte], k: Array[Byte]): Int =
+    SodiumJNI.crypto_secretstream_xchacha20poly1305_init_push(state, header, k)
+
+  def crypto_secretstream_xchacha20poly1305_push(
+      state: Array[Byte],
+      c: Array[Byte],
+      clen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      tag: Short
+  ): Int = SodiumJNI.crypto_secretstream_xchacha20poly1305_push(state, c, clen_p, m, mlen, ad, adlen, tag)
+
+  def crypto_secretstream_xchacha20poly1305_init_pull(state: Array[Byte], header: Array[Byte], k: Array[Byte]): Int =
+    SodiumJNI.crypto_secretstream_xchacha20poly1305_init_pull(state, header, k)
+
+  def crypto_secretstream_xchacha20poly1305_pull(
+      state: Array[Byte],
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      tag_p: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      ad: Array[Byte],
+      adlen: Int
+  ): Int = SodiumJNI.crypto_secretstream_xchacha20poly1305_pull(state, m, mlen_p, tag_p, c, clen, ad, adlen)
+
+  def crypto_secretstream_xchacha20poly1305_statebytes: Int = SodiumJNI.crypto_secretstream_xchacha20poly1305_statebytes
+
   def crypto_secretbox_detached(
       dst_cipher: Array[Byte],
       mac: Array[Byte],
@@ -1157,11 +1187,12 @@ object ScalaSodium
 
   /** This is primarily for methods
     * which take an `unsigned long long*` or
-    * a
+    * anything else in which we can
+    * typically pass a NULL in C, for swig typemaps.
     *
     */
-  private[tsec] val NullLongLong  = Array[Int](0)
-  private[tsec] val NullLongBytes = Array[Byte](0)
+  private[tsec] val NullPtrInt   = Array[Int](0)
+  private[tsec] val NullPtrBytes = Array[Byte](0)
 
   /** Our swig compiled lib name **/
   private val libraryName = "sodiumjni"
