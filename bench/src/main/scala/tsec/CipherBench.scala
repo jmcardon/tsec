@@ -6,7 +6,7 @@ import javax.crypto.Cipher
 
 import org.openjdk.jmh.annotations._
 import cats.effect.IO
-import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.{PlainText => OPlainText, _}
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.imports.aead._
@@ -35,7 +35,8 @@ class CipherBench {
   lazy val jcaRAWInstance: Cipher      = Cipher.getInstance("AES/GCM/NoPadding")
 
   /** Our random plaintext **/
-  lazy val longPlaintext: PlainText = PlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
+  lazy val longPlaintext: OPlainText = OPlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
+  lazy val nPlaintext: PlainText = PlainText(longPlaintext.content)
 
   @Benchmark
   def testJCARawSideEffecting(): Unit = {
@@ -62,13 +63,13 @@ class CipherBench {
   @Benchmark
   def testLibSodiumAES(): Unit =
     AES256GCM
-      .encrypt[IO](longPlaintext, sodiumAESKey)
+      .encrypt[IO](nPlaintext, sodiumAESKey)
       .unsafeRunSync()
 
   @Benchmark
   def testLibSodiumXChacha20(): Unit =
     XChacha20Poly1305
-      .encrypt[IO](longPlaintext, chachaKey)
+      .encrypt[IO](nPlaintext, chachaKey)
       .unsafeRunSync()
 
 }
