@@ -104,6 +104,7 @@ package object hashing {
 
   type HMACKey = HMACKey$$.I
 
+  //Todo: Abstract out into HS256 and HS512
   object HMACKey {
     def apply(bytes: Array[Byte]): HMACKey   = is.flip.coerce(bytes)
     @inline def is: Is[HMACKey, Array[Byte]] = HMACKey$$.is

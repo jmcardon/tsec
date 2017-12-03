@@ -22,6 +22,8 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   private val GenericEncryptError = SodiumCipherError.StreamEncryptError("Could not encrypt successfully")
   private val GenericDecryptError = SodiumCipherError.StreamDecryptError("Could not decrypt successfully")
 
+  final class CipherState(val header: CryptoStreamHeader, private[tsec] val state: CryptoStreamState)
+
   def algorithm: String = "XChacha20Poly1305"
 
   @inline private[tsec] def sodiumEncrypt(
@@ -69,20 +71,19 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
     }
     Stream
       .eval(initState)
-      .flatMap(st => streamDecryption[F](in, st, key, chunkSize))
+      .flatMap(st => streamDecryption[F](in, st, chunkSize))
   }
 
   private def streamDecryption[F[_]: Sync](
       in: Stream[F, Byte],
       streamState: CryptoStreamState,
-      key: SodiumKey[XChacha20Poly1305],
       chunkSize: Int
   )(implicit S: ScalaSodium): Stream[F, Byte] =
     in.pull
       .unconsLimit(chunkSize + ABytes)
       .flatMap {
         case Some((chunk, stream)) =>
-          decryptPull[F](chunkSize + ABytes, chunk, stream, streamState, key)
+          decryptPull[F](chunkSize + ABytes, chunk, stream, streamState)
         case None =>
           Pull.fail(SodiumCipherError.StreamDecryptError("Cannot Decrypt an empty stream")) //Todo: Better err type?
       }
@@ -99,7 +100,6 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       lastChunk: Segment[Byte, Unit],
       stream: Stream[F, Byte],
       state: CryptoStreamState,
-      key: SodiumKey[XChacha20Poly1305]
   )(implicit S: ScalaSodium): Pull[F, Byte, Unit] =
     stream.pull.unconsLimit(chunkSize).flatMap {
       case Some((seg, str)) =>
@@ -108,9 +108,9 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
           Pull.fail(GenericDecryptError)
         else {
           Pull
-            .eval(decryptSodiumStream[F](cipherText, key, state))
+            .eval(decryptSodiumStream[F](cipherText,state))
             .flatMap { ct =>
-              Pull.output(Chunk.bytes(ct)) *> decryptPull[F](chunkSize, seg, str, state, key)
+              Pull.output(Chunk.bytes(ct)) *> decryptPull[F](chunkSize, seg, str, state)
             }
         }
       case None =>
@@ -119,7 +119,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
           Pull.fail(GenericDecryptError)
         else {
           Pull
-            .eval(decryptSodiumStreamWithTag[F](cipherText, key, state))
+            .eval(decryptSodiumStreamWithTag[F](cipherText, state))
             .flatMap {
               case (ct, tag) =>
                 if (tag != CompletionTag)
@@ -138,33 +138,35 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       val state  = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes)
       val header = new Array[Byte](StreamHeaderBytes)
       S.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
-      (CryptoStreamHeader(header), streamEncryption[F](CryptoStreamState(state), key, chunkSize))
+      (CryptoStreamHeader(header), streamEncryption[F](CryptoStreamState(state), chunkSize))
+    }
+
+  def createEncryptionState[F[_]](
+      key: SodiumKey[XChacha20Poly1305]
+  )(implicit F: Sync[F], S: ScalaSodium): F[XChacha20Poly1305.CipherState] =
+    F.delay {
+      val header = new Array[Byte](StreamHeaderBytes)
+      val state  = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes)
+      S.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
+      new CipherState(CryptoStreamHeader(header), CryptoStreamState(state))
     }
 
   def encryptionPipe[F[_]](
-      key: SodiumKey[XChacha20Poly1305],
-      header: CryptoStreamHeader,
+      cipherState: XChacha20Poly1305.CipherState,
       chunkSize: Int
-  )(implicit F: Sync[F], S: ScalaSodium): F[Pipe[F, Byte, Byte]] = {
-    val initStream: F[CryptoStreamState] = F.delay {
-      val state = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes)
-      S.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
-      CryptoStreamState(state)
-    }
-    initStream.map(state => streamEncryption[F](state, key, chunkSize))
-  }
+  )(implicit F: Sync[F], S: ScalaSodium): Pipe[F, Byte, Byte] =
+    streamEncryption[F](cipherState.state, chunkSize)
 
   /** Encrypt a byte stream **/
   private def streamEncryption[F[_]: Sync](
       streamState: CryptoStreamState,
-      key: SodiumKey[XChacha20Poly1305],
       chunkSize: Int
   )(implicit S: ScalaSodium): Pipe[F, Byte, Byte] = { in =>
     in.pull
       .unconsLimit(chunkSize)
       .flatMap {
         case Some((chunk, stream)) =>
-          encryptPull[F](chunkSize, chunk, stream, streamState, key)
+          encryptPull[F](chunkSize, chunk, stream, streamState)
         case None =>
           Pull.fail(SodiumCipherError.StreamEncryptError("Cannot Encrypt an empty stream"))
       }
@@ -178,8 +180,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       chunkSize: Int,
       lastChunk: Segment[Byte, Unit],
       stream: Stream[F, Byte],
-      state: CryptoStreamState,
-      key: SodiumKey[XChacha20Poly1305]
+      state: CryptoStreamState
   )(
       implicit S: ScalaSodium
   ): Pull[F, Byte, Unit] =
@@ -187,17 +188,17 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       case Some((c, str)) =>
         val inArray = lastChunk.toArray
         Pull
-          .eval(encryptSodiumStream(inArray, key, state))
-          .flatMap(ct => Pull.output(Chunk.bytes(ct)) *> encryptPull[F](chunkSize, c, str, state, key))
+          .eval(encryptSodiumStream(inArray, state))
+          .flatMap(ct => Pull.output(Chunk.bytes(ct)) *> encryptPull[F](chunkSize, c, str, state))
       case None =>
         val inArray = lastChunk.toChunk.toBytes.values
         Pull
-          .eval(encryptStreamFinal(inArray, key, state))
+          .eval(encryptStreamFinal(inArray, state))
           .flatMap(ct => Pull.output(Chunk.bytes(ct)) *> Pull.done)
     }
 
   /** Encrypt the in array using the crypto stream state **/
-  private def encryptSodiumStream[F[_]](in: Array[Byte], key: SodiumKey[XChacha20Poly1305], state: CryptoStreamState)(
+  private def encryptSodiumStream[F[_]](in: Array[Byte], state: CryptoStreamState)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[Array[Byte]] = F.delay {
@@ -216,7 +217,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   }
 
   /** Encrypt the in array as the final chunk using the crypto stream state **/
-  private def encryptStreamFinal[F[_]](in: Array[Byte], key: SodiumKey[XChacha20Poly1305], state: CryptoStreamState)(
+  private def encryptStreamFinal[F[_]](in: Array[Byte], state: CryptoStreamState)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[Array[Byte]] = F.delay {
@@ -235,7 +236,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   }
 
   /** Run streaming decryption, but for an intermediate step: We _don't care_ about the tag **/
-  def decryptSodiumStream[F[_]](in: Array[Byte], key: SodiumKey[XChacha20Poly1305], state: CryptoStreamState)(
+  def decryptSodiumStream[F[_]](in: Array[Byte], state: CryptoStreamState)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[Array[Byte]] = F.delay {
@@ -256,7 +257,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       outArray
   }
 
-  def decryptSodiumStreamWithTag[F[_]](in: Array[Byte], key: SodiumKey[XChacha20Poly1305], state: CryptoStreamState)(
+  def decryptSodiumStreamWithTag[F[_]](in: Array[Byte], state: CryptoStreamState)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[(Array[Byte], Short)] = F.delay {
