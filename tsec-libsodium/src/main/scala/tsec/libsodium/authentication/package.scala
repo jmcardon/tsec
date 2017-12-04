@@ -1,16 +1,17 @@
 package tsec.libsodium
 
 import cats.evidence.Is
+import tsec.common.HKByteArrayNewt
 
 package object authentication {
 
-  private[tsec] val MAC$$ : LiftedByteArray = new LiftedByteArray {
-    type AuthRepr[A] = Array[Byte]
+  private[tsec] val MAC$$ : HKByteArrayNewt = new HKByteArrayNewt {
+    type Repr[A] = Array[Byte]
 
-    def is[G] = Is.refl[AuthRepr[G]]
+    def is[G] = Is.refl[Repr[G]]
   }
 
-  type SodiumMAC[A] = MAC$$.AuthRepr[A]
+  type SodiumMAC[A] = MAC$$.Repr[A]
 
   //Todo: Type constraints
   object SodiumMAC {
@@ -18,13 +19,13 @@ package object authentication {
     @inline def is[A]: Is[Array[Byte], SodiumMAC[A]] = MAC$$.is[A]
   }
 
-  private[tsec] val SodiumMACKey$$ : LiftedByteArray = new LiftedByteArray {
-    type AuthRepr[A] = Array[Byte]
+  private[tsec] val SodiumMACKey$$ : HKByteArrayNewt = new HKByteArrayNewt {
+    type Repr[A] = Array[Byte]
 
-    def is[G] = Is.refl[AuthRepr[G]]
+    def is[G] = Is.refl[Repr[G]]
   }
 
-  type SodiumMACKey[A] = SodiumMACKey$$.AuthRepr[A]
+  type SodiumMACKey[A] = SodiumMACKey$$.Repr[A]
 
   object SodiumMACKey {
     def apply[A](bytes: Array[Byte]): SodiumMACKey[A]   = is[A].coerce(bytes)

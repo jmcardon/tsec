@@ -10,15 +10,18 @@ trait SodiumPasswordHasher[PwTyp] {
   val saltLen: Int
   val outLen: Int
 
-  def hashPassword[F[_], S](p: String, strength: S)(implicit pws: PS[PwTyp, S], F: Sync[F], S: ScalaSodium): F[PwTyp]
+  def hashPassword[F[_], S](
+      p: String,
+      strength: S
+  )(implicit pws: PS[PwTyp, S], F: Sync[F], S: ScalaSodium): F[PasswordHash[PwTyp]]
 
-  def checkPass[F[_]](raw: String, hash: PwTyp)(
+  def checkPass[F[_]](raw: String, hash: PasswordHash[PwTyp])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[Boolean]
 
   def checkPassShortCircuit[F[_]](
       raw: String,
-      hash: PwTyp
+      hash: PasswordHash[PwTyp]
   )(implicit F: Sync[F], S: ScalaSodium): F[Unit]
 }

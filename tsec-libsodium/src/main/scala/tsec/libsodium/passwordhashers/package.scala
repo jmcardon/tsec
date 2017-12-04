@@ -5,6 +5,7 @@ import java.nio.charset.Charset
 import cats.effect.Sync
 import cats.evidence.Is
 import tsec.common._
+import tsec.libsodium.passwordhashers.PasswordHash$$
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 
 package object passwordhashers {
@@ -15,100 +16,24 @@ package object passwordhashers {
     override def fillInStackTrace(): Throwable = this
   }
 
-  private val asciiEncoder = Charset.forName("US-ASCII").newEncoder()
+  private[passwordhashers] val asciiEncoder = Charset.forName("US-ASCII").newEncoder()
 
   trait PWStrengthParam[PTyp, Str] {
     val opLimit: Int
     val memLimit: Int
   }
 
-  private[tsec] val Argon2$$ : TaggedString = new TaggedString {
-    type I = String
-    val is = Is.refl[I]
+  private[tsec] val PasswordHash$$ : HKStringNewt = new HKStringNewt {
+    type Repr[A] = String
+
+    def is[G] = Is.refl[String]
   }
 
-  type Argon2 = Argon2$$.I
+  type PasswordHash[A] = PasswordHash$$.Repr[A]
 
-  object Argon2 extends SodiumPasswordHasher[Argon2] {
-    def apply(s: String): Argon2       = is.flip.coerce(s)
-    @inline def is: Is[Argon2, String] = Argon2$$.is
-
-    val hashingAlgorithm: String = "Argon2id"
-    val saltLen: Int             = ScalaSodium.crypto_pwhash_argon2id_SALTBYTES
-    val outLen: Int              = ScalaSodium.crypto_pwhash_argon2id_STRBYTES
-
-    def hashPassword[F[_], S](
-        p: String,
-        strength: S
-    )(implicit pws: PWStrengthParam[Argon2, S], F: Sync[F], S: ScalaSodium): F[Argon2] = F.delay {
-      val passBytes = p.asciiBytes
-      val out       = new Array[Byte](outLen)
-      if (p.isEmpty || !asciiEncoder.canEncode(p))
-        throw SodiumPasswordError("Incorrect format")
-      else if (S.crypto_pwhash_str(out, passBytes, passBytes.length, pws.opLimit, pws.memLimit) != 0)
-        throw SodiumPasswordError("Could not hash password. Possibly out of memory")
-      else
-        Argon2(out.toAsciiString)
-    }
-
-    def checkPass[F[_]](raw: String, hash: Argon2)(implicit F: Sync[F], S: ScalaSodium): F[Boolean] = F.delay {
-      val rawBytes = raw.asciiBytes
-      asciiEncoder.canEncode(raw) && S.crypto_pwhash_str_verify(hash.asciiBytes, rawBytes, raw.length) == 0
-    }
-
-    def checkPassShortCircuit[F[_]](raw: String, hash: Argon2)(implicit F: Sync[F], S: ScalaSodium): F[Unit] = F.delay {
-      val rawBytes = raw.asciiBytes
-      if (!asciiEncoder.canEncode(raw) || S.crypto_pwhash_str_verify(hash.asciiBytes, rawBytes, raw.length) != 0)
-        throw SodiumPasswordError("Invalid password")
-    }
-
-  }
-
-  private[tsec] val ScryptS$$ : TaggedString = new TaggedString {
-    type I = String
-    val is = Is.refl[I]
-  }
-
-  type SodiumSCrypt = ScryptS$$.I
-
-  object SodiumSCrypt extends SodiumPasswordHasher[SodiumSCrypt] {
-    def apply(s: String): SodiumSCrypt       = is.flip.coerce(s)
-    @inline def is: Is[SodiumSCrypt, String] = ScryptS$$.is
-
-    val hashingAlgorithm: String = "SCrypt"
-    val saltLen: Int             = ScalaSodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES
-    val outLen: Int              = ScalaSodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-
-    def hashPassword[F[_], S](
-        p: String,
-        strength: S
-    )(implicit pws: PWStrengthParam[SodiumSCrypt, S], F: Sync[F], S: ScalaSodium): F[SodiumSCrypt] = F.delay {
-      val passBytes = p.asciiBytes
-      val out       = new Array[Byte](outLen)
-      if (p.isEmpty || !asciiEncoder.canEncode(p))
-        throw SodiumPasswordError("Incorrect format")
-      else if (S.crypto_pwhash_scryptsalsa208sha256_str(out, passBytes, passBytes.length, pws.opLimit, pws.memLimit) != 0)
-        throw SodiumPasswordError("Could not hash password. Possibly out of memory")
-      else
-        SodiumSCrypt(out.toAsciiString)
-    }
-
-    def checkPass[F[_]](raw: String, hash: SodiumSCrypt)(implicit F: Sync[F], S: ScalaSodium): F[Boolean] = F.delay {
-      val rawBytes = raw.asciiBytes
-      asciiEncoder
-        .canEncode(raw) && S.crypto_pwhash_scryptsalsa208sha256_str_verify(hash.asciiBytes, rawBytes, raw.length) == 0
-    }
-
-    def checkPassShortCircuit[F[_]](raw: String, hash: SodiumSCrypt)(implicit F: Sync[F], S: ScalaSodium): F[Unit] =
-      F.delay {
-        val rawBytes = raw.asciiBytes
-        if (!asciiEncoder.canEncode(raw) || S.crypto_pwhash_scryptsalsa208sha256_str_verify(
-              hash.asciiBytes,
-              rawBytes,
-              raw.length
-            ) != 0)
-          throw SodiumPasswordError("Invalid password")
-      }
+  object PasswordHash {
+    def apply[A](string: String): PasswordHash[A]  = is[A].coerce(string)
+    @inline def is[A]: Is[String, PasswordHash[A]] = PasswordHash$$.is[A]
   }
 
   object PasswordStrength {
@@ -146,7 +71,6 @@ package object passwordhashers {
       val memLimit: Int = ScalaSodium.crypto_pwhash_argon2id_MEMLIMIT_SENSITIVE
     }
 
-  //
   implicit val SodiumSCryptMinstr: PWStrengthParam[SodiumSCrypt, MinStrength] =
     new PWStrengthParam[SodiumSCrypt, MinStrength] {
       val opLimit: Int  = ScalaSodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN

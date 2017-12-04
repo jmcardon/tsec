@@ -1,7 +1,7 @@
 package tsec.libsodium
 
 import cats.evidence.Is
-import tsec.common.TaggedByteArray
+import tsec.common._
 
 package object cipher {
 
@@ -19,23 +19,23 @@ package object cipher {
 
 
 
-  private[tsec] val SodiumKey$$ : LiftedByteArray = new LiftedByteArray {
-    type AuthRepr[A] = Array[Byte]
+  private[tsec] val SodiumKey$$ : HKByteArrayNewt = new HKByteArrayNewt {
+    type Repr[A] = Array[Byte]
 
     def is[G] = Is.refl[Array[Byte]]
   }
 
   /** Our newtype over private keys **/
-  type SodiumKey[A] = SodiumKey$$.AuthRepr[A]
+  type SodiumKey[A] = SodiumKey$$.Repr[A]
 
-  private[tsec] val AuthTag$$ : LiftedByteArray = new LiftedByteArray {
-    type AuthRepr[A] = Array[Byte]
+  private[tsec] val AuthTag$$ : HKByteArrayNewt = new HKByteArrayNewt {
+    type Repr[A] = Array[Byte]
 
     def is[G] = Is.refl[Array[Byte]]
   }
 
   /** Our newtype over authentication tags **/
-  type AuthTag[A] = AuthTag$$.AuthRepr[A]
+  type AuthTag[A] = AuthTag$$.Repr[A]
 
   object AuthTag {
     def apply[A](bytes: Array[Byte]): AuthTag[A]   = AuthTag$$.is[A].coerce(bytes)
