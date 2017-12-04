@@ -142,7 +142,7 @@ class SodiumAEADTest extends SodiumSpec {
 
   }
 
-  testAEAD(XChacha20IETF)
+  testAEAD(XChacha20AEAD)
   testAEAD(IETFChacha20)
   testAEAD(OriginalChacha20)
   testAEAD(AES256GCM)

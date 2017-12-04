@@ -4,17 +4,8 @@ import cats.effect.Sync
 import cats.evidence.Is
 import tsec.common.{ByteUtils, TaggedByteArray}
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
-import tsec.libsodium.hashing.SodiumHS256$$
 
 package object hashing {
-
-  private[tsec] val Blake2b$$ : TaggedByteArray = new TaggedByteArray {
-    type I = Array[Byte]
-    val is = Is.refl[I]
-  }
-
-  type Blake2b = Blake2b$$.I
-
   private[tsec] val BlakeKey$$ : TaggedByteArray = new TaggedByteArray {
     type I = Array[Byte]
     val is = Is.refl[I]
@@ -26,6 +17,13 @@ package object hashing {
     def apply(bytes: Array[Byte]): BlakeKey   = is.flip.coerce(bytes)
     @inline def is: Is[BlakeKey, Array[Byte]] = BlakeKey$$.is
   }
+
+  private[tsec] val Blake2b$$ : TaggedByteArray = new TaggedByteArray {
+    type I = Array[Byte]
+    val is = Is.refl[I]
+  }
+
+  type Blake2b = Blake2b$$.I
 
   object Blake2b {
     val MinKeyLen     = ScalaSodium.crypto_generichash_blake2b_KEYBYTES_MIN
@@ -96,52 +94,4 @@ package object hashing {
       Blake2b(out)
     }
   }
-
-  private[tsec] val HMACKey$$ : TaggedByteArray = new TaggedByteArray {
-    type I = Array[Byte]
-    val is = Is.refl[I]
-  }
-
-  type HMACKey = HMACKey$$.I
-
-  //Todo: Abstract out into HS256 and HS512
-  object HMACKey {
-    def apply(bytes: Array[Byte]): HMACKey   = is.flip.coerce(bytes)
-    @inline def is: Is[HMACKey, Array[Byte]] = HMACKey$$.is
-  }
-
-  private[tsec] val SodiumHS256$$ : TaggedByteArray = new TaggedByteArray {
-    type I = Array[Byte]
-    val is = Is.refl[I]
-  }
-
-  type SodiumHS256 = SodiumHS256$$.I
-
-  object SodiumHS256 {
-    def apply(bytes: Array[Byte]): SodiumHS256 = is.flip.coerce(bytes)
-    def is: Is[SodiumHS256, Array[Byte]]       = SodiumHS256$$.is
-
-    val DefaultKeyLen = ScalaSodium.crypto_auth_hmacsha256_KEYBYTES
-
-    val DefaultHashLen = ScalaSodium.crypto_auth_hmacsha256_BYTES
-
-    def generateKey[F[_]](implicit F: Sync[F], S: ScalaSodium): F[HMACKey] = F.delay {
-      HMACKey(ScalaSodium.randomBytesUnsafe(DefaultKeyLen))
-    }
-
-    def sign[F[_]](in: Array[Byte], key: HMACKey)(implicit F: Sync[F], S: ScalaSodium): F[SodiumHS256] = F.delay {
-      val out = new Array[Byte](DefaultHashLen)
-      S.crypto_auth_hmacsha256(out, in, in.length, key)
-      SodiumHS256(out)
-    }
-
-    def verify[F[_]](in: Array[Byte], hashed: SodiumHS256, key: HMACKey)(
-        implicit F: Sync[F],
-        S: ScalaSodium
-    ): F[Boolean] = F.delay {
-      S.crypto_auth_hmacsha256_verify(hashed, in, in.length, key) == 0
-    }
-
-  }
-
 }

@@ -17,13 +17,7 @@ package object cipher {
     @inline def is: Is[PlainText, Array[Byte]] = Plaintext$$.is
   }
 
-  /** Parametrically polymorphic existential over crypto keys
-    *
-    */
-  sealed trait LiftedByteArray {
-    type AuthRepr[A] <: Array[Byte]
-    def is[G]: Is[Array[Byte], AuthRepr[G]]
-  }
+
 
   private[tsec] val SodiumKey$$ : LiftedByteArray = new LiftedByteArray {
     type AuthRepr[A] = Array[Byte]
