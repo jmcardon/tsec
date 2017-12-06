@@ -40,4 +40,32 @@ class GenericHash extends SodiumSpec {
   hashTest(SodiumSHA256)
   hashTest(SodiumSHA512)
 
+  behavior of "Blake2b-specific functions"
+
+  it should "hash properly for a particular key" in {
+    forAll { (s: String) =>
+      val program = for {
+        k  <- Blake2b.generateKey[IO]
+        h1 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k)
+        h2 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k)
+      } yield (h1, h2)
+
+      val (h1, h2) = program.unsafeRunSync()
+      h1.toHexString mustBe h2.toHexString
+    }
+  }
+
+  it should "not authenticate for an incorrect key" in {
+    forAll { (s: String) =>
+      val program = for {
+        k1 <- Blake2b.generateKey[IO]
+        k2 <- Blake2b.generateKey[IO]
+        h1 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k1)
+        h2 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k2)
+      } yield ByteUtils.constantTimeEquals(h1, h2)
+
+      program.unsafeRunSync() mustBe false
+    }
+  }
+
 }
