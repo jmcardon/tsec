@@ -7,6 +7,8 @@ trait SodiumHash[A] {
 
   val hashLen: Int
 
+  val algorithm: String
+
   def stateSize(implicit S: ScalaSodium): Int
 
   def sodiumHash(in: Array[Byte], out: Array[Byte])(implicit S: ScalaSodium): Int

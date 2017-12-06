@@ -16,6 +16,8 @@ object Blake2b extends SodiumHashPlatform[Blake2b] {
   val MinHashLen = ScalaSodium.crypto_generichash_blake2b_BYTES_MIN
   val MaxHashLen = ScalaSodium.crypto_generichash_blake2b_BYTES_MAX
 
+  val algorithm: String = "Blake2b"
+
   /** Duplicate of values **/
   val hashLen: Int = ScalaSodium.crypto_generichash_blake2b_BYTES
 
