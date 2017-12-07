@@ -75,7 +75,7 @@ class SodiumCipherTest extends SodiumSpec {
     }
   }
 
-  testSecretBoxCipher(XSalsa20Poly1305)
+  testSecretBoxCipher(CryptoSecretBox)
   testSecretBoxCipher(XChacha20Poly1305)
 
 }

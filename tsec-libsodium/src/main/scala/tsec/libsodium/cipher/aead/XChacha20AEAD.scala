@@ -45,7 +45,7 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
       ct.content.length,
       NullPtrBytes,
       0,
-      ct.iv,
+      ct.nonce,
       key
     )
 
@@ -82,7 +82,7 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
       ct.content.length,
       aad,
       aad.length,
-      ct.iv,
+      ct.nonce,
       key
     )
 
@@ -122,7 +122,7 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
       tagIn,
       aad,
       aad.length,
-      ct.iv,
+      ct.nonce,
       key
     )
 

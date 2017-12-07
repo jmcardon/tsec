@@ -40,7 +40,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       ct: SodiumCipherText[XChacha20Poly1305],
       key: SodiumKey[XChacha20Poly1305]
   )(implicit S: ScalaSodium): Int =
-    S.crypto_secretbox_xchacha20poly1305_open_easy(origOut, ct.content, ct.content.length, ct.iv, key)
+    S.crypto_secretbox_xchacha20poly1305_open_easy(origOut, ct.content, ct.content.length, ct.nonce, key)
 
   @inline private[tsec] def sodiumEncryptDetached(
       cout: Array[Byte],
@@ -57,7 +57,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       tagIn: AuthTag[XChacha20Poly1305],
       key: SodiumKey[XChacha20Poly1305]
   )(implicit S: ScalaSodium): Int =
-    S.crypto_secretbox_xchacha20poly1305_open_detached(origOut, ct.content, tagIn, ct.content.length, ct.iv, key)
+    S.crypto_secretbox_xchacha20poly1305_open_detached(origOut, ct.content, tagIn, ct.content.length, ct.nonce, key)
 
   def decryptionPipe[F[_]](
       header: CryptoStreamHeader,
@@ -191,7 +191,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
           .eval(encryptSodiumStream(inArray, state))
           .flatMap(ct => Pull.output(Chunk.bytes(ct)) *> encryptPull[F](chunkSize, c, str, state))
       case None =>
-        val inArray = lastChunk.toChunk.toBytes.values
+        val inArray = lastChunk.toArray
         Pull
           .eval(encryptStreamFinal(inArray, state))
           .flatMap(ct => Pull.output(Chunk.bytes(ct)) *> Pull.done)

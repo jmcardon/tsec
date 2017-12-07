@@ -1183,7 +1183,8 @@ object ScalaSodium
     with CryptoAEADConstants
     with OriginalChacha20Poly1305Constants
     with Chacha20Poly1305IETFConstants
-    with XChacha20Poly1305IETFConstants {
+    with XChacha20Poly1305IETFConstants
+    with PKCryptoConstants {
 
   /** This is primarily for methods
     * which take an `unsigned long long*` or

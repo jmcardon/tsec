@@ -41,7 +41,7 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
     ct.content.length,
     NullPtrBytes,
     0,
-    ct.iv,
+    ct.nonce,
     key
   )
 
@@ -78,7 +78,7 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
       ct.content.length,
       aad,
       aad.length,
-      ct.iv,
+      ct.nonce,
       key
     )
 
@@ -118,7 +118,7 @@ object AES256GCM extends SodiumAEADPlatform[AES256GCM] {
       tagIn,
       aad,
       aad.length,
-      ct.iv,
+      ct.nonce,
       key
     )
 
