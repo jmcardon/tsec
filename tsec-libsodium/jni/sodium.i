@@ -892,6 +892,27 @@ int crypto_aead_xchacha20poly1305_ietf_decrypt_detached(unsigned char *m,
                                                         const unsigned char *npub,
                                                         const unsigned char *k);
 
+/*
+ Todo: Implement (Jose)
+*/
+int crypto_kx_seed_keypair(unsigned char pk[crypto_kx_PUBLICKEYBYTES],
+                           unsigned char sk[crypto_kx_SECRETKEYBYTES],
+                           const unsigned char seed[crypto_kx_SEEDBYTES]);
+
+int crypto_kx_keypair(unsigned char pk[crypto_kx_PUBLICKEYBYTES],
+                      unsigned char sk[crypto_kx_SECRETKEYBYTES]);
+
+int crypto_kx_client_session_keys(unsigned char rx[crypto_kx_SESSIONKEYBYTES],
+                                  unsigned char tx[crypto_kx_SESSIONKEYBYTES],
+                                  const unsigned char client_pk[crypto_kx_PUBLICKEYBYTES],
+                                  const unsigned char client_sk[crypto_kx_SECRETKEYBYTES],
+                                  const unsigned char server_pk[crypto_kx_PUBLICKEYBYTES]);
+
+int crypto_kx_server_session_keys(unsigned char rx[crypto_kx_SESSIONKEYBYTES],
+                                  unsigned char tx[crypto_kx_SESSIONKEYBYTES],
+                                  const unsigned char server_pk[crypto_kx_PUBLICKEYBYTES],
+                                  const unsigned char server_sk[crypto_kx_SECRETKEYBYTES],
+                                  const unsigned char client_pk[crypto_kx_PUBLICKEYBYTES]);
 
 
 /*
