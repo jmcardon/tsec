@@ -15,7 +15,7 @@ object Dependencies {
     val http4sV       = "0.18.0-M5"
     val scalacheckV   = "1.13.4"
     val commonsCodecV = "1.11"
-    val fs2Version    = "0.10.0-M8"
+    val fs2Version    = "0.10.0-M9"
   }
 
   object Libraries {

@@ -14,10 +14,8 @@ package object cipher {
 
   object PlainText {
     def apply[A](bytes: Array[Byte]): PlainText = is.flip.coerce(bytes)
-    @inline def is: Is[PlainText, Array[Byte]] = Plaintext$$.is
+    @inline def is: Is[PlainText, Array[Byte]]  = Plaintext$$.is
   }
-
-
 
   private[tsec] val SodiumKey$$ : HKByteArrayNewt = new HKByteArrayNewt {
     type Repr[A] = Array[Byte]
@@ -59,7 +57,7 @@ package object cipher {
     @inline def is: Is[SodiumAAD, Array[Byte]]  = AADLS$$.is
   }
 
-  private[tsec] val StreamHeader$$: TaggedByteArray = new TaggedByteArray {
+  private[tsec] val StreamHeader$$ : TaggedByteArray = new TaggedByteArray {
     type I = Array[Byte]
     val is = Is.refl[I]
   }
@@ -68,21 +66,18 @@ package object cipher {
 
   object CryptoStreamHeader {
     def apply[A](bytes: Array[Byte]): CryptoStreamHeader = is.flip.coerce(bytes)
-    @inline def is: Is[CryptoStreamHeader, Array[Byte]] = StreamHeader$$.is
+    @inline def is: Is[CryptoStreamHeader, Array[Byte]]  = StreamHeader$$.is
   }
 
-  private[tsec] val StreamState$$: TaggedByteArray = new TaggedByteArray {
+  private[tsec] val StreamState$$ : TaggedByteArray = new TaggedByteArray {
     type I = Array[Byte]
     val is = Is.refl[I]
   }
 
-  type CryptoStreamState = StreamState$$.I
+  private[tsec] type CryptoStreamState = StreamState$$.I
 
   object CryptoStreamState {
     def apply[A](bytes: Array[Byte]): CryptoStreamState = is.flip.coerce(bytes)
-    @inline def is: Is[CryptoStreamState, Array[Byte]] = StreamState$$.is
+    @inline def is: Is[CryptoStreamState, Array[Byte]]  = StreamState$$.is
   }
-
-  case class CryptoStreamST(state: CryptoStreamState, header: CryptoStreamHeader)
-
 }

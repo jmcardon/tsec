@@ -85,7 +85,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
         case Some((chunk, stream)) =>
           decryptPull[F](chunkSize + ABytes, chunk, stream, streamState)
         case None =>
-          Pull.fail(SodiumCipherError.StreamDecryptError("Cannot Decrypt an empty stream")) //Todo: Better err type?
+          Pull.raiseError(SodiumCipherError.StreamDecryptError("Cannot Decrypt an empty stream")) //Todo: Better err type?
       }
       .stream
 
@@ -103,29 +103,29 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   )(implicit S: ScalaSodium): Pull[F, Byte, Unit] =
     stream.pull.unconsLimit(chunkSize).flatMap {
       case Some((seg, str)) =>
-        val cipherText = lastChunk.toArray
+        val cipherText = lastChunk.force.toArray
         if (cipherText.length < NonEmptyMinLen)
-          Pull.fail(GenericDecryptError)
+          Pull.raiseError(GenericDecryptError)
         else {
           Pull
-            .eval(decryptSodiumStream[F](cipherText,state))
+            .eval(decryptSodiumStream[F](cipherText, state))
             .flatMap { ct =>
-              Pull.output(Chunk.bytes(ct)) *> decryptPull[F](chunkSize, seg, str, state)
+              Pull.outputChunk(Chunk.bytes(ct)) >> decryptPull[F](chunkSize, seg, str, state)
             }
         }
       case None =>
-        val cipherText = lastChunk.toArray
+        val cipherText = lastChunk.force.toArray
         if (cipherText.length < NonEmptyMinLen)
-          Pull.fail(GenericDecryptError)
+          Pull.raiseError(GenericDecryptError)
         else {
           Pull
             .eval(decryptSodiumStreamWithTag[F](cipherText, state))
             .flatMap {
               case (ct, tag) =>
                 if (tag != CompletionTag)
-                  Pull.fail(GenericDecryptError)
+                  Pull.raiseError(GenericDecryptError)
                 else
-                  Pull.output(Chunk.bytes(ct)) *> Pull.done
+                  Pull.outputChunk(Chunk.bytes(ct)) >> Pull.done
             }
         }
     }
@@ -168,7 +168,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
         case Some((chunk, stream)) =>
           encryptPull[F](chunkSize, chunk, stream, streamState)
         case None =>
-          Pull.fail(SodiumCipherError.StreamEncryptError("Cannot Encrypt an empty stream"))
+          Pull.raiseError(SodiumCipherError.StreamEncryptError("Cannot Encrypt an empty stream"))
       }
       .stream
   }
@@ -186,15 +186,15 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   ): Pull[F, Byte, Unit] =
     stream.pull.unconsLimit(chunkSize).flatMap {
       case Some((c, str)) =>
-        val inArray = lastChunk.toArray
+        val inArray = lastChunk.force.toArray
         Pull
           .eval(encryptSodiumStream(inArray, state))
-          .flatMap(ct => Pull.output(Chunk.bytes(ct)) *> encryptPull[F](chunkSize, c, str, state))
+          .flatMap(ct => Pull.outputChunk(Chunk.bytes(ct)) >> encryptPull[F](chunkSize, c, str, state))
       case None =>
-        val inArray = lastChunk.toArray
+        val inArray = lastChunk.force.toArray
         Pull
           .eval(encryptStreamFinal(inArray, state))
-          .flatMap(ct => Pull.output(Chunk.bytes(ct)) *> Pull.done)
+          .flatMap(ct => Pull.outputChunk(Chunk.bytes(ct)) >> Pull.done)
     }
 
   /** Encrypt the in array using the crypto stream state **/
