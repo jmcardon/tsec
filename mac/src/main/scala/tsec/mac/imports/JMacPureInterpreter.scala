@@ -4,11 +4,11 @@ import javax.crypto.Mac
 
 import cats.effect.Sync
 import cats.syntax.all._
-import tsec.common.ByteEV
 import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
-import tsec.mac.core.MacAlgebra
 
-sealed protected[tsec] abstract class JMacPureInterpreter[F[_], A: ByteEV](tl: JQueue[Mac])(
+import tsec.mac.core.{MacAlgebra, MacTag}
+
+sealed protected[tsec] abstract class JMacPureInterpreter[F[_], A](tl: JQueue[Mac])(
     implicit F: Sync[F],
     macTag: MacTag[A]
 ) extends MacAlgebra[F, A, MacSigningKey] {
@@ -33,7 +33,7 @@ sealed protected[tsec] abstract class JMacPureInterpreter[F[_], A: ByteEV](tl: J
 }
 
 object JMacPureInterpreter {
-  def apply[F[_]: Sync, A: ByteEV](numInstances: Int = 10)(implicit tag: MacTag[A]) = {
+  def apply[F[_]: Sync, A](numInstances: Int = 10)(implicit tag: MacTag[A]) = {
     val queue = new JQueue[Mac]()
     var i     = 0
     while (i < numInstances) {
@@ -43,5 +43,5 @@ object JMacPureInterpreter {
     new JMacPureInterpreter[F, A](queue) {}
   }
 
-  implicit def gen[F[_]: Sync, A: ByteEV: MacTag]: JMacPureInterpreter[F, A] = apply[F, A]()
+  implicit def gen[F[_]: Sync, A: MacTag]: JMacPureInterpreter[F, A] = apply[F, A]()
 }

@@ -7,7 +7,7 @@ import cats.syntax.either._
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
 import tsec.common.ErrorConstruct._
-import tsec.signature.core.SigAlgoTag
+import tsec.signature.core.{ECKFTag, KFTag, RSAKFTag, SigAlgoTag}
 
 abstract class GeneralSignature[A](signature: String, keyFactoryRepr: String) extends SigAlgoTag[A] with KFTag[A] {
 

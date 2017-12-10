@@ -39,7 +39,7 @@ object SCryptUtil extends ManagedRandom {
     * @param   hashed scrypt hashed password.
     * @return true if passwd matches hashed value.
     */
-  def check(passwd: String, hashed: String): Boolean = {
+  def check(passwd: Array[Byte], hashed: String): Boolean = {
     val parts = hashed.split("\\$")
     if (parts.length != 5 || !(parts(1) == "s0")) return false
     val params   = java.lang.Long.parseLong(parts(2), 16)
@@ -48,7 +48,7 @@ object SCryptUtil extends ManagedRandom {
     val N        = Math.pow(2, params >> 16 & 0xffff).toInt
     val r        = params.toInt >> 8 & 0xff
     val p        = params.toInt & 0xff
-    Either.catchNonFatal(JSCrypt.scrypt(passwd.getBytes("UTF-8"), salt, N, r, p, 32)) match {
+    Either.catchNonFatal(JSCrypt.scrypt(passwd, salt, N, r, p, 32)) match {
       case Left(_) => false
       case Right(derived1) =>
         ByteUtils.constantTimeEquals(derived0, derived1)
@@ -91,11 +91,11 @@ object SCryptUtil extends ManagedRandom {
     * @param p      Parallelization parameter.
     * @return The hashed password.
     */
-  def scrypt(passwd: String, N: Int, r: Int, p: Int): String = {
+  def scrypt(passwd: Array[Byte], N: Int, r: Int, p: Int): String = {
     val salt = new Array[Byte](16)
 
     nextBytes(salt)
-    val derived = JSCrypt.scrypt(passwd.getBytes("UTF-8"), salt, N, r, p, DerivedKeyLen)
+    val derived = JSCrypt.scrypt(passwd, salt, N, r, p, DerivedKeyLen)
     val params  = java.lang.Long.toString(log2(N) << 16L | r << 8 | p, 16)
 
     val sb = new java.lang.StringBuilder((salt.length + derived.length) * 2)

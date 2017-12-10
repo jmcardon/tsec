@@ -1,18 +1,15 @@
 package tsec
 
-import java.security.SecureRandom
-import java.util.concurrent.atomic.LongAdder
-
 import cats.data.OptionT
 import cats.evidence.Is
 import org.bouncycastle.util.encoders.Hex
 import org.http4s.{Request, Response}
 import org.http4s.server.Middleware
-import tsec.common.{ManagedRandom, TaggedString}
+import tsec.common.{ManagedRandom, StringNewt}
 
 package object csrf {
 
-  protected val CSRFToken$$ : TaggedString = new TaggedString {
+  protected val CSRFToken$$ : StringNewt = new StringNewt {
     type I = String
     val is: Is[I, String] = Is.refl[I]
   }

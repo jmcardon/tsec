@@ -4,7 +4,7 @@ import javax.crypto.Mac
 
 import cats.syntax.either._
 import tsec.common.ErrorConstruct._
-import tsec.mac.core.MacAlgebra
+import tsec.mac.core.{MacAlgebra, MacTag}
 
 /** JCA mac interpreter
   *

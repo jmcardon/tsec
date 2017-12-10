@@ -56,8 +56,7 @@ lazy val benchSettings = Seq(
 )
 
 lazy val passwordHasherLibs = libraryDependencies ++= Seq(
-  Libraries.sCrypt,
-  Libraries.jBCrypt
+  Libraries.sCrypt
 )
 
 lazy val signatureLibs = libraryDependencies += Libraries.BC

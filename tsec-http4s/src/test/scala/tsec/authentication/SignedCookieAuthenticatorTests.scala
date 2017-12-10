@@ -6,9 +6,8 @@ import java.util.UUID
 import cats.data.OptionT
 import cats.effect.IO
 import tsec.mac.imports._
-
 import org.http4s.{HttpDate, Request}
-import tsec.common.ByteEV
+import tsec.mac.core.MacTag
 
 import scala.concurrent.duration._
 
@@ -17,7 +16,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
   private val cookieName                     = "hi"
   implicit def cookiebackingStore[A: MacTag] = dummyBackingStore[IO, UUID, AuthenticatedCookie[A, Int]](_.id)
 
-  def genAuthenticator[A: MacTag: ByteEV](
+  def genAuthenticator[A: MacTag](
       implicit keyGenerator: MacKeyGenerator[A],
       store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
   ): AuthSpecTester[AuthenticatedCookie[A, Int]] = {
@@ -55,10 +54,10 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
     }
   }
 
-  def CookieAuthTest[A: MacTag: ByteEV](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
+  def CookieAuthTest[A: MacTag](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
     AuthenticatorTest[AuthenticatedCookie[A, Int]](string, auth)
 
-  def CookieReqTest[A: MacTag: ByteEV](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
+  def CookieReqTest[A: MacTag](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
     requestAuthTests[AuthenticatedCookie[A, Int]](string, auth)
 
   CookieAuthTest[HMACSHA1]("HMACSHA1 Authenticator", genAuthenticator[HMACSHA1])

@@ -5,8 +5,7 @@ import java.time.Clock
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
-import tsec.common.ByteEV
-import tsec.mac.imports.{JCAMacPure, MacTag}
+import tsec.mac.imports.JCAMacPure
 import tsec.common._
 import tsec.mac._
 import tsec.mac.imports._
@@ -14,6 +13,7 @@ import cats.syntax.all._
 import org.http4s.{Cookie, HttpService, Request, Response, Status}
 import org.http4s.util.CaseInsensitiveString
 import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
+import tsec.mac.core.MacTag
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
@@ -45,7 +45,7 @@ import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
   * @param key the CSRF signing key
   * @param clock clock used as a nonce
   */
-final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
+final class TSecCSRF[F[_], A: MacTag] private[tsec] (
     key: MacSigningKey[A],
     val headerName: String,
     val cookieName: String,
@@ -61,7 +61,7 @@ final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
       millis <- F.delay(clock.millis())
       joined = string + "-" + millis
       signed <- mac.sign(joined.utf8Bytes, key)
-    } yield CSRFToken(joined + "-" + signed.asByteArray.toB64String)
+    } yield CSRFToken(joined + "-" + signed.toB64String)
 
   def generateToken: F[CSRFToken] =
     signToken(CSRFToken.generateHexBase(tokenLength))
@@ -76,7 +76,7 @@ final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
           mac
             .sign((raw + "-" + nonce).utf8Bytes, key)
             .map(
-              f => if (MessageDigest.isEqual(f.asByteArray, signed.base64Bytes)) Some(raw) else None
+              f => if (MessageDigest.isEqual(f, signed.base64Bytes)) Some(raw) else None
             )
         )
       case _ =>
@@ -135,7 +135,7 @@ final class TSecCSRF[F[_], A: MacTag: ByteEV] private[tsec] (
 }
 
 object TSecCSRF {
-  def apply[F[_]: Sync, A: MacTag: ByteEV](
+  def apply[F[_]: Sync, A: MacTag](
       key: MacSigningKey[A],
       headerName: String = "X-TSec-Csrf",
       cookieName: String = "tsec-csrf",

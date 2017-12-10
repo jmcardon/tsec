@@ -1,6 +1,8 @@
 package tsec
 
 import java.nio.charset.{Charset, StandardCharsets}
+
+import tsec.messagedigests.core.CryptoHash
 import tsec.messagedigests.imports.JHasher
 
 package object messagedigests {
@@ -32,7 +34,6 @@ package object messagedigests {
     def getCharset: Charset = StandardCharsets.ISO_8859_1
   }
 
-  final case class DigestLift(list: List[Array[Byte]])      extends AnyVal
   final case class CryptoPickler[T](pickle: BytePickler[T]) extends AnyVal
 
   object CryptoPickler {
@@ -45,12 +46,12 @@ package object messagedigests {
     * @tparam T
     */
   class DigestOps[T](val c: T) extends AnyVal {
-    def pickleAndHash[K](implicit jHasher: JHasher[K], pickler: CryptoPickler[T]): K = jHasher.hash(c)
+    def pickleAndHash[K](implicit jHasher: JHasher[K], pickler: CryptoPickler[T]): CryptoHash[K] = jHasher.hash(c)
   }
 
   /** Our syntactic sugar for hashing arrays */
   class ArrayDigestOps(val arr: Array[Byte]) extends AnyVal {
-    def hash[K](implicit jHasher: JHasher[K]): K                  = jHasher.hashBytes(arr)
+    def hash[K](implicit jHasher: JHasher[K]): CryptoHash[K] = jHasher.hashBytes(arr)
     def hashToArray[K](implicit jHasher: JHasher[K]): Array[Byte] = jHasher.hashToByteArray(arr)
   }
 

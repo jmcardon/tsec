@@ -13,7 +13,7 @@ trait ManagedRandom {
     * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
     * Random may block on linux machiens
     */
-  private var cachedRand: SecureRandom = {
+  private[tsec] var cachedRand: SecureRandom = {
     val r = new SecureRandom()
     r.nextBytes(new Array[Byte](20))
     r
@@ -30,6 +30,12 @@ trait ManagedRandom {
     val tmpRand = new SecureRandom()
     tmpRand.nextBytes(new Array[Byte](20))
     cachedRand = tmpRand
+  }
+
+  private[tsec] def forceIncrement: Unit = {
+    adder.increment()
+    if (adder.sum() == MaxBeforeReseed)
+      reSeed()
   }
 
   def nextBytes(bytes: Array[Byte]): Unit = {

@@ -9,10 +9,9 @@ object Dependencies {
     val catsEffV      = "0.5"
     val thymeV        = "0.1.2-SNAPSHOT"
     val bouncyCastleV = "1.52"
-    val jBCryptV      = "0.4.1"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.4"
-    val http4sV       = "0.18.0-M5"
+    val http4sV       = "0.18.0-M6"
     val scalacheckV   = "1.13.4"
     val commonsCodecV = "1.11"
   }
@@ -20,7 +19,6 @@ object Dependencies {
   object Libraries {
     val cats               = "org.typelevel"      %% "cats-core"            % Versions.catsV
     val catsEffect         = "org.typelevel"      %% "cats-effect"          % Versions.catsEffV
-    val jBCrypt            = "de.svenkubiak"      % "jBCrypt"               % Versions.jBCryptV
     val sCrypt             = "com.lambdaworks"    % "scrypt"                % Versions.sCryptV
     val scalaTest          = "org.scalatest"      %% "scalatest"            % Versions.scalaTestV % "test"
     val BC                 = "org.bouncycastle"   % "bcprov-jdk15on"        % Versions.bouncyCastleV

@@ -9,6 +9,7 @@ import tsec.jwt.algorithms._
 import tsec.jwt.header._
 import tsec.common._
 import tsec.jws.header.JWSHeader
+import tsec.messagedigests.core.CryptoHash
 import tsec.messagedigests.imports._
 
 case class JWSSignedHeader[A](
@@ -19,8 +20,8 @@ case class JWSSignedHeader[A](
     jwk: Option[String] = None, //JWK
     kid: Option[String] = None, //JWK key hint
     x5u: Option[String] = None, //The "x5c" (X.509 certificate chain) Header Parameter
-    x5t: Option[SHA1] = None, //sha1 hash
-    `x5t#S256`: Option[SHA256] = None //sha256 hash
+    x5t: Option[CryptoHash[SHA1]] = None, //sha1 hash
+    `x5t#S256`: Option[CryptoHash[SHA256]] = None //sha256 hash
 )(implicit val algorithm: JWTSigAlgo[A])
     extends JWSHeader[A]
 
@@ -67,8 +68,8 @@ object JWSSignedHeader {
                   jwk = jwk,
                   kid = kid,
                   x5u = x5u,
-                  x5t = x5t.map(h => h.base64Bytes.toRepr[SHA1]),
-                  `x5t#S256` = x5t256.map(h => h.base64Bytes.toRepr[SHA256])
+                  x5t = x5t.map(h => CryptoHash[SHA1](h.base64Bytes)),
+                  `x5t#S256` = x5t256.map(h => CryptoHash[SHA256](h.base64Bytes))
                 ) {}
             case None =>
               Left(DecodingFailure("No algorithm found", Nil))
