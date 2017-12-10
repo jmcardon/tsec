@@ -12,7 +12,7 @@ object Dependencies {
     val jBCryptV      = "0.4.1"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.4"
-    val http4sV       = "0.18.0-M5"
+    val http4sV       = "0.18.0-M6"
     val scalacheckV   = "1.13.4"
     val commonsCodecV = "1.11"
   }
