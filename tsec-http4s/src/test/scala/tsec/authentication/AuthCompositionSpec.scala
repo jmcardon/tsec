@@ -8,7 +8,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers.{Authorization => H4SA}
 import tsec.common.SecureRandomId
-import tsec.jws.mac.JWTMacM
+import tsec.jws.mac.JWTMac
 import tsec.mac.imports.HMACSHA256
 
 import scala.concurrent.duration._
@@ -63,7 +63,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
       _       <- OptionT.liftF(dummyStore.put(DummyUser(1)))
       created <- jwtAuthenticator.create(1)
       r <- folded.run(
-        Request[IO]().putHeaders(Header(jwtSettings.headerName, JWTMacM.toEncodedString[IO, HMACSHA256](created.jwt)))
+        Request[IO]().putHeaders(Header(jwtSettings.headerName, JWTMac.toEncodedString[IO, HMACSHA256](created.jwt)))
       )
     } yield r
 

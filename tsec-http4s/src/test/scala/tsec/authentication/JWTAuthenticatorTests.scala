@@ -5,7 +5,7 @@ import org.http4s.{AuthScheme, Credentials}
 import org.http4s.headers.Authorization
 import org.scalatest.prop.PropertyChecks
 import tsec.cipher.symmetric.imports._
-import tsec.jws.mac.{JWSMacCV, JWTMac, JWTMacM}
+import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.core.MacTag
@@ -160,7 +160,7 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
           forAll { (testSubject: String) =>
             val token = "Bearer "
 
-            val (rawToken, parsed) = JWTMacM
+            val (rawToken, parsed) = JWTMac
               .buildToString(JWTClaims(subject = Some(testSubject)), key)
               .map(s => (s, Authorization.parse(token + s)))
               .unsafeRunSync()

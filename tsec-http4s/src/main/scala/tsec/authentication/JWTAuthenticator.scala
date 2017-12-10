@@ -101,7 +101,7 @@ object JWTAuthenticator {
         * @return
         */
       private def verifyWithRaw(raw: String, retrieved: AugmentedJWT[A, I], now: Instant) =
-        JWTMacM.toEncodedString(retrieved.jwt) === raw && !maxIdle.exists(
+        JWTMac.toEncodedString(retrieved.jwt) === raw && !maxIdle.exists(
           retrieved.isTimedout(now, _)
         ) && !retrieved.isTimedout(now, expiry)
 
@@ -138,7 +138,7 @@ object JWTAuthenticator {
             jwtId = cookieId,
             expiration = Some(expiry.getEpochSecond)
           )
-          signed  <- JWTMacM.build[F, A](claims, signingKey)
+          signed  <- JWTMac.build[F, A](claims, signingKey)
           created <- tokenStore.put(AugmentedJWT(cookieId, signed, body, expiry, lastTouched))
         } yield created)
 
@@ -156,13 +156,13 @@ object JWTAuthenticator {
             maxIdle match {
               case Some(idleTime) =>
                 for {
-                  reSigned <- JWTMacM.build(newBody, signingKey)
+                  reSigned <- JWTMac.build(newBody, signingKey)
                   updated <- tokenStore
                     .update(authenticator.copy(jwt = reSigned, expiry = updatedExpiry, lastTouched = Some(now)))
                 } yield updated
               case None =>
                 for {
-                  reSigned <- JWTMacM.build(newBody, signingKey)
+                  reSigned <- JWTMac.build(newBody, signingKey)
                   updated  <- tokenStore.update(authenticator.copy(jwt = reSigned, expiry = updatedExpiry))
                 } yield updated
             }
@@ -184,7 +184,7 @@ object JWTAuthenticator {
 
       def embed(response: Response[F], authenticator: AugmentedJWT[A, I]): Response[F] =
         response.putHeaders(
-          buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt))
+          buildBearerAuthHeader(JWTMac.toEncodedString(authenticator.jwt))
         )
 
       def afterBlock(response: Response[F], authenticator: AugmentedJWT[A, I]): OptionT[F, Response[F]] =
@@ -192,7 +192,7 @@ object JWTAuthenticator {
           case Some(_) =>
             OptionT.pure[F](
               response.putHeaders(
-                buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt))
+                buildBearerAuthHeader(JWTMac.toEncodedString(authenticator.jwt))
               )
             )
           case None =>
@@ -235,7 +235,7 @@ object JWTAuthenticator {
         * @return
         */
       private def verifyWithRaw(raw: String, retrieved: AugmentedJWT[A, I], now: Instant) =
-        JWTMacM.toEncodedString(retrieved.jwt) === raw && !maxIdle.exists(
+        JWTMac.toEncodedString(retrieved.jwt) === raw && !maxIdle.exists(
           retrieved.isTimedout(now, _)
         ) && !retrieved.isTimedout(now, expiry)
 
@@ -271,7 +271,7 @@ object JWTAuthenticator {
             jwtId = cookieId,
             expiration = Some(expiry.getEpochSecond)
           )
-          signed  <- JWTMacM.build[F, A](claims, signingKey)
+          signed  <- JWTMac.build[F, A](claims, signingKey)
           created <- tokenStore.put(AugmentedJWT(cookieId, signed, body, expiry, lastTouched))
         } yield created)
 
@@ -289,13 +289,13 @@ object JWTAuthenticator {
             settings.maxIdle match {
               case Some(idleTime) =>
                 for {
-                  reSigned <- JWTMacM.build(newBody, signingKey)
+                  reSigned <- JWTMac.build(newBody, signingKey)
                   updated <- tokenStore
                     .update(authenticator.copy(jwt = reSigned, expiry = updatedExpiry, lastTouched = Some(now)))
                 } yield updated
               case None =>
                 for {
-                  reSigned <- JWTMacM.build(newBody, signingKey)
+                  reSigned <- JWTMac.build(newBody, signingKey)
                   updated  <- tokenStore.update(authenticator.copy(jwt = reSigned, expiry = updatedExpiry))
                 } yield updated
             }
@@ -316,7 +316,7 @@ object JWTAuthenticator {
 
       def embed(response: Response[F], authenticator: AugmentedJWT[A, I]): Response[F] =
         response.putHeaders(
-          Header(settings.headerName, JWTMacM.toEncodedString(authenticator.jwt))
+          Header(settings.headerName, JWTMac.toEncodedString(authenticator.jwt))
         )
 
       def afterBlock(response: Response[F], authenticator: AugmentedJWT[A, I]): OptionT[F, Response[F]] =
@@ -324,7 +324,7 @@ object JWTAuthenticator {
           case Some(_) =>
             OptionT.pure[F](
               response.putHeaders(
-                Header(settings.headerName, JWTMacM.toEncodedString(authenticator.jwt))
+                Header(settings.headerName, JWTMac.toEncodedString(authenticator.jwt))
               )
             )
           case None =>
@@ -414,7 +414,7 @@ object JWTAuthenticator {
             jwtId = cookieId,
             expiration = Some(expiryTime.getEpochSecond),
           )
-          out <- JWTMacM.build[F, A](claims, signingKey)
+          out <- JWTMac.build[F, A](claims, signingKey)
         } yield AugmentedJWT(cookieId, out, body, expiryTime, lastTouched))
 
       def update(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] =
@@ -425,7 +425,7 @@ object JWTAuthenticator {
         OptionT
           .liftF(for {
             now <- F.delay(Instant.now)
-            jwt <- JWTMacM.build(
+            jwt <- JWTMac.build(
               authenticator.jwt.body.copy(
                 expiration = Some(now.getEpochSecond),
                 custom = None,
@@ -442,7 +442,7 @@ object JWTAuthenticator {
             now <- F.delay(Instant.now())
             updatedExpiry = now.plusSeconds(expiry.toSeconds)
             authBody      = authenticator.jwt.body
-            jwt <- JWTMacM.build(
+            jwt <- JWTMac.build(
               authBody.copy(issuedAt = Some(now.getEpochSecond), expiration = Some(updatedExpiry.getEpochSecond)),
               signingKey
             )
@@ -460,7 +460,7 @@ object JWTAuthenticator {
           OptionT
             .liftF(for {
               now      <- F.delay(Instant.now())
-              newToken <- JWTMacM.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
+              newToken <- JWTMac.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
             } yield authenticator.copy(jwt = newToken, lastTouched = Some(now)))
             .handleErrorWith(_ => OptionT.none)
         case None =>
@@ -468,13 +468,13 @@ object JWTAuthenticator {
       }
 
       def embed(response: Response[F], authenticator: AugmentedJWT[A, I]): Response[F] =
-        response.putHeaders(buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt)))
+        response.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString(authenticator.jwt)))
 
       def afterBlock(response: Response[F], authenticator: AugmentedJWT[A, I]): OptionT[F, Response[F]] =
         maxIdle match {
           case Some(_) =>
             OptionT.pure[F](
-              response.putHeaders(buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt)))
+              response.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString(authenticator.jwt)))
             )
           case None =>
             OptionT.pure[F](response)
@@ -602,7 +602,7 @@ object JWTAuthenticator {
             jwtId = cookieId,
             expiration = Some(expiry.getEpochSecond),
           )
-          jwt <- JWTMacM.build[F, A](claims, signingKey)
+          jwt <- JWTMac.build[F, A](claims, signingKey)
         } yield AugmentedJWT(cookieId, jwt, body, expiry, lastTouched))
 
       def update(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] =
@@ -612,7 +612,7 @@ object JWTAuthenticator {
       def discard(authenticator: AugmentedJWT[A, I]): OptionT[F, AugmentedJWT[A, I]] =
         OptionT.liftF(for {
           now <- F.delay(Instant.now())
-          jwt <- JWTMacM.build(
+          jwt <- JWTMac.build(
             authenticator.jwt.body.copy(
               expiration = Some(now.getEpochSecond),
               custom = None,
@@ -628,7 +628,7 @@ object JWTAuthenticator {
             val updatedExpiry = now.plusSeconds(expiryDuration.toSeconds)
             maxIdle match {
               case Some(_) =>
-                JWTMacM
+                JWTMac
                   .build(
                     authenticator.jwt.body
                       .copy(expiration = Some(updatedExpiry.getEpochSecond), issuedAt = Some(now.getEpochSecond)),
@@ -636,7 +636,7 @@ object JWTAuthenticator {
                   )
                   .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, Some(now)))
               case None =>
-                JWTMacM
+                JWTMac
                   .build(authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond)), signingKey)
                   .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, None))
             }
@@ -647,7 +647,7 @@ object JWTAuthenticator {
         case Some(_) =>
           OptionT.liftF(for {
             now <- F.delay(Instant.now())
-            jwt <- JWTMacM.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
+            jwt <- JWTMac.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
           } yield authenticator.copy(jwt = jwt, lastTouched = Some(now)))
 
         case None =>
@@ -655,14 +655,14 @@ object JWTAuthenticator {
       }
 
       def embed(response: Response[F], authenticator: AugmentedJWT[A, I]): Response[F] =
-        response.putHeaders(buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt)))
+        response.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString(authenticator.jwt)))
 
       def afterBlock(response: Response[F], authenticator: AugmentedJWT[A, I]): OptionT[F, Response[F]] =
         maxIdle match {
           case Some(_) =>
             OptionT.pure[F](
               response.putHeaders(
-                buildBearerAuthHeader(JWTMacM.toEncodedString(authenticator.jwt))
+                buildBearerAuthHeader(JWTMac.toEncodedString(authenticator.jwt))
               )
             )
           case None =>
@@ -768,7 +768,7 @@ object JWTAuthenticator {
             jwtId = cookieId,
             expiration = Some(expiry.getEpochSecond),
           )
-          newToken <- JWTMacM.build[F, A](claims, signingKey)
+          newToken <- JWTMac.build[F, A](claims, signingKey)
 
         } yield AugmentedJWT(cookieId, newToken, body, expiry, lastTouched))
 
@@ -781,7 +781,7 @@ object JWTAuthenticator {
         OptionT
           .liftF(for {
             now <- F.delay(Instant.now())
-            jwt <- JWTMacM.build(
+            jwt <- JWTMac.build(
               authenticator.jwt.body.copy(
                 subject = None,
                 expiration = Some(now.getEpochSecond),
@@ -798,7 +798,7 @@ object JWTAuthenticator {
             val updatedExpiry = now.plusSeconds(settings.expiryDuration.toSeconds)
             settings.maxIdle match {
               case Some(idleTime) =>
-                JWTMacM
+                JWTMac
                   .build(
                     authenticator.jwt.body
                       .copy(expiration = Some(updatedExpiry.getEpochSecond), issuedAt = Some(now.getEpochSecond)),
@@ -806,7 +806,7 @@ object JWTAuthenticator {
                   )
                   .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, Some(now)))
               case None =>
-                JWTMacM
+                JWTMac
                   .build(authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond)), signingKey)
                   .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, None))
             }
@@ -818,7 +818,7 @@ object JWTAuthenticator {
           OptionT
             .liftF(for {
               now      <- F.delay(Instant.now())
-              newToken <- JWTMacM.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
+              newToken <- JWTMac.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
             } yield authenticator.copy(jwt = newToken, lastTouched = Some(now)))
             .handleErrorWith(_ => OptionT.none)
         case None =>
@@ -826,13 +826,13 @@ object JWTAuthenticator {
       }
 
       def embed(response: Response[F], authenticator: AugmentedJWT[A, I]): Response[F] =
-        response.putHeaders(Header(settings.headerName, JWTMacM.toEncodedString(authenticator.jwt)))
+        response.putHeaders(Header(settings.headerName, JWTMac.toEncodedString(authenticator.jwt)))
 
       def afterBlock(response: Response[F], authenticator: AugmentedJWT[A, I]): OptionT[F, Response[F]] =
         settings.maxIdle match {
           case Some(_) =>
             OptionT.pure[F](
-              response.putHeaders(Header(settings.headerName, JWTMacM.toEncodedString(authenticator.jwt)))
+              response.putHeaders(Header(settings.headerName, JWTMac.toEncodedString(authenticator.jwt)))
             )
           case None =>
             OptionT.pure[F](response)
