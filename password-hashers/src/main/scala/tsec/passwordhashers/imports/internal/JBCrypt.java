@@ -1,22 +1,30 @@
-package tsec.passwordhashers.imports;
+package tsec.passwordhashers.imports.internal;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 
 /**
  * An implementation of JBCrypt meant to be used with tsec,
- * a subset of the code from org.mindrot.BCrypt
+ * a subset of the code from org.mindrot.BCrypt,
+ * from original author Damien Miller <djm@mindrot.org>
  *
- * We use this implementation with the precondition that
- * a user will use it only through tsec
+ * We use this implementation with the presumed assumption that
+ * a user will use it _only_ through tsec. Thus it only
+ * accepts one form of salt (The one generated through here),
+ * and it does not expose a genSalt that doesn't
+ * pass a SecureRandom (for speed). If you decide
+ * to use it directly, note that you should pass a
+ * SecureRandom() yourself directly, and that it does not accept
+ * strings. This is for security purposes.
  *
- * There are _NO_ guarantees whatsoever on what may happen
- * if a user attempts to use this outside of tsec.
+ *
+ * Again, this is not meant to be used outside of tsec,
+ * and it does _not_ support ARM which may have a different encoding
+ * for the u\0000 char.
  *
  */
 public class JBCrypt {
     // BCrypt parameters
-    private static final int GENSALT_DEFAULT_LOG2_ROUNDS = 10;
     private static final int BCRYPT_SALT_LEN = 16;
 
     // Blowfish parameters
@@ -338,7 +346,7 @@ public class JBCrypt {
      * @return	base64-encoded string
      * @exception IllegalArgumentException if the length is invalid
      */
-    public static String encode_base64(byte d[], int len)
+    private static String encode_base64(byte d[], int len)
             throws IllegalArgumentException {
         int off = 0;
         StringBuffer rs = new StringBuffer();
@@ -377,7 +385,7 @@ public class JBCrypt {
      * @param x	the base64-encoded value
      * @return	the decoded value of x
      */
-    public static byte char64(char x) {
+    private static byte char64(char x) {
         if ((int)x < 0 || (int)x > index_64.length)
             return -1;
         return index_64[(int)x];
@@ -392,7 +400,7 @@ public class JBCrypt {
      * @return	an array containing the decoded bytes
      * @throws IllegalArgumentException if maxolen is invalid
      */
-    public static byte[] decode_base64(String s, int maxolen)
+    private static byte[] decode_base64(String s, int maxolen)
             throws IllegalArgumentException {
         StringBuffer rs = new StringBuffer();
         int off = 0, slen = s.length(), olen = 0;
@@ -439,7 +447,7 @@ public class JBCrypt {
      * @param lr	an array containing the two 32-bit half blocks
      * @param off	the position in the array of the blocks
      */
-    public final void encipher(int lr[], int off) {
+    private final void encipher(int lr[], int off) {
         int i, n, l = lr[off], r = lr[off + 1];
 
         l ^= P[0];
@@ -469,7 +477,7 @@ public class JBCrypt {
      * current offset into data
      * @return	the next word of material from data
      */
-    public static int streamtoword(byte data[], int offp[]) {
+    private static int streamtoword(byte data[], int offp[]) {
         int i;
         int word = 0;
         int off = offp[0];
@@ -486,7 +494,7 @@ public class JBCrypt {
     /**
      * Initialise the Blowfish key schedule
      */
-    public void init_key() {
+    private void init_key() {
         P = (int[])P_orig.clone();
         S = (int[])S_orig.clone();
     }
@@ -524,7 +532,7 @@ public class JBCrypt {
      * @param data	salt information
      * @param key	password information
      */
-    public void ekskey(byte data[], byte key[]) {
+    private void ekskey(byte data[], byte key[]) {
         int i;
         int koffp[] = { 0 }, doffp[] = { 0 };
         int lr[] = { 0, 0 };
@@ -560,8 +568,8 @@ public class JBCrypt {
      * @param cdata         the plaintext to encrypt
      * @return	an array containing the binary hashed password
      */
-    public byte[] crypt_raw(byte password[], byte salt[], int log_rounds,
-                            int cdata[]) {
+    private byte[] crypt_raw(byte password[], byte salt[], int log_rounds,
+                             int cdata[]) {
         int rounds, i, j;
         int clen = cdata.length;
         byte ret[];
@@ -604,16 +612,22 @@ public class JBCrypt {
         int rounds, off;
         StringBuilder rs = new StringBuilder();
 
+        if (salt.charAt(0) != '$' || salt.charAt(1) != '2')
+            throw new IllegalArgumentException ("Invalid salt version");
+        if (salt.charAt(2) == '$')
+            throw new IllegalArgumentException ("Invalid salt version");
+        else {
+            minor = salt.charAt(2);
+            if (minor != 'a' || salt.charAt(3) != '$')
+                throw new IllegalArgumentException ("Invalid salt revision");
+            off = 4;
+        }
 
-        minor = salt.charAt(2);
         System.arraycopy(password, 0, passwordb, 0, password.length);
         passwordb[password.length] = 0;
 
-        off = 4;
         rounds = Integer.parseInt(salt.substring(off, off + 2));
-
         real_salt = salt.substring(off + 3, off + 25);
-
 
         saltb = decode_base64(real_salt, BCRYPT_SALT_LEN);
 
@@ -626,8 +640,7 @@ public class JBCrypt {
         rs.append(Integer.toString(rounds));
         rs.append("$");
         rs.append(encode_base64(saltb, saltb.length));
-        rs.append(encode_base64(hashed,
-                bf_crypt_ciphertext.length * 4 - 1));
+        rs.append(encode_base64(hashed, bf_crypt_ciphertext.length * 4 - 1));
         return rs.toString();
     }
 
@@ -647,7 +660,7 @@ public class JBCrypt {
 
         rs.append("$2a$");
         if (log_rounds < 10)
-            rs.append("0");
+            throw new IllegalArgumentException("log_rounds too weak");
         if (log_rounds > 30) {
             throw new IllegalArgumentException(
                     "log_rounds exceeds maximum (30)");
@@ -656,27 +669,6 @@ public class JBCrypt {
         rs.append("$");
         rs.append(encode_base64(rnd, rnd.length));
         return rs.toString();
-    }
-
-    /**
-     * Generate a salt for use with the BCrypt.hashpw() method
-     * @param log_rounds	the log2 of the number of rounds of
-     * hashing to apply - the work factor therefore increases as
-     * 2**log_rounds.
-     * @return	an encoded salt value
-     */
-    public static String gensalt(int log_rounds) {
-        return gensalt(log_rounds, new SecureRandom());
-    }
-
-    /**
-     * Generate a salt for use with the BCrypt.hashpw() method,
-     * selecting a reasonable default for the number of hashing
-     * rounds to apply
-     * @return	an encoded salt value
-     */
-    public static String gensalt() {
-        return gensalt(GENSALT_DEFAULT_LOG2_ROUNDS);
     }
 
     /**

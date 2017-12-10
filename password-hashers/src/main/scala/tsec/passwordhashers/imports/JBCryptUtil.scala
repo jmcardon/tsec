@@ -1,6 +1,7 @@
 package tsec.passwordhashers.imports
 
 import tsec.common.ManagedRandom
+import tsec.passwordhashers.imports.internal.JBCrypt
 
 private[tsec] object JBCryptUtil extends ManagedRandom {
 

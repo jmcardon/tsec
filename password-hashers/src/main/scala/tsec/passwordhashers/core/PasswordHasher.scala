@@ -1,15 +1,22 @@
 package tsec.passwordhashers.core
 
 import java.nio.CharBuffer
-import java.util.{Arrays => JArr}
 import cats.effect.Sync
 import tsec.common._
+import tsec.passwordhashers._
 
 trait PasswordHasher[A] {
 
-  def hashPassword[F[_]](p: String)(implicit F: Sync[F]): F[PasswordHash[A]] = hashPassword[F](p.utf8Bytes)
+  def hashpwUnsafe(p: String): PasswordHash[A] = hashpwUnsafe(p.utf8Bytes)
 
-  def hashPassword[F[_]](p: Array[Char])(implicit F: Sync[F]): F[PasswordHash[A]] = F.delay {
+  /** Hash a password in a char array
+    * then clear the data in the password original
+    * array, as well as the byte encoding change.
+    *
+    * @param p the encoded password
+    * @return
+    */
+  def hashpwUnsafe(p: Array[Char]): PasswordHash[A] = {
     val charbuffer = CharBuffer.wrap(p)
     val bytes      = defaultCharset.encode(charbuffer).array()
     val out        = hashPassUnsafe(bytes)
@@ -19,16 +26,66 @@ trait PasswordHasher[A] {
     PasswordHash[A](out)
   }
 
-  def hashPassword[F[_]](p: Array[Byte])(implicit F: Sync[F]): F[PasswordHash[A]] = F.delay {
+  /** Hash a password in utf-8 encoded bytes,
+    * then clear the data in the password
+    *
+    * @param p the encoded password
+    * @return
+    */
+  def hashpwUnsafe(p: Array[Byte]): PasswordHash[A] = {
     val out = PasswordHash[A](hashPassUnsafe(p))
     ByteUtils.zeroByteArray(p)
     out
   }
 
-  def check[F[_]: Sync](p: String, hash: PasswordHash[A]): F[Boolean] =
-    check[F](p.utf8Bytes, hash)
+  def hashpw[F[_]](p: String)(implicit F: Sync[F]): F[PasswordHash[A]] = hashpw[F](p.utf8Bytes)
 
-  def check[F[_]](p: Array[Char], hash: PasswordHash[A])(implicit F: Sync[F]): F[Boolean] = F.delay {
+  /** Hash a password in a char array
+    * then clear the data in the password original
+    * array, as well as the byte encoding change,
+    * but in a pure fashion because
+    * side effects suck butt.
+    *
+    */
+  def hashpw[F[_]](p: Array[Char])(implicit F: Sync[F]): F[PasswordHash[A]] = F.delay(hashpwUnsafe(p))
+
+  /** Hash a password in utf-8 encoded bytes,
+    * then clear the data in the password,
+    * but in a pure way.
+    *
+    * @param p the encoded password
+    * @return
+    */
+  def hashpw[F[_]](p: Array[Byte])(implicit F: Sync[F]): F[PasswordHash[A]] = F.delay(hashpwUnsafe(p))
+
+  /** Check against a bcrypt hash in an unsafe
+    * manner.
+    *
+    * It may throw an exception for a malformed password
+    * @return
+    */
+  def checkpwUnsafe(p: String, hash: PasswordHash[A]): Boolean = checkpwUnsafe(p.utf8Bytes, hash)
+
+  /** Check against a bcrypt hash in an unsafe
+    * manner.
+    *
+    * It may throw an exception for a malformed password
+    * @return
+    */
+  def checkpwUnsafe(p: Array[Byte], hash: PasswordHash[A]): Boolean = {
+    val out = checkPassUnsafe(p, hash)
+    //Clear pass
+    ByteUtils.zeroByteArray(p)
+    out
+  }
+
+  /** Check against a bcrypt hash in an unsafe
+    * manner.
+    *
+    * It may throw an exception for a malformed password
+    * @return
+    */
+  def checkpwUnsafe(p: Array[Char], hash: PasswordHash[A]): Boolean = {
     val charbuffer = CharBuffer.wrap(p)
     val bytes      = defaultCharset.encode(charbuffer).array()
     val out        = checkPassUnsafe(bytes, hash)
@@ -38,13 +95,28 @@ trait PasswordHasher[A] {
     out
   }
 
-  def check[F[_]](p: Array[Byte], hash: PasswordHash[A])(implicit F: Sync[F]): F[Boolean] = F.delay {
-    val out = checkPassUnsafe(p, hash)
-    //Clear pass
-    ByteUtils.zeroByteArray(p)
-    out
-  }
+  /** Check against a bcrypt hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpw[F[_]: Sync](p: String, hash: PasswordHash[A]): F[Boolean] =
+    checkpw[F](p.utf8Bytes, hash)
 
+  /** Check against a bcrypt hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpw[F[_]](p: Array[Char], hash: PasswordHash[A])(implicit F: Sync[F]): F[Boolean] =
+    F.delay(checkpwUnsafe(p, hash))
+
+  /** Check against a bcrypt hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpw[F[_]](p: Array[Byte], hash: PasswordHash[A])(implicit F: Sync[F]): F[Boolean] =
+    F.delay(checkpwUnsafe(p, hash))
+
+  /** Internal api **/
   private[tsec] def hashPassUnsafe(p: Array[Byte]): String
 
   private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[A]): Boolean

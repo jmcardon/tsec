@@ -1,9 +1,10 @@
 package tsec.authentication.credentials
 
 import cats.effect.Sync
-import cats.syntax.all._
+import tsec.passwordhashers._
 import tsec.passwordhashers.core._
 import tsec.passwordhashers.imports._
+import cats.syntax.all._
 
 /** An trait representing the common operations you would do to/with credentials, such as
   * logging in with a password, or validating an oauth token to log in
@@ -28,7 +29,7 @@ abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PasswordHasher[P])
   def authenticate(credentials: RawCredentials[Id]): F[Boolean] =
     for {
       pass  <- retrievePass(credentials.identity)
-      check <- h.check[F](credentials.rawPassword, pass)
+      check <- h.checkpw[F](credentials.rawPassword, pass)
     } yield check
 }
 

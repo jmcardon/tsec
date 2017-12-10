@@ -5,7 +5,6 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.common._
-import tsec.passwordhashers._
 import tsec.passwordhashers.core._
 import tsec.passwordhashers.imports._
 
@@ -32,8 +31,8 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (s: String) =>
         val hash =
           for {
-            pass  <- programs.hashPassword[IO](s)
-            check <- programs.check[IO](s, pass)
+            pass  <- programs.hashpw[IO](s)
+            check <- programs.checkpw[IO](s, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe true
@@ -46,8 +45,8 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
         val checkArr = s.toCharArray
         val hash =
           for {
-            pass  <- programs.hashPassword[IO](arr)
-            check <- programs.check[IO](checkArr, pass)
+            pass  <- programs.hashpw[IO](arr)
+            check <- programs.checkpw[IO](checkArr, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe true
@@ -62,8 +61,8 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
         val checkArr = s.utf8Bytes
         val hash =
           for {
-            pass  <- programs.hashPassword[IO](arr)
-            check <- programs.check[IO](checkArr, pass)
+            pass  <- programs.hashpw[IO](arr)
+            check <- programs.checkpw[IO](checkArr, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe true
@@ -78,8 +77,8 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (s1: String, s2: String) =>
         val hash =
           for {
-            pass  <- programs.hashPassword[IO](s1)
-            check <- programs.check[IO](s2, pass)
+            pass  <- programs.hashpw[IO](s1)
+            check <- programs.checkpw[IO](s2, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe s1 == s2
@@ -91,5 +90,18 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
 
   testSpec[BCrypt]("BCrypt")
 
-//  testSpec[HardenedSCrypt]("HardenedSCrypt")
+//  testSpec[HardenedSCrypt]("HardenedSCrypt") //Note: Takes _forever_
+
+  behavior of "BCrypt only variable rounds"
+
+  it should "hash properly for more than 10 rounds" in {
+    val dummy = "hihi"
+    val hash = for {
+      pass  <- BCrypt.hashpwWithRounds[IO](dummy, 11)
+      check <- BCrypt.checkpw[IO](dummy, pass)
+    } yield check
+
+    hash.unsafeRunSync() mustBe true
+  }
+
 }

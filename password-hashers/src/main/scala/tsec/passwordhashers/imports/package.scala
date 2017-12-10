@@ -1,10 +1,12 @@
 package tsec.passwordhashers
 
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.CharBuffer
 
-import cats.evidence.Is
+import cats.effect.Sync
 import tsec.passwordhashers.core._
-import com.lambdaworks.crypto.{SCryptUtil => JSCrypt}
+import tsec.common.ByteUtils
+import tsec.passwordhashers.imports.internal.JBCrypt
+import tsec.common._
 
 package object imports {
 
@@ -33,6 +35,32 @@ package object imports {
     private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[BCrypt]) =
       JBCrypt.checkpw(p, hash)
 
+    def hashpwWithRounds[F[_]](p: String, rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
+      hashpwWithRounds[F](p.utf8Bytes, rounds)
+
+    def hashpwWithRounds[F[_]](p: Array[Byte], rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
+      if (rounds < 10 || rounds > 30)
+        F.raiseError(PasswordError("Invalid number of rounds"))
+      else
+        F.delay {
+          val out = PasswordHash[BCrypt](JBCrypt.hashpw(p, JBCryptUtil.genSalt(rounds)))
+          ByteUtils.zeroByteArray(p)
+          out
+        }
+
+    def hashpwWithRounds[F[_]](p: Array[Char], rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
+      if (rounds < 10 || rounds > 30)
+        F.raiseError(PasswordError("Invalid number of rounds"))
+      else
+        F.delay {
+          val charbuffer = CharBuffer.wrap(p)
+          val bytes      = defaultCharset.encode(charbuffer).array()
+          val out        = PasswordHash[BCrypt](JBCrypt.hashpw(bytes, JBCryptUtil.genSalt(rounds)))
+          //Clear pass
+          ByteUtils.zeroCharArray(p)
+          ByteUtils.zeroByteArray(bytes)
+          out
+        }
   }
 
   sealed trait SCrypt
