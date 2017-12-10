@@ -5,6 +5,7 @@ import cats.evidence.Is
 import tsec.common._
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
 import tsec.libsodium.hashing.HashState$$
+import tsec.libsodium.hashing.internal.SodiumHash
 
 package object hashing {
   private[tsec] val HashState$$ : HKByteArrayNewt = new HKByteArrayNewt {
@@ -16,7 +17,7 @@ package object hashing {
   type HashState[A] = HashState$$.Repr[A]
 
   object HashState {
-    def apply[A](bytes: Array[Byte]): HashState[A]   = is[A].coerce(bytes)
+    def apply[A: SodiumHash](bytes: Array[Byte]): HashState[A]   = is[A].coerce(bytes)
     @inline def is[A]: Is[Array[Byte], HashState[A]] = HashState$$.is[A]
   }
 
@@ -29,7 +30,7 @@ package object hashing {
   type Hash[A] = Hash$$.Repr[A]
 
   object Hash {
-    def apply[A](bytes: Array[Byte]): Hash[A]   = is[A].coerce(bytes)
+    def apply[A: SodiumHash](bytes: Array[Byte]): Hash[A]   = is[A].coerce(bytes)
     @inline def is[A]: Is[Array[Byte], Hash[A]] = Hash$$.is[A]
   }
 

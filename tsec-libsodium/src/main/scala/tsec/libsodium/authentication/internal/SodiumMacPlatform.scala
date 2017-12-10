@@ -4,8 +4,8 @@ import cats.effect.Sync
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication.{SodiumMAC, SodiumMACKey}
 
-private[tsec] trait SodiumMacPlatform[A] extends SodiumMac[A] with SodiumMacAlgebra[A] {
-  implicit val sm: SodiumMac[A]                = this
+private[tsec] trait SodiumMacPlatform[A] extends SodiumMacAlg[A] with SodiumMacAlgebra[A] {
+  implicit val sm: SodiumMacAlg[A]             = this
   implicit val macAlgebra: SodiumMacAlgebra[A] = this
 
   def sign[F[_]](in: Array[Byte], key: SodiumMACKey[A])(implicit F: Sync[F], S: ScalaSodium): F[SodiumMAC[A]] =

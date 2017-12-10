@@ -8,7 +8,7 @@ import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 sealed trait Argon2
 
 object Argon2 extends SodiumPasswordHasher[Argon2] {
-
+  implicit val hasher: SodiumPasswordHasher[Argon2] = this
   val hashingAlgorithm: String = "Argon2id"
   val saltLen: Int             = ScalaSodium.crypto_pwhash_argon2id_SALTBYTES
   val outLen: Int              = ScalaSodium.crypto_pwhash_argon2id_STRBYTES

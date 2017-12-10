@@ -32,8 +32,8 @@ package object passwordhashers {
   type PasswordHash[A] = PasswordHash$$.Repr[A]
 
   object PasswordHash {
-    def apply[A](string: String): PasswordHash[A]  = is[A].coerce(string)
-    @inline def is[A]: Is[String, PasswordHash[A]] = PasswordHash$$.is[A]
+    def apply[A: SodiumPasswordHasher](string: String): PasswordHash[A]  = is[A].coerce(string)
+    @inline def is[A: SodiumPasswordHasher]: Is[String, PasswordHash[A]] = PasswordHash$$.is[A]
   }
 
   object PasswordStrength {

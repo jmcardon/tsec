@@ -3,7 +3,7 @@ package tsec.libsodium.authentication.internal
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication.{SodiumMAC, SodiumMACKey}
 
-trait SodiumMac[A] {
+trait SodiumMacAlg[A] {
   val keyLen: Int
   val macLen: Int
   val algorithm: String

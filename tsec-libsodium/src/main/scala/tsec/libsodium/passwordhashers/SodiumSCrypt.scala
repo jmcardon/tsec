@@ -8,6 +8,8 @@ import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 sealed trait SodiumSCrypt
 
 object SodiumSCrypt extends SodiumPasswordHasher[SodiumSCrypt] {
+  implicit val hasher: SodiumPasswordHasher[SodiumSCrypt] = this
+
   val hashingAlgorithm: String = "SCrypt"
   val saltLen: Int             = ScalaSodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES
   val outLen: Int              = ScalaSodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
