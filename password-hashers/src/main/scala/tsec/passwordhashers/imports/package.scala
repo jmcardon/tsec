@@ -68,7 +68,7 @@ package object imports {
   implicit object SCrypt extends PasswordHasher[SCrypt] {
 
     private[tsec] def hashPassUnsafe(p: Array[Byte]): String =
-      SCryptUtil.scrypt(p, DefaultSCryptN.toInt, DefaultSCryptR, DefaultSCryptP)
+      SCryptUtil.scrypt(p, DefaultSCryptN, DefaultSCryptR, DefaultSCryptP)
 
     private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[SCrypt]) =
       SCryptUtil.check(p, hash)
