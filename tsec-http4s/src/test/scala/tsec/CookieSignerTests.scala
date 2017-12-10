@@ -7,13 +7,14 @@ import tsec.common._
 import org.scalatest.MustMatchers
 import org.scalatest.prop.{Checkers, PropertyChecks}
 import tsec.cookies.{CookieSigner, SignedCookie}
+import tsec.mac.core.MacTag
 import tsec.mac.imports._
 
 class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
 
   implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary.apply(Gen.uuid)
 
-  def signerTests[A: ByteEV](implicit tag: MacTag[A], keyGen: MacKeyGenerator[A]) = {
+  def signerTests[A](implicit tag: MacTag[A], keyGen: MacKeyGenerator[A]) = {
     behavior of "CookieSigner for algo " + tag.algorithm
 
     it should "Sign and verify any cookie properly with coercion" in {

@@ -1,22 +1,30 @@
 package tsec.passwordhashers
 
+import java.nio.charset.{Charset, StandardCharsets}
+
+import cats.evidence.Is
+import tsec.common._
+
 package object core {
 
-  final case class Password(pass: String) extends AnyVal
-  final case class Salt(salt: String)     extends AnyVal
-  final case class Rounds(rounds: Int)    extends AnyVal
+  private[tsec] val defaultCharset: Charset = StandardCharsets.UTF_8
+
+  private[tsec] val PasswordHash$$ : HKStringNewt = new HKStringNewt {
+    type Repr[A] = String
+
+    def is[A] = Is.refl[String]
+  }
+
+  type PasswordHash[A] = PasswordHash$$.Repr[A]
+
+  object PasswordHash {
+    def apply[A](pw: String): PasswordHash[A]      = is[A].coerce(pw)
+    @inline def is[A]: Is[String, PasswordHash[A]] = PasswordHash$$.is[A]
+  }
 
   final case class PasswordError(reason: String) extends Exception {
     override def getMessage: String = reason
 
     override def fillInStackTrace(): Throwable = this
-  }
-
-  type PasswordValidated[A] = Either[PasswordError, A]
-  trait PasswordHasher[T] {
-    protected val defaultRounds: Rounds
-    def hashPw(pass: Password): T = hashPw(pass, defaultRounds)
-    def hashPw(pass: Password, opt: Rounds): T
-    def checkPassword(pass: Password, hashed: T): Boolean
   }
 }

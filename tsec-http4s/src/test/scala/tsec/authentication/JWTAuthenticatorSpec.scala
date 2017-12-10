@@ -1,18 +1,18 @@
 package tsec.authentication
 
 import java.time.Instant
-import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.{Header, HttpDate, Request}
 import io.circe.syntax._
 import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
-import tsec.common.{ByteEV, SecureRandomId}
+import tsec.common.{SecureRandomId}
 import tsec.jws.mac.{JWSMacCV, JWTMac, JWTMacM}
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.imports.{MacKeyGenerator, MacTag}
+import tsec.mac.imports.MacKeyGenerator
 import io.circe.generic.auto._
+import tsec.mac.core.MacTag
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -35,7 +35,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Stateful tests using Authorization: Header
     *
     */
-  def stateful[A: ByteEV: JWTMacAlgo: MacTag](
+  def stateful[A: JWTMacAlgo: MacTag](
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: MacKeyGenerator[A],
       store: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]]
@@ -80,7 +80,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Stateful arbitrary header tests
     *
     */
-  def statefulArbitraryH[A: ByteEV: JWTMacAlgo: MacTag](
+  def statefulArbitraryH[A: JWTMacAlgo: MacTag](
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: MacKeyGenerator[A],
       store: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]]
@@ -123,7 +123,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Unencrypted stateless in bearer tests
     *
     */
-  def stateless[A: ByteEV: JWTMacAlgo: MacTag](
+  def stateless[A: JWTMacAlgo: MacTag](
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
@@ -168,7 +168,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Encrypted Stateless non-bearer tests
     *
     */
-  def statelessEncrypted[A: ByteEV: JWTMacAlgo: MacTag, E](
+  def statelessEncrypted[A: JWTMacAlgo: MacTag, E](
       implicit cv: JWSMacCV[IO, A],
       enc: Encryptor[E],
       eKeyGen: CipherKeyGen[E],
@@ -216,7 +216,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Encrypted Stateless bearer token
     *
     */
-  def statelessBearerEncrypted[A: ByteEV: JWTMacAlgo: MacTag, E](
+  def statelessBearerEncrypted[A: JWTMacAlgo: MacTag, E](
       implicit cv: JWSMacCV[IO, A],
       enc: Encryptor[E],
       eKeyGen: CipherKeyGen[E],

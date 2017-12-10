@@ -8,17 +8,17 @@ import cats.data.OptionT
 import cats.effect.Sync
 import io.circe.{Decoder, Encoder}
 import org.http4s._
-import tsec.common.ByteEV
 import tsec.cookies._
 import tsec.mac.imports._
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import tsec.common._
 import cats.syntax.all._
+import tsec.mac.core.MacTag
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg: MacTag: ByteEV] private[tsec] (
+abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg: MacTag] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 ) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]]
@@ -83,7 +83,7 @@ object AuthenticatedCookie {
 
 object SignedCookieAuthenticator {
 
-  def apply[F[_], I: Decoder: Encoder, V, Alg: MacTag: ByteEV](
+  def apply[F[_], I: Decoder: Encoder, V, Alg: MacTag](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
       idStore: BackingStore[F, I, V],

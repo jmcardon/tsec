@@ -9,7 +9,7 @@ import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jws.header.JWSHeader
 import tsec.jwt
 import tsec.jwt.header.JWTtyp
-import tsec.mac.imports.MacTag
+import tsec.mac.core.MacTag
 
 /** A JWS header for JWT serialization.
   * TODO: Crit logic on verification

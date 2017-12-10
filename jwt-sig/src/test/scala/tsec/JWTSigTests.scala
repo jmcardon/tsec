@@ -13,6 +13,7 @@ import java.time.Instant
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
 import tsec.jwt.JWTClaims
+import tsec.signature.core.KFTag
 
 
 

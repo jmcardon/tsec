@@ -1,4 +1,4 @@
-package tsec.mac.imports
+package tsec.mac.core
 
 import tsec.common.CryptoTag
 

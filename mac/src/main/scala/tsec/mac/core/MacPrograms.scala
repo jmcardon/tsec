@@ -2,15 +2,15 @@ package tsec.mac.core
 
 import cats.Monad
 import cats.syntax.all._
-import tsec.common.{ByteEV, ByteUtils}
+import tsec.common.{ByteUtils}
 
-abstract class MacPrograms[F[_]: Monad, A, K[_]](val algebra: MacAlgebra[F, A, K])(implicit ev: ByteEV[A]) {
+abstract class MacPrograms[F[_]: Monad, A: MacTag, K[_]](val algebra: MacAlgebra[F, A, K]) {
 
-  def sign(content: Array[Byte], key: K[A]): F[A] =
-    algebra.sign(content, key).map(ev.fromArray)
+  def sign(content: Array[Byte], key: K[A]): F[MAC[A]] =
+    algebra.sign(content, key).map(MAC.apply[A])
 
-  def verify(toSign: Array[Byte], signed: A, key: K[A]): F[Boolean] =
-    algebra.sign(toSign, key).map(ByteUtils.constantTimeEquals(ev.toArray(signed), _))
+  def verify(toSign: Array[Byte], signed: MAC[A], key: K[A]): F[Boolean] =
+    algebra.sign(toSign, key).map(ByteUtils.constantTimeEquals(signed, _))
 
   def verifyArrays(toSign: Array[Byte], signed: Array[Byte], key: K[A]): F[Boolean] =
     algebra.sign(toSign, key).map(ByteUtils.constantTimeEquals(signed, _))

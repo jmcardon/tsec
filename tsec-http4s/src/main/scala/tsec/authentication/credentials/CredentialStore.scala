@@ -2,8 +2,7 @@ package tsec.authentication.credentials
 
 import cats.effect.Sync
 import cats.syntax.all._
-import tsec.passwordhashers._
-import tsec.passwordhashers.core.{PWHashPrograms, PasswordValidated}
+import tsec.passwordhashers.core._
 import tsec.passwordhashers.imports._
 
 /** An trait representing the common operations you would do to/with credentials, such as
@@ -21,13 +20,16 @@ trait CredentialStore[F[_], C, P] {
   def authenticate(credentials: C): F[Boolean]
 }
 
-abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PWHashPrograms[PasswordValidated, P])
+abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PasswordHasher[P])
     extends CredentialStore[F, RawCredentials[Id], P] {
 
-  def retrievePass(id: Id): F[P]
+  def retrievePass(id: Id): F[PasswordHash[P]]
 
   def authenticate(credentials: RawCredentials[Id]): F[Boolean] =
-    retrievePass(credentials.identity).map(credentials.rawPassword.checkWithHash[P])
+    for {
+      pass  <- retrievePass(credentials.identity)
+      check <- h.check[F](credentials.rawPassword, pass)
+    } yield check
 }
 
 trait SCryptPasswordStore[F[_], Id] extends PasswordStore[F, Id, SCrypt]

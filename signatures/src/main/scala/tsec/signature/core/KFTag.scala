@@ -1,4 +1,6 @@
-package tsec.signature.imports
+package tsec.signature.core
+
+import tsec.signature.imports._
 
 /** Trait to add a tag to an algorithm used by the JCA key factor
   * this allows us to abstract over the KeyFactory instance via types

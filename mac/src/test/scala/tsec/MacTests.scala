@@ -4,11 +4,12 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.common.JKeyGenerator
+import tsec.mac.core.MacTag
 import tsec.mac.imports.{MacSigningKey, _}
 
 class MacTests extends TestSpec with MustMatchers {
 
-  def macTest[T: ByteEV](implicit keyGen: JKeyGenerator[T, MacSigningKey, MacKeyBuildError], tag: MacTag[T]): Unit = {
+  def macTest[T](implicit keyGen: JKeyGenerator[T, MacSigningKey, MacKeyBuildError], tag: MacTag[T]): Unit = {
     behavior of tag.algorithm
 
     val instance = JCAMacImpure[T]
