@@ -2,27 +2,46 @@ package tsec.mac.imports
 
 import javax.crypto.Mac
 
-import cats.syntax.either._
-import tsec.common.ErrorConstruct._
+import cats.effect.Sync
+import cats.syntax.all._
+import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
+
 import tsec.mac.core.{MacAlgebra, MacTag}
 
-/** JCA mac interpreter
-  *
-  * @param macTag
-  * @tparam A
-  */
-class JMacInterpreter[A](implicit macTag: MacTag[A]) extends MacAlgebra[MacErrorM, A, MacSigningKey] {
+sealed protected[tsec] abstract class JMacInterpreter[F[_], A](tl: JQueue[Mac])(
+    implicit F: Sync[F],
+    macTag: MacTag[A]
+) extends MacAlgebra[F, A, MacSigningKey] {
   type M = Mac
 
-  def genInstance: Either[MacInstanceError, Mac] =
-    Either
-      .catchNonFatal(Mac.getInstance(macTag.algorithm))
-      .mapError(MacInstanceError.apply)
+  def genInstance: F[Mac] =
+    F.delay {
+      val inst = tl.poll()
+      if (inst != null)
+        inst
+      else
+        Mac.getInstance(macTag.algorithm)
+    }
 
-  def sign(content: Array[Byte], key: MacSigningKey[A]): Either[MacError, Array[Byte]] =
+  def sign(content: Array[Byte], key: MacSigningKey[A]): F[Array[Byte]] =
     for {
       instance <- genInstance
-      _        <- Either.catchNonFatal(instance.init(MacSigningKey.toJavaKey[A](key))).mapError(MacInitError.apply)
-      fin      <- Either.catchNonFatal(instance.doFinal(content)).mapError(MacSigningError.apply)
+      _        <- F.delay(instance.init(MacSigningKey.toJavaKey[A](key)))
+      fin      <- F.delay(instance.doFinal(content))
+      _        <- F.delay(tl.add(instance))
     } yield fin
+}
+
+object JMacInterpreter {
+  def apply[F[_]: Sync, A](numInstances: Int = 10)(implicit tag: MacTag[A]) = {
+    val queue = new JQueue[Mac]()
+    var i     = 0
+    while (i < numInstances) {
+      queue.add(Mac.getInstance(tag.algorithm))
+      i += 1
+    }
+    new JMacInterpreter[F, A](queue) {}
+  }
+
+  implicit def gen[F[_]: Sync, A: MacTag]: JMacInterpreter[F, A] = apply[F, A]()
 }

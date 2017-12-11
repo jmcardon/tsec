@@ -9,7 +9,7 @@ object SignatureExamples {
    */
 
   val toSign                               = "hiThere!".utf8Bytes
-  val instance: JCASigner[SHA256withECDSA] = JCASigner[SHA256withECDSA]
+  val instance: JCASignerImpure[SHA256withECDSA] = JCASignerImpure[SHA256withECDSA]
   val sig: Either[Throwable, Boolean] = for {
     keyPair   <- SHA256withECDSA.generateKeyPair
     signed    <- instance.sign(toSign, keyPair.privateKey)
@@ -20,7 +20,7 @@ object SignatureExamples {
   /** Signature Example with IO:
     * JCASignerPure will take any F[_]: Sync
     */
-  val instancePure: JCASignerPure[IO, SHA256withRSA] = JCASignerPure[IO, SHA256withRSA]
+  val instancePure: JCASigner[IO, SHA256withRSA] = JCASigner[IO, SHA256withRSA]
   val ioSign: IO[Boolean] = for {
     keyPair   <- Sync[IO].fromEither(SHA256withRSA.generateKeyPair)
     signed    <- instancePure.sign(toSign, keyPair.privateKey)

@@ -8,7 +8,7 @@ import cats.evidence.Is
 
 package object imports {
   type AEADCipherText[A]    = CipherText[A, GCM, NoPadding]
-  type EncryptorInstance[A] = JCASymmetricCipher[A, CTR, NoPadding]
+  type EncryptorInstance[A] = JCASymmCipherImpure[A, CTR, NoPadding]
 
   /** Typeclass for propagating symmetric key algorithm information
     *

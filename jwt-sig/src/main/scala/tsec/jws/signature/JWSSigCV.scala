@@ -87,12 +87,12 @@ object JWSSigCV {
   implicit def genCVPure[F[_]: Sync, A: SigAlgoTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
       jwsSigAlgo: JWTSigAlgo[A],
-      sigDSL: JCASignerPure[F, A]
+      sigDSL: JCASigner[F, A]
   ): JWSSigCV[F, A] = new JWSSigCV[F, A]() {}
 
   implicit def genCVImpure[A: SigAlgoTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
       jwsSigAlgo: JWTSigAlgo[A],
-      sigDSL: JCASigner[A]
+      sigDSL: JCASignerImpure[A]
   ): JWSSigCV[SigErrorM, A] = new JWSSigCV[SigErrorM, A]() {}
 }

@@ -93,7 +93,7 @@ object JWSMacCV {
 
   implicit def genSigner[F[_]: Sync, A: MacTag](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMacPure[F, A],
+      alg: JCAMac[F, A],
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 

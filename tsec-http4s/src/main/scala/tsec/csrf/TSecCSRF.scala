@@ -5,7 +5,7 @@ import java.time.Clock
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
-import tsec.mac.imports.JCAMacPure
+import tsec.mac.imports.JCAMac
 import tsec.common._
 import tsec.mac._
 import tsec.mac.imports._
@@ -51,7 +51,7 @@ final class TSecCSRF[F[_], A: MacTag] private[tsec] (
     val cookieName: String,
     val tokenLength: Int,
     clock: Clock
-)(implicit mac: JCAMacPure[F, A], F: Sync[F]) {
+)(implicit mac: JCAMac[F, A], F: Sync[F]) {
 
   def isEqual(s1: String, s2: String): Boolean =
     MessageDigest.isEqual(s1.utf8Bytes, s2.utf8Bytes)
@@ -141,6 +141,6 @@ object TSecCSRF {
       cookieName: String = "tsec-csrf",
       tokenLength: Int = 32,
       clock: Clock = Clock.systemUTC()
-  )(implicit mac: JCAMacPure[F, A]): TSecCSRF[F, A] =
+  )(implicit mac: JCAMac[F, A]): TSecCSRF[F, A] =
     new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock)
 }

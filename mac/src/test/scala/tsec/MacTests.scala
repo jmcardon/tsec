@@ -68,7 +68,7 @@ class MacTests extends TestSpec with MustMatchers {
     /*
     Pure tests
      */
-    val pureinstance = JCAMacPure[IO, T]
+    val pureinstance = JCAMac[IO, T]
 
     behavior of (tag.algorithm + " pure interpreter")
 
