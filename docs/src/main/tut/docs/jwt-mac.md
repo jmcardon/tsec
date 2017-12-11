@@ -23,8 +23,9 @@ To create custom claims, use the JWTClaims object:
   val claims = JWTClaims.build(expiration = Some(10.minutes))
 ```
 
-The JWT module comes with two ways to work with JWT by default: by using `Either` to handle errors,
- or into a Target `F[_]` with a `MonadError[F, Throwable]`.
+The JWT module comes with two ways to work with JWT by default interpreting
+ into a Target `F[_]` with a `Sync[F]`, or interpreting into `Either[Throwable, A]`
+ if you do not like writing pure code.
  
 ```tut:silent
   import cats.syntax.all._
