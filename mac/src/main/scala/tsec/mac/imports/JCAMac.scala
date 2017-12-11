@@ -3,14 +3,14 @@ package tsec.mac.imports
 import cats.effect.{IO, Sync}
 import tsec.mac.core.{MAC, MacPrograms, MacTag}
 
-class JCAMac[F[_]: Sync, A: MacTag](algebra: JMacPureInterpreter[F, A])
+class JCAMac[F[_]: Sync, A: MacTag](algebra: JMacInterpreter[F, A])
     extends MacPrograms[F, A, MacSigningKey](algebra) {}
 
 object JCAMac {
-  def apply[F[_]: Sync, A: MacTag](implicit alg: JMacPureInterpreter[F, A]) =
+  def apply[F[_]: Sync, A: MacTag](implicit alg: JMacInterpreter[F, A]) =
     new JCAMac[F, A](alg)
 
-  implicit def generate[F[_]: Sync, A: MacTag](implicit alg: JMacPureInterpreter[F, A]): JCAMac[F, A] =
+  implicit def generate[F[_]: Sync, A: MacTag](implicit alg: JMacInterpreter[F, A]): JCAMac[F, A] =
     apply[F, A]
 
   def sign[F[_]: Sync, A: MacTag](content: Array[Byte], key: MacSigningKey[A])(

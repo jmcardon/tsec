@@ -1,59 +1,58 @@
 package tsec.cipher.symmetric.imports
 
+import cats.effect.Sync
 import javax.crypto.{Cipher => JCipher}
-
-import cats.syntax.either._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.mode._
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.SymmetricCipherAlgebra
-import tsec.common.ErrorConstruct._
+import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 
-class JCASymmetricCipher[A, M, P](
+sealed abstract class JCASymmetricCipher[F[_], A, M, P](queue: JQueue[JCipher])(
     implicit algoTag: SymmetricCipher[A],
     modeSpec: CipherMode[M],
-    paddingTag: Padding[P]
-) extends SymmetricCipherAlgebra[Either[CipherError, ?], A, M, P, SecretKey] {
+    paddingTag: Padding[P],
+    F: Sync[F]
+) extends SymmetricCipherAlgebra[F, A, M, P, SecretKey] {
 
   type C = JCipher
 
-  def genInstance: Either[CipherError, JCipher] =
-    Either
-      .catchNonFatal(JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}"))
-      .mapError(InstanceInitError.apply)
+  def genInstance: F[JCipher] = F.delay {
+    val inst = queue.poll()
+    if (inst != null)
+      inst
+    else
+      JCASymmetricCipher.getJCipherUnsafe[A, M, P]
+  }
 
-  /** Stateful operations for internal use Made private so as to not encourage any use of stateful operations.
-    * The only other option would be to defer these operations with something like IO, given they are stateful
-    */
+  def replace(instance: JCipher): F[Boolean] =
+    F.delay(queue.add(instance))
+
+  /** We defer the effects of the encryption/decryption initialization */
   protected[symmetric] def initEncryptor(
-      e: JCipher,
+      instance: JCipher,
       secretKey: SecretKey[A]
-  ): Either[CipherKeyError, Unit] =
-    Either
-      .catchNonFatal({
-        e.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv))
-      })
-      .mapError(CipherKeyError.apply)
+  ): F[Unit] =
+    F.delay(
+      instance.init(JCipher.ENCRYPT_MODE, SecretKey.toJavaKey[A](secretKey), ParameterSpec.toRepr[M](modeSpec.genIv))
+    )
 
   protected[symmetric] def initDecryptor(
-      decryptor: JCipher,
+      instance: JCipher,
       key: SecretKey[A],
       iv: Array[Byte]
-  ): Either[CipherKeyError, Unit] =
-    Either
-      .catchNonFatal({
-        decryptor.init(
-          JCipher.DECRYPT_MODE,
-          SecretKey.toJavaKey[A](key),
-          ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
-        )
-      })
-      .mapError(CipherKeyError.apply)
+  ): F[Unit] =
+    F.delay(
+      instance.init(
+        JCipher.DECRYPT_MODE,
+        SecretKey.toJavaKey[A](key),
+        ParameterSpec.toRepr[M](modeSpec.buildIvFromBytes(iv))
+      )
+    )
 
-  protected[symmetric] def setAAD(e: JCipher, aad: AAD): Either[CipherKeyError, Unit] =
-    Either.catchNonFatal(e.updateAAD(aad.aad)).mapError(CipherKeyError.apply)
-
-  /** End stateful ops  */
+  /** End stateful ops */
   /** Encrypt our plaintext with a tagged secret key
     *
     * @param plainText the plaintext to encrypt
@@ -63,14 +62,13 @@ class JCASymmetricCipher[A, M, P](
   def encrypt(
       plainText: PlainText,
       key: SecretKey[A]
-  ): Either[CipherError, CipherText[A, M, P]] =
+  ) =
     for {
-      instance <- genInstance
-      _        <- initEncryptor(instance, key)
-      encrypted <- Either
-        .catchNonFatal(instance.doFinal(plainText.content))
-        .mapError(EncryptError.apply)
-      iv <- Either.fromOption(Option(instance.getIV), IvError("No IV found"))
+      instance  <- genInstance
+      _         <- initEncryptor(instance, key)
+      encrypted <- F.delay(instance.doFinal(plainText.content))
+      iv        <- F.delay(instance.getIV)
+      _         <- replace(instance)
     } yield CipherText(encrypted, iv)
 
   /** Decrypt our ciphertext
@@ -82,46 +80,59 @@ class JCASymmetricCipher[A, M, P](
   def decrypt(
       cipherText: CipherText[A, M, P],
       key: SecretKey[A]
-  ): Either[CipherError, PlainText] =
+  ): F[PlainText] =
     for {
-      instance <- genInstance
-      _        <- initDecryptor(instance, key, cipherText.iv)
-      decrypted <- Either
-        .catchNonFatal(instance.doFinal(cipherText.content))
-        .mapError(DecryptError.apply)
+      instance  <- genInstance
+      _         <- initDecryptor(instance, key, cipherText.iv)
+      decrypted <- F.delay(instance.doFinal(cipherText.content))
+      _         <- replace(instance)
     } yield PlainText(decrypted)
 
 }
 
 object JCASymmetricCipher {
 
-  /** Attempt to initialize an instance of the cipher with the given type parameters
-    * If the cipher doesn't exist/is not supported, it will return NoSuchIntanceError
+  protected[imports] def getJCipherUnsafe[A, M, P](
+      implicit algoTag: SymmetricCipher[A],
+      modeSpec: CipherMode[M],
+      paddingTag: Padding[P]
+  ): JCipher = JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
+
+  /** generate Queue unsafe
     *
-    * @tparam A Symmetric Cipher Algorithm
-    * @tparam M Mode of operation
-    * @tparam P Padding mode
+    * @param queueLen
+    * @tparam A
+    * @tparam M
+    * @tparam P
     * @return
     */
-  def apply[A: SymmetricCipher, M: CipherMode, P: Padding]
-    : Either[NoSuchInstanceError.type, JCASymmetricCipher[A, M, P]] = {
-    val c = new JCASymmetricCipher[A, M, P]
-    c.genInstance.map(_ => c).leftMap(_ => NoSuchInstanceError)
+  protected[imports] def genQueueUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding](
+      queueLen: Int
+  ): JQueue[JCipher] = {
+    val q = new JQueue[JCipher]()
+    (0 until queueLen)
+      .foreach(
+        _ => q.add(getJCipherUnsafe)
+      )
+    q
   }
 
-  implicit def genSym[A: SymmetricCipher, M: CipherMode, P: Padding]
-    : Either[NoSuchInstanceError.type, JCASymmetricCipher[A, M, P]] = apply[A, M, P]
-
-  /** ┌(▀Ĺ̯▀)–︻╦╤─ "You will never get away with an unsafe instance!!"
-    *
-    *  ━╤╦︻⊂(▀¯▀)┐ "Watch me"
-    *
+  /** Attempt to initialize an instance of the cipher with the given type parameters
+    * All processing is done on threadlocal, to guarantee no leaked instances
+    * @param queueLen the length of the queue
     * @tparam A Symmetric Cipher Algorithm
     * @tparam M Mode of operation
     * @tparam P Padding mode
     * @return
     */
-  def getCipherUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding]: JCASymmetricCipher[A, M, P] =
-    new JCASymmetricCipher[A, M, P]
+  def apply[F[_], A: SymmetricCipher, M: CipherMode, P: Padding](
+      queueLen: Int = 15
+  )(implicit F: Sync[F]): F[JCASymmetricCipher[F, A, M, P]] =
+    for {
+      q <- F.delay(genQueueUnsafe(queueLen))
+    } yield new JCASymmetricCipher[F, A, M, P](q) {}
+
+  implicit def genInstance[F[_]: Sync, A: SymmetricCipher, M: CipherMode, P: Padding]: F[JCASymmetricCipher[F, A, M, P]] =
+    apply[F, A, M, P]()
 
 }

@@ -2,11 +2,11 @@ package tsec.cipher.symmetric.imports
 
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.imports.aead.JCAAEAD
+import tsec.cipher.symmetric.imports.aead.JCAAEADImpure
 
 sealed abstract class AuthEncryptor[A: AEADCipher] {
-  lazy val instance: Either[NoSuchInstanceError, JCAAEAD[A, tsec.cipher.symmetric.GCM, NoPadding]] =
-    JCAAEAD[A, GCM, NoPadding]
+  lazy val instance: Either[NoSuchInstanceError, JCAAEADImpure[A, tsec.cipher.symmetric.GCM, NoPadding]] =
+    JCAAEADImpure[A, GCM, NoPadding]
 
   @inline
   def keyGen(

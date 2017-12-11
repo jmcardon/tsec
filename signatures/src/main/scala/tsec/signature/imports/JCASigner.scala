@@ -4,22 +4,22 @@ import cats.effect.Sync
 import tsec.signature.core.{CryptoSignature, SigAlgoTag, SignaturePrograms}
 
 sealed abstract case class JCASigner[F[_]: Sync, A: SigAlgoTag](
-    alg: JCASigInterpreterPure[F, A]
+    alg: JCASigInterpreter[F, A]
 ) extends SignaturePrograms[F, A] {
 
   type PubK  = SigPublicKey[A]
   type PrivK = SigPrivateKey[A]
   type Cert  = SigCertificate[A]
-  val algebra: JCASigInterpreterPure[F, A] = alg
+  val algebra: JCASigInterpreter[F, A] = alg
 }
 
 object JCASigner {
 
-  def apply[F[_]: Sync, A: SigAlgoTag](implicit s: JCASigInterpreterPure[F, A]): JCASigner[F, A] =
+  def apply[F[_]: Sync, A: SigAlgoTag](implicit s: JCASigInterpreter[F, A]): JCASigner[F, A] =
     new JCASigner[F, A](s) {}
 
   implicit def genSigner[F[_]: Sync, A: SigAlgoTag](
-      implicit s: JCASigInterpreterPure[F, A]
+      implicit s: JCASigInterpreter[F, A]
   ): JCASigner[F, A] = apply[F, A]
 
   def sign[F[_]: Sync, A: SigAlgoTag](content: Array[Byte], p: SigPrivateKey[A])(

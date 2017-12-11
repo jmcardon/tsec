@@ -4,12 +4,12 @@ import cats.instances.either._
 import tsec.mac.core.{MAC, MacPrograms, MacTag}
 
 sealed class JCAMacImpure[A: MacTag](
-    algebra: JMacInterpreter[A]
+    algebra: JMacInterpreterImpure[A]
 ) extends MacPrograms[MacErrorM, A, MacSigningKey](algebra)
 
 object JCAMacImpure {
-  def apply[A: MacTag]: JCAMacImpure[A]                = new JCAMacImpure[A](new JMacInterpreter[A]) {}
-  implicit def getInstance[A: MacTag]: JCAMacImpure[A] = new JCAMacImpure[A](new JMacInterpreter[A]) {}
+  def apply[A: MacTag]: JCAMacImpure[A]                = new JCAMacImpure[A](new JMacInterpreterImpure[A]) {}
+  implicit def getInstance[A: MacTag]: JCAMacImpure[A] = new JCAMacImpure[A](new JMacInterpreterImpure[A]) {}
 
   def sign[A: MacTag](content: Array[Byte], key: MacSigningKey[A])(
       implicit jc: JCAMacImpure[A]

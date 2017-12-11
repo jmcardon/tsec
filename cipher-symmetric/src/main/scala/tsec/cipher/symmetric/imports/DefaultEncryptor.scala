@@ -4,8 +4,8 @@ import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.NoPadding
 
 sealed abstract class Encryptor[A: SymmetricCipher] {
-  lazy val instance: Either[NoSuchInstanceError, JCASymmetricCipher[A, CTR, NoPadding]] =
-    JCASymmetricCipher[A, CTR, NoPadding]
+  lazy val instance: Either[NoSuchInstanceError, JCASymmCipherImpure[A, CTR, NoPadding]] =
+    JCASymmCipherImpure[A, CTR, NoPadding]
 
   @inline
   def keyGen(
