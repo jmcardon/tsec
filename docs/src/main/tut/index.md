@@ -87,7 +87,7 @@ installed for tests that use Keys larger than 128 bits. More information under [
 
 [Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor/Maintainer)
 
-[Harrison Houghton](https://github.com/ChristopherDavenport)(Contributor/Maintainer)
+[Harrison Houghton](https://github.com/hrhino)(Contributor/Maintainer)
 
 [Bjørn Madsen](https://github.com/aeons) (Contributor)
 
