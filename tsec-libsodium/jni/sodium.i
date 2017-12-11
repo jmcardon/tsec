@@ -1,4 +1,8 @@
 /* sodium.i */
+/* NOTE WELL that if you change this file, you must update the interface files thusly:
+ * - run `./setup.sh` to generate the SWIG JNI files
+ * - run `sbt gensodium` to generate the Scala interface
+ */
 %module Sodium
 
 %include "typemaps.i"
