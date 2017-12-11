@@ -1,12 +1,9 @@
 package tsec.cipher.symmetric
 
-import tsec.cipher.common._
+import cats.evidence.Is
 import tsec.cipher.common.padding.NoPadding
 import tsec.common.{CryptoTag, JKeyGenerator}
 import javax.crypto.{SecretKey => JSecretKey}
-
-import cats.evidence.Is
-import tsec.cipher.symmetric.imports.SecretKey$$
 
 package object imports {
   type AEADCipherText[A]    = CipherText[A, GCM, NoPadding]
