@@ -22,7 +22,7 @@ For the current progress, please refer to the [RoadMap](https://github.com/jmcar
 For version changes and additions, including breaking changes, see either [release notes](https://github.com/jmcardon/tsec/releases)
 or the [Version Changes](https://github.com/jmcardon/tsec/wiki/Version-Changes) page.
 
-0.0.1-M5 is here for scala 2.12+ and Cats 1.0.0-RC1!
+0.0.1-M6 is here for scala 2.12+ and Cats 1.0.0-RC1!
 
 To get started, if you are on sbt 0.13.16+, add
 
@@ -52,7 +52,7 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M5"
+val tsecV = "0.0.1-M6"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
@@ -83,9 +83,11 @@ installed for tests that use Keys larger than 128 bits. More information under [
 [jwt-scala](https://github.com/pauldijou/jwt-scala)
 
 ## Big Thank you to our contributors (direct or indirect):
-[Robert Soeldner](https://github.com/rsoeldner) (Contributor)
+[Robert Soeldner](https://github.com/rsoeldner) (Contributor/Maintainer)
 
-[Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor)
+[Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor/Maintainer)
+
+[Harrison Houghton](https://github.com/ChristopherDavenport)(Contributor/Maintainer)
 
 [Bjørn Madsen](https://github.com/aeons) (Contributor)
 

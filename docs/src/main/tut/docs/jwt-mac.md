@@ -23,28 +23,33 @@ To create custom claims, use the JWTClaims object:
   val claims = JWTClaims.build(expiration = Some(10.minutes))
 ```
 
-The JWT module comes with two ways to work with JWT by default: by using `Either` to handle errors,
- or into a Target `F[_]` with a `MonadError[F, Throwable]`.
+The JWT module comes with two ways to work with JWT by default interpreting
+ into a Target `F[_]` with a `Sync[F]`, or interpreting into `Either[Throwable, A]`
+ if you do not like writing pure code.
  
-```tut
- val jwt: Either[Throwable, JWTMac[HMACSHA256]] = for {
+```tut:silent
+  import cats.syntax.all._
+  import cats.effect.Sync
+
+  /** You can interpret into any target Monad with an instance of Sync[F] using JwtMac */
+  def jwtMonadic[F[_]: Sync]: F[JWTMac[HMACSHA256]] =
+    for {
+      key <- HMACSHA256.generateLift[F]
+      jwt <- JWTMac.build[F, HMACSHA256](claims, key) //You can sign and build a jwt object directly
+      verifiedFromObj <- JWTMac
+        .verifyFromInstance[F, HMACSHA256](jwt, key) //You can verify the jwt straight from an object
+      stringjwt  <- JWTMac.buildToString[F, HMACSHA256](claims, key)       //Or build it straight to string
+      isverified <- JWTMac.verifyFromString[F, HMACSHA256](stringjwt, key) //You can verify straight from a string
+      parsed     <- JWTMac.verifyAndParse[F, HMACSHA256](stringjwt, key)   //Or verify and return the actual instance
+    } yield parsed
+
+  /** Or using an impure either interpreter */
+  val jwt: Either[Throwable, JWTMac[HMACSHA256]] = for {
     key             <- HMACSHA256.generateKey()
-    jwt             <- JWTMac.build[HMACSHA256](claims, key) //You can sign and build a jwt object directly
-    verifiedFromObj <- JWTMac.verifyFromInstance[HMACSHA256](jwt, key) //You can verify the jwt straight from an object
-    stringjwt       <- JWTMac.buildToString[HMACSHA256](claims, key) //Or build it straight to string
-    isverified      <- JWTMac.verifyFromString[HMACSHA256](stringjwt, key) //You can verify straight from a string
-    parsed          <- JWTMac.verifyAndParse[HMACSHA256](stringjwt, key) //Or verify and return the actual instance
-  } yield parsed
-  
-import cats.effect.IO
-  
-  val jwtMonadic: IO[JWTMac[HMACSHA256]] = for {
-    key <- HMACSHA256.generateLift[IO]
-    jwt <- JWTMacM.build[IO, HMACSHA256](claims, key) //You can sign and build a jwt object directly
-    verifiedFromObj <- JWTMacM
-      .verifyFromInstance[IO, HMACSHA256](jwt, key) //You can verify the jwt straight from an object
-    stringjwt  <- JWTMacM.buildToString[IO, HMACSHA256](claims, key)       //Or build it straight to string
-    isverified <- JWTMacM.verifyFromString[IO, HMACSHA256](stringjwt, key) //You can verify straight from a string
-    parsed     <- JWTMacM.verifyAndParse[IO, HMACSHA256](stringjwt, key)   //Or verify and return the actual instance
+    jwt             <- JWTMacImpure.build[HMACSHA256](claims, key) //You can sign and build a jwt object directly
+    verifiedFromObj <- JWTMacImpure.verifyFromInstance[HMACSHA256](jwt, key)
+    stringjwt       <- JWTMacImpure.buildToString[HMACSHA256](claims, key) //Or build it straight to string
+    isverified      <- JWTMacImpure.verifyFromString[HMACSHA256](stringjwt, key) //You can verify straight from a string
+    parsed          <- JWTMacImpure.verifyAndParse[HMACSHA256](stringjwt, key) //Or verify and return the actual instance
   } yield parsed
 ```

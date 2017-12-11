@@ -7,13 +7,12 @@ object PasswordHashingExamples {
   /** For password hashers, you have three options: BCrypt, SCrypt and HardenedScrypt
     * (Which is basically scrypt but with much more secure parameters, but a lot slower).
     */
-  val pass: Array[Char] = Array('h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd')
-
   /**
     * Preferrably, though, you'd want to receive your password as an `Array[Byte]` or
     * `Array[Char]` without ever storing a string. TSec
     * handles this case first and foremost
     */
+  val pass: Array[Char]                                        = Array('h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd')
   val bestbcryptHash: IO[PasswordHash[BCrypt]]                 = BCrypt.hashpw[IO](pass)
   val bestscryptHash: IO[PasswordHash[SCrypt]]                 = SCrypt.hashpw[IO](pass)
   val besthardenedScryptHash: IO[PasswordHash[HardenedSCrypt]] = HardenedSCrypt.hashpw[IO](pass)
