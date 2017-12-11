@@ -11,19 +11,19 @@ private[tsec] trait SodiumCipherPlatform[A]
     with SodiumCipherAlgebra[A, SodiumKey] {
   implicit val authCipher: SodiumAuthCipher[A] = this
 
-  def generateKeyUnsafe(implicit s: ScalaSodium): SodiumKey[A] = {
+  final def generateKeyUnsafe(implicit s: ScalaSodium): SodiumKey[A] = {
     val bytes = new Array[Byte](keyLength)
     s.randombytes_buf(bytes, keyLength)
     SodiumKey.is[A].coerce(bytes)
   }
 
-  def buildKeyUnsafe(key: Array[Byte])(implicit s: ScalaSodium): SodiumKey[A] =
+  final def buildKeyUnsafe(key: Array[Byte])(implicit s: ScalaSodium): SodiumKey[A] =
     if (key.length != keyLength)
       throw CipherKeyError("Invalid key length")
     else
       SodiumKey[A](key)
 
-  def encrypt[F[_]](plainText: PlainText, key: SodiumKey[A])(
+  final def encrypt[F[_]](plainText: PlainText, key: SodiumKey[A])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[SodiumCipherText[A]] = F.delay {
@@ -36,7 +36,7 @@ private[tsec] trait SodiumCipherPlatform[A]
     SodiumCipherText[A](outArray, nonce)
   }
 
-  def decrypt[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A])(
+  final def decrypt[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText] = F.delay {
@@ -46,7 +46,7 @@ private[tsec] trait SodiumCipherPlatform[A]
     PlainText(originalMessage)
   }
 
-  def encryptDetached[F[_]](plainText: PlainText, key: SodiumKey[A])(
+  final def encryptDetached[F[_]](plainText: PlainText, key: SodiumKey[A])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[(SodiumCipherText[A], AuthTag[A])] = F.delay {
@@ -60,7 +60,7 @@ private[tsec] trait SodiumCipherPlatform[A]
     (SodiumCipherText[A](outArray, nonce), AuthTag.is[A].coerce(macOut))
   }
 
-  def decryptDetached[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], authTag: AuthTag[A])(
+  final def decryptDetached[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], authTag: AuthTag[A])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText] = F.delay {

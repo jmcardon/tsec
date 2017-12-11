@@ -9,13 +9,13 @@ trait SodiumHashPlatform[A] extends SodiumHash[A] with SodiumHashAlgebra[A] {
   implicit val sodiumHash: SodiumHash[A]               = this
   implicit val sodiumHashAlgebra: SodiumHashAlgebra[A] = this
 
-  def hash[F[_]](bytes: Array[Byte])(implicit F: Sync[F], S: ScalaSodium): F[Hash[A]] = F.delay {
+  final def hash[F[_]](bytes: Array[Byte])(implicit F: Sync[F], S: ScalaSodium): F[Hash[A]] = F.delay {
     val out = new Array[Byte](hashLen)
     sodiumHash(bytes, out)
     Hash[A](out)
   }
 
-  def hashPipe[F[_]](implicit F: Sync[F], S: ScalaSodium): Pipe[F, Byte, Byte] = { in =>
+  final def hashPipe[F[_]](implicit F: Sync[F], S: ScalaSodium): Pipe[F, Byte, Byte] = { in =>
     Stream.suspend[F, Byte] {
       for {
         rawState <- Stream.eval(F.delay {

@@ -1,6 +1,7 @@
 package tsec.libsodium.passwordhashers.internal
 
 import cats.effect.Sync
+import cats.syntax.all._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.passwordhashers.{PWStrengthParam => PS}
 import tsec.libsodium.passwordhashers._
@@ -20,8 +21,9 @@ trait SodiumPasswordHasher[PwTyp] {
       S: ScalaSodium
   ): F[Boolean]
 
-  def checkPassShortCircuit[F[_]](
+  final def checkPassShortCircuit[F[_]](
       raw: String,
       hash: PasswordHash[PwTyp]
-  )(implicit F: Sync[F], S: ScalaSodium): F[Unit]
+  )(implicit F: Sync[F], S: ScalaSodium): F[Unit] =
+    checkPass[F](raw, hash).flatMap(res => if (res) F.unit else F.raiseError(SodiumPasswordError("Invalid password")))
 }

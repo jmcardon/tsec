@@ -11,7 +11,7 @@ class GenericHash extends SodiumSpec {
   def hashTest[A](platform: SodiumHashPlatform[A]) = {
     behavior of "Sodium hash for " + platform.algorithm
 
-    it should "hash two bytes to equal hashes" in {
+    it should "hash two byte arrays into equal hash values" in {
       forAll { (s: String) =>
         val program = for {
           h1 <- platform.hash[IO](s.utf8Bytes)

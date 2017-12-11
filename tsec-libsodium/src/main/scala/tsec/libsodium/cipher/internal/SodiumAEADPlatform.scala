@@ -10,19 +10,19 @@ trait SodiumAEADPlatform[A]
     with SodiumAEADCipher[A]
     with SodiumAEADAlgebra[A, SodiumKey] {
 
-  def generateKeyUnsafe(implicit s: ScalaSodium): SodiumKey[A] = {
+  final def generateKeyUnsafe(implicit S: ScalaSodium): SodiumKey[A] = {
     val bytes = new Array[Byte](keyLength)
-    s.randombytes_buf(bytes, keyLength)
+    S.randombytes_buf(bytes, keyLength)
     SodiumKey.is[A].coerce(bytes)
   }
 
-  def buildKeyUnsafe(key: Array[Byte])(implicit s: ScalaSodium): SodiumKey[A] =
+  final def buildKeyUnsafe(key: Array[Byte])(implicit S: ScalaSodium): SodiumKey[A] =
     if (key.length != keyLength)
       throw CipherKeyError("Invalid key length")
     else
       SodiumKey[A](key)
 
-  def encrypt[F[_]](plaintext: PlainText, key: SodiumKey[A])(
+  final def encrypt[F[_]](plaintext: PlainText, key: SodiumKey[A])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[SodiumCipherText[A]] = F.delay {
@@ -36,7 +36,7 @@ trait SodiumAEADPlatform[A]
     SodiumCipherText[A](outArray, nonce)
   }
 
-  def decrypt[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A])(
+  final def decrypt[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText] = F.delay {
@@ -46,7 +46,7 @@ trait SodiumAEADPlatform[A]
     PlainText(originalMessage)
   }
 
-  def encryptAAD[F[_]](plaintext: PlainText, key: SodiumKey[A], aad: SodiumAAD)(
+  final def encryptAAD[F[_]](plaintext: PlainText, key: SodiumKey[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[SodiumCipherText[A]] = F.delay {
@@ -60,7 +60,7 @@ trait SodiumAEADPlatform[A]
     SodiumCipherText[A](outArray, nonce)
   }
 
-  def decryptAAD[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], aad: SodiumAAD)(
+  final def decryptAAD[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText] = F.delay {
@@ -70,7 +70,7 @@ trait SodiumAEADPlatform[A]
     PlainText(originalMessage)
   }
 
-  def encryptAADDetached[F[_]](plainText: PlainText, key: SodiumKey[A], aad: SodiumAAD)(
+  final def encryptAADDetached[F[_]](plainText: PlainText, key: SodiumKey[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[(SodiumCipherText[A], AuthTag[A])] = F.delay {
@@ -84,7 +84,7 @@ trait SodiumAEADPlatform[A]
     (SodiumCipherText[A](outArray, nonce), AuthTag.is[A].coerce(macOut))
   }
 
-  def decryptAADDetached[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], authTag: AuthTag[A], aad: SodiumAAD)(
+  final def decryptAADDetached[F[_]](cipherText: SodiumCipherText[A], key: SodiumKey[A], authTag: AuthTag[A], aad: SodiumAAD)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText] = F.delay {

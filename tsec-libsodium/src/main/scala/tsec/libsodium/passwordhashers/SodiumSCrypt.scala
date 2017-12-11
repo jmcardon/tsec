@@ -37,17 +37,4 @@ object SodiumSCrypt extends SodiumPasswordHasher[SodiumSCrypt] {
     asciiEncoder
       .canEncode(raw) && S.crypto_pwhash_scryptsalsa208sha256_str_verify(hash.asciiBytes, rawBytes, raw.length) == 0
   }
-
-  def checkPassShortCircuit[F[_]](raw: String, hash: PasswordHash[SodiumSCrypt])(
-      implicit F: Sync[F],
-      S: ScalaSodium
-  ): F[Unit] = F.delay {
-    val rawBytes = raw.asciiBytes
-    if (!asciiEncoder.canEncode(raw) || S.crypto_pwhash_scryptsalsa208sha256_str_verify(
-          hash.asciiBytes,
-          rawBytes,
-          raw.length
-        ) != 0)
-      throw SodiumPasswordError("Invalid password")
-  }
 }

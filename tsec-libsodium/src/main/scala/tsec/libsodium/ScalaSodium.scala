@@ -45,7 +45,7 @@ object ScalaSodium
         } else
           println("\n[tsec] Loading libsodium jni... Hold tight Asznee\n")
       case _ =>
-        throw new RuntimeException(s"Unsupported libsodium version $sodiumString. Please upgrade to version 1.0.12+")
+        throw new SodiumLoadError(s"Unsupported libsodium version $sodiumString. Please upgrade to version 1.0.12+")
     }
 
   private[tsec] lazy val Sodium: ScalaSodium = {
@@ -57,20 +57,24 @@ object ScalaSodium
     sodium
   }
 
-  def getSodiumUnsafe: ScalaSodium = Sodium
+  final def getSodiumUnsafe: ScalaSodium = Sodium
 
-  def getSodium[F[_]](implicit F: Sync[F]): F[ScalaSodium] = F.delay(Sodium)
+  final def getSodium[F[_]](implicit F: Sync[F]): F[ScalaSodium] = F.delay(Sodium)
 
-  def randomBytes[F[_]](len: Int)(implicit F: Sync[F], S: ScalaSodium): F[Array[Byte]] = F.delay {
+  final def randomBytes[F[_]](len: Int)(implicit F: Sync[F], S: ScalaSodium): F[Array[Byte]] = F.delay {
     val bytes = new Array[Byte](len)
     S.randombytes_buf(bytes, len)
     bytes
   }
 
-  def randomBytesUnsafe(len: Int)(implicit S: ScalaSodium): Array[Byte] = {
+  final def randomBytesUnsafe(len: Int)(implicit S: ScalaSodium): Array[Byte] = {
     val bytes = new Array[Byte](len)
     S.randombytes_buf(bytes, len)
     bytes
+  }
+
+  private final class SodiumLoadError(reason: String) extends VirtualMachineError {
+    override def getMessage: String = reason
   }
 
 }

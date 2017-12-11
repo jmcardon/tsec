@@ -4,7 +4,7 @@ import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication._
 import tsec.libsodium.authentication.internal.SodiumMacPlatform
 
-trait HS512
+sealed trait HS512
 
 object HS512 extends SodiumMacPlatform[HS512] {
   val keyLen: Int       = ScalaSodium.crypto_auth_hmacsha512_KEYBYTES

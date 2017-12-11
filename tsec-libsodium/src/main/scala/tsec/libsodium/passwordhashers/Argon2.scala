@@ -32,13 +32,4 @@ object Argon2 extends SodiumPasswordHasher[Argon2] {
       val rawBytes = raw.asciiBytes
       asciiEncoder.canEncode(raw) && S.crypto_pwhash_str_verify(hash.asciiBytes, rawBytes, raw.length) == 0
     }
-
-  def checkPassShortCircuit[F[_]](
-      raw: String,
-      hash: PasswordHash[Argon2]
-  )(implicit F: Sync[F], S: ScalaSodium): F[Unit] = F.delay {
-    val rawBytes = raw.asciiBytes
-    if (!asciiEncoder.canEncode(raw) || S.crypto_pwhash_str_verify(hash.asciiBytes, rawBytes, raw.length) != 0)
-      throw SodiumPasswordError("Invalid password")
-  }
 }
