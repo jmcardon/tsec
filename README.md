@@ -83,9 +83,11 @@ then use:
  `sudo apt-get install oracle-java8-unlimited-jce-policy` 
  
 ## Big Thank you to our contributors (direct or indirect):
-[Robert Soeldner](https://github.com/rsoeldner) (Contributor)
+[Robert Soeldner](https://github.com/rsoeldner) (Contributor/Maintainer)
 
-[Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor)
+[Christopher Davenport](https://github.com/ChristopherDavenport)(Contributor/Maintainer)
+
+[Harrison Houghton](https://github.com/ChristopherDavenport)(Contributor/Maintainer)
 
 [Bjørn Madsen](https://github.com/aeons) (Contributor)
 
