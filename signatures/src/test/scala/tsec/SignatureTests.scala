@@ -19,7 +19,7 @@ class SignatureTests extends TestSpec with MustMatchers {
 
   def sigIOTests[A](
       implicit algoTag: SigAlgoTag[A],
-      interp: JCASignerPure[IO, A],
+      interp: JCASigner[IO, A],
       ecKFTag: KFTag[A]
   ): Unit = {
 

@@ -16,7 +16,7 @@ object MacExamples {
   import cats.effect.IO
 
   /** For Interpetation into IO */
-  val macPureInstance: JCAMacPure[IO, HMACSHA256] = JCAMacPure[IO, HMACSHA256]
+  val macPureInstance: JCAMac[IO, HMACSHA256] = JCAMac[IO, HMACSHA256]
   val `mac'd-pure`: IO[Boolean] = for {
     key       <- HMACSHA256.generateLift[IO]                        //Generate our key.
     macValue  <- macPureInstance.sign(toMac, key)                   //Generate our MAC bytes
