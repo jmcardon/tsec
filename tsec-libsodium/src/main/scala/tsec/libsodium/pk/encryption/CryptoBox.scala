@@ -3,7 +3,7 @@ package tsec.libsodium.pk.encryption
 import cats.effect.Sync
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.pk._
-import tsec.libsodium.cipher.{PlainText, SodiumCipherText}
+import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.SodiumCipherError._
 
 sealed trait CryptoBox
@@ -27,8 +27,8 @@ object CryptoBox {
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[SodiumCipherText[CryptoBox]] = F.delay {
-    val out   = new Array[Byte](raw.length + macLen)
-    val nonce = ScalaSodium.randomBytesUnsafe(nonceLen)
+    val out   = RawCiphertext[CryptoBox](new Array[Byte](raw.length + macLen))
+    val nonce = CipherNonce[CryptoBox](ScalaSodium.randomBytesUnsafe(nonceLen))
     if (S.crypto_box_easy(out, raw, raw.length, nonce, recipientPub, sender) != 0)
       throw EncryptError("Invalid encryption info")
     SodiumCipherText[CryptoBox](out, nonce)
@@ -60,9 +60,9 @@ object CryptoBox {
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[(SodiumCipherText[CryptoBox], PKAuthTag[CryptoBox])] = F.delay {
-    val out   = new Array[Byte](raw.length)
+    val out   = RawCiphertext[CryptoBox](new Array[Byte](raw.length))
     val mac   = new Array[Byte](macLen)
-    val nonce = ScalaSodium.randomBytesUnsafe(nonceLen)
+    val nonce = CipherNonce[CryptoBox](ScalaSodium.randomBytesUnsafe(nonceLen))
     if (S.crypto_box_detached(out, mac, raw, raw.length, nonce, recipientPub, sender) != 0)
       throw EncryptError("Invalid encryption info")
     (SodiumCipherText[CryptoBox](out, nonce), PKAuthTag[CryptoBox](mac))
@@ -102,8 +102,8 @@ object CryptoBox {
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[SodiumCipherText[CryptoBox]] = F.delay {
-    val out   = new Array[Byte](raw.length + macLen)
-    val nonce = ScalaSodium.randomBytesUnsafe(nonceLen)
+    val out   = RawCiphertext[CryptoBox](new Array[Byte](raw.length + macLen))
+    val nonce = CipherNonce[CryptoBox](ScalaSodium.randomBytesUnsafe(nonceLen))
     if (S.crypto_box_easy_afternm(out, raw, raw.length, nonce, precalc) != 0)
       throw EncryptError("Invalid encryption info")
     SodiumCipherText[CryptoBox](out, nonce)
@@ -133,9 +133,9 @@ object CryptoBox {
       raw: PlainText,
       precalc: SharedKey[CryptoBox]
   )(implicit F: Sync[F], S: ScalaSodium): F[(SodiumCipherText[CryptoBox], PKAuthTag[CryptoBox])] = F.delay {
-    val out   = new Array[Byte](raw.length)
+    val out   = RawCiphertext[CryptoBox](new Array[Byte](raw.length))
     val mac   = new Array[Byte](macLen)
-    val nonce = ScalaSodium.randomBytesUnsafe(nonceLen)
+    val nonce = CipherNonce[CryptoBox](ScalaSodium.randomBytesUnsafe(nonceLen))
     if (S.crypto_box_detached_afternm(out, mac, raw, raw.length, nonce, precalc) != 0)
       throw EncryptError("Invalid encryption info")
     (SodiumCipherText[CryptoBox](out, nonce), PKAuthTag[CryptoBox](mac))

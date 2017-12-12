@@ -27,8 +27,8 @@ private[tsec] trait SodiumCipherPlatform[A]
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[SodiumCipherText[A]] = F.delay {
-    val outArray = new Array[Byte](plainText.length + macLen)
-    val nonce    = new Array[Byte](nonceLen)
+    val outArray = RawCiphertext[A](new Array[Byte](plainText.length + macLen))
+    val nonce    = CipherNonce[A](new Array[Byte](nonceLen))
     S.randombytes_buf(nonce, nonceLen)
     if (sodiumEncrypt(outArray, plainText, nonce, key) != 0)
       throw EncryptError("Invalid encryption Info")
@@ -50,9 +50,9 @@ private[tsec] trait SodiumCipherPlatform[A]
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[(SodiumCipherText[A], AuthTag[A])] = F.delay {
-    val outArray = new Array[Byte](plainText.length)
+    val outArray = RawCiphertext[A](new Array[Byte](plainText.length))
     val macOut   = new Array[Byte](macLen)
-    val nonce    = new Array[Byte](nonceLen)
+    val nonce    = CipherNonce[A](new Array[Byte](nonceLen))
     S.randombytes_buf(nonce, nonceLen)
     if (sodiumEncryptDetached(outArray, macOut, plainText, nonce, key) != 0)
       throw EncryptError("Invalid encryption Info")

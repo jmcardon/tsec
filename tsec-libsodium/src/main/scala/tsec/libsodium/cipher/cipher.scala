@@ -31,6 +31,34 @@ package object cipher {
     @inline def is[A]: Is[Array[Byte], SodiumKey[A]] = SodiumKey$$.is[A]
   }
 
+  private[tsec] val RawCiphertext$$ : HKByteArrayNewt = new HKByteArrayNewt {
+    type Repr[A] = Array[Byte]
+
+    def is[G] = Is.refl[Array[Byte]]
+  }
+
+  /** Our newtype over private keys **/
+  type RawCiphertext[A] = RawCiphertext$$.Repr[A]
+
+  object RawCiphertext {
+    def apply[A](bytes: Array[Byte]): RawCiphertext[A]   = is[A].coerce(bytes)
+    @inline def is[A]: Is[Array[Byte], RawCiphertext[A]] = RawCiphertext$$.is[A]
+  }
+
+  private[tsec] val CipherNonce$$ : HKByteArrayNewt = new HKByteArrayNewt {
+    type Repr[A] = Array[Byte]
+
+    def is[G] = Is.refl[Array[Byte]]
+  }
+
+  /** Our newtype over private keys **/
+  type CipherNonce[A] = CipherNonce$$.Repr[A]
+
+  object CipherNonce {
+    def apply[A](bytes: Array[Byte]): CipherNonce[A]   = is[A].coerce(bytes)
+    @inline def is[A]: Is[Array[Byte], CipherNonce[A]] = CipherNonce$$.is[A]
+  }
+
   private[tsec] val AuthTag$$ : HKByteArrayNewt = new HKByteArrayNewt {
     type Repr[A] = Array[Byte]
 
