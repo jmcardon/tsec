@@ -26,6 +26,11 @@ package object cipher {
   /** Our newtype over private keys **/
   type SodiumKey[A] = SodiumKey$$.Repr[A]
 
+  object SodiumKey {
+    def apply[A](bytes: Array[Byte]): SodiumKey[A]   = is[A].coerce(bytes)
+    @inline def is[A]: Is[Array[Byte], SodiumKey[A]] = SodiumKey$$.is[A]
+  }
+
   private[tsec] val AuthTag$$ : HKByteArrayNewt = new HKByteArrayNewt {
     type Repr[A] = Array[Byte]
 
@@ -38,11 +43,6 @@ package object cipher {
   object AuthTag {
     def apply[A](bytes: Array[Byte]): AuthTag[A]   = AuthTag$$.is[A].coerce(bytes)
     @inline def is[A]: Is[Array[Byte], AuthTag[A]] = AuthTag$$.is[A]
-  }
-
-  object SodiumKey {
-    def apply[A](bytes: Array[Byte]): SodiumKey[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], SodiumKey[A]] = SodiumKey$$.is[A]
   }
 
   private[tsec] val AADLS$$ : TaggedByteArray = new TaggedByteArray {
