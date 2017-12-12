@@ -36,7 +36,7 @@ and AES/GCM/NoPadding for Authenticated encryption. All ciphers have their Rando
 after a reasonable amount of uses.
 
 ```tut
-val toEncrypt = "hi hello welcome to tsec".utf8Bytes
+  val toEncrypt = "hi hello welcome to tsec".utf8Bytes
   val onlyEncrypt: Either[CipherError, String] = for {
     instance  <- DefaultEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
     key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
@@ -71,21 +71,21 @@ Note: AEAD modes are separate from general cipher modes, for correctness. Thus t
   import tsec.cipher.common.padding._
   import tsec.cipher.symmetric.imports.aead._
   val advancedUsage: Either[CipherError, String] = for {
-      instance  <- JCAAEAD[AES128, GCM, NoPadding]
-      key       <- AES128.generateKey()
-      encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
-      decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
-    } yield decrypted.content.toUtf8String
-  
-    /** For interpretation into any F[_]: Sync,
-      * use JCASymmPure or AEADPure
-      */
-    import cats.effect.{IO, Sync}
-  
-    val advancedUsage2: IO[String] = for {
-      instance  <- JCAAEADPure[IO, AES128, GCM, NoPadding]()
-      key       <- AES128.generateLift[IO]
-      encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
-      decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
-    } yield decrypted.content.toUtf8String
+    instance  <- JCAAEADImpure[AES128, GCM, NoPadding]
+    key       <- AES128.generateKey()
+    encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
+    decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
+  } yield decrypted.content.toUtf8String
+
+  /** For interpretation into any F[_]: Sync,
+    * use JCASymmPure or AEADPure
+    */
+  import cats.effect.{IO, Sync}
+
+  val advancedUsage2: IO[String] = for {
+    instance  <- JCAAEAD[IO, AES128, GCM, NoPadding]()
+    key       <- AES128.generateLift[IO]
+    encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
+    decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
+  } yield decrypted.content.toUtf8String
 ```

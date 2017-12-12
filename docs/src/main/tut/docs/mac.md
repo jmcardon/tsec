@@ -14,28 +14,31 @@ Example message authentication: Note, will use byteutils
  import tsec.mac.imports._
 ```
 
-To use the _impure_ version:
+Default Pure version with usage of cats effect `Sync[F]`
 ```tut:silent
- val macInstance: JCAMacImpure[HMACSHA256] = JCAMacImpure[HMACSHA256]
- val toMac: Array[Byte]                    = "hi!".utf8Bytes
- val `mac'd`: Either[Throwable, Boolean] = for {
-    key       <- HMACSHA256.generateKey()                       //Generate our key.
-    macValue  <- macInstance.sign(toMac, key)                   //Generate our MAC bytes
-    verified  <- macInstance.verify(toMac, macValue, key)       //Verify a byte array with a signed, typed instance
-    verified2 <- macInstance.verifyArrays(toMac, macValue, key) //Alternatively, use arrays directly
- } yield verified
+  val toMac: Array[Byte] = "hi!".utf8Bytes
+
+  import cats.syntax.all._
+  import cats.effect.Sync
+
+  /** For Interpetation into any F */
+  def `mac'd-pure`[F[_]: Sync]: F[Boolean] =
+    for {
+      key       <- HMACSHA256.generateLift[F]                //Generate our key.
+      macValue  <- JCAMac.sign(toMac, key)                   //Generate our MAC bytes
+      verified  <- JCAMac.verify(toMac, macValue, key)       //Verify a byte array with a signed, typed instance
+      verified2 <- JCAMac.verifyArrays(toMac, macValue, key) //Alternatively, use arrays directly
+    } yield verified
 ```
 
-Pure version with usage of IO monad:
+
+To use the _impure_ version:
 ```tut:silent
- import cats.effect.IO
- 
- val macPureInstance: JCAMacPure[IO, HMACSHA256] = JCAMacPure[IO, HMACSHA256]
- val `mac'd-pure`: IO[Boolean] = for {
-    key       <- HMACSHA256.generateLift[IO]                        //Generate our key.
-    macValue  <- macPureInstance.sign(toMac, key)                   //Generate our MAC bytes
-    verified  <- macPureInstance.verify(toMac, macValue, key)       //Verify a byte array with a signed, typed instance
-    verified2 <- macPureInstance.verifyArrays(toMac, macValue, key) //Alternatively, use arrays directly
+  val `mac'd`: Either[Throwable, Boolean] = for {
+    key       <- HMACSHA256.generateKey()                        //Generate our key.
+    macValue  <- JCAMacImpure.sign(toMac, key)                   //Generate our MAC bytes
+    verified  <- JCAMacImpure.verify(toMac, macValue, key)       //Verify a byte array with a signed, typed instance
+    verified2 <- JCAMacImpure.verifyArrays(toMac, macValue, key) //Alternatively, use arrays directly
   } yield verified
-  
 ```
+

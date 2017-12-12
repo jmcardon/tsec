@@ -1,9 +1,6 @@
 package tsec.cipher.symmetric.mode
 
 import javax.crypto.spec.GCMParameterSpec
-import java.security.SecureRandom
-import java.util.concurrent.atomic.LongAdder
-
 import tsec.common.ManagedRandom
 
 trait CipherModes {

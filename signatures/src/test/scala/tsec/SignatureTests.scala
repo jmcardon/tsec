@@ -6,7 +6,7 @@ import tsec.common._
 import cats.effect.{Effect, IO}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
-import tsec.signature.core.SigAlgoTag
+import tsec.signature.core.{CryptoSignature, KFTag, SigAlgoTag}
 import tsec.signature.imports._
 
 class SignatureTests extends TestSpec with MustMatchers {
@@ -19,8 +19,7 @@ class SignatureTests extends TestSpec with MustMatchers {
 
   def sigIOTests[A](
       implicit algoTag: SigAlgoTag[A],
-      interp: JCASignerPure[IO, A],
-      gen: ByteEV[A],
+      interp: JCASigner[IO, A],
       ecKFTag: KFTag[A]
   ): Unit = {
 
@@ -31,18 +30,18 @@ class SignatureTests extends TestSpec with MustMatchers {
       val expression: IO[Boolean] = for {
         keyPair <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         signed  <- interp.sign(toSign, keyPair.privateKey)
-        verify  <- interp.verifyKI(toSign,signed, keyPair.publicKey)
+        verify  <- interp.verifyKI(toSign, signed, keyPair.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe true
     }
 
-    it should "not verify for a wrong key" in {
+    it should "not verify for a wrong key pair" in {
       val expression: IO[Boolean] = for {
         keyPair1 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         keyPair2 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         signed   <- interp.sign(toSign, keyPair1.privateKey)
-        verify   <- interp.verifyKI(toSign,signed, keyPair2.publicKey)
+        verify   <- interp.verifyKI(toSign, signed, keyPair2.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe false

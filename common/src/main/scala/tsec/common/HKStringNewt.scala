@@ -8,4 +8,5 @@ import cats.evidence.Is
 private[tsec] trait HKStringNewt {
   type Repr[A] <: String
   def is[G]: Is[String, Repr[G]]
+
 }

@@ -1,10 +1,12 @@
 package tsec.passwordhashers
 
-import cats.evidence.Is
+import java.nio.CharBuffer
+
+import cats.effect.Sync
 import tsec.passwordhashers.core._
-import org.mindrot.jbcrypt.{BCrypt => JBCrypt}
-import com.lambdaworks.crypto.{SCryptUtil => JSCrypt}
-import tsec.common.{StringEV, TaggedString}
+import tsec.common.ByteUtils
+import tsec.passwordhashers.imports.internal.JBCrypt
+import tsec.common._
 
 package object imports {
 
@@ -14,94 +16,71 @@ package object imports {
   val DefaultBcryptRounds = 10
 
   /** https://crypto.stackexchange.com/questions/35423/appropriate-scrypt-parameters-when-generating-an-scrypt-hash */
-  val DefaultSCryptN = 14
+  val DefaultSCryptN = 16384
   val DefaultSCryptR = 8
   val DefaultSCryptP = 1
 
   /** http://www.tarsnap.com/scrypt/scrypt-slides.pdf */
-  val SCryptHardenedN = 18
+  val SCryptHardenedN = 262144
   val SCryptHardnedR  = 8
   val SCryptHardenedP = 2
 
-  protected val BCrypt$$ : TaggedString = new TaggedString {
-    type I = String
-    val is = Is.refl[String]
+  sealed trait BCrypt
+
+  implicit object BCrypt extends PasswordHasher[BCrypt] {
+
+    private[tsec] def hashPassUnsafe(p: Array[Byte]): String =
+      JBCrypt.hashpw(p, JBCryptUtil.genSalt(DefaultBcryptRounds))
+
+    private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[BCrypt]) =
+      JBCrypt.checkpw(p, hash)
+
+    def hashpwWithRounds[F[_]](p: String, rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
+      hashpwWithRounds[F](p.utf8Bytes, rounds)
+
+    def hashpwWithRounds[F[_]](p: Array[Byte], rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
+      if (rounds < 10 || rounds > 30)
+        F.raiseError(PasswordError("Invalid number of rounds"))
+      else
+        F.delay {
+          val out = PasswordHash[BCrypt](JBCrypt.hashpw(p, JBCryptUtil.genSalt(rounds)))
+          ByteUtils.zeroByteArray(p)
+          out
+        }
+
+    def hashpwWithRounds[F[_]](p: Array[Char], rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
+      if (rounds < 10 || rounds > 30)
+        F.raiseError(PasswordError("Invalid number of rounds"))
+      else
+        F.delay {
+          val charbuffer = CharBuffer.wrap(p)
+          val bytes      = defaultCharset.encode(charbuffer).array()
+          val out        = PasswordHash[BCrypt](JBCrypt.hashpw(bytes, JBCryptUtil.genSalt(rounds)))
+          //Clear pass
+          ByteUtils.zeroCharArray(p)
+          ByteUtils.zeroByteArray(bytes)
+          out
+        }
   }
 
-  type BCrypt = BCrypt$$.I
+  sealed trait SCrypt
 
-  implicit object BCrypt extends PasswordHasher[BCrypt] with StringEV[BCrypt] {
-    @inline def fromString(a: String): BCrypt = BCrypt$$.is.flip.coerce(a)
+  implicit object SCrypt extends PasswordHasher[SCrypt] {
 
-    @inline def asString(a: BCrypt): String = BCrypt$$.is.coerce(a)
+    private[tsec] def hashPassUnsafe(p: Array[Byte]): String =
+      SCryptUtil.scrypt(p, DefaultSCryptN, DefaultSCryptR, DefaultSCryptP)
 
-    protected val defaultRounds: Rounds = Rounds(DefaultBcryptRounds)
-
-    def hashPw(pass: Password, opt: Rounds): BCrypt =
-      BCrypt$$.is.flip.coerce(JBCrypt.hashpw(pass.pass, JBCrypt.gensalt(opt.rounds)))
-
-    def checkPassword(pass: Password, hashed: BCrypt): Boolean =
-      JBCrypt.checkpw(pass.pass, hashed)
+    private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[SCrypt]) =
+      SCryptUtil.check(p, hash)
   }
 
-  private object BCryptAlgebra extends PWHashInterpreter[BCrypt]
+  sealed trait HardenedSCrypt
 
-  implicit object BCryptPasswordHasher
-      extends PWHashPrograms[PasswordValidated, BCrypt](BCryptAlgebra, Rounds(DefaultBcryptRounds))(BCrypt)
+  implicit object HardenedSCrypt extends PasswordHasher[HardenedSCrypt] {
+    private[tsec] def hashPassUnsafe(p: Array[Byte]) =
+      SCryptUtil.scrypt(p, SCryptHardenedN, SCryptHardnedR, SCryptHardenedP)
 
-  protected val SCrypt$$ : TaggedString = new TaggedString {
-    type I = String
-    val is = Is.refl[String]
+    private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[HardenedSCrypt]) =
+      SCryptUtil.check(p, hash)
   }
-
-  type SCrypt = SCrypt$$.I
-
-  implicit object SCrypt extends PasswordHasher[SCrypt] with StringEV[SCrypt] {
-    @inline def fromString(a: String): SCrypt = SCrypt$$.is.flip.coerce(a)
-
-    @inline def asString(a: SCrypt): String = SCrypt$$.is.coerce(a)
-
-    protected val defaultRounds: Rounds = Rounds(DefaultSCryptR)
-
-    def hashPw(pass: Password, opt: Rounds): SCrypt =
-      SCrypt$$.is.flip
-        .coerce(SCryptUtil.scrypt(pass.pass, math.pow(2, opt.rounds).toInt, DefaultSCryptR, DefaultSCryptP))
-
-    def checkPassword(pass: Password, hashed: SCrypt): Boolean =
-      JSCrypt.check(pass.pass, hashed)
-  }
-
-  implicit object SCryptAlgebra extends PWHashInterpreter[SCrypt]
-
-  implicit object SCryptPasswordHasher
-      extends PWHashPrograms[PasswordValidated, SCrypt](SCryptAlgebra, Rounds(DefaultSCryptN))(SCrypt)
-
-  val HardenedSCrypt$$ : TaggedString = new TaggedString {
-    type I = String
-    val is = Is.refl[String]
-  }
-
-  type HardenedSCrypt = HardenedSCrypt$$.I
-
-  implicit object HardenedSCrypt extends PasswordHasher[HardenedSCrypt] with StringEV[HardenedSCrypt] {
-
-    @inline def fromString(a: String): HardenedSCrypt = HardenedSCrypt$$.is.flip.coerce(a)
-
-    @inline def asString(a: HardenedSCrypt): String = HardenedSCrypt$$.is.coerce(a)
-
-    protected val defaultRounds: Rounds = Rounds(SCryptHardnedR)
-
-    def hashPw(pass: Password, opt: Rounds): HardenedSCrypt =
-      HardenedSCrypt$$.is.flip
-        .coerce(SCryptUtil.scrypt(pass.pass, math.pow(2, opt.rounds).toInt, SCryptHardnedR, SCryptHardenedP))
-
-    def checkPassword(pass: Password, hashed: HardenedSCrypt): Boolean =
-      SCryptUtil.check(pass.pass, hashed)
-  }
-
-  object Hardened extends PWHashInterpreter[HardenedSCrypt]
-
-  implicit object HardenedSCryptHasher
-      extends PWHashPrograms[PasswordValidated, HardenedSCrypt](Hardened, Rounds(SCryptHardenedN))(HardenedSCrypt)
-
 }

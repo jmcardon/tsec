@@ -61,7 +61,7 @@ object SymmetricCipherExamples {
   import tsec.cipher.common.padding._
   import tsec.cipher.symmetric.imports.aead._
   val advancedUsage: Either[CipherError, String] = for {
-    instance  <- JCAAEAD[AES128, GCM, NoPadding]
+    instance  <- JCAAEADImpure[AES128, GCM, NoPadding]
     key       <- AES128.generateKey()
     encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
@@ -73,7 +73,7 @@ object SymmetricCipherExamples {
   import cats.effect.{IO, Sync}
 
   val advancedUsage2: IO[String] = for {
-    instance  <- JCAAEADPure[IO, AES128, GCM, NoPadding]()
+    instance  <- JCAAEAD[IO, AES128, GCM, NoPadding]()
     key       <- AES128.generateLift[IO]
     encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
     decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD

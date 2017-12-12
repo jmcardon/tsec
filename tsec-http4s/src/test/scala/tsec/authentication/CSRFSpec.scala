@@ -6,10 +6,10 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.scalatest.MustMatchers
 import tsec.TestSpec
-import tsec.common.ByteEV
 import tsec.csrf.{CSRFToken, TSecCSRF}
 import tsec.mac.imports._
 import cats.syntax.all._
+import tsec.mac.core.MacTag
 
 class CSRFSpec extends TestSpec with MustMatchers {
 
@@ -26,7 +26,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
   val passThroughRequest: Request[IO] = Request[IO]()
   val orElse: Response[IO]            = Response[IO](Status.Unauthorized)
 
-  def testCSRFWithMac[A: ByteEV: MacTag](implicit keygen: MacKeyGenerator[A]) = {
+  def testCSRFWithMac[A: MacTag](implicit keygen: MacKeyGenerator[A]) = {
     behavior of s"CSRF signing using " + MacTag[A].algorithm
 
     val newKey   = keygen.generateKeyUnsafe()

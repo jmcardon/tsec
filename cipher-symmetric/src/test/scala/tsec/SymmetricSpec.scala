@@ -28,7 +28,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key       <- keyGen.generateKey()
-          instance  <- JCASymmetricCipher[A, M, P]
+          instance  <- JCASymmCipherImpure[A, M, P]
           encrypted <- instance.encrypt(testPlainText, key)
           decrypted <- instance.decrypt(encrypted, key)
         } yield decrypted.content.toUtf8String
@@ -41,7 +41,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key       <- keyGen.generateKey()
-          instance  <- JCASymmetricCipher[A, M, P]
+          instance  <- JCASymmCipherImpure[A, M, P]
           encrypted <- instance.encrypt(testPlainText, key)
           keyRepr = key.getEncoded
           built     <- keyGen.buildKey(keyRepr)
@@ -57,7 +57,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key1      <- keyGen.generateKey()
           key2      <- keyGen.generateKey()
-          instance  <- JCASymmetricCipher[A, M, P]
+          instance  <- JCASymmCipherImpure[A, M, P]
           encrypted <- instance.encrypt(testPlainText, key1)
           decrypted <- instance.decrypt(encrypted, key2)
         } yield new String(decrypted.content, "UTF-8")
@@ -94,7 +94,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key       <- keyGen.generateKey()
-          instance  <- JCAAEAD[A, M, P]
+          instance  <- JCAAEADImpure[A, M, P]
           encrypted <- instance.encrypt(testPlainText, key)
           decrypted <- instance.decrypt(encrypted, key)
         } yield decrypted.content.toUtf8String
@@ -107,7 +107,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key       <- keyGen.generateKey()
-          instance  <- JCAAEAD[A, M, P]
+          instance  <- JCAAEADImpure[A, M, P]
           encrypted <- instance.encrypt(testPlainText, key)
           keyRepr = key.getEncoded
           built     <- keyGen.buildKey(keyRepr)
@@ -123,7 +123,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val aad           = AAD(aadData.utf8Bytes)
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key       <- keyGen.generateKey()
-          instance  <- JCAAEAD[A, M, P]
+          instance  <- JCAAEADImpure[A, M, P]
           encrypted <- instance.encryptAAD(testPlainText, key, aad)
           decrypted <- instance.decryptAAD(encrypted, key, aad)
         } yield decrypted.content.toUtf8String
@@ -137,7 +137,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key1      <- keyGen.generateKey()
           key2      <- keyGen.generateKey()
-          instance  <- JCAAEAD[A, M, P]
+          instance  <- JCAAEADImpure[A, M, P]
           encrypted <- instance.encrypt(testPlainText, key1)
           decrypted <- instance.decrypt(encrypted, key2)
         } yield new String(decrypted.content, "UTF-8")
@@ -153,7 +153,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val aad2          = AAD(AAD2.utf8Bytes)
         val testEncryptionDecryption: Either[CipherError, String] = for {
           key1      <- keyGen.generateKey()
-          instance  <- JCAAEAD[A, M, P]
+          instance  <- JCAAEADImpure[A, M, P]
           encrypted <- instance.encryptAAD(testPlainText, key1, aad1)
           decrypted <- instance.decryptAAD(encrypted, key1, aad2)
         } yield new String(decrypted.content, "UTF-8")

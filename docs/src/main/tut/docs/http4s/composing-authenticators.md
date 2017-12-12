@@ -38,7 +38,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers.{Authorization => H4SA}
 import tsec.common.SecureRandomId
-import tsec.jws.mac.JWTMacM
+import tsec.jws.mac.JWTMac
 import tsec.mac.imports.HMACSHA256
 import tsec.authentication._
 

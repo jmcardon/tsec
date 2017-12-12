@@ -5,7 +5,6 @@ import org.scalacheck.{Arbitrary, Gen}
 import tsec.libsodium.passwordhashers._
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 
-
 class SodiumPWHashTest extends SodiumSpec {
 
   implicit val genStringAscii: Gen[String] = {

@@ -8,8 +8,9 @@ title: "Message Digests"
 
 ### Note: 
 
-[This has been beaten to death everywhere](https://crackstation.net/hashing-security.htm), but please do not use
-these for Password Hashing. We provide Password Hashers to use for this purpose under the password hashers section.
+This has been beaten to death everywhere, but please do not use
+these for Password Hashing. We provide [Password Hashers](/tsec/docs/passwordhashers.html) 
+to use for this purpose under the password hashers section.
 
 ## Usage
 

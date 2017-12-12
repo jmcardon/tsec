@@ -15,6 +15,10 @@ options:
     url: docs/mac.html
     section: mac
 
+  - title: Digital Signatures
+    url: docs/signatures.html
+    section: signatures
+
   - title: JWT
     url: docs/jwt-mac.html
     section: jwt
@@ -53,7 +57,3 @@ options:
   - title: Common Utils
     url: docs/common.html
     section: common
-
-  - title: Digital Signatures
-    url: docs/signatures.html
-    section: signatures

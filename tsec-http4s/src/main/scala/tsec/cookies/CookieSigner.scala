@@ -1,11 +1,12 @@
 package tsec.cookies
 
 import tsec.common._
+import tsec.mac.core.{MAC, MacTag}
 import tsec.mac.imports._
 
 object CookieSigner {
 
-  def sign[A: MacTag: ByteEV](message: String, nonce: String, key: MacSigningKey[A])(
+  def sign[A: MacTag](message: String, nonce: String, key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
   ): Either[Throwable, SignedCookie[A]] =
     if (message.isEmpty)
@@ -15,17 +16,17 @@ object CookieSigner {
       signer.sign(toSign, key).map(SignedCookie.from[A](_, toSign.toB64String))
     }
 
-  def verify[A: MacTag: ByteEV](signed: SignedCookie[A], key: MacSigningKey[A])(
+  def verify[A: MacTag](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
   ): MacErrorM[Boolean] =
     signed.split("-") match {
       case Array(original, signed) =>
-        signer.verify(original.base64Bytes, signed.base64Bytes.toRepr[A], key)
+        signer.verify(original.base64Bytes, MAC[A](signed.base64Bytes), key)
       case _ =>
         Left(MacVerificationError("Invalid cookie"))
     }
 
-  def verifyAndRetrieve[A: MacTag: ByteEV](signed: SignedCookie[A], key: MacSigningKey[A])(
+  def verifyAndRetrieve[A: MacTag](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
   ): Either[Throwable, String] = {
     val split = signed.split("-")
@@ -33,8 +34,8 @@ object CookieSigner {
       Left(MacVerificationError("Invalid cookie"))
     else {
       val original = split(0).base64Bytes
-      val signed   = split(1).base64Bytes.toRepr[A]
-      signer.verify(original, signed, key).flatMap {
+      val signed   = split(1).base64Bytes
+      signer.verify(original, MAC[A](signed), key).flatMap {
         case true  => SignedCookie.fromDecodedString(original.toUtf8String)
         case false => Left(MacVerificationError("Invalid cookie"))
       }

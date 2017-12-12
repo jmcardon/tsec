@@ -1,17 +1,31 @@
 package tsec.messagedigests.imports
 
-import tsec.common.ByteEV
+import cats.data.NonEmptyList
+import tsec.messagedigests.CryptoPickler
 import tsec.messagedigests.core._
 
 class JHasher[T: DigestTag](
     algebra: JHashAlgebra[T]
-)(implicit gen: ByteEV[T])
-    extends HashingPrograms[T](algebra)
+) extends HashingPrograms[T](algebra)
 
 object JHasher {
 
-  def apply[T: DigestTag](implicit gen: ByteEV[T]) =
-    new JHasher[T](new JHashAlgebra[T])
+  def apply[T: DigestTag] = new JHasher[T](new JHashAlgebra[T])
 
-  implicit def genHasher[T: DigestTag: ByteEV] = apply[T]
+  implicit def genHasher[T: DigestTag]: JHasher[T] = apply[T]
+
+  def hash[C, T](toHash: C)(implicit cryptoPickler: CryptoPickler[C], hasher: JHasher[T]): CryptoHash[T] =
+    hasher.hash[C](toHash)
+
+  def hashBytes[T](bytes: Array[Byte])(implicit hasher: JHasher[T]): CryptoHash[T] =
+    hasher.hashBytes(bytes)
+
+  def hashToByteArray[T](bytes: Array[Byte])(implicit hasher: JHasher[T]): Array[Byte] =
+    hasher.hashToByteArray(bytes)
+
+  def combineAndHash[C, T](
+      toHash: NonEmptyList[C]
+  )(implicit cryptoPickler: CryptoPickler[C], hasher: JHasher[T]): CryptoHash[T] =
+    hasher.combineAndHash[C](toHash)
+
 }

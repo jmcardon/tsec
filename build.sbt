@@ -46,7 +46,7 @@ lazy val commonSettings = Seq(
   fork in test := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
-  version in ThisBuild := "0.0.1-M5",
+  version in ThisBuild := "0.0.1-M6",
   scalacOpts
 )
 
@@ -56,8 +56,7 @@ lazy val benchSettings = Seq(
 )
 
 lazy val passwordHasherLibs = libraryDependencies ++= Seq(
-  Libraries.sCrypt,
-  Libraries.jBCrypt
+  Libraries.sCrypt
 )
 
 lazy val signatureLibs = libraryDependencies += Libraries.BC
@@ -229,7 +228,7 @@ lazy val microsite = Project(id = "microsite", base = file("docs"))
 
 lazy val publishSettings = Seq(
   homepage := Some(url("https://github.com/jmcardon/tsec")),
-  licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
+  licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
   scmInfo := Some(ScmInfo(url("https://github.com/jmcardon/tsec"), "scm:git:git@github.com:jmcardon/tsec.git")),
   autoAPIMappings := true,
   apiURL := None,
