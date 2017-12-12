@@ -2,7 +2,7 @@ package tsec.authentication
 
 import tsec.mac.imports._
 
-class CSRFTests extends CSRFSpec{
+class CSRFTests extends CSRFSpec {
 
   testCSRFWithMac[HMACSHA1]
   testCSRFWithMac[HMACSHA256]

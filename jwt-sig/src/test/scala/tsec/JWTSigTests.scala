@@ -15,8 +15,6 @@ import org.scalatest.MustMatchers
 import tsec.jwt.JWTClaims
 import tsec.signature.core.KFTag
 
-
-
 class JWTSigTests extends TestSpec with MustMatchers {
 
   if (Security.getProvider("BC") == null)
@@ -24,7 +22,12 @@ class JWTSigTests extends TestSpec with MustMatchers {
 
   val F = IO.ioEffect
 
-  def jwtSigTest[A](implicit algoTag: JWTSigAlgo[A], kfTag: KFTag[A], cv: JWSSigCV[IO, A], cv2: JWSSigCV[SigErrorM, A]) = {
+  def jwtSigTest[A](
+      implicit algoTag: JWTSigAlgo[A],
+      kfTag: KFTag[A],
+      cv: JWSSigCV[IO, A],
+      cv2: JWSSigCV[SigErrorM, A]
+  ) = {
     behavior of s"JWT signature-style ${algoTag.jwtRepr} - pure"
 
     it should "Sign and verify properly for proper params" in {
@@ -144,7 +147,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
     }
 
     it should "not verify for a future iat" in {
-      val expression =  for {
+      val expression = for {
         keyPair <- kfTag.generateKeyPair
         build <- JWTSigImpure.signToString(
           JWSSignedHeader[A](),

@@ -64,7 +64,6 @@ object BearerTokenAuthenticator {
           identity  <- identityStore.get(token.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
-
       def create(body: I): OptionT[F, TSecBearerToken[I]] =
         OptionT.liftF(for {
           now <- F.delay(Instant.now())

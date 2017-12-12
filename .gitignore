@@ -2,3 +2,8 @@ target
 .idea
 *.sc
 t.scala
+*.log
+tsec-libsodium/jni/*.java
+tsec-libsodium/jni/*.c
+tsec-libsodium/jni/*.so
+tsec-libsodium/jni/*.dylib

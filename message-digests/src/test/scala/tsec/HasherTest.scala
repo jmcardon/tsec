@@ -15,7 +15,9 @@ class HasherTest extends TestSpec with MustMatchers {
 
   def hashTests[A](implicit tag: DigestTag[A], hasher: JHasher[A]): Unit =
     "A (base64 encoded) digitalHash and MessageDigest" should s"be equal for ${tag.algorithm}" in {
-      str.pickleAndHash[A].toB64String mustBe MessageDigest.getInstance(tag.algorithm).digest(str.utf8Bytes).toB64String
+      str
+        .pickleAndHash[A]
+        .toB64String mustBe MessageDigest.getInstance(tag.algorithm).digest(str.utf8Bytes).toB64String
     }
 
   hashTests[MD5]

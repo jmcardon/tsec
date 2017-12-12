@@ -25,7 +25,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
-      keyGenerator.generateKeyUnsafe(),
+      keyGenerator.generateKeyUnsafe()
     )
     new AuthSpecTester[AuthenticatedCookie[A, Int]](authenticator, dummyStore) {
 

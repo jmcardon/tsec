@@ -1,10 +1,9 @@
 package tsec.cipher.symmetric
 
-import tsec.cipher.common._
+import cats.evidence.Is
 import tsec.cipher.common.padding.NoPadding
 import tsec.common.{CryptoTag, JKeyGenerator}
 import javax.crypto.{SecretKey => JSecretKey}
-import cats.evidence.Is
 
 package object imports {
   type AEADCipherText[A]    = CipherText[A, GCM, NoPadding]
@@ -33,6 +32,7 @@ package object imports {
   object SecretKey {
     @inline def apply[A: SymmetricCipher](key: JSecretKey): SecretKey[A]     = SecretKey$$.is.flip.coerce(key)
     @inline def toJavaKey[A: SymmetricCipher](key: SecretKey[A]): JSecretKey = SecretKey$$.is.coerce(key)
+    @inline def is[A]: Is[SecretKey[A], JSecretKey]                          = SecretKey$$.is[A]
   }
 
   final class SecretKeySyntax[A](val key: SecretKey[A]) extends AnyVal {

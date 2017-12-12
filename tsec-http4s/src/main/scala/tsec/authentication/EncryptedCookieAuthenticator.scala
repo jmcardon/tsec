@@ -388,7 +388,6 @@ object EncryptedCookieAuthenticator {
           identity  <- identityStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
-
       /** Create our cookie
         * In the case of encrypted cookies, we cannot trust the client to avoid tampering.
         * Thus, we unfortunately have to encrypt the expiry data as well

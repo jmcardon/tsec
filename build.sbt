@@ -158,7 +158,10 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)
+  .dependsOn(libsodium)
+  .dependsOn(mac)
   .settings(publish := {})
+  .enablePlugins(JmhPlugin)
 
 lazy val examples = Project(id = "tsec-examples", base = file("examples"))
   .settings(commonSettings)
@@ -192,6 +195,16 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     passwordHashers,
     jwtMac
   )
+
+lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"))
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      Libraries.fs2,
+      Libraries.fs2IO
+    )
+  )
+  .dependsOn(common % "compile->compile;test->test")
 
 lazy val microsite = Project(id = "microsite", base = file("docs"))
   .settings(commonSettings)

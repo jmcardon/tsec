@@ -11,9 +11,9 @@ trait SymmetricCipherAlgebra[F[_], A, M, P, K[_]] {
   protected[symmetric] def initEncryptor(e: C, secretKey: K[A]): F[Unit]
 
   protected[symmetric] def initDecryptor(
-      decryptor: C,
-      key: K[A],
-      iv: Array[Byte]
+    decryptor: C,
+    key: K[A],
+    iv: Array[Byte]
   ): F[Unit]
 
   /** End stateful ops */
