@@ -8,7 +8,7 @@ object PasswordHashingExamples {
     * (Which is basically scrypt but with much more secure parameters, but a lot slower).
     */
   /**
-    * Preferrably, though, you'd want to receive your password as an `Array[Byte]` or
+    * Preferably, though, you'd want to receive your password as an `Array[Byte]` or
     * `Array[Char]` without ever storing a string. TSec
     * handles this case first and foremost
     */
@@ -36,9 +36,8 @@ object PasswordHashingExamples {
   val unsafeHash: PasswordHash[BCrypt] = BCrypt.hashpwUnsafe("hiThere")
   val unsafeCheck: Boolean             = BCrypt.checkpwUnsafe("hiThere", unsafeHash)
 
-  /** Note: The following syntax has now been deprecated since
-    * 0.0.1-M6,
-    * as it is mutating and possibly throws an errror
+  /** Note: The following syntax has now been deprecated since 0.0.1-M6,
+    * as it is mutating and possibly throws an error
     *
     */
   val oldbcryptHash: PasswordHash[BCrypt]                 = "hiThere".hashPassword[BCrypt]

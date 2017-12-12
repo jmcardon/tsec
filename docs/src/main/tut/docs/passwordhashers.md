@@ -14,7 +14,7 @@ SCrypt is recommended over BCrypt, as it improves over the memory-hardness of BC
 Password hashing involves nonce generation, thus, it uses java's `SecureRandom`. Thus,
 it is inherently side effecting. 
 
-Preferrably, if possible, you want to receive your password as an `Array[Byte]` or
+Preferably, if possible, you want to receive your password as an `Array[Byte]` or
 `Array[Char]` without ever storing a string. TSec handles this case first and foremost.
 
 [This](https://stackoverflow.com/questions/8881291/why-is-char-preferred-over-string-for-passwords) stack overflow

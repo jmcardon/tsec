@@ -37,7 +37,7 @@ package object cipher {
     def is[G] = Is.refl[Array[Byte]]
   }
 
-  /** Our newtype over private keys **/
+  /** Our newtype over raw ciphertext **/
   type RawCiphertext[A] = RawCiphertext$$.Repr[A]
 
   object RawCiphertext {
@@ -51,7 +51,7 @@ package object cipher {
     def is[G] = Is.refl[Array[Byte]]
   }
 
-  /** Our newtype over private keys **/
+  /** Our newtype over nonces **/
   type CipherNonce[A] = CipherNonce$$.Repr[A]
 
   object CipherNonce {

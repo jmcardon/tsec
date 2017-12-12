@@ -49,7 +49,7 @@ object BearerTokenAuthenticator {
 
       private def validateAndRefresh(token: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] =
         OptionT.liftF(F.delay(Instant.now())).flatMap { now =>
-          if (!token.isExpired(now) && settings.maxIdle.forall(!token.isTimedout(now, _)))
+          if (!token.isExpired(now) && settings.maxIdle.forall(!token.isTimedOut(now, _)))
             refresh(token)
           else
             OptionT.none

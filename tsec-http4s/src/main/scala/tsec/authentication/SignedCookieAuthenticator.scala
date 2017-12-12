@@ -143,7 +143,7 @@ object SignedCookieAuthenticator {
           raw: SignedCookie[Alg],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedout(now, _))
+        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedOut(now, _))
 
       private def validateAndRefresh(
           internal: AuthenticatedCookie[Alg, I],

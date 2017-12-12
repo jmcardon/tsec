@@ -147,7 +147,8 @@ object JWTMacImpure {
     * @param jwt the JWT, as a string representation
     * @param key the signing key
     * @tparam A the signing algorithm
-    * @return Signing output as a boolean or a MacError. Useful to detect any other errors aside from maformed input
+    * @return Signing output as a boolean or a MacError.
+    *         Useful to detect any other errors aside from malformed input.
     */
   def verifyFromString[A: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
       implicit s: JWSMacCV[MacErrorM, A]

@@ -14,7 +14,8 @@ import tsec.mac.core.MacTag
 /** A JWS header for JWT serialization.
   * TODO: Crit logic on verification
   *
-  * @param `type` the type of the content. in a less opininated library, it could signal json serialization
+  * @param `type` the type of the content.
+  *               In a less opinionated library, it could signal json serialization
   * @param contentType The contentType, a non-recommended header
   * @param critical The fields that _must_ be present
   * @tparam A
@@ -49,8 +50,7 @@ object JWSMacHeader {
     * parsing the algorithm, then verifying against it.
     * That is, the server should know the algorithm before trying to deserialize it.
     *
-    * @tparam A
-    * @return
+    * @see [[https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/]]
     */
   implicit def decoder[A: MacTag: JWTMacAlgo]: Decoder[JWSMacHeader[A]] = new Decoder[JWSMacHeader[A]] {
     def apply(c: HCursor): Either[DecodingFailure, JWSMacHeader[A]] =

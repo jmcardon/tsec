@@ -10,8 +10,9 @@ import java.util.concurrent.atomic.LongAdder
 trait ManagedRandom {
 
   /** Cache our random, and seed it properly as per
-    * https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/
-    * Random may block on linux machiens
+    * [[https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/]]
+    *
+    * @note Random may block on linux machines.
     */
   private[tsec] var cachedRand: SecureRandom = {
     val r = new SecureRandom()

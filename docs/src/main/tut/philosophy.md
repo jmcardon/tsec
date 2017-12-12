@@ -8,7 +8,7 @@ position: 4
 ## Philosophy
 
 TSec aims to be a Functional-first library. This means we aim to provide defaults for functional programming,
-and methods that are side effecting and otherwise not referrentially transparent (without suspension into 
+and methods that are side effecting and otherwise not referentially transparent (without suspension into 
 some sort of monad that captures effects) will have `unsafe` in their name, and the objects you use to access them 
 as `Impure`.
 

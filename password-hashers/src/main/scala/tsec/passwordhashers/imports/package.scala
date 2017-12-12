@@ -22,7 +22,7 @@ package object imports {
 
   /** http://www.tarsnap.com/scrypt/scrypt-slides.pdf */
   val SCryptHardenedN = 262144
-  val SCryptHardnedR  = 8
+  val SCryptHardenedR = 8
   val SCryptHardenedP = 2
 
   sealed trait BCrypt
@@ -78,7 +78,7 @@ package object imports {
 
   implicit object HardenedSCrypt extends PasswordHasher[HardenedSCrypt] {
     private[tsec] def hashPassUnsafe(p: Array[Byte]) =
-      SCryptUtil.scrypt(p, SCryptHardenedN, SCryptHardnedR, SCryptHardenedP)
+      SCryptUtil.scrypt(p, SCryptHardenedN, SCryptHardenedR, SCryptHardenedP)
 
     private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[HardenedSCrypt]) =
       SCryptUtil.check(p, hash)

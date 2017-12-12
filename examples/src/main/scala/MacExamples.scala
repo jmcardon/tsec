@@ -17,7 +17,7 @@ object MacExamples {
   import cats.syntax.all._
   import cats.effect.Sync
 
-  /** For Interpetation into any F */
+  /** For Interpretation into any F */
   def `mac'd-pure`[F[_]: Sync]: F[Boolean] =
     for {
       key       <- HMACSHA256.generateLift[F]                //Generate our key.

@@ -22,7 +22,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
   val plainPassword = "abc213A"
 
   /** Our password spec in general
-    * @param specname the name for ourspec
+    * @param specname the name for our spec
     * @param programs our password hasher programs to test against
     * @tparam A the password hashing algorithm
     */

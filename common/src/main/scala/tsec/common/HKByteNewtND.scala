@@ -1,7 +1,6 @@
 package tsec.common
 
-/** A higher kinded existential newt,
-  * without compiler dealias.
+/** A higher kinded existential newt without compiler dealiasing.
   */
 private[tsec] trait HKByteNewtND {
 

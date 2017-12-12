@@ -16,7 +16,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
   private val cookieName = "hi"
 
-  implicit def cookiebackingStore[A: AuthEncryptor] = dummyBackingStore[IO, UUID, AuthEncryptedCookie[A, Int]](_.id)
+  implicit def cookieBackingStore[A: AuthEncryptor] = dummyBackingStore[IO, UUID, AuthEncryptedCookie[A, Int]](_.id)
 
   def genStatefulAuthenticator[A](
       implicit authEncryptor: AuthEncryptor[A],

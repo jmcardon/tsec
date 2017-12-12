@@ -6,7 +6,7 @@ title: "JWT"
 # JWT 
 
 Our JWT implementation addresses [this](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/) vulnerability
-through the scala type system. As all `JWTs` are typed, both during encoding and decoding, there is no way to parse an arbitray JWT for
+through the scala type system. As all `JWTs` are typed, both during encoding and decoding, there is no way to parse an arbitrary JWT for
 an endpoint before knowing the expected algorithm, thus, we avoid the ol' switcheroo.
 
 The general imports for this module are as follows:

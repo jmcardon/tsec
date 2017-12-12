@@ -17,7 +17,7 @@ trait SodiumAEADCipher[A] {
     *
     * @param cout ciphertext
     * @param pt plaintext
-    * @param nonce Initializaiton vector
+    * @param nonce Initialization vector
     * @param key the encryption key
     * @return 0 if successful, any other number means unsuccessful
     */
@@ -25,7 +25,7 @@ trait SodiumAEADCipher[A] {
       implicit S: ScalaSodium
   ): Int
 
-  /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
+  /** Decrypt the ciphertext, in an api-compatible way with libsodium authenticated encryption
     *
     * @param origOut the original message
     * @param ct the ciphertext
@@ -43,7 +43,7 @@ trait SodiumAEADCipher[A] {
     *
     * @param cout ciphertext
     * @param pt plaintext
-    * @param nonce Initializaiton vector
+    * @param nonce Initialization vector
     * @param key the encryption key
     * @return 0 if successful, any other number means unsuccessful
     */
@@ -55,7 +55,7 @@ trait SodiumAEADCipher[A] {
       aad: SodiumAAD
   )(implicit S: ScalaSodium): Int
 
-  /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
+  /** Decrypt the ciphertext, in an api-compatible way with libsodium authenticated encryption
     *
     * @param origOut the original message
     * @param ct the ciphertext
@@ -73,7 +73,7 @@ trait SodiumAEADCipher[A] {
     *
     * @param cout ciphertext
     * @param pt plaintext
-    * @param nonce Initializaiton vector
+    * @param nonce Initialization vector
     * @param key the encryption key
     * @return 0 if successful, any other number means unsuccessful
     */
@@ -86,7 +86,7 @@ trait SodiumAEADCipher[A] {
       aad: SodiumAAD
   )(implicit S: ScalaSodium): Int
 
-  /** Decrypt the ciphertext, in an api-compat way with libsodium authenticated encryption
+  /** Decrypt the ciphertext, in an api-compatible way with libsodium authenticated encryption
     *
     * @param origOut the original message
     * @param ct the ciphertext
