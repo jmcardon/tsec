@@ -96,7 +96,7 @@ class JCASymmCipherImpure[A, M, P](
 object JCASymmCipherImpure {
 
   /** Attempt to initialize an instance of the cipher with the given type parameters
-    * If the cipher doesn't exist/is not supported, it will return NoSuchIntanceError
+    * If the cipher doesn't exist/is not supported, it will return NoSuchInstanceError
     *
     * @tparam A Symmetric Cipher Algorithm
     * @tparam M Mode of operation

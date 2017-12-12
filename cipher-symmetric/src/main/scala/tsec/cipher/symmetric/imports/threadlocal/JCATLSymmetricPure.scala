@@ -142,13 +142,12 @@ object JCATLSymmetricPure {
       paddingTag: Padding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.algorithm}/${modeSpec.algorithm}/${paddingTag.algorithm}")
 
-  /** generate Queue unsage
+  /** generate Queue (unsafe)
     *
-    * @param queueLen
-    * @tparam A
-    * @tparam M
-    * @tparam P
-    * @return
+    * @param queueLen the length of the queue
+    * @tparam A Symmetric Cipher Algorithm
+    * @tparam M Mode of operation
+    * @tparam P Padding mode
     */
   protected[imports] def genQueueUnsafe[A: SymmetricCipher, M: CipherMode, P: Padding](
       queueLen: Int
@@ -162,12 +161,11 @@ object JCATLSymmetricPure {
   }
 
   /** Attempt to initialize an instance of the cipher with the given type parameters
-    * All processing is done on threadlocal, to guarantee no leaked instances
+    * All processing is done using thread-local instances, to guarantee no leaked instances
     * @param queueLen the length of the queue
     * @tparam A Symmetric Cipher Algorithm
     * @tparam M Mode of operation
     * @tparam P Padding mode
-    * @return
     */
   def apply[A: SymmetricCipher, M: CipherMode, P: Padding](
       queueLen: Int = 15

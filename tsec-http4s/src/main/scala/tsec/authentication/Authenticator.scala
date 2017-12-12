@@ -20,7 +20,7 @@ trait Authenticator[I] {
   val lastTouched: Option[Instant]
 
   def isExpired(now: Instant): Boolean = expiry.isBefore(now)
-  def isTimedout(now: Instant, timeOut: FiniteDuration): Boolean =
+  def isTimedOut(now: Instant, timeOut: FiniteDuration): Boolean =
     lastTouched.exists(
       _.plusSeconds(timeOut.toSeconds)
         .isBefore(now)

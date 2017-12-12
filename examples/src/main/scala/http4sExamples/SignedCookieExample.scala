@@ -16,14 +16,14 @@ object SignedCookieExample {
   val cookieBackingStore: BackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]] =
     dummyBackingStore[IO, UUID, AuthenticatedCookie[HMACSHA256, Int]](_.id)
 
-  //We create a way to store our users. You can attach this to say, your doobie accessor
+  // We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val settings: TSecCookieSettings = TSecCookieSettings(
     cookieName = "tsec-auth",
     secure = false,
     expiryDuration = 10.minutes, // Absolute expiration time
-    maxIdle = None // Rolling window expiration. Set this to a Finiteduration if you intend to have one
+    maxIdle = None // Rolling window expiration. Set this to a FiniteDuration if you intend to have one
   )
 
   val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift

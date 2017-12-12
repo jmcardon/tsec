@@ -102,8 +102,8 @@ object JWTAuthenticator {
         */
       private def verifyWithRaw(raw: String, retrieved: AugmentedJWT[A, I], now: Instant) =
         JWTMac.toEncodedString(retrieved.jwt) === raw && !maxIdle.exists(
-          retrieved.isTimedout(now, _)
-        ) && !retrieved.isTimedout(now, expiry)
+          retrieved.isTimedOut(now, _)
+        ) && !retrieved.isTimedOut(now, expiry)
 
       private def verifyAndRefresh(
           raw: String,
@@ -236,8 +236,8 @@ object JWTAuthenticator {
         */
       private def verifyWithRaw(raw: String, retrieved: AugmentedJWT[A, I], now: Instant) =
         JWTMac.toEncodedString(retrieved.jwt) === raw && !maxIdle.exists(
-          retrieved.isTimedout(now, _)
-        ) && !retrieved.isTimedout(now, expiry)
+          retrieved.isTimedOut(now, _)
+        ) && !retrieved.isTimedOut(now, expiry)
 
       private def verifyAndRefresh(
           raw: String,

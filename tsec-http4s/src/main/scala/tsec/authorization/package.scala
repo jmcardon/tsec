@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 
 package object authorization {
 
-  /** A simple trait to allow array insantiation from a type into an unboxed primitive array.
+  /** A simple trait to allow array instantiation from a type into an unboxed primitive array.
     *
     * We simply want arrays for the sake of speed when iterating through them, thus
     * we are doing this.

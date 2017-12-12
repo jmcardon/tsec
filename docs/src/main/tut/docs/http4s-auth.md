@@ -192,7 +192,7 @@ Cons:
 
 Pros:
 * Less network throughput. No need to use a backing store.
-* Great for applications where security is not a deathly priority and long-lived sessions are desireable.
+* Great for applications where security is not a deathly priority and long-lived sessions are desirable.
 
 Cons:
 * Your security is as strong as the underlying crypto primitive. There's no extra safety: You cannot cross check without

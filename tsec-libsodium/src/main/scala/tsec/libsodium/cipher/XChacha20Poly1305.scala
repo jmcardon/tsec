@@ -90,7 +90,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       .stream
 
   /** Statefully transform our cipher stream.
-    * The ciphertext must be _at minimum_ ABYTES + 1 (so it should contain more than just the auth tag).
+    * The ciphertext must be _at minimum_ `ABYTES + 1` (so it should contain more than just the auth tag).
     * If it is not, fail the stream.
     *
     * If the final chunk does not have a valid completion tag, fail the stream.
@@ -173,7 +173,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       .stream
   }
 
-  /** Encrypt our steram in a `Pull`,
+  /** Encrypt our stream in a `Pull`,
     * using the last chunk to keep track of the state of the stream
     */
   private def encryptPull[F[_]: Sync](

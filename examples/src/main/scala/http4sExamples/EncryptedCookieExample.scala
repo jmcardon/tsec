@@ -15,14 +15,14 @@ object EncryptedCookieExample {
   val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]] =
     dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]](_.id)
 
-  //We create a way to store our users. You can attach this to say, your doobie accessor
+  // We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val settings: TSecCookieSettings = TSecCookieSettings(
     cookieName = "tsec-auth",
     secure = false,
     expiryDuration = 10.minutes, // Absolute expiration time
-    maxIdle = None // Rolling window expiration. Set this to a Finiteduration if you intend to have one
+    maxIdle = None // Rolling window expiration. Set this to a FiniteDuration if you intend to have one
   )
 
   val key: SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key

@@ -7,7 +7,7 @@ title: "Authorization"
 # Authorization
 
 TSec provides an authorization trait that can be plugged into a `SecuredRequestHandler`, extended for custom logic,
-composed, extended or run manually over your request and flatmapped.
+composed, extended or run manually over your request and `flatMap`ped.
 
 Let's look at the signature for Authorization
 
@@ -46,7 +46,7 @@ object Authorization {
 That is, our monoid empty is simply `pure` over the request.
 
 For multiple authorizations, you could also compose manually instead of a monoid, which will create a new object
-per n authorizations, by simply chaining flatmaps.
+per n authorizations, by simply chaining `flatMap` calls.
 
 ### Note:
 

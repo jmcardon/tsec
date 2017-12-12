@@ -3,7 +3,8 @@ package tsec.common
 import java.util.{ArrayDeque => Q}
 
 /** ThreadLocal optimization for JCA and BC
-  *  .getInstance() methods tend to be expensive, and most of the
+  * `.getInstance()` methods tend to be expensive, and most of the methods
+  * are not thread-safe, so this allows for some optimization.
   *
   * @tparam A
   */

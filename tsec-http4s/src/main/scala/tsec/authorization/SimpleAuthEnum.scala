@@ -9,17 +9,17 @@ import scala.reflect.ClassTag
   * It also provides an implicit decoder/encoder for serialization into json.
   *
   * @tparam T the abstract type to enumerate, subclass style
-  * @tparam Repr the representation type. i.e string, int, double, whatever.
+  * @tparam Repr the representation type (i.e., string, int, double, ...)
   */
-abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primtive: AuthPrimitive[Repr]) {
+abstract class SimpleAuthEnum[T, Repr: Decoder: Encoder](implicit primitive: AuthPrimitive[Repr]) {
   implicit val authEnum: SimpleAuthEnum[T, Repr] = this
 
   val getRepr: T => Repr
 
   protected val values: AuthGroup[T]
 
-  /** Since `Repr` does not come necessarily with a classtag,this is necessary, unfortunately*/
-  private lazy val reprValues = primtive.unBoxedFromRepr[T](getRepr, values)
+  /** Since `Repr` does not come necessarily with a ClassTag, this is necessary, unfortunately */
+  private lazy val reprValues = primitive.unBoxedFromRepr[T](getRepr, values)
 
   val orElse: T
 

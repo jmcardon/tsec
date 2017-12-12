@@ -198,7 +198,7 @@ object EncryptedCookieAuthenticator {
           key
         )
 
-      /** Generate our AAD: A sort of nonce to use for authentication withour encryption
+      /** Generate our AAD: A sort of nonce to use for authentication with our encryption
         *
         */
       private def generateAAD(message: String) =
@@ -213,7 +213,7 @@ object EncryptedCookieAuthenticator {
           raw: AEADCookie[A],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedout(now, _))
+        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedOut(now, _))
 
       /** lift the validation onto an optionT
         *
@@ -364,9 +364,9 @@ object EncryptedCookieAuthenticator {
           internal: AuthEncryptedCookie[A, I],
           now: Instant
       ): Boolean =
-        !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedout(now, _))
+        !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedOut(now, _))
 
-      private def validateAndReferesh(
+      private def validateAndRefresh(
           internal: AuthEncryptedCookie[A, I],
           now: Instant
       ): OptionT[F, AuthEncryptedCookie[A, I]] =
@@ -384,7 +384,7 @@ object EncryptedCookieAuthenticator {
           contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
           internal   <- OptionT.liftF(F.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
           authed = AuthEncryptedCookie.build[A, I](internal, coerced, rawCookie)
-          refreshed <- validateAndReferesh(authed, now)
+          refreshed <- validateAndRefresh(authed, now)
           identity  <- identityStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed)
 
