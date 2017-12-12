@@ -5,7 +5,7 @@ import tsec.common._
 
 package object cipher {
 
-  private[tsec] val Plaintext$$ : TaggedByteArray = new TaggedByteArray {
+  private[tsec] val Plaintext$$ : ByteArrayNewt = new ByteArrayNewt {
     type I = Array[Byte]
     val is = Is.refl[I]
   }
@@ -73,7 +73,7 @@ package object cipher {
     @inline def is[A]: Is[Array[Byte], AuthTag[A]] = AuthTag$$.is[A]
   }
 
-  private[tsec] val AADLS$$ : TaggedByteArray = new TaggedByteArray {
+  private[tsec] val AADLS$$ : ByteArrayNewt = new ByteArrayNewt {
     type I = Array[Byte]
     val is = Is.refl[I]
   }
@@ -85,7 +85,7 @@ package object cipher {
     @inline def is: Is[SodiumAAD, Array[Byte]]  = AADLS$$.is
   }
 
-  private[tsec] val StreamHeader$$ : TaggedByteArray = new TaggedByteArray {
+  private[tsec] val StreamHeader$$ : ByteArrayNewt = new ByteArrayNewt {
     type I = Array[Byte]
     val is = Is.refl[I]
   }
@@ -97,7 +97,7 @@ package object cipher {
     @inline def is: Is[CryptoStreamHeader, Array[Byte]]  = StreamHeader$$.is
   }
 
-  private[tsec] val StreamState$$ : TaggedByteArray = new TaggedByteArray {
+  private[tsec] val StreamState$$ : ByteArrayNewt = new ByteArrayNewt {
     type I = Array[Byte]
     val is = Is.refl[I]
   }

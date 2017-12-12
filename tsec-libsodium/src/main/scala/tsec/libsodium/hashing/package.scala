@@ -34,7 +34,7 @@ package object hashing {
     @inline def is[A]: Is[Array[Byte], Hash[A]] = Hash$$.is[A]
   }
 
-  private[tsec] val BlakeKey$$ : TaggedByteArray = new TaggedByteArray {
+  private[tsec] val BlakeKey$$ : ByteArrayNewt = new ByteArrayNewt {
     type I = Array[Byte]
     val is = Is.refl[I]
   }

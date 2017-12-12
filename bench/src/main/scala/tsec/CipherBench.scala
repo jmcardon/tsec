@@ -28,7 +28,7 @@ class CipherBench {
 
   /** AES using tsec classes **/
   lazy val jcaAESKey: SecretKey[AES256]                    = AES256.generateKeyUnsafe()
-  lazy val jcaAES: JCAAEADPure[IO, AES256, GCM, NoPadding] = JCAAEADPure[IO, AES256, GCM, NoPadding]().unsafeRunSync()
+  lazy val jcaAES: JCAAEAD[IO, AES256, GCM, NoPadding] = JCAAEAD[IO, AES256, GCM, NoPadding]().unsafeRunSync()
 
   /** Our AES using the JCA raw classes. Note: We reuse cipher the instance for speed, but it's not thread safe **/
   lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(AES256.generateKeyUnsafe())

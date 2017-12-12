@@ -22,7 +22,7 @@ class HMAC256Bench {
   lazy val key             = HMACSHA256.generateKeyUnsafe()
   lazy val rand            = new Random()
   lazy val longPlaintext   = Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes
-  lazy val jca             = JCAMacPure[IO, HMACSHA256]
+  lazy val jca             = JCAMac[IO, HMACSHA256]
 
   @Benchmark
   def testJCA(): Unit =
