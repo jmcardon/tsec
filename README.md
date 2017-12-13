@@ -25,6 +25,8 @@ All `x.x.x-Mx` releases are milestone releases. Thus, we do not guarantee binary
 a concrete version(i.e `0.0.1`). We aim to keep userland-apis relatively stable, but 
 internals shift as we find better/more performant abstractions.
 
+We will guarantee compat between minor versions (i.e 0.0.1 => 0.0.2) but not major versions (0.0.1 => 0.1.0)
+
 0.0.1-M6 is here for scala 2.12+ and Cats 1.0.0-RC1!
 
 To get started, if you are on sbt 0.13.16+, add
