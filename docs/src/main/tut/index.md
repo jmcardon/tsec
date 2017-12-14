@@ -31,7 +31,7 @@ X.X.X
 |________Complete redesign (i.e scalaz 7 vs 8)  
 ```
 
-All `x.x.x-Mx` releases are milestone releases. Thus, we do not guarantee binary compatibility or no api-breaking until
+All `x.x.x-Mx` releases are milestone releases. Thus, we do not guarantee binary compatibility or no api-breakage until
 a concrete version(i.e `0.0.1`). We aim to keep userland-apis relatively stable, but 
 internals shift as we find better/more performant abstractions.
 
