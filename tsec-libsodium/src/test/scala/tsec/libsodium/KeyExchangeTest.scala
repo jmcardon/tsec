@@ -18,16 +18,22 @@ class KeyExchangeTest extends SodiumSpec {
       client <- KeyExchange.generateKeyPair[IO]
 
       clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.pk)
-      serverSession <- KeyExchange.generateClientSessionKeys[IO](server, client.pk)
+      serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.pk)
 
-      clientKey <- CryptoSecretBox.buildKey[IO](clientSession.send)
-      serverKey <- CryptoSecretBox.buildKey[IO](serverSession.receive)
+      // client to server
+      clientKey1 <- CryptoSecretBox.buildKey[IO](clientSession.send)
+      serverKey1 <- CryptoSecretBox.buildKey[IO](serverSession.receive)
+      enc1       <- CryptoSecretBox.encrypt[IO](plainText, clientKey1)
+      dec1       <- CryptoSecretBox.decrypt[IO](enc1, serverKey1)
 
-      enc <- CryptoSecretBox.encrypt[IO](plainText, clientKey)
-      dec <- CryptoSecretBox.decrypt[IO](enc, serverKey)
-    } yield dec
+      // server to client
+      clientKey2 <- CryptoSecretBox.buildKey[IO](clientSession.receive)
+      serverKey2 <- CryptoSecretBox.buildKey[IO](serverSession.send)
+      enc2       <- CryptoSecretBox.encrypt[IO](dec1, serverKey2)
+      dec2       <- CryptoSecretBox.decrypt[IO](enc2, clientKey2)
+    } yield dec2
 
-    program.attempt.unsafeRunSync() mustBe a[Right[_, PlainText]]
+    program.unsafeRunSync() mustBe plainText
   }
 
 }
