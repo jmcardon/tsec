@@ -20,6 +20,21 @@ For the current progress, please refer to the [RoadMap](https://github.com/jmcar
 For version changes and additions, including breaking changes, see either [release notes](https://github.com/jmcardon/tsec/releases)
 or the [Version Changes](https://github.com/jmcardon/tsec/wiki/Version-Changes) page.
 
+### Note on milestones:
+Our Notation for versions is:
+```
+X.X.X
+^ ^ ^____Minor
+| |______Major
+|________Complete redesign (i.e scalaz 7 vs 8)  
+```
+
+All `x.x.x-Mx` releases are milestone releases. Thus, we do not guarantee binary compatibility or no api-breakage until
+a concrete version(i.e `0.0.1`). We aim to keep userland-apis relatively stable, but 
+internals shift as we find better/more performant abstractions.
+
+We will guarantee compatibility between minor versions (i.e 0.0.1 => 0.0.2) but not major versions (0.0.1 => 0.1.0)
+
 0.0.1-M6 is here for scala 2.12+ and Cats 1.0.0-RC1!
 
 To get started, if you are on sbt 0.13.16+, add
