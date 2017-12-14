@@ -53,7 +53,7 @@ object ScalaSodium
     val sodium = new ScalaSodium()
     checkVersion(SodiumJNI.sodium_version_string.asInstanceOf[String])
     if (sodium.sodium_init < 0)
-      throw new SodiumLoadError("ScalaSodium is not safe to use, sodium_init < 0")
+      throw new SodiumLoadError("Has not been initialized properly")
     sodium
   }
 
