@@ -9,31 +9,79 @@ class KeyExchangeTest extends SodiumSpec {
 
   behavior of "Sodium KeyExchange"
 
-  it should "generate session KeyPair" in {
+  it should "encrypt and decrypt properly" in {
+    forAll { (s: String) =>
+      val plainText = PlainText(s.utf8Bytes)
 
-    val plainText = PlainText("abcdef".utf8Bytes)
+      val program: IO[PlainText] = for {
+        server <- KeyExchange.generateKeyPair[IO]
+        client <- KeyExchange.generateKeyPair[IO]
 
-    val program: IO[PlainText] = for {
-      server <- KeyExchange.generateKeyPair[IO]
-      client <- KeyExchange.generateKeyPair[IO]
+        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.publicKey)
+        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.publicKey)
 
-      clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.pk)
-      serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.pk)
+        // client to server
+        clientKey1 <- CryptoSecretBox.buildKey[IO](clientSession.send)
+        serverKey1 <- CryptoSecretBox.buildKey[IO](serverSession.receive)
+        enc1       <- CryptoSecretBox.encrypt[IO](plainText, clientKey1)
+        dec1       <- CryptoSecretBox.decrypt[IO](enc1, serverKey1)
 
-      // client to server
-      clientKey1 <- CryptoSecretBox.buildKey[IO](clientSession.send)
-      serverKey1 <- CryptoSecretBox.buildKey[IO](serverSession.receive)
-      enc1       <- CryptoSecretBox.encrypt[IO](plainText, clientKey1)
-      dec1       <- CryptoSecretBox.decrypt[IO](enc1, serverKey1)
+        // server to client
+        clientKey2 <- CryptoSecretBox.buildKey[IO](clientSession.receive)
+        serverKey2 <- CryptoSecretBox.buildKey[IO](serverSession.send)
+        enc2       <- CryptoSecretBox.encrypt[IO](dec1, serverKey2)
+        dec2       <- CryptoSecretBox.decrypt[IO](enc2, clientKey2)
 
-      // server to client
-      clientKey2 <- CryptoSecretBox.buildKey[IO](clientSession.receive)
-      serverKey2 <- CryptoSecretBox.buildKey[IO](serverSession.send)
-      enc2       <- CryptoSecretBox.encrypt[IO](dec1, serverKey2)
-      dec2       <- CryptoSecretBox.decrypt[IO](enc2, clientKey2)
-    } yield dec2
+      } yield dec2
 
-    program.unsafeRunSync() mustBe plainText
+      program.unsafeRunSync() mustBe plainText
+    }
+  }
+
+  it should "fail to decrypt with wrong client public key" in {
+    forAll { (s: String) =>
+      val plainText = PlainText(s.utf8Bytes)
+
+      val program: IO[Unit] = for {
+        server  <- KeyExchange.generateKeyPair[IO]
+        client  <- KeyExchange.generateKeyPair[IO]
+        client2 <- KeyExchange.generateKeyPair[IO]
+
+        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.publicKey)
+        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client2.publicKey)
+
+        // client to server
+        clientKey <- CryptoSecretBox.buildKey[IO](clientSession.send)
+        serverKey <- CryptoSecretBox.buildKey[IO](serverSession.receive)
+        enc1      <- CryptoSecretBox.encrypt[IO](plainText, clientKey)
+        _         <- CryptoSecretBox.decrypt[IO](enc1, serverKey)
+      } yield ()
+
+      program.attempt.unsafeRunSync() mustBe a[Left[Exception, _]]
+    }
+  }
+
+  it should "fail to decrypt with wrong server public key" in {
+    forAll { (s: String) =>
+      val plainText = PlainText(s.utf8Bytes)
+
+      val program: IO[Unit] = for {
+        server  <- KeyExchange.generateKeyPair[IO]
+        server2 <- KeyExchange.generateKeyPair[IO]
+        client  <- KeyExchange.generateKeyPair[IO]
+
+        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server2.publicKey)
+        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.publicKey)
+
+        // client to server
+        clientKey <- CryptoSecretBox.buildKey[IO](clientSession.send)
+        serverKey <- CryptoSecretBox.buildKey[IO](serverSession.receive)
+        enc1      <- CryptoSecretBox.encrypt[IO](plainText, clientKey)
+        _         <- CryptoSecretBox.decrypt[IO](enc1, serverKey)
+      } yield ()
+
+      program.attempt.unsafeRunSync() mustBe a[Left[Exception, _]]
+    }
   }
 
 }

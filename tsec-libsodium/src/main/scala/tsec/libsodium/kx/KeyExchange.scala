@@ -33,7 +33,7 @@ object KeyExchange {
     val rx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
     val tx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
 
-    if (S.crypto_kx_client_session_keys(rx, tx, keyPair.pk, keyPair.sk, server) != 0)
+    if (S.crypto_kx_client_session_keys(rx, tx, keyPair.publicKey, keyPair.secretKey, server) != 0)
       throw KeySessionError
 
     SodiumSharedKeyPair(SodiumKey$$.is[SharedKey].coerce(rx), SodiumKey$$.is[SharedKey].coerce(tx))
@@ -46,7 +46,7 @@ object KeyExchange {
     val rx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
     val tx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
 
-    if (S.crypto_kx_server_session_keys(rx, tx, keyPair.pk, keyPair.sk, client) != 0)
+    if (S.crypto_kx_server_session_keys(rx, tx, keyPair.publicKey, keyPair.secretKey, client) != 0)
       throw KeySessionError
 
     SodiumSharedKeyPair(SodiumKey$$.is[SharedKey].coerce(rx), SodiumKey$$.is[SharedKey].coerce(tx))

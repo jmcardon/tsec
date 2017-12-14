@@ -23,7 +23,7 @@ package object kx {
   trait SecretKey
   trait SharedKey
 
-  case class SodiumKeyPair(pk: SodiumKey[PublicKey], sk: SodiumKey[SecretKey])
+  case class SodiumKeyPair(publicKey: SodiumKey[PublicKey], secretKey: SodiumKey[SecretKey])
 
   case class SodiumSharedKeyPair(receive: SodiumKey[SharedKey], send: SodiumKey[SharedKey])
 
