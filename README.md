@@ -21,6 +21,14 @@ For version changes and additions, including breaking changes, see either [relea
 or the [Version Changes](https://github.com/jmcardon/tsec/wiki/Version-Changes) page.
 
 ### Note on milestones:
+Our Notation for versions is:
+```
+X.X.X
+^ ^ ^____Minor
+| |______Major
+|________Complete redesign (i.e scalaz 7 vs 8)  
+```
+
 All `x.x.x-Mx` releases are milestone releases. Thus, we do not guarantee binary compatibility or no api-breaking until
 a concrete version(i.e `0.0.1`). We aim to keep userland-apis relatively stable, but 
 internals shift as we find better/more performant abstractions.
