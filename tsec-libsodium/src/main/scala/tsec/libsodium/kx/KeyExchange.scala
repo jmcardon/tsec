@@ -29,25 +29,26 @@ object KeyExchange {
   def generateClientSessionKeys[F[_]](
       keyPair: SodiumKeyPair,
       server: SodiumKey[PublicKey]
-  )(implicit F: Sync[F], S: ScalaSodium): F[SodiumKeyPair] = F.delay {
-    val rx = new Array[Byte](ScalaSodium.crypto_kx_PUBLICKEYBYTES)
-    val tx = new Array[Byte](ScalaSodium.crypto_kx_SECRETKEYBYTES)
+  )(implicit F: Sync[F], S: ScalaSodium): F[SodiumSharedKeyPair] = F.delay {
+    val rx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
+    val tx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
 
     if (S.crypto_kx_client_session_keys(rx, tx, keyPair.pk, keyPair.sk, server) != 0)
       throw KeySessionError
 
-    SodiumKeyPair(SodiumKey$$.is[PublicKey].coerce(rx), SodiumKey$$.is[SecretKey].coerce(tx))
+    SodiumSharedKeyPair(SodiumKey$$.is[SharedKey].coerce(rx), SodiumKey$$.is[SharedKey].coerce(tx))
   }
+
   def generateServerSessionKeys[F[_]](
       keyPair: SodiumKeyPair,
       client: SodiumKey[PublicKey]
-  )(implicit F: Sync[F], S: ScalaSodium): F[SodiumKeyPair] = F.delay {
-    val rx = new Array[Byte](ScalaSodium.crypto_kx_PUBLICKEYBYTES)
-    val tx = new Array[Byte](ScalaSodium.crypto_kx_SECRETKEYBYTES)
+  )(implicit F: Sync[F], S: ScalaSodium): F[SodiumSharedKeyPair] = F.delay {
+    val rx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
+    val tx = new Array[Byte](ScalaSodium.crypto_kx_SESSIONKEYBYTES)
 
     if (S.crypto_kx_server_session_keys(rx, tx, keyPair.pk, keyPair.sk, client) != 0)
       throw KeySessionError
 
-    SodiumKeyPair(SodiumKey$$.is[PublicKey].coerce(rx), SodiumKey$$.is[SecretKey].coerce(tx))
+    SodiumSharedKeyPair(SodiumKey$$.is[SharedKey].coerce(rx), SodiumKey$$.is[SharedKey].coerce(tx))
   }
 }

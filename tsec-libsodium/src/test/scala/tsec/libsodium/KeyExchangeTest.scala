@@ -1,7 +1,9 @@
 package tsec.libsodium
 
 import cats.effect.IO
+import tsec.libsodium.cipher.{CryptoSecretBox, PlainText}
 import tsec.libsodium.kx._
+import tsec.common._
 
 class KeyExchangeTest extends SodiumSpec {
 
@@ -9,26 +11,23 @@ class KeyExchangeTest extends SodiumSpec {
 
   it should "generate session KeyPair" in {
 
-    val program: IO[SodiumKeyPair] = for {
-      serverKeyPair <- KeyExchange.generateKeyPair[IO]
-      clientKeyPair <- KeyExchange.generateKeyPair[IO]
-      sessionKey    <- KeyExchange.generateClientSessionKeys[IO](serverKeyPair, clientKeyPair.pk)
+    val plainText = PlainText("abcdef".utf8Bytes)
 
-    } yield sessionKey
+    val program: IO[PlainText] = for {
+      server <- KeyExchange.generateKeyPair[IO]
+      client <- KeyExchange.generateKeyPair[IO]
 
-    program.attempt.unsafeRunSync() mustBe a[Right[_, SodiumKeyPair]]
+      clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.pk)
+      serverSession <- KeyExchange.generateClientSessionKeys[IO](server, client.pk)
+
+      clientKey <- CryptoSecretBox.buildKey[IO](clientSession.send)
+      serverKey <- CryptoSecretBox.buildKey[IO](serverSession.receive)
+
+      enc <- CryptoSecretBox.encrypt[IO](plainText, clientKey)
+      dec <- CryptoSecretBox.decrypt[IO](enc, serverKey)
+    } yield dec
+
+    program.attempt.unsafeRunSync() mustBe a[Right[_, PlainText]]
   }
-//
-//  it should "not generate session KeyPair providing wrong public key" in {
-//    val program: IO[SodiumKeyPair] = for {
-//      serverKeyPair <- KeyExchange.generateKeyPair[IO]
-//      clientKeyPair <- KeyExchange.generateKeyPair[IO]
-//      serverSessionKey <- KeyExchange.generateServerSessionKeys[IO](serverKeyPair, clientKeyPair.pk)
-//      clientSessionKey <- KeyExchange.generateClientSessionKeys[IO](clientKeyPair, serverKeyPair.pk)
-//
-//    } yield sessionKey
-//
-//    program.attempt.unsafeRunSync() mustBe a[Left[Exception, _]]
-//  }
 
 }

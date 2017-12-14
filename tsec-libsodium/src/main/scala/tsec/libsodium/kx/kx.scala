@@ -21,8 +21,12 @@ package object kx {
 
   trait PublicKey
   trait SecretKey
+  trait SharedKey
 
   case class SodiumKeyPair(pk: SodiumKey[PublicKey], sk: SodiumKey[SecretKey])
+
+  case class SodiumSharedKeyPair(receive: SodiumKey[SharedKey], send: SodiumKey[SharedKey])
+
 
   case object KeySessionError extends Exception with Product with Serializable {
     def cause: String = "KeySession generation Error"
