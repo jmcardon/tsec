@@ -17,8 +17,8 @@ class KeyExchangeTest extends SodiumSpec {
         server <- KeyExchange.generateKeyPair[IO]
         client <- KeyExchange.generateKeyPair[IO]
 
-        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.publicKey)
-        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.publicKey)
+        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.pubKey)
+        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.pubKey)
 
         // client to server
         clientKey1 <- CryptoSecretBox.buildKey[IO](clientSession.send)
@@ -47,8 +47,8 @@ class KeyExchangeTest extends SodiumSpec {
         client  <- KeyExchange.generateKeyPair[IO]
         client2 <- KeyExchange.generateKeyPair[IO]
 
-        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.publicKey)
-        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client2.publicKey)
+        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server.pubKey)
+        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client2.pubKey)
 
         // client to server
         clientKey <- CryptoSecretBox.buildKey[IO](clientSession.send)
@@ -70,8 +70,8 @@ class KeyExchangeTest extends SodiumSpec {
         server2 <- KeyExchange.generateKeyPair[IO]
         client  <- KeyExchange.generateKeyPair[IO]
 
-        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server2.publicKey)
-        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.publicKey)
+        clientSession <- KeyExchange.generateClientSessionKeys[IO](client, server2.pubKey)
+        serverSession <- KeyExchange.generateServerSessionKeys[IO](server, client.pubKey)
 
         // client to server
         clientKey <- CryptoSecretBox.buildKey[IO](clientSession.send)
