@@ -12,28 +12,28 @@ class KeyDerivationTest extends SodiumSpec {
   it should "generate multiple keys" in {
 
     val program = for {
-      master <- StateT.lift(KeyDerivation.generateKey[IO])
-      context = "Examples".utf8Bytes
-      key1 <- KeyDerivation.deriveKey[IO](master, 16, context)
-      key2 <- KeyDerivation.deriveKey[IO](master, 32, context)
-      key3 <- KeyDerivation.deriveKey[IO](master, 64, context)
+      master <- KeyDerivation.generateKey[IO]
+      context = "Examples"
+      _ <- KeyDerivation.deriveKey[IO](master, 16, 1, context)
+      _ <- KeyDerivation.deriveKey[IO](master, 32, 2, context)
+      _ <- KeyDerivation.deriveKey[IO](master, 64, 3, context)
     } yield ()
 
-    program.runA(1).attempt.unsafeRunSync() mustBe a[Right[_, Unit]]
+    program.attempt.unsafeRunSync() mustBe a[Right[_, Unit]]
   }
 
   it should "fail generating derived key for invalid context length" in {
-    forAll { (s: String) =>
-      val context = s.utf8Bytes
+    forAll { (context: String) =>
+      val ctx = context.utf8Bytes
 
       val program = for {
-        master <- StateT.lift(KeyDerivation.generateKey[IO])
-        key1 <- KeyDerivation.deriveKey[IO](master, 16, context)
+        master <- KeyDerivation.generateKey[IO]
+        _      <- KeyDerivation.deriveKey[IO](master, 16, 1, context)
       } yield ()
 
-      val result = program.runA(1).attempt.unsafeRunSync()
+      val result = program.attempt.unsafeRunSync()
 
-      if (context.length != ScalaSodium.crypto_kdf_CONTEXTBYTES)
+      if (ctx.length != ScalaSodium.crypto_kdf_CONTEXTBYTES)
         result mustBe a[Left[Exception, _]]
       else
         result mustBe a[Right[_, Unit]]
@@ -43,12 +43,12 @@ class KeyDerivationTest extends SodiumSpec {
   it should "fail generating derived key for invalid key length" in {
     forAll { (l: Int) =>
       val program = for {
-        master <- StateT.lift(KeyDerivation.generateKey[IO])
-        context = "Examples".utf8Bytes
-        key1 <- KeyDerivation.deriveKey[IO](master, l, context)
+        master <- KeyDerivation.generateKey[IO]
+        context = "Examples"
+        _ <- KeyDerivation.deriveKey[IO](master, l, 1, context)
       } yield ()
 
-      val result = program.runA(1).attempt.unsafeRunSync()
+      val result = program.attempt.unsafeRunSync()
 
       if (ScalaSodium.crypto_kdf_BYTES_MIN <= l && ScalaSodium.crypto_kdf_BYTES_MAX >= l)
         result mustBe a[Right[_, Unit]]

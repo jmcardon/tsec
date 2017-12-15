@@ -1,7 +1,7 @@
 package tsec.libsodium.kdf
 
-import cats.data.StateT
 import cats.effect.Sync
+import tsec.common._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher.SodiumKey
 import tsec.libsodium.pk.PrivateKey
@@ -19,19 +19,19 @@ object KeyDerivation {
   def deriveKey[F[_]](
       masterKey: PrivateKey[KeyDerivation],
       keyLength: Int,
-      context: Array[Byte]
-  )(implicit F: Sync[F], S: ScalaSodium): StateT[F, Int, SodiumKey[KeyDerivation]] =
-    StateT[F, Int, SodiumKey[KeyDerivation]] { id =>
+      id: Int,
+      context: String
+  )(implicit F: Sync[F], S: ScalaSodium): F[SodiumKey[KeyDerivation]] = F.delay {
+    if (ScalaSodium.crypto_kdf_BYTES_MIN > keyLength || keyLength > ScalaSodium.crypto_kdf_BYTES_MAX)
+      throw KeyLengthError(keyLength)
 
-      if (ScalaSodium.crypto_kdf_BYTES_MIN > keyLength || keyLength > ScalaSodium.crypto_kdf_BYTES_MAX)
-        throw KeyLengthError(keyLength)
+    val ctx = context.utf8Bytes
+    if (ctx.length != ScalaSodium.crypto_kdf_CONTEXTBYTES)
+      throw ContextBytesError(ctx.length)
 
-      if(context.length != ScalaSodium.crypto_kdf_CONTEXTBYTES)
-        throw ContextBytesError(context.length)
+    val subKey = SodiumKey[KeyDerivation](new Array[Byte](keyLength))
+    S.crypto_kdf_derive_from_key(subKey, keyLength, id, ctx, masterKey)
 
-      val subKey = SodiumKey[KeyDerivation](new Array[Byte](keyLength))
-      S.crypto_kdf_derive_from_key(subKey, keyLength, id, context, masterKey)
-
-      F.delay((id + 1, subKey))
-    }
+    subKey
+  }
 }
