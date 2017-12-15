@@ -5,8 +5,9 @@ import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher.SodiumKey
 import tsec.libsodium.pk.{PrivateKey, PublicKey, SodiumKeyPair}
 
+sealed trait KeyExchange
+
 object KeyExchange {
-  sealed trait KeyExchange
 
   def generateKeyPair[F[_]](implicit F: Sync[F], S: ScalaSodium): F[SodiumKeyPair[KeyExchange]] = F.delay {
     val pk = new Array[Byte](ScalaSodium.crypto_kx_PUBLICKEYBYTES)
