@@ -23,6 +23,7 @@ object ScalaSodium
     with Chacha20Poly1305IETFConstants
     with XChacha20Poly1305IETFConstants
     with KxConstants
+    with OnetimeAuthConstants
     with PKCryptoConstants {
 
   /** This is primarily for methods
@@ -42,7 +43,7 @@ object ScalaSodium
     sodiumString.trim.split("\\.") match {
       case Array(major, med, minor) =>
         if (major.toInt < 1 || (minor.toInt < 12 && med.toInt == 0)) {
-          throw new RuntimeException(s"Unsupported libsodium version $sodiumString. Please upgrade to version 1.0.12+")
+          throw new SodiumLoadError(s"Unsupported libsodium version $sodiumString. Please upgrade to version 1.0.12+")
         } else
           println("\n[tsec] Loading libsodium jni... Hold tight Asznee\n")
       case _ =>
@@ -54,7 +55,7 @@ object ScalaSodium
     val sodium = new ScalaSodium()
     checkVersion(SodiumJNI.sodium_version_string.asInstanceOf[String])
     if (sodium.sodium_init < 0)
-      throw new RuntimeException("ScalaSodium is not safe to use")
+      throw new SodiumLoadError("Has not been initialized properly")
     sodium
   }
 
