@@ -1618,3 +1618,14 @@ int crypto_stream_xsalsa20_xor_ic(unsigned char *c,
                                   const unsigned char *n,
                                   uint64_t ic,
                                   const unsigned char *k);
+
+/*
+    KeyDerivation
+*/
+
+void crypto_kdf_keygen(uint8_t key[crypto_kdf_KEYBYTES]);
+
+int crypto_kdf_derive_from_key(unsigned char *subkey, size_t subkey_len,
+                               uint64_t subkey_id,
+                               const char ctx[crypto_kdf_CONTEXTBYTES],
+                               const unsigned char key[crypto_kdf_KEYBYTES]);
