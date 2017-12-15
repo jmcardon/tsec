@@ -670,6 +670,8 @@ int crypto_auth_verify(const unsigned char *src_mac,
 size_t crypto_onetimeauth_bytes(void);
 size_t crypto_onetimeauth_keybytes(void);
 
+void crypto_onetimeauth_keygen(unsigned char k[crypto_onetimeauth_KEYBYTES]);
+
 const char *crypto_onetimeauth_primitive(void);
 
 int crypto_onetimeauth(unsigned char *dst_out,
