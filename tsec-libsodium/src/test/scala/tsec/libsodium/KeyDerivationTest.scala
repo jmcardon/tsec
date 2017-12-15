@@ -24,15 +24,16 @@ class KeyDerivationTest extends SodiumSpec {
 
   it should "fail generating derived key for invalid context length" in {
     forAll { (s: String) =>
+      val context = s.utf8Bytes
+
       val program = for {
         master <- StateT.lift(KeyDerivation.generateKey[IO])
-        context = s.utf8Bytes
         key1 <- KeyDerivation.deriveKey[IO](master, 16, context)
       } yield ()
 
       val result = program.runA(1).attempt.unsafeRunSync()
 
-      if (s.length != ScalaSodium.crypto_kdf_CONTEXTBYTES)
+      if (context.length != ScalaSodium.crypto_kdf_CONTEXTBYTES)
         result mustBe a[Left[Exception, _]]
       else
         result mustBe a[Right[_, Unit]]
