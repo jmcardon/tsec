@@ -13,7 +13,7 @@ class KeyExchangeTest extends SodiumSpec {
     forAll { (s: String) =>
       val plainText = PlainText(s.utf8Bytes)
 
-      val program: IO[PlainText] = for {
+      val program: IO[(PlainText, PlainText)] = for {
         server <- KeyExchange.generateKeyPair[IO]
         client <- KeyExchange.generateKeyPair[IO]
 
@@ -32,9 +32,10 @@ class KeyExchangeTest extends SodiumSpec {
         enc2       <- CryptoSecretBox.encrypt[IO](dec1, serverKey2)
         dec2       <- CryptoSecretBox.decrypt[IO](enc2, clientKey2)
 
-      } yield dec2
+      } yield (dec1, dec2)
 
-      program.unsafeRunSync().toUtf8String mustBe s
+      val (dec1, dec2) = program.unsafeRunSync()
+      (dec1.toUtf8String == dec2.toUtf8String && dec1.toUtf8String == plainText.toUtf8String) mustBe true
     }
   }
 
