@@ -10,11 +10,7 @@ import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 
 package object passwordhashers {
 
-  final case class SodiumPasswordError(reason: String) extends Exception {
-    override def getMessage: String = reason
-
-    override def fillInStackTrace(): Throwable = this
-  }
+  final case class SodiumPasswordError(cause: String) extends TSecError
 
   private[passwordhashers] val asciiEncoder = Charset.forName("US-ASCII").newEncoder()
 

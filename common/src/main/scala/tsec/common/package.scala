@@ -2,13 +2,21 @@ package tsec
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
-import org.apache.commons.codec.binary.{Base64 => AB64}
 
+import org.apache.commons.codec.binary.{Base64 => AB64}
 import cats.effect.Sync
 import org.apache.commons.codec.binary.Hex
 import cats.evidence.Is
 
+import scala.util.control.NoStackTrace
+
 package object common {
+
+  trait TSecError extends NoStackTrace {
+    def cause: String
+    override def getMessage: String = cause
+  }
+
 
   trait StringNewt {
     type I <: String
