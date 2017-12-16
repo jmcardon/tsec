@@ -35,7 +35,9 @@ class KeyExchangeTest extends SodiumSpec {
       } yield (dec1, dec2)
 
       val (dec1, dec2) = program.unsafeRunSync()
-      (dec1.toUtf8String == dec2.toUtf8String && dec1.toUtf8String == plainText.toUtf8String) mustBe true
+
+      dec1.toUtf8String mustBe dec2.toUtf8String
+      dec1.toUtf8String mustBe plainText.toUtf8String
     }
   }
 
