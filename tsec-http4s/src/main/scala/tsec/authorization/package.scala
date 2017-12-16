@@ -2,6 +2,7 @@ package tsec
 
 import cats.evidence.Is
 import tsec.authorization.AuthGroup$$
+import tsec.common.TSecError
 
 import scala.reflect.ClassTag
 
@@ -146,10 +147,8 @@ package object authorization {
 
   type InvalidAuthLevel = InvalidAuthLevelError.type
 
-  final object InvalidAuthLevelError extends Exception {
-    override def getMessage: String = "The minimum auth level is zero."
-
-    override def fillInStackTrace(): Throwable = this
+  final object InvalidAuthLevelError extends TSecError {
+    val cause: String = "The minimum auth level is zero."
   }
 
 }

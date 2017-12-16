@@ -1,22 +1,19 @@
 package tsec.libsodium.cipher
 
-trait SodiumCipherError extends Exception {
-  val c: String
+import tsec.common.TSecError
 
-  override def getMessage: String = c
+trait SodiumCipherError extends TSecError
 
-  override def fillInStackTrace(): Throwable = this
-}
 object SodiumCipherError {
 
-  case class EncryptError private[tsec](c: String) extends SodiumCipherError
+  case class EncryptError private[tsec](cause: String) extends SodiumCipherError
 
-  case class StreamEncryptError private[tsec](c: String) extends SodiumCipherError
+  case class StreamEncryptError private[tsec](cause: String) extends SodiumCipherError
 
-  case class DecryptError private[tsec](c: String) extends SodiumCipherError
+  case class DecryptError private[tsec](cause: String) extends SodiumCipherError
 
-  case class StreamDecryptError private[tsec](c: String) extends SodiumCipherError
+  case class StreamDecryptError private[tsec](cause: String) extends SodiumCipherError
 
-  case class CipherKeyError private[tsec](c: String) extends SodiumCipherError
+  case class CipherKeyError private[tsec](cause: String) extends SodiumCipherError
 
 }

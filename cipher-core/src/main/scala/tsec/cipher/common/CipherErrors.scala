@@ -1,13 +1,11 @@
 package tsec.cipher.common
 
+import tsec.common.TSecError
+
 trait CipherErrors {
 
   /** Base CipherError trait */
-  sealed trait CipherError extends Exception with Product with Serializable {
-    def cause: String
-
-    override def fillInStackTrace(): Throwable = this
-  }
+  sealed trait CipherError extends TSecError
 
   /** Error thrown if the instance is invalid */
   case class InstanceInitError(cause: String) extends CipherError

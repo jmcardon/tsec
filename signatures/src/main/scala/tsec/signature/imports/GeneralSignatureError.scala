@@ -1,27 +1,13 @@
 package tsec.signature.imports
 
-sealed trait SignatureError extends Exception with Product with Serializable
+import tsec.common.TSecError
 
-case class GeneralSignatureError(message: String) extends SignatureError {
-  override def getMessage: String = message
+sealed trait SignatureError extends TSecError
 
-  override def fillInStackTrace(): Throwable = this
-}
+case class GeneralSignatureError(cause: String) extends SignatureError
 
-case class SignatureInitError(message: String) extends SignatureError {
-  override def getMessage: String = message
+case class SignatureInitError(cause: String) extends SignatureError
 
-  override def fillInStackTrace(): Throwable = this
-}
+case class SignatureVerificationError(cause: String) extends SignatureError
 
-case class SignatureVerificationError(message: String) extends SignatureError {
-  override def getMessage: String = message
-
-  override def fillInStackTrace(): Throwable = this
-}
-
-case class SignatureKeyError(message: String) extends SignatureError {
-  override def getMessage: String = message
-
-  override def fillInStackTrace(): Throwable = this
-}
+case class SignatureKeyError(cause: String) extends SignatureError
