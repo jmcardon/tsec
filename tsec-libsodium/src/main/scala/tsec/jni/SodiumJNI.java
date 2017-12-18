@@ -101,6 +101,7 @@ public class SodiumJNI {
   public final static native int crypto_auth_verify(byte[] jarg1, byte[] jarg2, int jarg3, byte[] jarg4);
   public final static native int crypto_onetimeauth_bytes();
   public final static native int crypto_onetimeauth_keybytes();
+  public final static native void crypto_onetimeauth_keygen(byte[] jarg1);
   public final static native byte[] crypto_onetimeauth_primitive();
   public final static native int crypto_onetimeauth(byte[] jarg1, byte[] jarg2, int jarg3, byte[] jarg4);
   public final static native int crypto_onetimeauth_verify(byte[] jarg1, byte[] jarg2, int jarg3, byte[] jarg4);

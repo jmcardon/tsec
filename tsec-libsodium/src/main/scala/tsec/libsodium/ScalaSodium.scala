@@ -22,8 +22,9 @@ object ScalaSodium
     with OriginalChacha20Poly1305Constants
     with Chacha20Poly1305IETFConstants
     with XChacha20Poly1305IETFConstants
-    with PKCryptoConstants
-    with KeyDerivationConstants {
+    with KeyDerivationConstants 
+    with OnetimeAuthConstants
+    with PKCryptoConstants {
 
   /** This is primarily for methods
     * which take an `unsigned long long*` or

@@ -1057,6 +1057,8 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   ): Int = SodiumJNI.crypto_onetimeauth_init(dst_state, src_key)
   final def crypto_onetimeauth_keybytes(): Int =
     SodiumJNI.crypto_onetimeauth_keybytes()
+  final def crypto_onetimeauth_keygen(k: Array[Byte]): Unit =
+    SodiumJNI.crypto_onetimeauth_keygen(k)
   final def crypto_onetimeauth_poly1305(
     out: Array[Byte],
     in: Array[Byte],
