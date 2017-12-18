@@ -23,6 +23,7 @@ object ScalaSodium
     with Chacha20Poly1305IETFConstants
     with XChacha20Poly1305IETFConstants
     with KeyDerivationConstants 
+    with KxConstants
     with OnetimeAuthConstants
     with PKCryptoConstants {
 
