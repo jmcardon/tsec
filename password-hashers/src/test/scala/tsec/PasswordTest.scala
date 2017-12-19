@@ -12,7 +12,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
 
   implicit val PasswordErrorCatsEqInstance = new Eq[PasswordError] {
     override def eqv(x: PasswordError, y: PasswordError): Boolean =
-      x.reason === y.reason
+      x.cause === y.cause
   }
   implicit val BCryptCatsEqInstance = new Eq[BCrypt] {
     override def eqv(x: BCrypt, y: BCrypt): Boolean =

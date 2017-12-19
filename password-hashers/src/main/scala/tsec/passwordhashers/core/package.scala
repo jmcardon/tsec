@@ -1,10 +1,8 @@
 package tsec.passwordhashers
 
+import tsec.common.TSecError
+
 package object core {
 
-  final case class PasswordError(reason: String) extends Exception {
-    override def getMessage: String = reason
-
-    override def fillInStackTrace(): Throwable = this
-  }
+  final case class PasswordError(cause: String) extends TSecError
 }

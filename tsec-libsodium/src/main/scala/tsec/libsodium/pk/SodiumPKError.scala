@@ -1,11 +1,7 @@
 package tsec.libsodium.pk
 
-trait SodiumPKError extends Exception {
-  def c: String
+import tsec.common.TSecError
 
-  override def getMessage: String = c
+trait SodiumPKError extends TSecError
 
-  override def fillInStackTrace(): Throwable = this
-}
-
-case class SignatureError(c: String) extends SodiumPKError
+case class SignatureError(cause: String) extends SodiumPKError
