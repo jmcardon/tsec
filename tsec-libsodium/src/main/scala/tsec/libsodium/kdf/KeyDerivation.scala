@@ -2,7 +2,7 @@ package tsec.libsodium.kdf
 
 import cats.effect.Sync
 import tsec.common._
-import tsec.libsodium.ScalaSodium
+import tsec.libsodium.{ContextBytesError, KeyLengthError, ScalaSodium}
 import tsec.libsodium.cipher.SodiumKey
 import tsec.libsodium.pk.PrivateKey
 
