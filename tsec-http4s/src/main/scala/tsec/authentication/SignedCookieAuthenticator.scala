@@ -150,7 +150,7 @@ object SignedCookieAuthenticator {
           raw: SignedCookie[Alg],
           now: Instant
       ): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        if (validateCookie(internal, raw, now)) refresh(internal) else OptionT.none
+        if (validateCookie(internal, raw, now)) OptionT.liftF(refresh(internal)) else OptionT.none
 
       def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
@@ -171,8 +171,8 @@ object SignedCookieAuthenticator {
         * @param body
         * @return
         */
-      def create(body: I): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(for {
+      def create(body: I): F[AuthenticatedCookie[Alg, I]] =
+        for {
           cookieId <- F.delay(UUID.randomUUID())
           messageBody = cookieId.toString
           now <- F.delay(Instant.now())
@@ -183,21 +183,21 @@ object SignedCookieAuthenticator {
             AuthenticatedCookie.build[Alg, I](cookieId, signed, body, expiry, lastTouched, settings)
           )
           _ <- tokenStore.put(cookie)
-        } yield cookie)
+        } yield cookie
 
-      def update(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.update(authenticator))
+      def update(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+        tokenStore.update(authenticator)
 
-      def discard(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(tokenStore.delete(authenticator.id)).map(_ => authenticator)
+      def discard(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+        tokenStore.delete(authenticator.id).map(_ => authenticator)
 
       /** Renew an authenticator: Reset it's expiry and whatnot.
         *
         * @param authenticator
         * @return
         */
-      def renew(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(F.delay(Instant.now()).flatMap { now =>
+      def renew(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+        F.delay(Instant.now()).flatMap { now =>
           settings.maxIdle match {
             case Some(idleTime) =>
               val updated = authenticator.copy[Alg, I](
@@ -211,15 +211,15 @@ object SignedCookieAuthenticator {
               )
               tokenStore.update(updated).map(_ => updated)
           }
-        })
+        }
 
       /** Refresh an authenticator: Primarily used for sliding window expiration
         *
         * @param authenticator
         * @return
         */
-      def refresh(authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        OptionT.liftF(F.delay(Instant.now()).flatMap { now =>
+      def refresh(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+        F.delay(Instant.now()).flatMap { now =>
           settings.maxIdle match {
             case Some(idleTime) =>
               val updated = authenticator.copy[Alg, I](
@@ -229,7 +229,7 @@ object SignedCookieAuthenticator {
             case None =>
               F.pure(authenticator)
           }
-        })
+        }
 
       def embed(response: Response[F], authenticator: AuthenticatedCookie[Alg, I]): Response[F] =
         response.addCookie(authenticator.toCookie)

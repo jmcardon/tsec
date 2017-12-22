@@ -61,7 +61,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
 
     val g = for {
       _       <- OptionT.liftF(dummyStore.put(DummyUser(1)))
-      created <- jwtAuthenticator.create(1)
+      created <- OptionT.liftF(jwtAuthenticator.create(1))
       r <- folded.run(
         Request[IO]().putHeaders(Header(jwtSettings.headerName, JWTMac.toEncodedString[IO, HMACSHA256](created.jwt)))
       )
@@ -73,7 +73,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
   it should "work for the second authenticator" in {
 
     val g = for {
-      created <- bearerTokenAuthenticator.create(1)
+      created <- OptionT.liftF(bearerTokenAuthenticator.create(1))
       r       <- folded.run(Request[IO]().putHeaders(H4SA(Credentials.Token(AuthScheme.Bearer, created.id))))
     } yield r
 
@@ -83,7 +83,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
   it should "work for the third authenticator" in {
 
     val g = for {
-      created <- cookieAuthenticator.create(1)
+      created <- OptionT.liftF(cookieAuthenticator.create(1))
       r       <- folded.run(Request[IO]().addCookie(created.toCookie))
     } yield r
 

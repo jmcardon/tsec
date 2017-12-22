@@ -55,24 +55,23 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: AugmentedJWT[A, Int]): Request[IO] =
         request.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString[IO, A](authenticator.jwt)))
 
-      def expireAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] =
+      def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] =
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
-            JWTMac
+          newToken <- JWTMac
               .build[IO, A](
                 b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
                 macKey
               )
-          }
-          expired <- OptionT.liftF(store.update(b.copy(jwt = newToken, expiry = Instant.now().minusSeconds(10000))))
+
+          expired <- store.update(b.copy(jwt = newToken, expiry = Instant.now().minusSeconds(10000)))
         } yield expired
 
-      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val newInternal = b.copy(lastTouched = Some(Instant.now().minusSeconds(10000)))
-        OptionT.liftF(store.update(newInternal))
+        store.update(newInternal)
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AugmentedJWT[A, Int]] =
+      def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
         authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
     }
   }
@@ -98,24 +97,24 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: AugmentedJWT[A, Int]): Request[IO] =
         request.putHeaders(Header(settings.headerName, JWTMac.toEncodedString[IO, A](authenticator.jwt)))
 
-      def expireAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] =
+      def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] =
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
+          newToken <-
             JWTMac
               .build[IO, A](
                 b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
                 macKey
               )
-          }
-          expired <- OptionT.liftF(store.update(b.copy(jwt = newToken, expiry = Instant.now().minusSeconds(10000))))
+
+          expired <- store.update(b.copy(jwt = newToken, expiry = Instant.now().minusSeconds(10000)))
         } yield expired
 
-      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val newInternal = b.copy(lastTouched = Some(Instant.now().minusSeconds(10000)))
-        OptionT.liftF(store.update(newInternal))
+        store.update(newInternal)
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AugmentedJWT[A, Int]] =
+      def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
         authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
     }
   }
@@ -140,27 +139,24 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: AugmentedJWT[A, Int]): Request[IO] =
         request.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString[IO, A](authenticator.jwt)))
 
-      def expireAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
+          newToken <-
             JWTMac
               .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
-          }
+
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
 
-      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
-            JWTMac
-              .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
-          }
+          newToken <- JWTMac.build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
         } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AugmentedJWT[A, Int]] =
+      def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
         authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
     }
   }
@@ -188,27 +184,22 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: AugmentedJWT[A, Int]): Request[IO] =
         request.putHeaders(Header(settings.headerName, JWTMac.toEncodedString[IO, A](authenticator.jwt)))
 
-      def expireAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
-            JWTMac
-              .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
-          }
+          newToken <- JWTMac.build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
 
-      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
-            JWTMac
+          newToken <- JWTMac
               .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
-          }
         } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AugmentedJWT[A, Int]] =
+      def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
         authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
     }
   }
@@ -237,27 +228,22 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: AugmentedJWT[A, Int]): Request[IO] =
         request.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString[IO, A](authenticator.jwt)))
 
-      def expireAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
-            JWTMac
+          newToken <- JWTMac
               .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
-          }
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
 
-      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): OptionT[IO, AugmentedJWT[A, Int]] = {
+      def timeoutAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
-          newToken <- OptionT.liftF[IO, JWTMac[A]] {
-            JWTMac
-              .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
-          }
+          newToken <- JWTMac.build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
         } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AugmentedJWT[A, Int]] =
+      def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
         authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
     }
   }
