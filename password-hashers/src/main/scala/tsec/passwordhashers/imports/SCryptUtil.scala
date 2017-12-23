@@ -1,8 +1,5 @@
 package tsec.passwordhashers.imports
 
-import java.security.SecureRandom
-import java.util.concurrent.atomic.LongAdder
-
 import com.lambdaworks.codec.Base64
 import com.lambdaworks.crypto.{SCrypt => JSCrypt}
 import cats.syntax.either._

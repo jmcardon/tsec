@@ -1,7 +1,6 @@
 package tsec
 
 import cats.evidence.Is
-import tsec.authorization.AuthGroup$$
 import tsec.common.TSecError
 
 import scala.reflect.ClassTag

@@ -1,6 +1,6 @@
 package tsec.mac.imports
 
-import cats.effect.{IO, Sync}
+import cats.effect.Sync
 import tsec.mac.core.{MAC, MacPrograms, MacTag}
 
 class JCAMac[F[_]: Sync, A: MacTag](algebra: JMacInterpreter[F, A])

@@ -2,7 +2,6 @@ package tsec.jwt
 
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import java.util.UUID
 
 import io.circe.Decoder.Result
 import io.circe._

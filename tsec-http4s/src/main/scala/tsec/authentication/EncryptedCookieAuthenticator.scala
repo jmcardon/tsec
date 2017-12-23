@@ -3,7 +3,6 @@ package tsec.authentication
 import java.time.Instant
 import java.util.UUID
 
-import cats.MonadError
 import cats.data.OptionT
 import cats.effect.Sync
 import io.circe.{Decoder, Encoder}
@@ -20,7 +19,6 @@ import scala.concurrent.duration.FiniteDuration
 import io.circe.syntax._
 import io.circe.generic.auto._
 import cats.syntax.all._
-import cats.instances.string._
 import tsec.jwt.JWTPrinter
 
 sealed abstract class EncryptedCookieAuthenticator[F[_]: Sync, I, V, A](implicit auth: AuthEncryptor[A])

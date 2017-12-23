@@ -1,7 +1,6 @@
 package tsec.authentication
 
-import cats.Applicative
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import org.http4s.{HttpService, Request, Response, Status}
 

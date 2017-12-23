@@ -8,7 +8,6 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 import tsec.mac.imports.MacVerificationError
 import io.circe.{Decoder, Encoder, HCursor, Json}
-import tsec.cookies.SignedCookie$$
 import tsec.mac.core.{MAC, MacTag}
 
 package object cookies {

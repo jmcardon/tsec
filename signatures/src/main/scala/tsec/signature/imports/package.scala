@@ -1,9 +1,5 @@
 package tsec.signature
 
-import java.security.KeyPairGenerator
-
-import tsec.common._
-import cats.evidence.Is
 import tsec.signature.core.SigAlgoTag
 
 package object imports {

@@ -2,10 +2,8 @@ package tsec.libsodium
 
 import java.nio.charset.Charset
 
-import cats.effect.Sync
 import cats.evidence.Is
 import tsec.common._
-import tsec.libsodium.passwordhashers.PasswordHash$$
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 
 package object passwordhashers {

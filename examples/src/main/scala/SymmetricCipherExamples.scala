@@ -70,7 +70,7 @@ object SymmetricCipherExamples {
   /** For interpretation into any F[_]: Sync,
     * use JCASymmPure or AEADPure
     */
-  import cats.effect.{IO, Sync}
+  import cats.effect.IO
 
   val advancedUsage2: IO[String] = for {
     instance  <- JCAAEAD[IO, AES128, GCM, NoPadding]()
