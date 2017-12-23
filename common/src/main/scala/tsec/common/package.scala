@@ -8,7 +8,6 @@ import org.apache.commons.codec.binary.{Base64 => AB64}
 import cats.effect.Sync
 import org.apache.commons.codec.binary.Hex
 import cats.evidence.Is
-import cats.kernel.Monoid
 
 import scala.util.control.NoStackTrace
 
