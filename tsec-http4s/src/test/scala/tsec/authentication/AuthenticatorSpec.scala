@@ -2,10 +2,9 @@ package tsec.authentication
 
 import cats.data.OptionT
 import cats.effect.IO
-import cats.{Eq, Id, Monad, MonadError}
+import cats.{Eq, MonadError}
 import tsec.TestSpec
 import org.http4s._
-import org.http4s.dsl._
 import cats.implicits._
 import org.scalacheck._
 import org.scalatest.{BeforeAndAfterEach, MustMatchers}

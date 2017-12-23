@@ -4,7 +4,6 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.scalatest.MustMatchers
-import tsec.common._
 import tsec.jws.JWSSerializer
 import tsec.mac.imports._
 import tsec.jws.mac._

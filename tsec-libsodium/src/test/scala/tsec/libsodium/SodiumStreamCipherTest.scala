@@ -3,7 +3,6 @@ package tsec.libsodium
 import cats.effect.IO
 import fs2._
 import tsec.common._
-import tsec.libsodium._
 import tsec.libsodium.cipher._
 
 class SodiumStreamCipherTest extends SodiumSpec {
