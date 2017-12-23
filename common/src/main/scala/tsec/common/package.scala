@@ -23,24 +23,24 @@ package object common {
 
     val is: Is[I, String]
   }
-
-  implicit final class TSecFloatOps(val v: Float) extends AnyVal {
+  // ByteBuffer capacity based on https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
+  final class TSecFloatOps(val v: Float) extends AnyVal {
     def toBytes: Array[Byte] = ByteBuffer.allocate(4).putFloat(v).array()
   }
 
-  implicit final class TSecDoubleOps(val v: Double) extends AnyVal {
+  final class TSecDoubleOps(val v: Double) extends AnyVal {
     def toBytes: Array[Byte] = ByteBuffer.allocate(8).putDouble(v).array()
   }
 
-  implicit final class TSecLongOps(val v: Long) extends AnyVal {
+  final class TSecLongOps(val v: Long) extends AnyVal {
     def toBytes: Array[Byte] = ByteBuffer.allocate(8).putLong(v).array()
   }
 
-  implicit final class TSecIntOps(val v: Int) extends AnyVal {
+  final class TSecIntOps(val v: Int) extends AnyVal {
     def toBytes: Array[Byte] = ByteBuffer.allocate(4).putInt(v).array()
   }
 
-  implicit final class TSecShortOps(val v: Short) extends AnyVal {
+  final class TSecShortOps(val v: Short) extends AnyVal {
     def toBytes: Array[Byte] = ByteBuffer.allocate(2).putShort(v).array()
   }
 
@@ -76,6 +76,12 @@ package object common {
 
   implicit final def byteSyntaxOps(array: Array[Byte]) = new ByteSyntaxHelpers(array)
   implicit final def costanzaOps(jerry: String)        = new JerryStringer(jerry)
+
+  implicit final def floatToByteOps(v: Float)   = new TSecFloatOps(v)
+  implicit final def doubleToByteOps(v: Double) = new TSecDoubleOps(v)
+  implicit final def longToByteOps(v: Long)     = new TSecLongOps(v)
+  implicit final def shortToByteOps(v: Short)   = new TSecShortOps(v)
+  implicit final def intToByteOps(v: Int)       = new TSecIntOps(v)
 
   protected[tsec] val SecureRandomId$$ : StringNewt = new StringNewt {
     type I = String
