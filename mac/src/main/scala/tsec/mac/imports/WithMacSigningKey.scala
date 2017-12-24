@@ -25,11 +25,11 @@ protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int) ext
 
   def buildKey(key: Array[Byte]): Either[MacKeyBuildError, MacSigningKey[A]] =
     Either
-      .catchNonFatal(MacSigningKey.fromJavaKey[A](new SecretKeySpec(key.slice(0, keyL), algo)))
+      .catchNonFatal(MacSigningKey.fromJavaKey[A](new SecretKeySpec(key, algo)))
       .mapError(MacKeyBuildError.apply)
 
   def buildKeyUnsafe(key: Array[Byte]): MacSigningKey[A] =
-    MacSigningKey.fromJavaKey[A](new SecretKeySpec(key.slice(0, keyL), algo))
+    MacSigningKey.fromJavaKey[A](new SecretKeySpec(key, algo))
 
   implicit def keyGen: MacKeyGenerator[A] = this
 }
