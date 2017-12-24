@@ -23,25 +23,30 @@ package object common {
 
     val is: Is[I, String]
   }
+
+  sealed trait TSecPrimitiveEncoder[T] {
+    def encode(v: T): Array[Byte]
+  }
+
   // ByteBuffer capacity based on https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
-  final class TSecFloatOps(val v: Float) extends AnyVal {
-    def toBytes: Array[Byte] = ByteBuffer.allocate(4).putFloat(v).array()
+  implicit val intPrimitiveEncoder = new TSecPrimitiveEncoder[Int] {
+    def encode(v: Int) = ByteBuffer.allocate(4).putInt(v).array()
   }
 
-  final class TSecDoubleOps(val v: Double) extends AnyVal {
-    def toBytes: Array[Byte] = ByteBuffer.allocate(8).putDouble(v).array()
+  implicit val longPrimitiveEncoder = new TSecPrimitiveEncoder[Long] {
+    def encode(v: Long) = ByteBuffer.allocate(8).putLong(v).array()
   }
 
-  final class TSecLongOps(val v: Long) extends AnyVal {
-    def toBytes: Array[Byte] = ByteBuffer.allocate(8).putLong(v).array()
+  implicit val shortPrimitiveEncoder = new TSecPrimitiveEncoder[Short] {
+    def encode(v: Short) = ByteBuffer.allocate(4).putShort(v).array()
   }
 
-  final class TSecIntOps(val v: Int) extends AnyVal {
-    def toBytes: Array[Byte] = ByteBuffer.allocate(4).putInt(v).array()
+  implicit val floatPrimitiveEncoder = new TSecPrimitiveEncoder[Float] {
+    def encode(v: Float) = ByteBuffer.allocate(4).putFloat(v).array()
   }
 
-  final class TSecShortOps(val v: Short) extends AnyVal {
-    def toBytes: Array[Byte] = ByteBuffer.allocate(2).putShort(v).array()
+  implicit val doublePrimitiveEncoder = new TSecPrimitiveEncoder[Double] {
+    def encode(v: Double) = ByteBuffer.allocate(8).putDouble(v).array()
   }
 
   final class JerryStringer(val s: String) extends AnyVal {
@@ -77,11 +82,9 @@ package object common {
   implicit final def byteSyntaxOps(array: Array[Byte]) = new ByteSyntaxHelpers(array)
   implicit final def costanzaOps(jerry: String)        = new JerryStringer(jerry)
 
-  implicit final def floatToByteOps(v: Float)   = new TSecFloatOps(v)
-  implicit final def doubleToByteOps(v: Double) = new TSecDoubleOps(v)
-  implicit final def longToByteOps(v: Long)     = new TSecLongOps(v)
-  implicit final def shortToByteOps(v: Short)   = new TSecShortOps(v)
-  implicit final def intToByteOps(v: Int)       = new TSecIntOps(v)
+  implicit final class primitiveEncoderOps[T](v: T)(implicit E: TSecPrimitiveEncoder[T]) {
+    def toBytes: Array[Byte] = E.encode(v)
+  }
 
   protected[tsec] val SecureRandomId$$ : StringNewt = new StringNewt {
     type I = String
