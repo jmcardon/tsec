@@ -19,7 +19,7 @@ lazy val scalacOpts = scalacOptions := Seq(
 )
 
 lazy val micrositeSettings = Seq(
-  libraryDependencies += "com.47deg" %% "github4s" % "0.16.0",
+  libraryDependencies += Libraries.github4s,
   micrositeName := "TSec",
   micrositeBaseUrl := "/tsec",
   micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",
@@ -46,7 +46,7 @@ lazy val commonSettings = Seq(
   fork in test := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
-  version in ThisBuild := "0.0.1-M6",
+  version in ThisBuild := "0.0.1-M7",
   scalacOpts
 )
 
