@@ -63,6 +63,10 @@ package object authentication {
       }
   }
 
+  // The parameter types of TSecAuthService are reversed from what
+  // we'd expect. This is a workaround to ensure partial unification
+  // is triggered.  See https://github.com/jmcardon/tsec/issues/88 for
+  // more info.
   type TSecAuthService[A, Ident, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
 
   object TSecAuthService {
