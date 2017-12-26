@@ -2,7 +2,6 @@ package tsec.libsodium
 
 import cats.effect.IO
 import tsec.common._
-import tsec.libsodium.cipher.PlainText
 import tsec.libsodium.pk.SignatureError
 import tsec.libsodium.pk.signatures._
 

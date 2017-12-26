@@ -6,8 +6,6 @@ import io.circe.Json
 import org.http4s.dsl.io._
 import org.http4s.circe._
 import org.http4s._
-import cats.syntax.all._
-import org.http4s.implicits._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import tsec.authorization.BasicRBAC

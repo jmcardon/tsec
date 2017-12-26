@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
 import tsec.common._
-import tsec.mac._
 import tsec.mac.imports._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication._

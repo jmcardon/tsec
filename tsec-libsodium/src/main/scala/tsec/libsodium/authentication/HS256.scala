@@ -1,7 +1,6 @@
 package tsec.libsodium.authentication
 
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.authentication._
 import tsec.libsodium.authentication.internal.SodiumMacPlatform
 
 sealed trait HS256

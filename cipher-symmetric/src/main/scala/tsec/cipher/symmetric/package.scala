@@ -3,7 +3,6 @@ package tsec.cipher
 import tsec.common._
 import tsec.cipher.common._
 import tsec.cipher.symmetric.mode._
-import cats.evidence.Is
 
 package object symmetric extends CipherErrors with CipherModes {
 

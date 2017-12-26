@@ -4,7 +4,7 @@ import cats.MonadError
 import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jwt.util.ParseEncodedKeySpec
 import tsec.mac.imports._
-import tsec.signature.core.{ECKFTag, RSAKFTag, SigAlgoTag, SignaturePrograms}
+import tsec.signature.core.{ECKFTag, RSAKFTag, SigAlgoTag}
 import tsec.signature.imports._
 
 sealed trait JWA[A] {

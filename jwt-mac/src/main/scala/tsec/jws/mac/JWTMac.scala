@@ -3,14 +3,12 @@ package tsec.jws.mac
 import java.time.Instant
 
 import cats.effect.Sync
-import cats.{Eq, Monad, MonadError}
+import cats.Eq
 import tsec.common._
 import tsec.jws.{JWSJWT, JWSSerializer}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.imports.{MacErrorM, MacSigningKey}
 import cats.syntax.all._
-import io.circe.Decoder
-import io.circe.parser.decode
 import tsec.jwt.JWTClaims
 import tsec.mac.core.MAC
 

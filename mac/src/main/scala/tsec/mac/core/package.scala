@@ -2,7 +2,6 @@ package tsec.mac
 
 import cats.evidence.Is
 import tsec.common.HKByteNewt
-import tsec.mac.core.MacTag
 
 package object core {
 

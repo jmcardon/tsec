@@ -8,7 +8,6 @@ import org.scalatest.MustMatchers
 import tsec.TestSpec
 import tsec.csrf.{CSRFToken, TSecCSRF}
 import tsec.mac.imports._
-import cats.syntax.all._
 import tsec.mac.core.MacTag
 
 class CSRFSpec extends TestSpec with MustMatchers {
