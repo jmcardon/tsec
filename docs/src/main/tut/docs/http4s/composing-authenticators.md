@@ -62,7 +62,7 @@ def folded = jwtAuthenticator.foldAuthenticate(bearerTokenAuthenticator, cookieA
 We can then apply it over a service that takes an `Authenticator[I]`
 
 ```tut:silent
-  val service: TSecAuthService[IO, DummyUser, Authenticator[Int]] = TSecAuthService {
+  val service: TSecAuthService[Authenticator[Int], DummyUser, IO] = TSecAuthService {
     case GET -> Root asAuthed _ =>
       Ok()
   }
