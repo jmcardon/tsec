@@ -63,7 +63,7 @@ package object authentication {
       }
   }
 
-  type TSecAuthService[F[_], Ident, A] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
+  type TSecAuthService[A, Ident, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
 
   object TSecAuthService {
 
@@ -71,15 +71,15 @@ package object authentication {
       * [[org.http4s.Response.notFound]], which generates a 404, for any request
       * where `pf` is not defined.
       */
-    def apply[F[_], I, A](
+    def apply[A, I, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
-    )(implicit F: Monad[F]): TSecAuthService[F, I, A] =
+    )(implicit F: Monad[F]): TSecAuthService[A, I, F] =
       Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
-    def apply[F[_], I, A](
+    def apply[A, I, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
         andThen: (Response[F], A) => OptionT[F, Response[F]]
-    )(implicit F: Monad[F]): TSecAuthService[F, I, A] =
+    )(implicit F: Monad[F]): TSecAuthService[A, I, F] =
       Kleisli(
         req =>
           pf.andThen(OptionT.liftF(_))
@@ -93,7 +93,7 @@ package object authentication {
       * @tparam A - Ignored
       * @return
       */
-    def empty[F[_]: Applicative, Ident, A]: TSecAuthService[F, Ident, A] =
+    def empty[A, Ident, F[_]: Applicative]: TSecAuthService[A, Ident, F] =
       Kleisli.lift(OptionT.none)
   }
 

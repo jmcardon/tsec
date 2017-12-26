@@ -24,7 +24,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F]
 
   /** Lift an Authenticated Service into an HttpService **/
-  def liftService(service: TSecAuthService[F, User, Auth]): HttpService[F] =
+  def liftService(service: TSecAuthService[Auth, User, F]): HttpService[F] =
     defaultMiddleware(service)
       .handleError(_ => Response[F](Status.Unauthorized))
 
@@ -36,7 +36,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   /** Create an Authorized service from a TSecAuthService **/
   def liftService(
       authorization: Authorization[F, User, Auth],
-      service: TSecAuthService[F, User, Auth]
+      service: TSecAuthService[Auth, User, F]
   ): HttpService[F] =
     authorizedMiddleware(authorization)(service)
       .handleError(_ => Response[F](Status.Unauthorized))
