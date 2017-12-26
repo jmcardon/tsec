@@ -5,7 +5,7 @@ object Dependencies {
 
   object Versions {
     val circeV        = "0.9.0-M3"
-    val catsV         = "1.0.0-RC2"
+    val catsV         = "1.0.0"
     val catsEffV      = "0.6"
     val thymeV        = "0.1.2-SNAPSHOT"
     val bouncyCastleV = "1.58"
