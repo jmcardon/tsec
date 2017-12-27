@@ -2,7 +2,6 @@ package tsec.authentication
 
 import java.time.Instant
 
-import cats.MonadError
 import cats.data.OptionT
 import cats.effect.Sync
 import org.http4s.headers.Authorization

@@ -2,15 +2,13 @@ package tsec.authentication
 
 import java.time.Instant
 
-import cats.{Monad, MonadError}
 import cats.data.OptionT
 import cats.effect.Sync
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.{Decoder, Encoder}
 import io.circe.syntax._
-import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{Header, HttpDate, Request, Response}
+import org.http4s.{Header, Request, Response}
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 import tsec.common._

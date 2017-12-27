@@ -3,7 +3,6 @@ package tsec.authentication
 import java.time.Instant
 import java.util.UUID
 
-import cats.MonadError
 import cats.data.OptionT
 import cats.effect.Sync
 import io.circe.{Decoder, Encoder}

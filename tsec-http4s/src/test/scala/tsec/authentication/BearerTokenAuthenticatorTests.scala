@@ -8,7 +8,6 @@ import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, Request}
 import tsec.common.SecureRandomId
 
-import scala.collection.mutable
 import scala.concurrent.duration._
 
 class BearerTokenAuthenticatorTests extends RequestAuthenticatorSpec {

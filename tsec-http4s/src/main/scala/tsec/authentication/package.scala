@@ -11,7 +11,6 @@ import org.http4s.headers.{Authorization, Cookie => C}
 import cats.instances.all._
 import cats.syntax.eq._
 import cats.syntax.either._
-import io.circe.Decoder.Result
 import io.circe._
 
 import scala.concurrent.duration.FiniteDuration

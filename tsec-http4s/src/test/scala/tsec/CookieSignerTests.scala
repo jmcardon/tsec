@@ -3,9 +3,8 @@ package tsec
 import java.util.UUID
 
 import org.scalacheck.{Arbitrary, Gen}
-import tsec.common._
 import org.scalatest.MustMatchers
-import org.scalatest.prop.{Checkers, PropertyChecks}
+import org.scalatest.prop.PropertyChecks
 import tsec.cookies.{CookieSigner, SignedCookie}
 import tsec.mac.core.MacTag
 import tsec.mac.imports._

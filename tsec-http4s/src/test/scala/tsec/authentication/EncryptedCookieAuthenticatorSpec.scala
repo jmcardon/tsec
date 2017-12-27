@@ -4,7 +4,7 @@ import java.time.Instant
 import java.util.UUID
 import cats.data.OptionT
 import cats.effect.IO
-import org.http4s.{HttpDate, Request, Response}
+import org.http4s.{Request, Response}
 import org.http4s.headers.`Set-Cookie`
 import tsec.cipher.symmetric.imports._
 import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
