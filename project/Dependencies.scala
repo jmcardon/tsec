@@ -30,6 +30,7 @@ object Dependencies {
     val circeGeneric       = "io.circe"           %% "circe-generic"        % Versions.circeV
     val circeGenericExtras = "io.circe"           %% "circe-generic-extras" % Versions.circeV
     val circeParser        = "io.circe"           %% "circe-parser"         % Versions.circeV
+    val circeJava8         = "io.circe"           %% "circe-java8"          % Versions.circeV
     val http4sdsl          = "org.http4s"         %% "http4s-dsl"           % Versions.http4sV
     val http4sServer       = "org.http4s"         %% "http4s-server"        % Versions.http4sV
     val http4sCirce        = "org.http4s"         %% "http4s-circe"         % Versions.http4sV % "test"

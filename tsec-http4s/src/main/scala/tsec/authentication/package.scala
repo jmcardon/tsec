@@ -1,6 +1,5 @@
 package tsec
 
-import java.time.Instant
 import java.util.UUID
 
 import cats.{Applicative, Monad}
@@ -10,8 +9,6 @@ import org.http4s.server.Middleware
 import org.http4s.headers.{Authorization, Cookie => C}
 import cats.instances.all._
 import cats.syntax.eq._
-import cats.syntax.either._
-import io.circe._
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
@@ -144,22 +141,6 @@ package object authentication {
 
   def buildBearerAuthHeader(content: String): Authorization =
     Authorization(Credentials.Token(AuthScheme.Bearer, content))
-
-  implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
-    def apply(c: HCursor): Either[DecodingFailure, Instant] =
-      c.value
-        .as[Long]
-        .flatMap(
-          l =>
-            Either
-              .catchNonFatal(Instant.ofEpochSecond(l))
-              .leftMap(_ => DecodingFailure("InvalidEpoch", Nil))
-        )
-  }
-
-  implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
-    def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
-  }
 
   def uuidFromRaw[F[_]: Applicative](string: String): OptionT[F, UUID] =
     try OptionT.pure(UUID.fromString(string))

@@ -6,6 +6,8 @@ import java.util.UUID
 import cats.data.OptionT
 import cats.effect.Sync
 import io.circe.{Decoder, Encoder}
+import io.circe.java8.time.decodeInstant
+import io.circe.java8.time.encodeInstant
 import io.circe.parser.decode
 import org.http4s._
 import tsec.cipher.symmetric._
