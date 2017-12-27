@@ -53,12 +53,13 @@ package object authentication {
 
   object TSecMiddleware {
     def apply[F[_]: Monad, Ident, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]],
+        onNotAuthorized: F[Response[F]]
     ): TSecMiddleware[F, Ident, Auth] =
       service => {
         authedStuff
-          .andThen(service.mapF(o => OptionT.liftF(o.fold(Response[F](Status.NotFound))(identity))))
-          .mapF(o => OptionT.liftF(o.fold(Response[F](Status.Unauthorized))(identity)))
+          .andThen(service.mapF(o => OptionT.liftF(o.getOrElse(Response[F](Status.NotFound)))))
+          .mapF(o => OptionT.liftF(o.getOrElseF(onNotAuthorized)))
       }
   }
 

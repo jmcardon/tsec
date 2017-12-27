@@ -26,9 +26,9 @@ class OnetimeAuthTest extends SodiumSpec {
       whenever(s1 != s2) {
         val program: IO[Boolean] = for {
           key <- OnetimeAuth.generateKey[IO]
-          message = s1.utf8Bytes
+          message  = s1.utf8Bytes
           message2 = s2.utf8Bytes
-          tag <- OnetimeAuth.generateTag[IO](key, message)
+          tag  <- OnetimeAuth.generateTag[IO](key, message)
           isOk <- OnetimeAuth.verify[IO](key, message2, tag)
         } yield isOk
 
