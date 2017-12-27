@@ -70,7 +70,8 @@ object SecuredRequestHandler {
       default[F, Identity, User, Auth](authenticator)
     }
 
-  /** Default Construction **/
+
+  /** Sliding/Rolling Window expiry Construction **/
   private[tsec] def rollingWindow[F[_], Identity, User, Auth](
       authenticator: AuthenticatorService[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
@@ -95,8 +96,8 @@ object SecuredRequestHandler {
           .handleErrorWith(e => Kleisli.lift(OptionT.liftF(catchAllFailures(e))))
 
     }
-
-  /** Sliding/Rolling Window expiry Construction **/
+  
+  /** Default Construction **/
   private[tsec] def default[F[_], Identity, User, Auth](
       authenticator: AuthenticatorService[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
