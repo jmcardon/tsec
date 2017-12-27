@@ -41,6 +41,16 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         Ok(hi.asJson)
     }
 
+    val insaneService: HttpService[IO] = requestAuth {
+      case request @ GET -> Root / "api" asAuthed hi =>
+        IO.raiseError(new IllegalArgumentException)
+    }
+
+    val customService: TSecAuthService[IO, DummyUser, A] = TSecAuthService {
+      case request @ GET -> Root / "api" asAuthed hi =>
+        Ok()
+    }
+
     it should "TryExtractRaw properly" in {
 
       val response: OptionT[IO, Option[String]] = for {
@@ -172,6 +182,19 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         .map(_.status)
         .unsafeRunSync() mustBe Status.Unauthorized
     }
+
+    it should "catch errors in the handler" in {
+      val response: OptionT[IO, Response[IO]] = for {
+        auth <- requestAuth.authenticator.create(dummyBob.id)
+        embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
+        res <- insaneService(embedded)
+      } yield res
+      response
+        .getOrElse(Response[IO](status = Status.Forbidden))
+        .map(_.status)
+        .unsafeRunSync() mustBe Status.Unauthorized
+    }
+
   }
 
 }

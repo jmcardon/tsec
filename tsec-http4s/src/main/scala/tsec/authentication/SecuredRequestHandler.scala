@@ -1,7 +1,7 @@
 package tsec.authentication
 
 import cats.MonadError
-import cats.data.Kleisli
+import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import cats.syntax.all._
 import tsec.authorization._
@@ -9,6 +9,8 @@ import tsec.authorization._
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val authenticator: AuthenticatorService[F, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
+
+  private[tsec] val defaultFailure: Throwable => F[Response[F]] = _ => F.pure(Response[F](Status.Unauthorized))
 
   /**Our default middleware **/
   private[tsec] val defaultMiddleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate))
@@ -21,25 +23,33 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   }
 
   /** Compose Requests **/
-  def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F]
+  def apply(
+      pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
+      onFailure: Throwable => F[Response[F]] = defaultFailure
+  ): HttpService[F]
 
   /** Lift an Authenticated Service into an HttpService **/
-  def liftService(service: TSecAuthService[F, User, Auth]): HttpService[F] =
+  def liftService(
+      service: TSecAuthService[F, User, Auth],
+      onFailure: Throwable => F[Response[F]]
+  ): HttpService[F] =
     defaultMiddleware(service)
-      .handleError(_ => Response[F](Status.Unauthorized))
+      .handleErrorWith(e => Kleisli.lift(OptionT.liftF(onFailure(e))))
 
   /** Create an Authorized Service **/
   def authorized(authorization: Authorization[F, User, Auth])(
-      pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]
+      pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
+      onFailure: Throwable => F[Response[F]] = defaultFailure
   ): HttpService[F]
 
   /** Create an Authorized service from a TSecAuthService **/
   def liftService(
       authorization: Authorization[F, User, Auth],
-      service: TSecAuthService[F, User, Auth]
+      service: TSecAuthService[F, User, Auth],
+      onFailure: Throwable => F[Response[F]] = defaultFailure
   ): HttpService[F] =
     authorizedMiddleware(authorization)(service)
-      .handleError(_ => Response[F](Status.Unauthorized))
+      .handleErrorWith(e => Kleisli.lift(OptionT.liftF(onFailure(e))))
 
 }
 
@@ -56,35 +66,50 @@ object SecuredRequestHandler {
     }
 
   /** Default Construction **/
-  private[tsec] def default[F[_], Identity, User, Auth](
-      authenticator: AuthenticatorService[F, Identity, User, Auth]
-  )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
-    new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
-      def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
-        defaultMiddleware(TSecAuthService(pf, authenticator.afterBlock))
-          .handleError(_ => Response[F](Status.Unauthorized))
-
-      def authorized(
-          authorization: Authorization[F, User, Auth]
-      )(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
-        authorizedMiddleware(authorization)(TSecAuthService(pf, authenticator.afterBlock))
-          .handleError(_ => Response[F](Status.Unauthorized))
-    }
-
-  /** Sliding/Rolling Window expiry Construction **/
   private[tsec] def rollingWindow[F[_], Identity, User, Auth](
       authenticator: AuthenticatorService[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
     new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
-      def apply(pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]): HttpService[F] =
-        defaultMiddleware(TSecAuthService(pf))
-          .handleError(_ => Response[F](Status.Unauthorized))
 
+      /** Compose Requests **/
+      def apply(
+          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
+          onFailure: (Throwable) => F[Response[F]] = defaultFailure
+      ): HttpService[F] =
+        defaultMiddleware(TSecAuthService(pf, authenticator.afterBlock))
+          .handleErrorWith(e => Kleisli.lift(OptionT.liftF(onFailure(e))))
+
+      /** Create an Authorized Service **/
       def authorized(authorization: Authorization[F, User, Auth])(
-          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]]
+          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
+          onFailure: (Throwable) => F[Response[F]] = defaultFailure
+      ): HttpService[F] =
+        authorizedMiddleware(authorization)(TSecAuthService(pf, authenticator.afterBlock))
+          .handleErrorWith(e => Kleisli.lift(OptionT.liftF(onFailure(e))))
+
+    }
+
+  /** Sliding/Rolling Window expiry Construction **/
+  private[tsec] def default[F[_], Identity, User, Auth](
+      authenticator: AuthenticatorService[F, Identity, User, Auth]
+  )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
+    new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
+
+      /** Compose Requests **/
+      def apply(
+          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
+          onFailure: (Throwable) => F[Response[F]] = defaultFailure
+      ): HttpService[F] =
+        defaultMiddleware(TSecAuthService(pf))
+          .handleErrorWith(e => Kleisli.lift(OptionT.liftF(onFailure(e))))
+
+      /** Create an Authorized Service **/
+      def authorized(authorization: Authorization[F, User, Auth])(
+          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
+          onFailure: (Throwable) => F[Response[F]] = defaultFailure
       ): HttpService[F] =
         authorizedMiddleware(authorization)(TSecAuthService(pf))
-          .handleError(_ => Response[F](Status.Unauthorized))
+        .handleErrorWith(e => Kleisli.lift(OptionT.liftF(onFailure(e))))
     }
 
 }
