@@ -46,7 +46,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         IO.raiseError(new IllegalArgumentException)
     }
 
-    val customService: TSecAuthService[IO, DummyUser, A] = TSecAuthService {
+    val customService: TSecAuthService[DummyUser, A, IO] = TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok()
     }
@@ -192,7 +192,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
     it should "catch unhandled errors into unauthorized" in {
       val response: OptionT[IO, Response[IO]] = for {
-        auth <- requestAuth.authenticator.create(dummyBob.id)
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
         res <- insaneService(embedded)
       } yield res

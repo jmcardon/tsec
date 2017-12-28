@@ -32,7 +32,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
 
   /** Lift an Authenticated Service into an HttpService **/
   def liftService(
-      service: TSecAuthService[Auth, User, F],
+      service: TSecAuthService[User, Auth, F],
       onNotAuthorized: F[Response[F]] = defaultNotAuthorized
   ): HttpService[F] = {
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthorized)
@@ -50,7 +50,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   /** Create an Authorized service from a TSecAuthService **/
   def liftAuthorizedService(
       authorization: Authorization[F, User, Auth],
-      service: TSecAuthService[Auth, User, F],
+      service: TSecAuthService[User, Auth, F],
       onNotAuthorized: F[Response[F]] = defaultNotAuthorized
   ): HttpService[F] =
     authorizedMiddleware(authorization, onNotAuthorized)(service)
@@ -69,7 +69,6 @@ object SecuredRequestHandler {
     } else {
       default[F, Identity, User, Auth](authenticator)
     }
-
 
   /** Sliding/Rolling Window expiry Construction **/
   private[tsec] def rollingWindow[F[_], Identity, User, Auth](
@@ -96,7 +95,7 @@ object SecuredRequestHandler {
           .handleErrorWith(e => Kleisli.lift(OptionT.liftF(catchAllFailures(e))))
 
     }
-  
+
   /** Default Construction **/
   private[tsec] def default[F[_], Identity, User, Auth](
       authenticator: AuthenticatorService[F, Identity, User, Auth]
