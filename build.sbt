@@ -66,7 +66,8 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeCore,
   Libraries.circeGeneric,
   Libraries.circeGenericExtras,
-  Libraries.circeParser
+  Libraries.circeParser,
+  Libraries.circeJava8
 )
 
 lazy val http4sDeps = libraryDependencies ++= Seq(

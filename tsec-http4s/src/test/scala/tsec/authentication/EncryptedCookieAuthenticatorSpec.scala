@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util.UUID
 import cats.data.OptionT
 import cats.effect.IO
+import io.circe.java8.time.decodeInstant
 import org.http4s.{Request, Response}
 import org.http4s.headers.`Set-Cookie`
 import tsec.cipher.symmetric.imports._
