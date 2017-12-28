@@ -47,35 +47,35 @@ abstract class AuthenticatorService[F[_]: Sync, I, V, A] {
     * @param body
     * @return
     */
-  def create(body: I): OptionT[F, A]
+  def create(body: I): F[A]
 
   /** Update the altered authenticator
     *
     * @param authenticator
     * @return
     */
-  def update(authenticator: A): OptionT[F, A]
+  def update(authenticator: A): F[A]
 
   /** Delete an authenticator from a backing store, or invalidate it.
     *
     * @param authenticator
     * @return
     */
-  def discard(authenticator: A): OptionT[F, A]
+  def discard(authenticator: A): F[A]
 
   /** Renew an authenticator: Reset it's expiry and whatnot.
     *
     * @param authenticator
     * @return
     */
-  def renew(authenticator: A): OptionT[F, A]
+  def renew(authenticator: A): F[A]
 
   /** Refresh an authenticator: Primarily used for sliding window expiration
     *
     * @param authenticator
     * @return
     */
-  def refresh(authenticator: A): OptionT[F, A]
+  def refresh(authenticator: A): F[A]
 
   /** Embed an authenticator directly into a response.
     * Particularly useful for adding an authenticator into unauthenticated actions

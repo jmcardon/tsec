@@ -35,19 +35,19 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)
 
-      def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
+      def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): IO[AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](expiry = now.minusSeconds(2000))
-        OptionT.liftF(store.update(updated)).map(_ => updated)
+        store.update(updated).map(_ => updated)
       }
 
-      def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
+      def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): IO[AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](lastTouched = Some(now.minusSeconds(2000)))
-        OptionT.liftF(store.update(updated)).map(_ => updated)
+        store.update(updated).map(_ => updated)
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =
+      def wrongKeyAuthenticator: IO[AuthEncryptedCookie[A, Int]] =
         EncryptedCookieAuthenticator
           .withBackingStore[IO, Int, DummyUser, A](
             TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
@@ -96,19 +96,19 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
         }
       }
 
-      def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
+      def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): IO[AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](expiry = now.minusSeconds(2000))
         auth.update(updated)
       }
 
-      def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
+      def timeoutAuthenticator(b: AuthEncryptedCookie[A, Int]): IO[AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](lastTouched = Some(now.minusSeconds(2000)))
         auth.update(updated)
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AuthEncryptedCookie[A, Int]] =
+      def wrongKeyAuthenticator: IO[AuthEncryptedCookie[A, Int]] =
         EncryptedCookieAuthenticator
           .stateless[IO, Int, DummyUser, A](
             TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
