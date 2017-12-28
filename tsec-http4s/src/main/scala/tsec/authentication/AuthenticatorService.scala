@@ -116,7 +116,7 @@ object AuthenticatorService {
       }
 
     def foldAuthenticate(others: AuthenticatorService[F, I, V, _ <: Authenticator[I]]*)(
-        service: TSecAuthService[F, V, Authenticator[I]]
+        service: TSecAuthService[Authenticator[I], V, F]
     )(implicit F: Sync[F]): HttpService[F] =
       Kleisli { request: Request[F] =>
         auth.extractRawOption(request) match {
@@ -135,7 +135,7 @@ object AuthenticatorService {
   /** Apply a fold on AuthenticatorServices, which rejects the request if none pass **/
   @tailrec
   def tailRecAuth[F[_], I, V, A](
-      service: TSecAuthService[F, V, Authenticator[I]],
+      service: TSecAuthService[Authenticator[I], V, F],
       request: Request[F],
       tail: List[AuthenticatorService[F, I, V, _ <: Authenticator[I]]]
   )(implicit F: Sync[F]): OptionT[F, Response[F]] =
@@ -160,7 +160,7 @@ object AuthenticatorService {
     new AuthServiceSyntax[F, I, V, A](auth)
 
   def foldAuthenticate[F[_], I, V, A](others: AuthenticatorService[F, I, V, _ <: Authenticator[I]]*)(
-      service: TSecAuthService[F, V, Authenticator[I]]
+      service: TSecAuthService[Authenticator[I], V, F]
   )(implicit F: Sync[F]): HttpService[F] =
     Kleisli { request: Request[F] =>
       tailRecAuth(service, request, others.toList)

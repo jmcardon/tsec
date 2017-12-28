@@ -148,7 +148,7 @@ rolling window or not.
 Then, we can use our `TSecAuthService`:
 
 ```tut:silent
- val authservice: TSecAuthService[IO, User, TSecBearerToken[Int]] = TSecAuthService {
+ val authservice: TSecAuthService[TSecBearerToken[Int], User, IO] = TSecAuthService {
      case GET -> Root asAuthed user =>
        Ok()
    }
