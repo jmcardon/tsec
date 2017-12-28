@@ -32,7 +32,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
 
   /** Lift an Authenticated Service into an HttpService **/
   def liftService(
-      service: TSecAuthService[F, User, Auth],
+      service: TSecAuthService[Auth, User, F],
       onNotAuthorized: F[Response[F]] = defaultNotAuthorized
   ): HttpService[F] = {
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthorized)
@@ -50,7 +50,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   /** Create an Authorized service from a TSecAuthService **/
   def liftAuthorizedService(
       authorization: Authorization[F, User, Auth],
-      service: TSecAuthService[F, User, Auth],
+      service: TSecAuthService[Auth, User, F],
       onNotAuthorized: F[Response[F]] = defaultNotAuthorized
   ): HttpService[F] =
     authorizedMiddleware(authorization, onNotAuthorized)(service)
