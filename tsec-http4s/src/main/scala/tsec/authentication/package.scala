@@ -94,7 +94,7 @@ package object authentication {
       * @return
       */
     def empty[F[_]: Applicative, Ident, A]: TSecAuthService[F, Ident, A] =
-      Kleisli.liftF(OptionT.none)
+      Kleisli.lift(OptionT.none)
   }
 
   /** Common cookie settings for cookie-based authenticators
