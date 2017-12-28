@@ -104,9 +104,9 @@ object AuthenticatorService {
     )(implicit ev: A <:< Authenticator[I]): AuthExtractorService[F, V, Authenticator[I]] =
       Kleisli { r: Request[F] =>
         auth.extractRawOption(r) match {
-          case Some(_) =>
+          case Some(raw) =>
             auth
-              .extractAndValidate(r)
+              .parseRaw(raw, r)
               .asInstanceOf[OptionT[F, SecuredRequest[F, V, Authenticator[I]]]] //we need to do this :(
           case None =>
             other
