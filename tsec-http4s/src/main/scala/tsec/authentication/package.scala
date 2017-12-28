@@ -145,7 +145,7 @@ package object authentication {
   def buildBearerAuthHeader(content: String): Authorization =
     Authorization(Credentials.Token(AuthScheme.Bearer, content))
 
-  implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
+  private[tsec] implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
     def apply(c: HCursor): Either[DecodingFailure, Instant] =
       c.value
         .as[Long]
@@ -157,7 +157,7 @@ package object authentication {
         )
   }
 
-  implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
+  private[tsec] implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
     def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
   }
 
