@@ -1,6 +1,6 @@
 package tsec.messagedigests.core
 
-import cats.data.{NonEmptyList, State}
+import cats.data.NonEmptyList
 import tsec.messagedigests._
 
 abstract class HashingPrograms[T: DigestTag](

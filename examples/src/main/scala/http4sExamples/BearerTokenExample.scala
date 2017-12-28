@@ -33,7 +33,7 @@ object BearerTokenExample {
   val Auth =
     SecuredRequestHandler(bearerTokenAuth)
 
-  val authservice: TSecAuthService[IO, User, TSecBearerToken[Int]] = TSecAuthService {
+  val authservice: TSecAuthService[TSecBearerToken[Int], User, IO] = TSecAuthService {
     case GET -> Root asAuthed user =>
       Ok()
   }

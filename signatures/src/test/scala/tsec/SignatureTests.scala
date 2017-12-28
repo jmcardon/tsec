@@ -6,7 +6,7 @@ import tsec.common._
 import cats.effect.{Effect, IO}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
-import tsec.signature.core.{CryptoSignature, KFTag, SigAlgoTag}
+import tsec.signature.core.{KFTag, SigAlgoTag}
 import tsec.signature.imports._
 
 class SignatureTests extends TestSpec with MustMatchers {

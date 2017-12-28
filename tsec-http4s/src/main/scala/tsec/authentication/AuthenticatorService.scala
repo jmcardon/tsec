@@ -1,7 +1,6 @@
 package tsec.authentication
 
-import cats.Applicative
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import org.http4s.{HttpService, Request, Response, Status}
 
@@ -48,35 +47,35 @@ abstract class AuthenticatorService[F[_]: Sync, I, V, A] {
     * @param body
     * @return
     */
-  def create(body: I): OptionT[F, A]
+  def create(body: I): F[A]
 
   /** Update the altered authenticator
     *
     * @param authenticator
     * @return
     */
-  def update(authenticator: A): OptionT[F, A]
+  def update(authenticator: A): F[A]
 
   /** Delete an authenticator from a backing store, or invalidate it.
     *
     * @param authenticator
     * @return
     */
-  def discard(authenticator: A): OptionT[F, A]
+  def discard(authenticator: A): F[A]
 
   /** Renew an authenticator: Reset it's expiry and whatnot.
     *
     * @param authenticator
     * @return
     */
-  def renew(authenticator: A): OptionT[F, A]
+  def renew(authenticator: A): F[A]
 
   /** Refresh an authenticator: Primarily used for sliding window expiration
     *
     * @param authenticator
     * @return
     */
-  def refresh(authenticator: A): OptionT[F, A]
+  def refresh(authenticator: A): F[A]
 
   /** Embed an authenticator directly into a response.
     * Particularly useful for adding an authenticator into unauthenticated actions
@@ -105,9 +104,9 @@ object AuthenticatorService {
     )(implicit ev: A <:< Authenticator[I]): AuthExtractorService[F, V, Authenticator[I]] =
       Kleisli { r: Request[F] =>
         auth.extractRawOption(r) match {
-          case Some(_) =>
+          case Some(raw) =>
             auth
-              .extractAndValidate(r)
+              .parseRaw(raw, r)
               .asInstanceOf[OptionT[F, SecuredRequest[F, V, Authenticator[I]]]] //we need to do this :(
           case None =>
             other
@@ -117,7 +116,7 @@ object AuthenticatorService {
       }
 
     def foldAuthenticate(others: AuthenticatorService[F, I, V, _ <: Authenticator[I]]*)(
-        service: TSecAuthService[F, V, Authenticator[I]]
+        service: TSecAuthService[Authenticator[I], V, F]
     )(implicit F: Sync[F]): HttpService[F] =
       Kleisli { request: Request[F] =>
         auth.extractRawOption(request) match {
@@ -136,7 +135,7 @@ object AuthenticatorService {
   /** Apply a fold on AuthenticatorServices, which rejects the request if none pass **/
   @tailrec
   def tailRecAuth[F[_], I, V, A](
-      service: TSecAuthService[F, V, Authenticator[I]],
+      service: TSecAuthService[Authenticator[I], V, F],
       request: Request[F],
       tail: List[AuthenticatorService[F, I, V, _ <: Authenticator[I]]]
   )(implicit F: Sync[F]): OptionT[F, Response[F]] =
@@ -161,7 +160,7 @@ object AuthenticatorService {
     new AuthServiceSyntax[F, I, V, A](auth)
 
   def foldAuthenticate[F[_], I, V, A](others: AuthenticatorService[F, I, V, _ <: Authenticator[I]]*)(
-      service: TSecAuthService[F, V, Authenticator[I]]
+      service: TSecAuthService[Authenticator[I], V, F]
   )(implicit F: Sync[F]): HttpService[F] =
     Kleisli { request: Request[F] =>
       tailRecAuth(service, request, others.toList)

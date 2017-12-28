@@ -4,8 +4,6 @@ import java.security.spec.AlgorithmParameterSpec
 
 import cats.evidence.Is
 import tsec.common.{CryptoTag, ManagedRandom}
-import java.security.SecureRandom
-import java.util.concurrent.atomic.LongAdder
 import javax.crypto.spec.IvParameterSpec
 
 package object mode {

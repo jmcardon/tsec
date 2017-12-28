@@ -1,10 +1,7 @@
 package tsec.libsodium
 
-import cats.effect.Sync
 import cats.evidence.Is
 import tsec.common._
-import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
-import tsec.libsodium.hashing.HashState$$
 import tsec.libsodium.hashing.internal.SodiumHash
 
 package object hashing {

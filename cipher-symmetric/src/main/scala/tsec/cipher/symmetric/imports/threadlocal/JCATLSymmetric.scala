@@ -3,7 +3,6 @@ package tsec.cipher.symmetric.imports.threadlocal
 import java.util.{ArrayDeque => JQueue}
 import javax.crypto.{Cipher => JCipher}
 import cats.syntax.either._
-import tsec.cipher.common._
 import tsec.cipher.symmetric._
 import tsec.cipher.common.padding.Padding
 import tsec.cipher.symmetric.SymmetricCipherAlgebra
