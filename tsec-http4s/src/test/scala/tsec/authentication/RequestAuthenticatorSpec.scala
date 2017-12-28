@@ -185,7 +185,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
     it should "use the specified response when onNotAuthorized is specified" in {
       val req      = Request[IO](uri = Uri.unsafeFromString("/api"))
-      val response = requestAuth.liftService(customService, IO.pure(Response[IO](Status.BadGateway)))(req)
+      val response = requestAuth.liftService(customService, _ => IO.pure(Response[IO](Status.BadGateway)))(req)
 
       response.getOrElse(Response.notFound).map(_.status).unsafeRunSync() mustBe Status.BadGateway
     }
