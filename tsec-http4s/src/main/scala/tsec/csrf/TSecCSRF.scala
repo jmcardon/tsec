@@ -49,7 +49,9 @@ final class TSecCSRF[F[_], A: MacTag] private[tsec] (
     val headerName: String,
     val cookieName: String,
     val tokenLength: Int,
-    clock: Clock
+    clock: Clock,
+    cookieDomain: Option[String],
+    cookiePath: Option[String]
 )(implicit mac: JCAMac[F, A], F: Sync[F]) {
 
   def isEqual(s1: String, s2: String): Boolean =
@@ -90,7 +92,7 @@ final class TSecCSRF[F[_], A: MacTag] private[tsec] (
             raw      <- extractRaw(CSRFToken(c.content))
             response <- service(request)
             newToken <- OptionT.liftF(signToken(raw))
-          } yield response.addCookie(Cookie(name = cookieName, content = newToken)))
+          } yield response.addCookie(Cookie(name = cookieName, content = newToken, domain = cookieDomain, path = cookiePath)))
             .getOrElse(Response[F](Status.Unauthorized))
         )
       case None =>
@@ -105,7 +107,7 @@ final class TSecCSRF[F[_], A: MacTag] private[tsec] (
       raw2     <- extractRaw(CSRFToken(c2))
       res      <- if (isEqual(raw1, raw2)) service(r) else OptionT.none
       newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-    } yield res.addCookie(Cookie(name = cookieName, content = newToken)))
+    } yield res.addCookie(Cookie(name = cookieName, content = newToken, domain = cookieDomain, path = cookiePath)))
       .getOrElse(Response[F](Status.Unauthorized))
 
   def filter(predicate: Request[F] => Boolean, request: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
@@ -129,7 +131,7 @@ final class TSecCSRF[F[_], A: MacTag] private[tsec] (
   def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embedNew(r)))
 
   def embedNew(response: Response[F]): F[Response[F]] =
-    generateToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
+    generateToken.map(t => response.addCookie(Cookie(name = cookieName, content = t, domain = cookieDomain, path = cookiePath)))
 
 }
 
@@ -139,7 +141,9 @@ object TSecCSRF {
       headerName: String = "X-TSec-Csrf",
       cookieName: String = "tsec-csrf",
       tokenLength: Int = 32,
-      clock: Clock = Clock.systemUTC()
+      clock: Clock = Clock.systemUTC(),
+      cookieDomain: Option[String] = None,
+      cookiePath: Option[String] = None
   )(implicit mac: JCAMac[F, A]): TSecCSRF[F, A] =
-    new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock)
+    new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock, cookieDomain, cookiePath)
 }
