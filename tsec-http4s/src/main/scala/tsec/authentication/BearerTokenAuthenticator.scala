@@ -57,11 +57,12 @@ object BearerTokenAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] = extractBearerToken[F](request)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
-        for {
+        (for {
           token     <- tokenStore.get(SecureRandomId.coerce(raw))
           refreshed <- validateAndRefresh(token)
           identity  <- identityStore.get(token.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       def create(body: I): F[TSecBearerToken[I]] =
         for {
