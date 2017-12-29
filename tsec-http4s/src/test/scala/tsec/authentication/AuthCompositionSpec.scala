@@ -48,7 +48,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
     HMACSHA256.generateKeyUnsafe()
   )
 
-  val service: TSecAuthService[Authenticator[Int], DummyUser, IO] = TSecAuthService {
+  val service: TSecAuthService[DummyUser, Authenticator[Int], IO] = TSecAuthService {
     case GET -> Root asAuthed _ =>
       Ok()
   }

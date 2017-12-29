@@ -2,7 +2,6 @@ package tsec.authentication
 
 import java.time.Instant
 
-import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.{Header, Request}
 import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
@@ -54,10 +53,10 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] =
         for {
           newToken <- JWTMac
-              .build[IO, A](
-                b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
-                macKey
-              )
+            .build[IO, A](
+              b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
+              macKey
+            )
 
           expired <- store.update(b.copy(jwt = newToken, expiry = Instant.now().minusSeconds(10000)))
         } yield expired
@@ -95,12 +94,11 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] =
         for {
-          newToken <-
-            JWTMac
-              .build[IO, A](
-                b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
-                macKey
-              )
+          newToken <- JWTMac
+            .build[IO, A](
+              b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
+              macKey
+            )
 
           expired <- store.update(b.copy(jwt = newToken, expiry = Instant.now().minusSeconds(10000)))
         } yield expired
@@ -138,9 +136,8 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
-          newToken <-
-            JWTMac
-              .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
+          newToken <- JWTMac
+            .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
 
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
@@ -191,7 +188,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
           newToken <- JWTMac
-              .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
+            .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
         } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
@@ -228,7 +225,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
           newToken <- JWTMac
-              .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
+            .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
 
