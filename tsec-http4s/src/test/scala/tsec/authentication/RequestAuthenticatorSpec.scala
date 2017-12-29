@@ -41,6 +41,16 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         Ok(hi.asJson)
     }
 
+    val insaneService: HttpService[IO] = requestAuth {
+      case request @ GET -> Root / "api" asAuthed hi =>
+        IO.raiseError(new IllegalArgumentException)
+    }
+
+    val customService: TSecAuthService[DummyUser, A, IO] = TSecAuthService {
+      case request @ GET -> Root / "api" asAuthed hi =>
+        Ok()
+    }
+
     it should "TryExtractRaw properly" in {
 
       val response: OptionT[IO, Option[String]] = for {
@@ -172,6 +182,26 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         .map(_.status)
         .unsafeRunSync() mustBe Status.Unauthorized
     }
+
+    it should "use the specified response when onNotAuthorized is specified" in {
+      val req      = Request[IO](uri = Uri.unsafeFromString("/api"))
+      val response = requestAuth.liftService(customService, _ => IO.pure(Response[IO](Status.BadGateway)))(req)
+
+      response.getOrElse(Response.notFound).map(_.status).unsafeRunSync() mustBe Status.BadGateway
+    }
+
+    it should "catch unhandled errors into unauthorized" in {
+      val response: OptionT[IO, Response[IO]] = for {
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
+        res <- insaneService(embedded)
+      } yield res
+      response
+        .getOrElse(Response[IO](status = Status.Forbidden))
+        .map(_.status)
+        .unsafeRunSync() mustBe Status.Unauthorized
+    }
+
   }
 
 }

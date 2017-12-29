@@ -53,12 +53,18 @@ package object authentication {
 
   object TSecMiddleware {
     def apply[F[_]: Monad, Ident, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]],
+        onNotAuthorized: Request[F] => F[Response[F]]
     ): TSecMiddleware[F, Ident, Auth] =
       service => {
-        authedStuff
-          .andThen(service.mapF(o => OptionT.liftF(o.fold(Response[F](Status.NotFound))(identity))))
-          .mapF(o => OptionT.liftF(o.fold(Response[F](Status.Unauthorized))(identity)))
+        Kleisli { r: Request[F] =>
+          OptionT.liftF(
+            authedStuff
+              .run(r)
+              .flatMap(service.mapF(o => OptionT.liftF(o.getOrElse(Response[F](Status.NotFound)))).run)
+              .getOrElseF(onNotAuthorized(r))
+          )
+        }
       }
   }
 
@@ -66,7 +72,7 @@ package object authentication {
   // we'd expect. This is a workaround to ensure partial unification
   // is triggered.  See https://github.com/jmcardon/tsec/issues/88 for
   // more info.
-  type TSecAuthService[A, Ident, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
+  type TSecAuthService[Ident, A, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
 
   object TSecAuthService {
 
@@ -76,13 +82,13 @@ package object authentication {
       */
     def apply[A, I, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
-    )(implicit F: Monad[F]): TSecAuthService[A, I, F] =
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
     def apply[A, I, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
         andThen: (Response[F], A) => OptionT[F, Response[F]]
-    )(implicit F: Monad[F]): TSecAuthService[A, I, F] =
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli(
         req =>
           pf.andThen(OptionT.liftF(_))
@@ -96,7 +102,7 @@ package object authentication {
       * @tparam A - Ignored
       * @return
       */
-    def empty[A, Ident, F[_]: Applicative]: TSecAuthService[A, Ident, F] =
+    def empty[A, Ident, F[_]: Applicative]: TSecAuthService[Ident, A, F] =
       Kleisli.lift(OptionT.none)
   }
 
