@@ -3,11 +3,10 @@ package tsec.authentication
 import java.time.Instant
 import java.util.UUID
 
-import cats.data.OptionT
 import cats.effect.IO
-import tsec.mac.imports._
 import org.http4s.Request
 import tsec.mac.core.MacTag
+import tsec.mac.imports._
 
 import scala.concurrent.duration._
 

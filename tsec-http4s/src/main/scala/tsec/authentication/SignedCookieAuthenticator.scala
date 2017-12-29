@@ -5,22 +5,30 @@ import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.Sync
+import cats.syntax.all._
 import io.circe.{Decoder, Encoder}
 import org.http4s._
+import tsec.common._
 import tsec.cookies._
+import tsec.mac.core.MacTag
 import tsec.mac.imports._
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
-import tsec.common._
-import cats.syntax.all._
-import tsec.mac.core.MacTag
 
 import scala.concurrent.duration.FiniteDuration
 
 abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg: MacTag] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
-) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]]
+) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]] {
+  def withNewKey(newKey: MacSigningKey[Alg]): SignedCookieAuthenticator[F, I, V, Alg]
+
+  def withTokenStore(newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]]): SignedCookieAuthenticator[F, I, V, Alg]
+
+  def withIdStore(newStore: BackingStore[F, I, V]): SignedCookieAuthenticator[F, I, V, Alg]
+
+  def withSettings(newSettings: TSecCookieSettings): SignedCookieAuthenticator[F, I, V, Alg]
+}
 
 /** An authenticated cookie implementation
   *
@@ -198,7 +206,7 @@ object SignedCookieAuthenticator {
       def renew(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
         F.delay(Instant.now()).flatMap { now =>
           settings.maxIdle match {
-            case Some(idleTime) =>
+            case Some(_) =>
               val updated = authenticator.copy[Alg, I](
                 lastTouched = Some(now),
                 expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
@@ -220,7 +228,7 @@ object SignedCookieAuthenticator {
       def refresh(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
         F.delay(Instant.now()).flatMap { now =>
           settings.maxIdle match {
-            case Some(idleTime) =>
+            case Some(_) =>
               val updated = authenticator.copy[Alg, I](
                 lastTouched = Some(now)
               )

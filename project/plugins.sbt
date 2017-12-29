@@ -5,6 +5,7 @@ addSbtPlugin("com.47deg"  % "sbt-microsites" % "0.7.4")
 addSbtPlugin("org.tpolecat" % "tut-plugin" % "0.5.5")
 addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages" % "0.6.2")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.27")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.3")
 
 libraryDependencies ++= List(
   //"org.scalameta" %% "scalameta" % "2.1.2",

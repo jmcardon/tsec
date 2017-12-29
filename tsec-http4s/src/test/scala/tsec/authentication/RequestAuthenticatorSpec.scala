@@ -12,7 +12,7 @@ import tsec.authorization.BasicRBAC
 
 class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
-  def requestAuthTests[A](title: String, authSpec: AuthSpecTester[A]) {
+  def requestAuthTests[A](title: String, authSpec: AuthSpecTester[A]): Unit = {
 
     behavior of "SecuredRequests: " + title
 
@@ -27,17 +27,17 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser, A]
 
     val testService: HttpService[IO] = requestAuth {
-      case request @ GET -> Root / "api" asAuthed hi =>
+      case GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     }
 
     val adminService: HttpService[IO] = requestAuth.authorized(onlyAdmins) {
-      case request @ GET -> Root / "api" asAuthed hi =>
+      case GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     }
 
     val everyoneService: HttpService[IO] = requestAuth.authorized(everyone) {
-      case request @ GET -> Root / "api" asAuthed hi =>
+      case GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     }
 

@@ -2,7 +2,6 @@ package tsec.authentication
 
 import java.time.Instant
 
-import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, Request}

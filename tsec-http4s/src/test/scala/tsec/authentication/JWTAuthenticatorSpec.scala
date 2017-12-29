@@ -2,15 +2,15 @@ package tsec.authentication
 
 import java.time.Instant
 
-import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.{Header, Request}
 import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.imports.MacKeyGenerator
 import tsec.mac.core.MacTag
+import tsec.mac.imports.MacKeyGenerator
+
 import scala.concurrent.duration._
 
 class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {

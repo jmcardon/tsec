@@ -108,18 +108,17 @@ class SodiumAEADTest extends SodiumSpec {
       }
     }
 
-    it should "only decrypt properly with an equal AAD" in {
-      forAll { (s: String, aad: String, aad2: String) =>
+    it should "only decrypt properly with the same key" in {
+      forAll { (s: String, aad: String) =>
         val pt    = PlainText(s.utf8Bytes)
         val saad  = SodiumAAD(aad.utf8Bytes)
-        val saad2 = SodiumAAD(aad2.utf8Bytes)
         val program = for {
           key     <- p.generateKey[IO]
           key2    <- p.generateKey[IO]
           encrypt <- p.encryptAADDetached[IO](pt, key, saad)
           decrypt <- p.decryptAADDetached[IO](encrypt._1, key2, encrypt._2, saad)
         } yield decrypt
-        if (aad != aad2 || s.isEmpty || aad.isEmpty || aad2.isEmpty)
+        if (s.isEmpty || aad.isEmpty)
           program.attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
         else
           program.unsafeRunSync().toUtf8String mustBe pt.toUtf8String

@@ -20,7 +20,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
       cv2: JWSMacCV[IO, A],
       hs: JWSSerializer[JWSMacHeader[A]],
       keyGen: MacKeyGenerator[A]
-  ) {
+  ): Unit = {
     behavior of "JWT pure" + algo.jwtRepr
 
     it should "sign and verify properly with no expiry" in {

@@ -19,7 +19,6 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   private val CompletionTag: Short   = ScalaSodium.crypto_secretstream_xchacha20poly1305_TAG_FINAL
   private val StreamHeaderBytes: Int = ScalaSodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES
 
-  private val GenericEncryptError = SodiumCipherError.StreamEncryptError("Could not encrypt successfully")
   private val GenericDecryptError = SodiumCipherError.StreamDecryptError("Could not decrypt successfully")
 
   final class CipherState(val header: CryptoStreamHeader, private[tsec] val state: CryptoStreamState)
