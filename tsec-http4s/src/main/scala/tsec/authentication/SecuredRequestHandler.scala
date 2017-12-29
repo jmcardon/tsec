@@ -37,7 +37,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
 
     middleware(service)
-      .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+      .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
   }
 
   /** Create an Authorized Service **/
@@ -53,7 +53,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
   ): HttpService[F] =
     authorizedMiddleware(authorization, onNotAuthenticated)(service)
-      .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+      .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
 
 }
 
@@ -82,7 +82,7 @@ object SecuredRequestHandler {
       ): HttpService[F] = {
         val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
         middleware(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
       }
 
       /** Create an Authorized Service **/
@@ -91,7 +91,7 @@ object SecuredRequestHandler {
           onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
       ): HttpService[F] =
         authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
 
     }
 
@@ -109,7 +109,7 @@ object SecuredRequestHandler {
         val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
 
         middleware(TSecAuthService(pf))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
 
       }
 
@@ -119,7 +119,7 @@ object SecuredRequestHandler {
           onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
       ): HttpService[F] =
         authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
 
     }
 
