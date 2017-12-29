@@ -188,6 +188,9 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
   .settings(publishSettings)
+  .settings(
+    libraryDependencies ++= Seq(Libraries.log4s, Libraries.logbackClassic  % "runtime")
+  )
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
     symmetricCipher,

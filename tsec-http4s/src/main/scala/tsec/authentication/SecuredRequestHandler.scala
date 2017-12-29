@@ -5,12 +5,12 @@ import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import cats.syntax.all._
 import tsec.authorization._
+import org.log4s._
 
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val authenticator: AuthenticatorService[F, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
-
-  private[tsec] val cachedUnauthorized: Response[F] = Response[F](Status.Unauthorized)
+    private[tsec] val cachedUnauthorized: Response[F]                    = Response[F](Status.Unauthorized)
   private[tsec] val defaultNotAuthorized: Request[F] => F[Response[F]] = _ => F.pure(cachedUnauthorized)
 
   /** Create an Authorized middleware from an Authorization **/
@@ -37,7 +37,10 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthorized)
 
     middleware(service)
-      .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+      .handleErrorWith { e =>
+        SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
+        Kleisli.lift(OptionT.pure(cachedUnauthorized))
+      }
   }
 
   /** Create an Authorized Service **/
@@ -53,11 +56,15 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
       onNotAuthorized: Request[F] => F[Response[F]] = defaultNotAuthorized
   ): HttpService[F] =
     authorizedMiddleware(authorization, onNotAuthorized)(service)
-      .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+      .handleErrorWith { e =>
+        SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
+        Kleisli.lift(OptionT.pure(cachedUnauthorized))
+      }
 
 }
 
 object SecuredRequestHandler {
+  private[authentication] val logger = getLogger("tsec.authentication.SecureRequestHandler")
 
   /** Build our SecuredRequestHandler detecting whether it is rolling window or not **/
   def apply[F[_], Identity, User, Auth](
@@ -82,7 +89,10 @@ object SecuredRequestHandler {
       ): HttpService[F] = {
         val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthorized)
         middleware(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
       }
 
       /** Create an Authorized Service **/
@@ -91,7 +101,10 @@ object SecuredRequestHandler {
           onNotAuthorized: Request[F] => F[Response[F]] = defaultNotAuthorized
       ): HttpService[F] =
         authorizedMiddleware(authorization, onNotAuthorized)(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
 
     }
 
@@ -109,7 +122,10 @@ object SecuredRequestHandler {
         val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthorized)
 
         middleware(TSecAuthService(pf))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
 
       }
 
@@ -119,8 +135,10 @@ object SecuredRequestHandler {
           onNotAuthorized: Request[F] => F[Response[F]] = defaultNotAuthorized
       ): HttpService[F] =
         authorizedMiddleware(authorization, onNotAuthorized)(TSecAuthService(pf))
-          .handleErrorWith(e => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
-
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
     }
 
 }

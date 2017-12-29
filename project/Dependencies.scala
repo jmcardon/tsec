@@ -15,6 +15,8 @@ object Dependencies {
     val scalacheckV   = "1.13.4"
     val commonsCodecV = "1.11"
     val fs2Version    = "0.10.0-M9"
+    val log4sV        = "1.4.0"
+    val logbackV      = "1.2.3"
   }
 
   object Libraries {
@@ -35,6 +37,8 @@ object Dependencies {
     val http4sCirce        = "org.http4s"         %% "http4s-circe"         % Versions.http4sV % "test"
     val scalaCheck         = "org.scalacheck"     %% "scalacheck"           % Versions.scalacheckV % "test"
     val commonsCodec       = "commons-codec"      % "commons-codec"         % Versions.commonsCodecV
+    val log4s              = "org.log4s"          %% "log4s"                % Versions.log4sV
+    val logbackClassic     = "ch.qos.logback"     % "logback-classic"       % Versions.logbackV
   }
 
 }
