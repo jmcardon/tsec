@@ -3,15 +3,15 @@ package tsec
 import java.time.Instant
 import java.util.UUID
 
-import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
-import org.http4s._
-import org.http4s.server.Middleware
-import org.http4s.headers.{Authorization, Cookie => C}
 import cats.instances.all._
-import cats.syntax.eq._
 import cats.syntax.either._
+import cats.syntax.eq._
+import cats.{Applicative, Monad}
 import io.circe._
+import org.http4s._
+import org.http4s.headers.{Authorization, Cookie => C}
+import org.http4s.server.Middleware
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
@@ -174,6 +174,6 @@ package object authentication {
   def uuidFromRaw[F[_]: Applicative](string: String): OptionT[F, UUID] =
     try OptionT.pure(UUID.fromString(string))
     catch {
-      case NonFatal(e) => OptionT.none
+      case NonFatal(_) => OptionT.none
     }
 }

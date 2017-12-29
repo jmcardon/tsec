@@ -8,8 +8,9 @@ import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.imports.MacKeyGenerator
 import tsec.mac.core.MacTag
+import tsec.mac.imports.MacKeyGenerator
+
 import scala.concurrent.duration._
 
 class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {

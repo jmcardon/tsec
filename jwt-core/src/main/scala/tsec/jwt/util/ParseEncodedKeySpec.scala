@@ -92,7 +92,7 @@ object ParseEncodedKeySpec {
     if (signatureLength > 255)
       me.raiseError(GeneralSignatureError("Invalid ECDSA signature format"))
 
-    var signatureDER = scala.collection.mutable.ListBuffer.empty[Byte]
+    val signatureDER = scala.collection.mutable.ListBuffer.empty[Byte]
     signatureDER += 48
     if (signatureLength >= 128)
       signatureDER += 0x81.toByte

@@ -432,7 +432,7 @@ object EncryptedCookieAuthenticator {
       def renew(authenticator: AuthEncryptedCookie[A, I]): F[AuthEncryptedCookie[A, I]] =
         F.delay(Instant.now()).flatMap { now =>
           settings.maxIdle match {
-            case Some(idleTime) =>
+            case Some(_) =>
               update(
                 authenticator.copy[A, I](
                   lastTouched = Some(now),

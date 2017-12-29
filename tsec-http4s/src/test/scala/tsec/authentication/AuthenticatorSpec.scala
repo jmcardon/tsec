@@ -66,7 +66,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     val storageMap = mutable.HashMap.empty[I, V]
 
     def put(elem: V): F[V] = {
-      val map = storageMap.put(getId(elem), elem)
+      storageMap.put(getId(elem), elem)
       F.pure(elem)
     }
 

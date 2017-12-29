@@ -93,7 +93,7 @@ package object cookies {
 
     def fromDecodedString(original: String): Either[MacVerificationError, String] =
       original.split("-") match {
-        case Array(orig, nonce) =>
+        case Array(orig, _) =>
           Right(orig.base64Bytes.toUtf8String)
         case _ =>
           Left(MacVerificationError("String encoded improperly"))

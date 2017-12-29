@@ -4,20 +4,8 @@ name := "tsec"
 
 scalaVersion := "2.12.4"
 
-lazy val scalacOpts = scalacOptions := Seq(
-  "-unchecked",
-  "-feature",
-  "-deprecation",
-  "-encoding",
-  "utf8",
-  "-Ywarn-adapted-args", // Warn if an argument list is modified to match the receiver.
-  "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
-  "-Ywarn-unused:imports",
-  "-Ywarn-nullary-override", // Warn when non-nullary overrides nullary, e.g. def foo() over def foo.
-  "-Ypartial-unification",
-  "-language:higherKinds",
-  "-language:implicitConversions"
-)
+// maybe enable ^C depending on the wind direction
+cancelable in Global := true
 
 lazy val micrositeSettings = Seq(
   libraryDependencies += "com.47deg" %% "github4s" % "0.16.0",
@@ -48,12 +36,20 @@ lazy val commonSettings = Seq(
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
   version in ThisBuild := "0.0.1-M6",
-  scalacOpts
+  scalacOptions --= Seq(
+    "-Xlint:package-object-classes", // we should refactor to avoid this
+    "-Ywarn-numeric-widen", // dubiously disabled for now
+    "-Ywarn-unused:params",
+    "-Ywarn-unused:implicits",
+  ),
+  scalacOptions ++= Seq(
+    "-Ywarn-unused:explicits",
+  )
 )
 
 lazy val benchSettings = Seq(
   resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-  libraryDependencies += Libraries.thyme
+  libraryDependencies += Libraries.thyme,
 )
 
 lazy val passwordHasherLibs = libraryDependencies ++= Seq(
@@ -165,6 +161,7 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .enablePlugins(JmhPlugin)
 
 lazy val examples = Project(id = "tsec-examples", base = file("examples"))
+  .disablePlugins(TpolecatPlugin)
   .settings(commonSettings)
   .settings(jwtCommonLibs)
   .settings(signatureLibs)

@@ -2,14 +2,11 @@ package tsec.authentication
 
 import java.time.Instant
 import java.util.UUID
-import cats.data.OptionT
+
 import cats.effect.IO
-import org.http4s.{Request, Response}
-import org.http4s.headers.`Set-Cookie`
+import org.http4s.Request
 import tsec.cipher.symmetric.imports._
-import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
-import io.circe.parser.decode
-import io.circe.generic.auto._
+
 import scala.concurrent.duration._
 
 class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
@@ -74,27 +71,6 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
       def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)
-
-      /** our method here has to be unique, since we cannot afford to renew the token for a stateless token, as
-        * it carries rolling window expiration information.
-        *
-        * @return
-        */
-      def extractFromResponse(response: Response[IO]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
-        val cookieOpt = `Set-Cookie`.from(response.headers).map(_.cookie).find(_.name === cookieName)
-        cookieOpt match {
-          case None =>
-            OptionT.none
-          case Some(rawCookie) =>
-            val coerced = AEADCookie[A](rawCookie.content)
-            for {
-              contentRaw <- OptionT.fromOption[IO](
-                AEADCookieEncryptor.retrieveFromSigned[A](coerced, secretKey).toOption
-              )
-              internal <- OptionT.fromOption[IO](decode[AuthEncryptedCookie.Internal[Int]](contentRaw).toOption)
-            } yield AuthEncryptedCookie.build[A, Int](internal, coerced, rawCookie)
-        }
-      }
 
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): IO[AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()

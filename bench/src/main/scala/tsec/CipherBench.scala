@@ -4,16 +4,17 @@ import java.util.concurrent.TimeUnit
 import javax.crypto
 import javax.crypto.Cipher
 
-import org.openjdk.jmh.annotations._
 import cats.effect.IO
-import tsec.cipher.symmetric.{PlainText => OPlainText, _}
+import org.openjdk.jmh.annotations._
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.imports.aead._
+import tsec.cipher.symmetric.{PlainText => OPlainText, _}
+import tsec.common._
 import tsec.libsodium._
 import tsec.libsodium.cipher._
-import tsec.common._
 import tsec.libsodium.cipher.aead.AES256GCM
+
 import scala.util.Random
 
 @State(Scope.Thread)
@@ -39,13 +40,13 @@ class CipherBench {
   lazy val nPlaintext: PlainText = PlainText(longPlaintext.content)
 
   @Benchmark
-  def testJCARawSideEffecting(): Unit = {
+  def testJCARawSideEffecting(): Any = {
     jcaRAWInstance.init(Cipher.ENCRYPT_MODE, jcaRAWKey)
     jcaRAWInstance.doFinal(longPlaintext.content)
   }
 
   @Benchmark
-  def testJCARawCreateInstance(): Unit = {
+  def testJCARawCreateInstance(): Any = {
     val j = Cipher.getInstance("AES/GCM/NoPadding")
     j.init(Cipher.ENCRYPT_MODE, jcaRAWKey)
     j.doFinal(longPlaintext.content)
@@ -55,19 +56,19 @@ class CipherBench {
     * to view the related overhead, but we do not care about sequencing them
     */
   @Benchmark
-  def testTSecJCA(): Unit =
+  def testTSecJCA(): Any =
     jcaAES
       .encrypt(longPlaintext, jcaAESKey)
       .unsafeRunSync()
 
   @Benchmark
-  def testLibSodiumAES(): Unit =
+  def testLibSodiumAES(): Any =
     AES256GCM
       .encrypt[IO](nPlaintext, sodiumAESKey)
       .unsafeRunSync()
 
   @Benchmark
-  def testLibSodiumXChacha20(): Unit =
+  def testLibSodiumXChacha20(): Any =
     XChacha20Poly1305
       .encrypt[IO](nPlaintext, chachaKey)
       .unsafeRunSync()

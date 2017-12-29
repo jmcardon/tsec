@@ -33,7 +33,7 @@ trait ManagedRandom {
     cachedRand = tmpRand
   }
 
-  private[tsec] def forceIncrement: Unit = {
+  private[tsec] def forceIncrement(): Unit = {
     adder.increment()
     if (adder.sum() == MaxBeforeReseed)
       reSeed()
