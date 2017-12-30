@@ -49,10 +49,8 @@ sealed abstract class JWSMacCV[F[_], A](
       M.pure(false)
     else {
       val providedBytes: Array[Byte] = split(2).base64UrlBytes
-      (for {
-        _      <- hs.fromUtf8Bytes(split(0).base64UrlBytes)
-        claims <- JWTClaims.fromUtf8Bytes(split(1).base64UrlBytes)
-      } yield claims).fold(
+      JWTClaims.fromUtf8Bytes(split(1).base64UrlBytes)
+      .fold(
         _ => M.pure(false),
         claims =>
           programs.algebra
