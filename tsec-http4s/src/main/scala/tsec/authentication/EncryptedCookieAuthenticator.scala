@@ -227,7 +227,7 @@ object EncryptedCookieAuthenticator {
         unliftedCookieFromRequest(settings.cookieName, request).map(_.content)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
-        for {
+        (for {
           now <- OptionT.liftF(F.delay(Instant.now()))
           coerced = AEADCookie[A](raw)
           contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
@@ -235,7 +235,8 @@ object EncryptedCookieAuthenticator {
           authed     <- tokenStore.get(tokenId)
           refreshed  <- validateAndRefresh(authed, coerced, now)
           identity   <- identityStore.get(authed.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       /** Create a new cookie from the id field of a particular user.
         *
@@ -373,7 +374,7 @@ object EncryptedCookieAuthenticator {
 
       /** Unfortunately, parseRaw is not enough **/
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
-        for {
+        (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = AEADCookie[A](rawCookie.content)
@@ -382,7 +383,8 @@ object EncryptedCookieAuthenticator {
           authed = AuthEncryptedCookie.build[A, I](internal, coerced, rawCookie)
           refreshed <- validateAndRefresh(authed, now)
           identity  <- identityStore.get(authed.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       /** Create our cookie
         * In the case of encrypted cookies, we cannot trust the client to avoid tampering.

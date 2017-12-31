@@ -155,7 +155,7 @@ object SignedCookieAuthenticator {
         unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
-        for {
+        (for {
           now <- OptionT.liftF(F.delay(Instant.now()))
           coerced = SignedCookie[Alg](raw)
           contentRaw <- OptionT.liftF(F.fromEither(CookieSigner.verifyAndRetrieve[Alg](coerced, key)))
@@ -163,7 +163,8 @@ object SignedCookieAuthenticator {
           authed     <- tokenStore.get(tokenId)
           refreshed  <- validateAndRefresh(authed, coerced, now)
           identity   <- idStore.get(authed.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       /** Create an authenticator from an identifier.
         *
