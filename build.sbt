@@ -76,8 +76,7 @@ lazy val http4sDeps = libraryDependencies ++= Seq(
 )
 
 lazy val loggingLibs = libraryDependencies ++= Seq(
-  Libraries.log4s,
-  Libraries.logbackClassic % "runtime"
+  Libraries.log4s
 )
 
 lazy val root = project
