@@ -40,7 +40,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     middleware(service)
       .handleErrorWith { e =>
         SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
-        Kleisli.lift(OptionT.pure(cachedUnauthorized))
+        Kleisli.liftF(OptionT.pure(cachedUnauthorized))
       }
   }
 
@@ -59,7 +59,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     authorizedMiddleware(authorization, onNotAuthenticated)(service)
       .handleErrorWith { e =>
         SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
-        Kleisli.lift(OptionT.pure(cachedUnauthorized))
+        Kleisli.liftF(OptionT.pure(cachedUnauthorized))
       }
 
 }
@@ -92,7 +92,7 @@ object SecuredRequestHandler {
         middleware(TSecAuthService(pf, authenticator.afterBlock))
           .handleErrorWith { e =>
             logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
           }
       }
 
@@ -104,7 +104,7 @@ object SecuredRequestHandler {
         authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf, authenticator.afterBlock))
           .handleErrorWith { e =>
             logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
           }
 
     }
@@ -125,7 +125,7 @@ object SecuredRequestHandler {
         middleware(TSecAuthService(pf))
           .handleErrorWith { e =>
             logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
           }
 
       }
@@ -138,7 +138,7 @@ object SecuredRequestHandler {
         authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf))
           .handleErrorWith { e =>
             logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
           }
     }
 
