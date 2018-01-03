@@ -1,7 +1,7 @@
 package tsec.jws.mac
 
-import cats.{Monad, MonadError}
-import cats.effect.{Effect, IO, Sync}
+import cats.MonadError
+import cats.effect.Sync
 import cats.implicits._
 import tsec.common._
 import tsec.jws._

@@ -7,7 +7,6 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import tsec.mac.imports.JCAMac
 import tsec.common._
-import tsec.mac._
 import tsec.mac.imports._
 import cats.syntax.all._
 import org.http4s.{Cookie, HttpService, Request, Response, Status}

@@ -33,7 +33,7 @@ object BearerTokenExample {
   val Auth =
     SecuredRequestHandler(bearerTokenAuth)
 
-  val authservice: TSecAuthService[IO, User, TSecBearerToken[Int]] = TSecAuthService {
+  val authservice: TSecAuthService[User, TSecBearerToken[Int], IO] = TSecAuthService {
     case GET -> Root asAuthed user =>
       Ok()
   }
@@ -44,7 +44,7 @@ object BearerTokenExample {
    */
   val service: HttpService[IO] = Auth {
     //Where user is the case class User above
-    case request@GET -> Root / "api" asAuthed user =>
+    case request @ GET -> Root / "api" asAuthed user =>
       /*
       Note: The request is of type: SecuredRequest, which carries:
       1. The request

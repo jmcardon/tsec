@@ -4,17 +4,18 @@ import Keys._
 object Dependencies {
 
   object Versions {
-    val circeV        = "0.9.0-M2"
-    val catsV         = "1.0.0-RC1"
-    val catsEffV      = "0.5"
+    val circeV        = "0.9.0-M3"
+    val catsV         = "1.0.0-RC2"
+    val catsEffV      = "0.6"
     val thymeV        = "0.1.2-SNAPSHOT"
-    val bouncyCastleV = "1.52"
+    val bouncyCastleV = "1.58"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.4"
-    val http4sV       = "0.18.0-M6"
-    val scalacheckV   = "1.13.4"
+    val http4sV       = "0.18.0-M7"
+    val scalacheckV   = "1.13.5"
     val commonsCodecV = "1.11"
-    val fs2Version    = "0.10.0-M9"
+    val fs2Version    = "0.10.0-M10"
+    val log4sV        = "1.4.0"
   }
 
   object Libraries {
@@ -35,6 +36,7 @@ object Dependencies {
     val http4sCirce        = "org.http4s"         %% "http4s-circe"         % Versions.http4sV % "test"
     val scalaCheck         = "org.scalacheck"     %% "scalacheck"           % Versions.scalacheckV % "test"
     val commonsCodec       = "commons-codec"      % "commons-codec"         % Versions.commonsCodecV
+    val log4s              = "org.log4s"          %% "log4s"                % Versions.log4sV
   }
 
 }

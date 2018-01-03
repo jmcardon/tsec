@@ -3,10 +3,9 @@ package tsec.authentication
 import java.time.Instant
 import java.util.UUID
 
-import cats.data.OptionT
 import cats.effect.IO
 import tsec.mac.imports._
-import org.http4s.{HttpDate, Request}
+import org.http4s.Request
 import tsec.mac.core.MacTag
 
 import scala.concurrent.duration._
@@ -32,19 +31,19 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: AuthenticatedCookie[A, Int]): Request[IO] =
         request.addCookie(authenticator.toCookie)
 
-      def expireAuthenticator(b: AuthenticatedCookie[A, Int]): OptionT[IO, AuthenticatedCookie[A, Int]] = {
+      def expireAuthenticator(b: AuthenticatedCookie[A, Int]): IO[AuthenticatedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](expiry = now.minusSeconds(2000))
-        OptionT.liftF(store.update(updated)).map(_ => updated)
+        store.update(updated).map(_ => updated)
       }
 
-      def timeoutAuthenticator(b: AuthenticatedCookie[A, Int]): OptionT[IO, AuthenticatedCookie[A, Int]] = {
+      def timeoutAuthenticator(b: AuthenticatedCookie[A, Int]): IO[AuthenticatedCookie[A, Int]] = {
         val now     = Instant.now()
         val updated = b.copy[A, Int](lastTouched = Some(now.minusSeconds(2000)))
-        OptionT.liftF(store.update(updated)).map(_ => updated)
+        store.update(updated).map(_ => updated)
       }
 
-      def wrongKeyAuthenticator: OptionT[IO, AuthenticatedCookie[A, Int]] =
+      def wrongKeyAuthenticator: IO[AuthenticatedCookie[A, Int]] =
         SignedCookieAuthenticator[IO, Int, DummyUser, A](
           TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
           store,

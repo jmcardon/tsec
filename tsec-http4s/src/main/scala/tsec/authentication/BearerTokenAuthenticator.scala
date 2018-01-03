@@ -2,7 +2,6 @@ package tsec.authentication
 
 import java.time.Instant
 
-import cats.MonadError
 import cats.data.OptionT
 import cats.effect.Sync
 import org.http4s.headers.Authorization
@@ -50,7 +49,7 @@ object BearerTokenAuthenticator {
       private def validateAndRefresh(token: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] =
         OptionT.liftF(F.delay(Instant.now())).flatMap { now =>
           if (!token.isExpired(now) && settings.maxIdle.forall(!token.isTimedOut(now, _)))
-            refresh(token)
+            OptionT.liftF(refresh(token))
           else
             OptionT.none
         }
@@ -58,14 +57,15 @@ object BearerTokenAuthenticator {
       def extractRawOption(request: Request[F]): Option[String] = extractBearerToken[F](request)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, TSecBearerToken[I]]] =
-        for {
+        (for {
           token     <- tokenStore.get(SecureRandomId.coerce(raw))
           refreshed <- validateAndRefresh(token)
           identity  <- identityStore.get(token.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
-      def create(body: I): OptionT[F, TSecBearerToken[I]] =
-        OptionT.liftF(for {
+      def create(body: I): F[TSecBearerToken[I]] =
+        for {
           now <- F.delay(Instant.now())
           newToken = TSecBearerToken(
             SecureRandomId.generate,
@@ -74,16 +74,16 @@ object BearerTokenAuthenticator {
             settings.maxIdle.map(_ => now)
           )
           out <- tokenStore.put(newToken)
-        } yield out)
+        } yield out
 
-      def update(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] =
-        OptionT.liftF(tokenStore.update(authenticator))
+      def update(authenticator: TSecBearerToken[I]): F[TSecBearerToken[I]] =
+        tokenStore.update(authenticator)
 
-      def discard(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] =
-        OptionT.liftF(tokenStore.delete(authenticator.id)).map(_ => authenticator)
+      def discard(authenticator: TSecBearerToken[I]): F[TSecBearerToken[I]] =
+        tokenStore.delete(authenticator.id).map(_ => authenticator)
 
-      def renew(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] =
-        OptionT.liftF(for {
+      def renew(authenticator: TSecBearerToken[I]): F[TSecBearerToken[I]] =
+        for {
           now <- F.delay(Instant.now())
           updated <- tokenStore.update(
             authenticator.copy(
@@ -91,16 +91,16 @@ object BearerTokenAuthenticator {
               lastTouched = settings.maxIdle.map(_ => now)
             )
           )
-        } yield updated)
+        } yield updated
 
-      def refresh(authenticator: TSecBearerToken[I]): OptionT[F, TSecBearerToken[I]] = settings.maxIdle match {
+      def refresh(authenticator: TSecBearerToken[I]): F[TSecBearerToken[I]] = settings.maxIdle match {
         case None =>
-          OptionT.pure(authenticator)
+          F.pure(authenticator)
         case Some(idleTime) =>
-          OptionT.liftF(for {
+          for {
             now     <- F.delay(Instant.now())
             updated <- tokenStore.update(authenticator.copy(lastTouched = Some(now.plusSeconds(idleTime.toSeconds))))
-          } yield updated)
+          } yield updated
       }
 
       def embed(response: Response[F], authenticator: TSecBearerToken[I]): Response[F] =

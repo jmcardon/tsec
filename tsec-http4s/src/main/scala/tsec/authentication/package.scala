@@ -8,11 +8,9 @@ import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import org.http4s.server.Middleware
 import org.http4s.headers.{Authorization, Cookie => C}
-import cats.instances.all._
-import cats.syntax.eq._
-import cats.syntax.either._
-import io.circe.Decoder.Result
+import cats.implicits._
 import io.circe._
+import tsec.authorization.{Authorization => TAuth}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
@@ -54,16 +52,26 @@ package object authentication {
 
   object TSecMiddleware {
     def apply[F[_]: Monad, Ident, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]],
+        onNotAuthenticated: Request[F] => F[Response[F]]
     ): TSecMiddleware[F, Ident, Auth] =
       service => {
-        authedStuff
-          .andThen(service.mapF(o => OptionT.liftF(o.fold(Response[F](Status.NotFound))(identity))))
-          .mapF(o => OptionT.liftF(o.fold(Response[F](Status.Unauthorized))(identity)))
+        Kleisli { r: Request[F] =>
+          OptionT.liftF(
+            authedStuff
+              .run(r)
+              .flatMap(service.mapF(o => OptionT.liftF(o.getOrElse(Response[F](Status.NotFound)))).run)
+              .getOrElseF(onNotAuthenticated(r))
+          )
+        }
       }
   }
 
-  type TSecAuthService[F[_], Ident, A] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
+  // The parameter types of TSecAuthService are reversed from what
+  // we'd expect. This is a workaround to ensure partial unification
+  // is triggered.  See https://github.com/jmcardon/tsec/issues/88 for
+  // more info.
+  type TSecAuthService[Ident, A, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
 
   object TSecAuthService {
 
@@ -71,20 +79,45 @@ package object authentication {
       * [[org.http4s.Response.notFound]], which generates a 404, for any request
       * where `pf` is not defined.
       */
-    def apply[F[_], I, A](
+    def apply[A, I, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
-    )(implicit F: Monad[F]): TSecAuthService[F, I, A] =
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
-    def apply[F[_], I, A](
+    def apply[A, I, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
         andThen: (Response[F], A) => OptionT[F, Response[F]]
-    )(implicit F: Monad[F]): TSecAuthService[F, I, A] =
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli(
         req =>
           pf.andThen(OptionT.liftF(_))
             .applyOrElse(req, Function.const(OptionT.none[F, Response[F]]))
             .flatMap(r => andThen(r, req.authenticator))
+      )
+
+    def withAuthorization[A, I, F[_]](auth: TAuth[F, I, A])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      Kleisli { req: SecuredRequest[F, I, A] =>
+        auth
+          .isAuthorized(req)
+          .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+      }
+
+    def withAuthorization[A, I, F[_]](auth: TAuth[F, I, A])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
+        andThen: (Response[F], A) => OptionT[F, Response[F]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      Kleisli(
+        req =>
+          auth
+            .isAuthorized(req)
+            .flatMap(
+              _ =>
+                pf.andThen(OptionT.liftF(_))
+                  .applyOrElse(req, Function.const(OptionT.none[F, Response[F]]))
+                  .flatMap(r => andThen(r, req.authenticator))
+          )
       )
 
     /** The empty service (all requests fallthrough).
@@ -93,8 +126,8 @@ package object authentication {
       * @tparam A - Ignored
       * @return
       */
-    def empty[F[_]: Applicative, Ident, A]: TSecAuthService[F, Ident, A] =
-      Kleisli.lift(OptionT.none)
+    def empty[A, Ident, F[_]: Applicative]: TSecAuthService[Ident, A, F] =
+      Kleisli.liftF(OptionT.none)
   }
 
   /** Common cookie settings for cookie-based authenticators
@@ -146,7 +179,7 @@ package object authentication {
   def buildBearerAuthHeader(content: String): Authorization =
     Authorization(Credentials.Token(AuthScheme.Bearer, content))
 
-  implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
+  private[tsec] implicit val InstantLongDecoder: Decoder[Instant] = new Decoder[Instant] {
     def apply(c: HCursor): Either[DecodingFailure, Instant] =
       c.value
         .as[Long]
@@ -158,7 +191,7 @@ package object authentication {
         )
   }
 
-  implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
+  private[tsec] implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
     def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
   }
 

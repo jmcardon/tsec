@@ -1,7 +1,5 @@
 package tsec
 
-import java.nio.charset.StandardCharsets
-
 import io.circe.Printer
 
 package object jwt {

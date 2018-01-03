@@ -2,7 +2,6 @@ package tsec.messagedigests
 
 import cats.evidence.Is
 import tsec.common._
-import tsec.messagedigests.core.DigestHash$$
 
 package object core {
   private[tsec] val DigestHash$$ : HKByteNewt = new HKByteNewt {

@@ -12,6 +12,7 @@ lazy val scalacOpts = scalacOptions := Seq(
   "utf8",
   "-Ywarn-adapted-args", // Warn if an argument list is modified to match the receiver.
   "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
+  "-Ywarn-unused:imports",
   "-Ywarn-nullary-override", // Warn when non-nullary overrides nullary, e.g. def foo() over def foo.
   "-Ypartial-unification",
   "-language:higherKinds",
@@ -19,7 +20,7 @@ lazy val scalacOpts = scalacOptions := Seq(
 )
 
 lazy val micrositeSettings = Seq(
-  libraryDependencies += "com.47deg" %% "github4s" % "0.16.0",
+  libraryDependencies += "com.47deg" %% "github4s" % "0.17.0",
   micrositeName := "TSec",
   micrositeBaseUrl := "/tsec",
   micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",
@@ -45,8 +46,8 @@ lazy val commonSettings = Seq(
   scalaVersion in ThisBuild := "2.12.4",
   fork in test := true,
   parallelExecution in test := false,
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
-  version in ThisBuild := "0.0.1-M6",
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.5"),
+  version in ThisBuild := "0.0.1-M7",
   scalacOpts
 )
 
@@ -72,6 +73,10 @@ lazy val http4sDeps = libraryDependencies ++= Seq(
   Libraries.http4sdsl,
   Libraries.http4sServer,
   Libraries.http4sCirce
+)
+
+lazy val loggingLibs = libraryDependencies ++= Seq(
+  Libraries.log4s
 )
 
 lazy val root = project
@@ -187,6 +192,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
   .settings(publishSettings)
+  .settings(loggingLibs)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
     symmetricCipher,
@@ -204,6 +210,7 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
       Libraries.fs2IO
     )
   )
+  .settings(loggingLibs)
   .dependsOn(common % "compile->compile;test->test")
 
 lazy val microsite = Project(id = "microsite", base = file("docs"))

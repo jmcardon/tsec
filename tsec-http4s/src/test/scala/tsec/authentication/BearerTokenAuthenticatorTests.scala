@@ -2,13 +2,11 @@ package tsec.authentication
 
 import java.time.Instant
 
-import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, Request}
 import tsec.common.SecureRandomId
 
-import scala.collection.mutable
 import scala.concurrent.duration._
 
 class BearerTokenAuthenticatorTests extends RequestAuthenticatorSpec {
@@ -23,14 +21,14 @@ class BearerTokenAuthenticatorTests extends RequestAuthenticatorSpec {
       def embedInRequest(request: Request[IO], authenticator: TSecBearerToken[Int]): Request[IO] =
         request.putHeaders(Authorization(Credentials.Token(AuthScheme.Bearer, authenticator.id)))
 
-      def expireAuthenticator(b: TSecBearerToken[Int]): OptionT[IO, TSecBearerToken[Int]] =
+      def expireAuthenticator(b: TSecBearerToken[Int]): IO[TSecBearerToken[Int]] =
         authenticator.update(b.copy(expiry = Instant.now.minusSeconds(30)))
 
-      def timeoutAuthenticator(b: TSecBearerToken[Int]): OptionT[IO, TSecBearerToken[Int]] =
+      def timeoutAuthenticator(b: TSecBearerToken[Int]): IO[TSecBearerToken[Int]] =
         authenticator.update(b.copy(lastTouched = Some(Instant.now.minusSeconds(300000))))
 
-      def wrongKeyAuthenticator: OptionT[IO, TSecBearerToken[Int]] =
-        OptionT.pure(TSecBearerToken(SecureRandomId.generate, -20, Instant.now(), None))
+      def wrongKeyAuthenticator: IO[TSecBearerToken[Int]] =
+        IO.pure(TSecBearerToken(SecureRandomId.generate, -20, Instant.now(), None))
     }
   }
 

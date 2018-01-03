@@ -6,8 +6,6 @@ import io.circe.Json
 import org.http4s.dsl.io._
 import org.http4s.circe._
 import org.http4s._
-import cats.syntax.all._
-import org.http4s.implicits._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import tsec.authorization.BasicRBAC
@@ -43,10 +41,20 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         Ok(hi.asJson)
     }
 
+    val insaneService: HttpService[IO] = requestAuth {
+      case request @ GET -> Root / "api" asAuthed hi =>
+        IO.raiseError(new IllegalArgumentException)
+    }
+
+    val customService: TSecAuthService[DummyUser, A, IO] = TSecAuthService {
+      case request @ GET -> Root / "api" asAuthed hi =>
+        Ok()
+    }
+
     it should "TryExtractRaw properly" in {
 
       val response: OptionT[IO, Option[String]] = for {
-        auth <- requestAuth.authenticator.create(dummyBob.id)
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
       } yield authSpec.auth.extractRawOption(embedded)
       response
@@ -58,7 +66,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     it should "Return a proper deserialized user" in {
 
       val response: OptionT[IO, Response[IO]] = for {
-        auth <- requestAuth.authenticator.create(dummyBob.id)
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
         res <- testService(embedded)
       } yield res
@@ -70,8 +78,8 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
     it should "fail on an expired token" in {
       val response: OptionT[IO, Response[IO]] = for {
-        auth    <- requestAuth.authenticator.create(dummyBob.id)
-        expired <- authSpec.expireAuthenticator(auth)
+        auth    <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        expired <- OptionT.liftF(authSpec.expireAuthenticator(auth))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), expired)
         res <- testService(embedded)
       } yield res
@@ -84,9 +92,9 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     it should "work on a renewed token" in {
 
       val response: OptionT[IO, Response[IO]] = for {
-        auth    <- requestAuth.authenticator.create(dummyBob.id)
-        expired <- authSpec.expireAuthenticator(auth)
-        renewed <- authSpec.auth.renew(expired)
+        auth    <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        expired <- OptionT.liftF(authSpec.expireAuthenticator(auth))
+        renewed <- OptionT.liftF(authSpec.auth.renew(expired))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), renewed)
         res <- testService(embedded)
       } yield res
@@ -98,8 +106,8 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
     it should "fail on a timed out token" in {
       val response: OptionT[IO, Response[IO]] = for {
-        auth     <- requestAuth.authenticator.create(dummyBob.id)
-        timedOut <- authSpec.timeoutAuthenticator(auth)
+        auth     <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        timedOut <- OptionT.liftF(authSpec.timeoutAuthenticator(auth))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), timedOut)
         res <- testService(embedded)
       } yield res
@@ -112,9 +120,9 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     it should "work on a refreshed token" in {
 
       val response: OptionT[IO, Response[IO]] = for {
-        auth    <- requestAuth.authenticator.create(dummyBob.id)
-        expired <- authSpec.timeoutAuthenticator(auth)
-        renewed <- authSpec.auth.refresh(expired)
+        auth    <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        expired <- OptionT.liftF(authSpec.timeoutAuthenticator(auth))
+        renewed <- OptionT.liftF(authSpec.auth.refresh(expired))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), renewed)
         res <- testService(embedded)
       } yield res
@@ -127,7 +135,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     it should "Reject an invalid token" in {
 
       val response: OptionT[IO, Response[IO]] = for {
-        auth <- authSpec.wrongKeyAuthenticator
+        auth <- OptionT.liftF(authSpec.wrongKeyAuthenticator)
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
         res <- testService(embedded)
       } yield res
@@ -140,8 +148,8 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     //note: we feed it "discarded" because stateless tokens rely on this.
     it should "Fail on a discarded token" in {
       val response: OptionT[IO, Response[IO]] = for {
-        auth      <- requestAuth.authenticator.create(dummyBob.id)
-        discarded <- requestAuth.authenticator.discard(auth)
+        auth      <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        discarded <- OptionT.liftF(requestAuth.authenticator.discard(auth))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), discarded)
         res <- testService(embedded)
       } yield res
@@ -153,7 +161,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
     it should "authorize for an allowed endpoint" in {
       val response: OptionT[IO, Response[IO]] = for {
-        auth <- requestAuth.authenticator.create(dummyBob.id)
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
         res <- everyoneService(embedded)
       } yield res
@@ -165,7 +173,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
     it should "not authorize for a gated endpoint" in {
       val response: OptionT[IO, Response[IO]] = for {
-        auth <- requestAuth.authenticator.create(dummyBob.id)
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
         res <- adminService(embedded)
       } yield res
@@ -174,6 +182,26 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         .map(_.status)
         .unsafeRunSync() mustBe Status.Unauthorized
     }
+
+    it should "use the specified response when onNotAuthorized is specified" in {
+      val req      = Request[IO](uri = Uri.unsafeFromString("/api"))
+      val response = requestAuth.liftService(customService, _ => IO.pure(Response[IO](Status.BadGateway)))(req)
+
+      response.getOrElse(Response.notFound).map(_.status).unsafeRunSync() mustBe Status.BadGateway
+    }
+
+    it should "catch unhandled errors into unauthorized" in {
+      val response: OptionT[IO, Response[IO]] = for {
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
+        res <- insaneService(embedded)
+      } yield res
+      response
+        .getOrElse(Response[IO](status = Status.Forbidden))
+        .map(_.status)
+        .unsafeRunSync() mustBe Status.Unauthorized
+    }
+
   }
 
 }
