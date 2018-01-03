@@ -97,7 +97,7 @@ then use:
 
  `sudo apt-get install oracle-java8-unlimited-jce-policy`
  
-## A node on logging
+## A note on logging
 We use `log4s` which is a logging facade over [SLF4J](https://www.slf4j.org/). This implies you need to add a
 _binding_ to your classpath. Check https://www.slf4j.org/codes.html#StaticLoggerBinder
  

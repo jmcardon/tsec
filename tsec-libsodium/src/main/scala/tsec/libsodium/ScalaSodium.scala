@@ -67,7 +67,7 @@ object ScalaSodium
       logger.error(err)("ScalaSodium has not been initialized properly")
       throw err
     }
-    logger.info("Sodium gun loaded properly")
+    logger.info("Libsodium loaded properly")
 
     sodium
   }
