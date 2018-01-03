@@ -5,6 +5,7 @@ import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import cats.syntax.all._
 import tsec.authorization._
+import org.log4s._
 
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val authenticator: AuthenticatorService[F, Identity, User, Auth]
@@ -37,7 +38,10 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
 
     middleware(service)
-      .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+      .handleErrorWith { e =>
+        SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
+        Kleisli.lift(OptionT.pure(cachedUnauthorized))
+      }
   }
 
   /** Create an Authorized Service **/
@@ -53,11 +57,15 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
   ): HttpService[F] =
     authorizedMiddleware(authorization, onNotAuthenticated)(service)
-      .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+      .handleErrorWith { e =>
+        SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
+        Kleisli.lift(OptionT.pure(cachedUnauthorized))
+      }
 
 }
 
 object SecuredRequestHandler {
+  private[authentication] val logger = getLogger("tsec.authentication.SecureRequestHandler")
 
   /** Build our SecuredRequestHandler detecting whether it is rolling window or not **/
   def apply[F[_], Identity, User, Auth](
@@ -82,7 +90,10 @@ object SecuredRequestHandler {
       ): HttpService[F] = {
         val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
         middleware(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
       }
 
       /** Create an Authorized Service **/
@@ -91,7 +102,10 @@ object SecuredRequestHandler {
           onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
       ): HttpService[F] =
         authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
 
     }
 
@@ -109,7 +123,10 @@ object SecuredRequestHandler {
         val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
 
         middleware(TSecAuthService(pf))
-          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
 
       }
 
@@ -119,8 +136,10 @@ object SecuredRequestHandler {
           onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
       ): HttpService[F] =
         authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf))
-          .handleErrorWith(_ => Kleisli.lift(OptionT.pure(cachedUnauthorized)))
-
+          .handleErrorWith { e =>
+            logger.error(e)("Caught unhandled exception in authenticated service")
+            Kleisli.lift(OptionT.pure(cachedUnauthorized))
+          }
     }
 
 }
