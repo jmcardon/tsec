@@ -8,10 +8,9 @@ import cats.data.{Kleisli, OptionT}
 import org.http4s._
 import org.http4s.server.Middleware
 import org.http4s.headers.{Authorization, Cookie => C}
-import cats.instances.all._
-import cats.syntax.eq._
-import cats.syntax.either._
+import cats.implicits._
 import io.circe._
+import tsec.authorization.{Authorization => TAuth}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
@@ -54,7 +53,7 @@ package object authentication {
   object TSecMiddleware {
     def apply[F[_]: Monad, Ident, Auth](
         authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]],
-        onNotAuthorized: Request[F] => F[Response[F]]
+        onNotAuthenticated: Request[F] => F[Response[F]]
     ): TSecMiddleware[F, Ident, Auth] =
       service => {
         Kleisli { r: Request[F] =>
@@ -62,7 +61,7 @@ package object authentication {
             authedStuff
               .run(r)
               .flatMap(service.mapF(o => OptionT.liftF(o.getOrElse(Response[F](Status.NotFound)))).run)
-              .getOrElseF(onNotAuthorized(r))
+              .getOrElseF(onNotAuthenticated(r))
           )
         }
       }
@@ -94,6 +93,31 @@ package object authentication {
           pf.andThen(OptionT.liftF(_))
             .applyOrElse(req, Function.const(OptionT.none[F, Response[F]]))
             .flatMap(r => andThen(r, req.authenticator))
+      )
+
+    def withAuthorization[A, I, F[_]](auth: TAuth[F, I, A])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      Kleisli { req: SecuredRequest[F, I, A] =>
+        auth
+          .isAuthorized(req)
+          .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+      }
+
+    def withAuthorization[A, I, F[_]](auth: TAuth[F, I, A])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
+        andThen: (Response[F], A) => OptionT[F, Response[F]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      Kleisli(
+        req =>
+          auth
+            .isAuthorized(req)
+            .flatMap(
+              _ =>
+                pf.andThen(OptionT.liftF(_))
+                  .applyOrElse(req, Function.const(OptionT.none[F, Response[F]]))
+                  .flatMap(r => andThen(r, req.authenticator))
+          )
       )
 
     /** The empty service (all requests fallthrough).

@@ -75,6 +75,10 @@ lazy val http4sDeps = libraryDependencies ++= Seq(
   Libraries.http4sCirce
 )
 
+lazy val loggingLibs = libraryDependencies ++= Seq(
+  Libraries.log4s
+)
+
 lazy val root = project
   .aggregate(
     common,
@@ -188,6 +192,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
   .settings(publishSettings)
+  .settings(loggingLibs)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
     symmetricCipher,
@@ -205,6 +210,7 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
       Libraries.fs2IO
     )
   )
+  .settings(loggingLibs)
   .dependsOn(common % "compile->compile;test->test")
 
 lazy val microsite = Project(id = "microsite", base = file("docs"))

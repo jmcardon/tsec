@@ -117,13 +117,14 @@ object JWTAuthenticator {
         extractBearerToken[F](request)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
+        (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+        .handleErrorWith(_ => OptionT.none)
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
@@ -247,13 +248,14 @@ object JWTAuthenticator {
         request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
+        (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
@@ -376,7 +378,7 @@ object JWTAuthenticator {
         extractBearerToken(request)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
+        (for {
           now         <- OptionT.liftF(F.delay(Instant.now()))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           id          <- OptionT.fromOption[F](extracted.body.subject.flatMap(decode[I](_).toOption))
@@ -391,7 +393,8 @@ object JWTAuthenticator {
           )
           refreshed <- OptionT.liftF(refresh(augmented))
           identity  <- identityStore.get(id)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
@@ -556,7 +559,7 @@ object JWTAuthenticator {
         extractBearerToken[F](request)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
+        (for {
           eInstance   <- OptionT.liftF(F.fromEither(enc.instance)) // Todo: pls my heart
           now         <- OptionT.liftF(F.delay(Instant.now))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
@@ -573,7 +576,8 @@ object JWTAuthenticator {
           )
           refreshed <- OptionT.liftF(refresh(augmented))
           identity  <- identityStore.get(decodedBody)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
@@ -720,7 +724,7 @@ object JWTAuthenticator {
         request.headers.get(CaseInsensitiveString(settings.headerName)).map(_.value)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-        for {
+        (for {
           eInstance   <- OptionT.liftF(F.fromEither(enc.instance))
           now         <- OptionT.liftF(F.delay(Instant.now))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
@@ -737,7 +741,8 @@ object JWTAuthenticator {
           )
           refreshed <- OptionT.liftF(refresh(augmented))
           identity  <- identityStore.get(decodedBody)
-        } yield SecuredRequest(request, identity, refreshed)
+        } yield SecuredRequest(request, identity, refreshed))
+          .handleErrorWith(_ => OptionT.none)
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {

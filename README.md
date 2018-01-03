@@ -95,7 +95,11 @@ For debian-like distros:
 Follow the instructions [here](http://tipsonubuntu.com/2016/07/31/install-oracle-java-8-9-ubuntu-16-04-linux-mint-18)
 then use:
 
- `sudo apt-get install oracle-java8-unlimited-jce-policy` 
+ `sudo apt-get install oracle-java8-unlimited-jce-policy`
+ 
+## A note on logging
+We use `log4s` which is a logging facade over [SLF4J](https://www.slf4j.org/). This implies you need to add a
+_binding_ to your classpath. Check https://www.slf4j.org/codes.html#StaticLoggerBinder
  
 ## Big Thank you to our contributors (direct or indirect):
 [Robert Soeldner](https://github.com/rsoeldner) (Contributor/Maintainer)
