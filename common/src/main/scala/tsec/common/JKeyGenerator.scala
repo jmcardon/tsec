@@ -1,8 +1,8 @@
 package tsec.common
 
 import javax.crypto.KeyGenerator
-
-import cats.ApplicativeError
+import cats.effect.Sync
+import cats.syntax.either._
 
 /** Our symmetric key generator, abstracted out
   * This is not so easy given keyError is useful to CipherError as well, but
@@ -14,29 +14,26 @@ import cats.ApplicativeError
   */
 protected[tsec] trait JKeyGenerator[A, K[_], KE] {
 
-  /** The generator key length
-    * @return
-    */
-  def keyLength: Int
-
   /** The generator to return
     * @return
     */
   def generator: KeyGenerator
 
   /** Generate a Key, or return a key error for a missing provider
+    * Todo: Rename, in terms of unsafe
     * @return Either the Key, or an error
     */
   def generateKey(): Either[KE, K[A]]
 
   /** Lift our generation code into an F[_]
+    * Todo: Rename
     *
-    * @param err ApplicativeError instance
+    * @param F Sync instance
     * @tparam F
     * @return
     */
-  def generateLift[F[_]](implicit err: ApplicativeError[F, Throwable]): F[K[A]] =
-    err.catchNonFatal(generateKeyUnsafe())
+  def generateLift[F[_]](implicit F: Sync[F]): F[K[A]] =
+    F.delay(generateKeyUnsafe())
 
   /** Generate key, but with errors uncaught
     * This does not shield you from JCA exceptions
@@ -47,11 +44,23 @@ protected[tsec] trait JKeyGenerator[A, K[_], KE] {
 
   /** Build a key for the particular cipher from the provided bytes,
     * based on the key length
+    * Todo: In terms of unsafe
     *
     * @param key
     * @return
     */
   def buildKey(key: Array[Byte]): Either[KE, K[A]]
+
+  /** Build a key, lift onto a context F[_]
+    *
+    * @param rawKey
+    * @param F
+    * @param ev
+    * @tparam F
+    * @return
+    */
+  def buildAndLift[F[_]](rawKey: Array[Byte])(implicit F: Sync[F], ev: KE <:< Throwable): F[K[A]] =
+    F.fromEither(buildKey(rawKey).leftMap(ev(_)))
 
   /** Same as prior, except yolo out the exceptions.
     *
