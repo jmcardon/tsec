@@ -2,6 +2,7 @@ package tsec.cipher.symmetric.imports
 
 import cats.effect.Sync
 import tsec.cipher.common.padding.NoPadding
+import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports.primitive.JCAAEADPrimitive
 
 sealed abstract class AESGCMConstruction[A: AES] extends JCAAEAD[A, GCM, NoPadding, GCMCipherText[A]] {
@@ -16,6 +17,8 @@ sealed abstract class AESGCMConstruction[A: AES] extends JCAAEAD[A, GCM, NoPaddi
     */
   def defaultIvStrategy: GCMIVStrategy[A] = GCM.randomIVStrategy[A]
 
+  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A, GCM, NoPadding]] =
+    CipherText.fromArray[A, GCM, NoPadding, SecretKey](array)
 }
 
 object AES128GCM extends AESGCMConstruction[AES128]

@@ -2,6 +2,7 @@ package tsec.cipher.symmetric.imports
 
 import cats.effect.Sync
 import tsec.cipher.common.padding.NoPadding
+import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.core.IvStrategy
 import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
 
@@ -16,6 +17,10 @@ sealed abstract class AESCTRConstruction[A: AES] extends JCACipher[A, CTR, NoPad
     * @return
     */
   def defaultIvStrategy: IvStrategy[A, CTR] = IvStrategy.defaultStrategy[A, CTR]
+
+  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A, CTR, NoPadding]] =
+    CipherText.fromArray[A, CTR, NoPadding, SecretKey](array)
+
 
 }
 

@@ -1,16 +1,21 @@
 package http4sExamples
 
 import java.util.UUID
+
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
-import tsec.cipher.symmetric.imports.{AES128, SecretKey}
+import tsec.cipher.symmetric.imports.{AES128, AES128GCM, SecretKey}
 import cats.effect.IO
+
 import scala.concurrent.duration._
 
 object EncryptedCookieExample {
 
   import ExampleAuthHelpers._
+
+  implicit val encryptor = AES128GCM.genEncryptor[IO].unsafeRunSync()
+  implicit val gcmstrategy = AES128GCM.defaultIvStrategy
 
   val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]] =
     dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]](_.id)

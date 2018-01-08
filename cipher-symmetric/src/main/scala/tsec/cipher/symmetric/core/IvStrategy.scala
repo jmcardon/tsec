@@ -14,7 +14,7 @@ trait IvStrategy[A, M] {
 }
 
 object IvStrategy {
-  private[tsec] def defaultStrategy[A, M: CipherMode](implicit C: BlockCipher[A]): IvStrategy[A, M] =
+  def defaultStrategy[A, M: CipherMode](implicit C: BlockCipher[A]): IvStrategy[A, M] =
     new IvStrategy[A, M] with ManagedRandom {
       def genIvUnsafe(ptSizeBytes: Int): Iv[A, M] = {
         val nonce = new Array[Byte](C.blockSizeBytes)
@@ -23,7 +23,7 @@ object IvStrategy {
       }
     }
 
-  private[tsec] def emptyIv[A, M: CipherMode]: IvStrategy[A, M] =
+  def emptyIv[A, M: CipherMode]: IvStrategy[A, M] =
     new IvStrategy[A, M] {
       protected val cachedEmpty                   = Array.empty[Byte]
       def genIvUnsafe(ptSizeBytes: Int): Iv[A, M] = Iv[A, M](cachedEmpty)

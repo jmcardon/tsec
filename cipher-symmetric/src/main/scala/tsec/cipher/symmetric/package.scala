@@ -2,7 +2,7 @@ package tsec.cipher
 
 import tsec.common._
 import tsec.cipher.common._
-import tsec.cipher.symmetric.imports.IvProcess
+import tsec.cipher.symmetric.imports.{IvProcess, SecretKey}
 
 package object symmetric extends CipherErrors {
 

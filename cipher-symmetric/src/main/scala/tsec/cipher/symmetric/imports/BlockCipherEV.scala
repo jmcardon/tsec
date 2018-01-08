@@ -15,10 +15,10 @@ import tsec.common.ErrorConstruct._
   * @param keySizeBytes key size
   */
 protected[tsec] class BlockCipherEV[C](val cipherName: String, val blockSizeBytes: Int, val keySizeBytes: Int)
-    extends Cipher[C]
+    extends BlockCipher[C]
     with CipherKeyGen[C] {
 
-  implicit val tag: Cipher[C] = this
+  implicit val tag: BlockCipher[C] = this
 
   implicit val keyGen: CipherKeyGen[C] = this
 
