@@ -4,12 +4,16 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.http4s.{Header, Request}
-import tsec.cipher.symmetric.imports.{CipherKeyGen, Encryptor}
+import tsec.cipher.common.padding.NoPadding
+import tsec.cipher.symmetric.core.IvStrategy
+import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
+import tsec.cipher.symmetric.imports.{AES, CTR, CipherKeyGen}
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.imports.MacKeyGenerator
 import tsec.mac.core.MacTag
+
 import scala.concurrent.duration._
 
 class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
@@ -159,10 +163,13 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     */
   def statelessEncrypted[A: JWTMacAlgo: MacTag, E](
       implicit cv: JWSMacCV[IO, A],
-      enc: Encryptor[E],
+      enc: AES[E],
       eKeyGen: CipherKeyGen[E],
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
+    implicit val instance = JCAPrimitiveCipher[IO, E, CTR, NoPadding]().unsafeRunSync()
+    implicit val strategy = IvStrategy.defaultStrategy[E, CTR]
+
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()
@@ -202,10 +209,13 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     */
   def statelessBearerEncrypted[A: JWTMacAlgo: MacTag, E](
       implicit cv: JWSMacCV[IO, A],
-      enc: Encryptor[E],
+      enc: AES[E],
       eKeyGen: CipherKeyGen[E],
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
+    implicit val instance = JCAPrimitiveCipher[IO, E, CTR, NoPadding]().unsafeRunSync()
+    implicit val strategy = IvStrategy.defaultStrategy[E, CTR]
+
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
     val cryptoKey  = eKeyGen.generateKeyUnsafe()

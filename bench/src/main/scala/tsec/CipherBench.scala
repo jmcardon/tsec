@@ -6,7 +6,7 @@ import javax.crypto.Cipher
 
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
-import tsec.cipher.symmetric.imports.{AES256, AESGCMEncryptor, SecretKey, AES256GCM => JAESGCM}
+import tsec.cipher.symmetric.imports.{AES256, GCMEncryptor, SecretKey, AES256GCM => JAESGCM}
 import tsec.cipher.symmetric.{PlainText => OPlainText}
 import tsec.common._
 import tsec.libsodium._
@@ -27,7 +27,7 @@ class CipherBench {
 
   /** AES using tsec classes **/
   lazy val jcaAESKey: SecretKey[AES256] = AES256.generateKeyUnsafe()
-  implicit lazy val jcaAESInstance: AESGCMEncryptor[IO, AES256] =
+  implicit lazy val jcaAESInstance: GCMEncryptor[IO, AES256] =
     JAESGCM.genEncryptor[IO].unsafeRunSync()
   implicit lazy val ivStrategy = JAESGCM.defaultIvStrategy
 

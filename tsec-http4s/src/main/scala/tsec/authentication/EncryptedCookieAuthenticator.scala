@@ -5,30 +5,29 @@ import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.Sync
-import io.circe.{Decoder, Encoder}
+import cats.syntax.all._
+import io.circe.generic.auto._
 import io.circe.parser.decode
+import io.circe.syntax._
+import io.circe.{Decoder, Encoder}
 import org.http4s._
 import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.imports._
+import tsec.common._
+import tsec.cookies._
+import tsec.jwt.JWTPrinter
 import tsec.messagedigests._
 import tsec.messagedigests.imports._
-import tsec.common._
-import tsec.cipher.symmetric.imports._
-import tsec.cookies._
 
 import scala.concurrent.duration.FiniteDuration
-import io.circe.syntax._
-import io.circe.generic.auto._
-import cats.syntax.all._
-import tsec.jwt.JWTPrinter
 
-sealed abstract class EncryptedCookieAuthenticator[F[_]: Sync, I, V, A](implicit auth: AuthEncryptor[A])
+sealed abstract class EncryptedCookieAuthenticator[F[_]: Sync, I, V, A]
     extends AuthenticatorService[F, I, V, AuthEncryptedCookie[A, I]]
 
 sealed abstract class StatefulECAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
-)(implicit auth: AuthEncryptor[A])
-    extends EncryptedCookieAuthenticator[F, I, V, A] {
+) extends EncryptedCookieAuthenticator[F, I, V, A] {
   def withKey(newKey: SecretKey[A]): StatefulECAuthenticator[F, I, V, A]
 
   def withSettings(settings: TSecCookieSettings): StatefulECAuthenticator[F, I, V, A]
@@ -43,8 +42,7 @@ sealed abstract class StatefulECAuthenticator[F[_]: Sync, I, V, A] private[tsec]
 sealed abstract class StatelessECAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
-)(implicit auth: AuthEncryptor[A])
-    extends EncryptedCookieAuthenticator[F, I, V, A] {
+) extends EncryptedCookieAuthenticator[F, I, V, A] {
   def withKey(newKey: SecretKey[A]): StatelessECAuthenticator[F, I, V, A]
 
   def withSettings(settings: TSecCookieSettings): StatelessECAuthenticator[F, I, V, A]
@@ -150,12 +148,16 @@ object EncryptedCookieAuthenticator {
     * @tparam V the expected user type, V aka value
     * @return An encrypted cookie authenticator
     */
-  def withBackingStore[F[_], I: Decoder: Encoder, V, A: AuthEncryptor](
+  def withBackingStore[F[_], I: Decoder: Encoder, V, A: AES](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthEncryptedCookie[A, I]],
       identityStore: BackingStore[F, I, V],
       key: SecretKey[A]
-  )(implicit F: Sync[F]): StatefulECAuthenticator[F, I, V, A] =
+  )(
+      implicit F: Sync[F],
+      instance: GCMEncryptor[F, A],
+      ivStrat: GCMIVStrategy[A]
+  ): StatefulECAuthenticator[F, I, V, A] =
     new StatefulECAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
 
       /** Return a new instance with a modified key */
@@ -230,7 +232,7 @@ object EncryptedCookieAuthenticator {
         (for {
           now <- OptionT.liftF(F.delay(Instant.now()))
           coerced = AEADCookie[A](raw)
-          contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
+          contentRaw <- OptionT.liftF(AEADCookieEncryptor.retrieveFromSigned[F, A](coerced, key))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
           refreshed  <- validateAndRefresh(authed, coerced, now)
@@ -248,7 +250,7 @@ object EncryptedCookieAuthenticator {
           expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
           lastTouched = settings.maxIdle.map(_ => now)
           messageBody = cookieId.toString
-          encrypted <- F.fromEither(AEADCookieEncryptor.signAndEncrypt[A](messageBody, generateAAD(messageBody), key))
+          encrypted <- AEADCookieEncryptor.signAndEncrypt[F, A](messageBody, generateAAD(messageBody), key)
           cookie    <- F.pure(AuthEncryptedCookie.build[A, I](cookieId, encrypted, body, expiry, lastTouched, settings))
           _         <- tokenStore.put(cookie)
         } yield cookie
@@ -322,11 +324,15 @@ object EncryptedCookieAuthenticator {
     * we encrypt it as part of the contents
     *
     */
-  def stateless[F[_], I: Decoder: Encoder, V, A: AuthEncryptor](
+  def stateless[F[_], I: Decoder: Encoder, V, A: AES](
       settings: TSecCookieSettings,
       identityStore: BackingStore[F, I, V],
       key: SecretKey[A]
-  )(implicit F: Sync[F]): StatelessECAuthenticator[F, I, V, A] =
+  )(
+      implicit F: Sync[F],
+      instance: GCMEncryptor[F, A],
+      ivStrat: GCMIVStrategy[A]
+  ): StatelessECAuthenticator[F, I, V, A] =
     new StatelessECAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
 
       def withKey(newKey: SecretKey[A]): StatelessECAuthenticator[F, I, V, A] =
@@ -378,7 +384,7 @@ object EncryptedCookieAuthenticator {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
           coerced = AEADCookie[A](rawCookie.content)
-          contentRaw <- OptionT.liftF(F.fromEither(AEADCookieEncryptor.retrieveFromSigned[A](coerced, key)))
+          contentRaw <- OptionT.liftF(AEADCookieEncryptor.retrieveFromSigned[F, A](coerced, key))
           internal   <- OptionT.liftF(F.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
           authed = AuthEncryptedCookie.build[A, I](internal, coerced, rawCookie)
           refreshed <- validateAndRefresh(authed, now)
@@ -398,7 +404,7 @@ object EncryptedCookieAuthenticator {
           expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
           lastTouched = settings.maxIdle.map(_ => now)
           messageBody = AuthEncryptedCookie.Internal(cookieId, body, expiry, lastTouched).asJson.pretty(JWTPrinter)
-          encrypted <- F.fromEither(AEADCookieEncryptor.signAndEncrypt[A](messageBody, generateAAD(messageBody), key))
+          encrypted <- AEADCookieEncryptor.signAndEncrypt[F, A](messageBody, generateAAD(messageBody), key)
         } yield AuthEncryptedCookie.build[A, I](cookieId, encrypted, body, expiry, lastTouched, settings)
 
       /** Reader's note:
@@ -413,7 +419,7 @@ object EncryptedCookieAuthenticator {
           .asJson
           .pretty(JWTPrinter)
         for {
-          encrypted <- F.fromEither(AEADCookieEncryptor.signAndEncrypt[A](serialized, generateAAD(serialized), key))
+          encrypted <- AEADCookieEncryptor.signAndEncrypt[F, A](serialized, generateAAD(serialized), key)
         } yield authenticator.copy[A, I](content = encrypted)
       }
 

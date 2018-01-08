@@ -15,7 +15,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     aead: AEADCipher[A],
     modeSpec: CipherMode[M],
     paddingTag: SymmetricPadding[P],
-    ivProcess: IvProcess[A, M, P, SecretKey],
+    private[tsec] val ivProcess: IvProcess[A, M, P, SecretKey],
     F: Sync[F]
 ) extends AEADAlgebra[F, A, M, P, SecretKey] {
 
@@ -72,7 +72,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
 object JCAAEADPrimitive {
 
   def apply[F[_], A: BlockCipher: AEADCipher, M: CipherMode, P: SymmetricPadding](
-    queueSize: Int = 15
+      queueSize: Int = 15
   )(implicit F: Sync[F], ivProcess: IvProcess[A, M, P, SecretKey]): F[JCAAEADPrimitive[F, A, M, P]] =
     F.delay(JCAPrimitiveCipher.genQueueUnsafe[A, M, P](queueSize))
       .map(new JCAAEADPrimitive[F, A, M, P](_) {})

@@ -5,9 +5,9 @@ import javax.crypto.{Cipher => JCipher, SecretKey => JSecretKey}
 
 import cats.evidence.Is
 import tsec.cipher.common.padding.{NoPadding, PKCS7Padding, SymmetricPadding}
-import tsec.cipher.symmetric.core.Iv
+import tsec.cipher.symmetric.core.{Iv, IvStrategy}
 import tsec.cipher.symmetric.imports.primitive.{JCAAEADPrimitive, JCAPrimitiveCipher}
-import tsec.common.JKeyGenerator
+import tsec.common.{JKeyGenerator, ManagedRandom}
 
 package object imports {
 
@@ -102,6 +102,8 @@ package object imports {
   ): IvProcess[A, M, P, SecretKey] =
     new IvProcess[A, M, P, SecretKey] {
 
+      val ivLengthBytes: Int = cipher.blockSizeBytes
+
       private[tsec] def encryptInit(cipher: JCipher, iv: Iv[A, M], key: SecretKey[A]): Unit =
         cipher.init(
           JCipher.ENCRYPT_MODE,
@@ -155,6 +157,9 @@ package object imports {
   object ECB extends WithCipherMode[ECB]("ECB") {
     implicit def ecbProcess[A: BlockCipher]: IvProcess[A, ECB, NoPadding, SecretKey] =
       new IvProcess[A, ECB, NoPadding, SecretKey] {
+
+        val ivLengthBytes: Int = 0
+
         private[tsec] def encryptInit(cipher: JCipher, iv: Iv[A, ECB], key: SecretKey[A]): Unit =
           cipher.init(JCipher.ENCRYPT_MODE, key.toJavaKey)
 
@@ -171,25 +176,38 @@ package object imports {
       * by: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
       *  Iv length of 96 bits is recommended as per the spec on page 8
       */
-    val TagLengthBits     = 128
+    val NISTIvLengthBits  = 96
     val NISTIvLengthBytes = 12
 
     implicit def gcmProcess[A](implicit aes: AES[A]): IvProcess[A, GCM, NoPadding, SecretKey] =
       new IvProcess[A, GCM, NoPadding, SecretKey] {
+
+        val ivLengthBytes: Int = NISTIvLengthBytes
+
         private[tsec] def encryptInit(cipher: JCipher, iv: Iv[A, GCM], key: SecretKey[A]): Unit =
           cipher.init(
             JCipher.ENCRYPT_MODE,
             key.toJavaKey,
-            new GCMParameterSpec(GCM.TagLengthBits, iv)
+            new GCMParameterSpec(GCM.NISTIvLengthBits, iv)
           )
 
         private[tsec] def decryptInit(cipher: JCipher, iv: Iv[A, GCM], key: SecretKey[A]): Unit =
           cipher.init(
             JCipher.DECRYPT_MODE,
             key.toJavaKey,
-            new GCMParameterSpec(GCM.TagLengthBits, iv)
+            new GCMParameterSpec(GCM.NISTIvLengthBits, iv)
           )
       }
+
+    def randomIVStrategy[A: AES]: GCMIVStrategy[A] =
+      new IvStrategy[A, GCM] with ManagedRandom {
+        def genIvUnsafe(ptSizeBytes: Int): Iv[A, GCM] = {
+          val nonce = new Array[Byte](GCM.NISTIvLengthBytes)
+          nextBytes(nonce)
+          Iv[A, GCM](nonce)
+        }
+      }
+
   }
 
   sealed trait NoMode
@@ -197,6 +215,9 @@ package object imports {
   object NoMode extends WithCipherMode[NoMode]("NoMode") {
     implicit def noModeProcess[A: BlockCipher]: IvProcess[A, NoMode, NoPadding, SecretKey] =
       new IvProcess[A, NoMode, NoPadding, SecretKey] {
+
+        val ivLengthBytes: Int = 0
+
         private[tsec] def encryptInit(cipher: JCipher, iv: Iv[A, NoMode], key: SecretKey[A]): Unit =
           cipher.init(JCipher.ENCRYPT_MODE, key.toJavaKey)
 
@@ -222,21 +243,31 @@ package object imports {
   sealed trait PCBC
 
   object PCBC extends WithCipherMode[PCBC]("PCBC") {
-    implicit def pcbcProcess[A, P: SymmetricPadding](implicit cipher: BlockCipher[A]): IvProcess[A, PCBC, P, SecretKey] =
+    implicit def pcbcProcess[A, P: SymmetricPadding](
+        implicit cipher: BlockCipher[A]
+    ): IvProcess[A, PCBC, P, SecretKey] =
       standardProcess[A, PCBC, P]
   }
 
   /** Type aliases for default constructions **/
   type GCMCipherText[A] = CipherText[A, GCM, NoPadding]
 
-  type AESGCMEncryptor[F[_],A] = JCAAEADPrimitive[F, A, GCM, NoPadding]
+  type GCMEncryptor[F[_], A] = JCAAEADPrimitive[F, A, GCM, NoPadding]
 
+  type GCMIVStrategy[A] = IvStrategy[A, GCM]
+
+  /** CBC aliases **/
   type CBCCipherText[A] = CipherText[A, CBC, PKCS7Padding]
 
   type CBCEncryptor[F[_], C] = JCAPrimitiveCipher[F, C, CBC, PKCS7Padding]
 
+  type CBCIVStrategy[A] = IvStrategy[A, CBC]
+
+  /** CTR aliases **/
   type CTRCipherText[A] = CipherText[A, CTR, NoPadding]
 
   type CTREncryptor[F[_], C] = JCAPrimitiveCipher[F, C, CTR, NoPadding]
+
+  type CTRIVStrategy[A] = IvStrategy[A, CTR]
 
 }

@@ -2,12 +2,11 @@ package tsec.cipher.symmetric.imports
 
 import cats.effect.Sync
 import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.symmetric.core.IvStrategy
 import tsec.cipher.symmetric.imports.primitive.JCAAEADPrimitive
 
 sealed abstract class AESGCMConstruction[A: AES] extends JCAAEAD[A, GCM, NoPadding, GCMCipherText[A]] {
 
-  def genEncryptor[F[_]: Sync]: F[AESGCMEncryptor[F, A]] = JCAAEADPrimitive[F, A, GCM, NoPadding]()
+  def genEncryptor[F[_]: Sync]: F[GCMEncryptor[F, A]] = JCAAEADPrimitive[F, A, GCM, NoPadding]()
 
   /** Our default Iv strategy for GCM mode
     * produces randomized IVs
@@ -15,7 +14,7 @@ sealed abstract class AESGCMConstruction[A: AES] extends JCAAEAD[A, GCM, NoPaddi
     *
     * @return
     */
-  def defaultIvStrategy: IvStrategy[A, GCM] = IvStrategy.defaultStrategy[A, GCM]
+  def defaultIvStrategy: GCMIVStrategy[A] = GCM.randomIVStrategy[A]
 
 }
 
