@@ -4,16 +4,15 @@ import java.util.concurrent.TimeUnit
 import javax.crypto
 import javax.crypto.Cipher
 
-import org.openjdk.jmh.annotations._
 import cats.effect.IO
-import tsec.cipher.symmetric.{PlainText => OPlainText, _}
-import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.symmetric.imports._
-import tsec.cipher.symmetric.imports.aead._
+import org.openjdk.jmh.annotations._
+import tsec.cipher.symmetric.imports.{AES256, AESGCMEncryptor, SecretKey, AES256GCM => JAESGCM}
+import tsec.cipher.symmetric.{PlainText => OPlainText}
+import tsec.common._
 import tsec.libsodium._
 import tsec.libsodium.cipher._
-import tsec.common._
 import tsec.libsodium.cipher.aead.AES256GCM
+
 import scala.util.Random
 
 @State(Scope.Thread)
@@ -27,8 +26,10 @@ class CipherBench {
   lazy val sodiumAESKey: SodiumKey[AES256GCM]      = AES256GCM.generateKeyUnsafe
 
   /** AES using tsec classes **/
-  lazy val jcaAESKey: SecretKey[AES256]                    = AES256.generateKeyUnsafe()
-  lazy val jcaAES: JCAAEAD[IO, AES256, GCM, NoPadding] = JCAAEAD[IO, AES256, GCM, NoPadding]().unsafeRunSync()
+  lazy val jcaAESKey: SecretKey[AES256] = AES256.generateKeyUnsafe()
+  implicit lazy val jcaAESInstance: AESGCMEncryptor[IO, AES256] =
+    JAESGCM.genEncryptor[IO].unsafeRunSync()
+  implicit lazy val ivStrategy = JAESGCM.defaultIvStrategy
 
   /** Our AES using the JCA raw classes. Note: We reuse cipher the instance for speed, but it's not thread safe **/
   lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(AES256.generateKeyUnsafe())
@@ -36,7 +37,7 @@ class CipherBench {
 
   /** Our random plaintext **/
   lazy val longPlaintext: OPlainText = OPlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
-  lazy val nPlaintext: PlainText = PlainText(longPlaintext.content)
+  lazy val nPlaintext: PlainText     = PlainText(longPlaintext.content)
 
   @Benchmark
   def testJCARawSideEffecting(): Unit = {
@@ -56,8 +57,8 @@ class CipherBench {
     */
   @Benchmark
   def testTSecJCA(): Unit =
-    jcaAES
-      .encrypt(longPlaintext, jcaAESKey)
+    JAESGCM
+      .encrypt[IO](longPlaintext, jcaAESKey)
       .unsafeRunSync()
 
   @Benchmark
