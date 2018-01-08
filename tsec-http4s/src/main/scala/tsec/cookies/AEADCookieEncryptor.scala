@@ -36,7 +36,7 @@ object AEADCookieEncryptor {
       for {
         cipherText <- F.fromEither(CipherText.fromArray(split(0).base64Bytes)(authEncryptor.ivProcess))
         decrypted  <- authEncryptor.decryptAAD(cipherText, key, aad)
-      } yield decrypted.content.toUtf8String
+      } yield decrypted.toUtf8String
     }
   }
 

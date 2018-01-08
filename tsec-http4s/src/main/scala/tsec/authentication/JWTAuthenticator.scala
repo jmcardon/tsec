@@ -529,7 +529,7 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F](plainText.content.length)
+          iv        <- ivStrategy.genIv[F](plainText.length)
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
         } yield encrypted.toSingleArray.toB64String
       }
@@ -544,7 +544,7 @@ object JWTAuthenticator {
         for {
           cipherText <- F.fromEither(CipherText.fromArray(body.base64Bytes)(enc.ivProcess))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
-          decoded    <- F.fromEither(decode[I](decrypted.content.toUtf8String))
+          decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded
 
       private def checkTimeout(timeout: Option[Instant]): OptionT[F, Option[Instant]] =
@@ -700,7 +700,7 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F](plainText.content.length)
+          iv        <- ivStrategy.genIv[F](plainText.length)
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
         } yield encrypted.toSingleArray.toB64String
       }
@@ -710,7 +710,7 @@ object JWTAuthenticator {
         for {
           cipherText <- F.fromEither(CipherText.fromArray(body.base64Bytes)(enc.ivProcess))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
-          decoded    <- F.fromEither(decode[I](decrypted.content.toUtf8String))
+          decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded
 
       private def checkTimeout(timeout: Option[Instant]): OptionT[F, Option[Instant]] =

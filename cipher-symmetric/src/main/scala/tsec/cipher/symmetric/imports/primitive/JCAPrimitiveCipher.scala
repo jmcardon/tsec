@@ -32,7 +32,7 @@ sealed abstract class JCAPrimitiveCipher[F[_], A, M, P](private val queue: JQueu
     F.delay {
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key)
-      val encrypted = instance.doFinal(plainText.content)
+      val encrypted = instance.doFinal(plainText)
       reQueue(instance)
       CipherText[A, M, P](encrypted, iv)
     }

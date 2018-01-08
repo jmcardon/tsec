@@ -39,7 +39,7 @@ object SymmetricCipherExamples {
           key       <- AES128.generateLift[IO] //Generate our key
           encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
           decrypted <- AES128CTR.decrypt[IO](encrypted, key)
-        } yield decrypted.content.toUtf8String
+        } yield decrypted.toUtf8String
     ) // "hi hello welcome to tsec!"
 
   /** You can also turn it into a singular array with the IV concatenated at the end */
@@ -53,7 +53,7 @@ object SymmetricCipherExamples {
           array = encrypted.toSingleArray
           from      <- IO.fromEither(AES128CTR.ciphertextFromArray(array))
           decrypted <- AES128CTR.decrypt[IO](from, key)
-        } yield decrypted.content.toUtf8String
+        } yield decrypted.toUtf8String
     ) // "hi hello welcome to tsec!"
 
   /** An authenticated encryption and decryption */
@@ -68,7 +68,7 @@ object SymmetricCipherExamples {
           key       <- AES128.generateLift[IO]                                      //Generate our key
           encrypted <- AES128GCM.encryptWithAAD[IO](PlainText(toEncrypt), key, aad) //Encrypt
           decrypted <- AES128GCM.decryptWithAAD[IO](encrypted, key, aad)            //Decrypt
-        } yield decrypted.content.toUtf8String
+        } yield decrypted.toUtf8String
     ) // "hi hello welcome to tsec!"
 
   /** For more advanced usage, i.e you know which cipher you want specifically, you must import padding
@@ -87,6 +87,6 @@ object SymmetricCipherExamples {
     iv        <- desStrategy.genIv[IO](toEncrypt.length)
     encrypted <- instance.encrypt(PlainText(toEncrypt), key, iv) //Encrypt our message, with our auth data
     decrypted <- instance.decrypt(encrypted, key) //Decrypt our message: We need to pass it the same AAD
-  } yield decrypted.content.toUtf8String
+  } yield decrypted.toUtf8String
 
 }

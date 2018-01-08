@@ -29,7 +29,7 @@ package object cookies {
 
   implicit object AEADCookie extends EVCookieEncrypt[AEADCookie] {
     @inline def fromEncrypted[A: AES](a: GCMCipherText[A], aad: AAD): AEADCookie[A] =
-      AEADCookie$$.is[A].coerce(a.toSingleArray.toB64String + "-" + aad.aad.toB64String)
+      AEADCookie$$.is[A].coerce(a.toSingleArray.toB64String + "-" + aad.toB64String)
 
     @inline def toString[A: AES](a: AEADCookie[A]): String = AEADCookie$$.is.coerce(a)
 

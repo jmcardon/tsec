@@ -16,7 +16,7 @@ class JCAAEAD[A, M, P, CT](implicit ev: CT =:= CipherText[A, M, P])
       key: SecretKey[A]
   )(implicit F: Sync[F], S: JCAAEADPrimitive[F, A, M, P], ivStrategy: IvStrategy[A, M]): F[CT] =
     for {
-      iv        <- ivStrategy.genIv[F](plainText.content.length)
+      iv        <- ivStrategy.genIv[F](plainText.length)
       encrypted <- S.encrypt(plainText, key, iv)
     } yield is.coerce(encrypted)
 
@@ -36,7 +36,7 @@ class JCAAEAD[A, M, P, CT](implicit ev: CT =:= CipherText[A, M, P])
       ivStrategy: IvStrategy[A, M]
   ): F[CT] =
     for {
-      iv        <- ivStrategy.genIv[F](plainText.content.length)
+      iv        <- ivStrategy.genIv[F](plainText.length)
       encrypted <- S.encryptAAD(plainText, key, iv, aad)
     } yield is.coerce(encrypted)
 
@@ -55,7 +55,7 @@ class JCAAEAD[A, M, P, CT](implicit ev: CT =:= CipherText[A, M, P])
       key: SecretKey[A]
   )(implicit F: Sync[F], S: JCAAEADPrimitive[F, A, M, P], ivStrategy: IvStrategy[A, M]): F[(CT, AuthTag[A])] =
     for {
-      iv        <- ivStrategy.genIv[F](plainText.content.length)
+      iv        <- ivStrategy.genIv[F](plainText.length)
       encrypted <- S.encryptDetached(plainText, key, iv)
     } yield encrypted.asInstanceOf[(CT, AuthTag[A])] //Todo: How to workaround without copying and forcing the cast
 
@@ -70,7 +70,7 @@ class JCAAEAD[A, M, P, CT](implicit ev: CT =:= CipherText[A, M, P])
       ivStrategy: IvStrategy[A, M]
   ): F[(CT, AuthTag[A])] =
     for {
-      iv        <- ivStrategy.genIv[F](plainText.content.length)
+      iv        <- ivStrategy.genIv[F](plainText.length)
       encrypted <- S.encryptAADDetached(plainText, key, iv, aad)
     } yield encrypted.asInstanceOf[(CT, AuthTag[A])] //Todo: How to workaround without copying and forcing the cast
 

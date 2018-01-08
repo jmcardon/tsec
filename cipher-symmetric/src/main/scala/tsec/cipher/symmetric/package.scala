@@ -7,8 +7,18 @@ import tsec.cipher.symmetric.imports.IvProcess
 
 package object symmetric extends CipherErrors {
 
-  //Todo: Un-case class and remove duplication
-  final case class PlainText(content: Array[Byte]) extends AnyVal
+  /**Todo: Remove duplication with libsodium **/
+  private[tsec] val PlainText$$: ByteArrayNewt = new ByteArrayNewt {
+    type I = Array[Byte]
+    val is: Is[Array[Byte], Array[Byte]] = Is.refl[I]
+  }
+
+  type PlainText = PlainText$$.I
+
+  object PlainText {
+    def apply(bytes: Array[Byte]): PlainText = is.coerce(bytes)
+    @inline def is: Is[Array[Byte], PlainText] = PlainText$$.is.flip
+  }
 
   //Todo: Remove duplication with libsodium
   final case class CipherText[A, M, P](content: Array[Byte], iv: Array[Byte]) {
@@ -47,10 +57,17 @@ package object symmetric extends CipherErrors {
     @inline def is[A]: Is[Array[Byte], AuthTag[A]] = AuthTag$$.is[A]
   }
 
-  //Todo: Un-case class and remove duplication with libsodium
-  final case class AAD(aad: Array[Byte]) extends AnyVal
+  //Todo: Remove duplication with libsodium
+  private[tsec] val AAD$$: ByteArrayNewt = new ByteArrayNewt {
+    type I = Array[Byte]
+    val is: Is[Array[Byte], Array[Byte]] = Is.refl[I]
+  }
+
+  type AAD = AAD$$.I
 
   object AAD {
+    def apply(bytes: Array[Byte]): AAD = is.coerce(bytes)
+    @inline def is: Is[Array[Byte], AAD] = AAD$$.is.flip
     def buildFromStringUTF8(string: String) = AAD(string.utf8Bytes)
   }
 

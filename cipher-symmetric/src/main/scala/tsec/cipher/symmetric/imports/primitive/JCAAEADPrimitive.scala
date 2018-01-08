@@ -34,7 +34,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     F.delay {
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key)
-      val encrypted = instance.doFinal(plainText.content)
+      val encrypted = instance.doFinal(plainText)
       reQueue(instance)
       CipherText[A, M, P](encrypted, iv)
     }
@@ -52,8 +52,8 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     F.delay {
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key)
-      instance.updateAAD(aad.aad)
-      val encrypted = instance.doFinal(plainText.content)
+      instance.updateAAD(aad)
+      val encrypted = instance.doFinal(plainText)
       reQueue(instance)
       CipherText[A, M, P](encrypted, iv)
     }
@@ -62,7 +62,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     F.delay {
       val instance = getInstance
       ivProcess.decryptInit(instance, Iv[A, M](cipherText.iv), key)
-      instance.updateAAD(aad.aad)
+      instance.updateAAD(aad)
       val out = instance.doFinal(cipherText.content)
       reQueue(instance)
       PlainText(out)
@@ -72,7 +72,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     F.delay {
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key)
-      val encrypted = instance.doFinal(plainText.content)
+      val encrypted = instance.doFinal(plainText)
       reQueue(instance)
       val cipherText = JaRule.copyOfRange(encrypted, 0, encrypted.length - aead.tagSizeBytes)
       val tag        = JaRule.copyOfRange(encrypted, encrypted.length - aead.tagSizeBytes, encrypted.length)
@@ -105,8 +105,8 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     F.delay {
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key)
-      instance.updateAAD(aad.aad)
-      val encrypted = instance.doFinal(plainText.content)
+      instance.updateAAD(aad)
+      val encrypted = instance.doFinal(plainText)
       reQueue(instance)
       val cipherText = JaRule.copyOfRange(encrypted, 0, encrypted.length - aead.tagSizeBytes)
       val tag        = JaRule.copyOfRange(encrypted, encrypted.length - aead.tagSizeBytes, encrypted.length)
@@ -126,7 +126,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
         System.arraycopy(cipherText.content, 0, combined, 0, cipherText.content.length)
         System.arraycopy(tag, 0, combined, cipherText.content.length, tag.length)
 
-        instance.updateAAD(aad.aad)
+        instance.updateAAD(aad)
         val out = instance.doFinal(combined)
         reQueue(instance)
         PlainText(out)

@@ -17,7 +17,7 @@ private[tsec] abstract class JCACipher[A, M, P, CT](
       key: SecretKey[A]
   )(implicit F: Sync[F], scalaCipher: JCAPrimitiveCipher[F, A, M, P], ivStrategy: IvStrategy[A, M]): F[CT] =
     for {
-      iv        <- ivStrategy.genIv[F](plainText.content.length)
+      iv        <- ivStrategy.genIv[F](plainText.length)
       encrypted <- scalaCipher.encrypt(plainText, key, iv)
     } yield is.coerce(encrypted)
 

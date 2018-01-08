@@ -37,19 +37,19 @@ class CipherBench {
 
   /** Our random plaintext **/
   lazy val longPlaintext: OPlainText = OPlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
-  lazy val nPlaintext: PlainText     = PlainText(longPlaintext.content)
+  lazy val nPlaintext: PlainText     = PlainText(longPlaintext)
 
   @Benchmark
   def testJCARawSideEffecting(): Unit = {
     jcaRAWInstance.init(Cipher.ENCRYPT_MODE, jcaRAWKey)
-    jcaRAWInstance.doFinal(longPlaintext.content)
+    jcaRAWInstance.doFinal(longPlaintext)
   }
 
   @Benchmark
   def testJCARawCreateInstance(): Unit = {
     val j = Cipher.getInstance("AES/GCM/NoPadding")
     j.init(Cipher.ENCRYPT_MODE, jcaRAWKey)
-    j.doFinal(longPlaintext.content)
+    j.doFinal(longPlaintext)
   }
 
   /** We test each io action
