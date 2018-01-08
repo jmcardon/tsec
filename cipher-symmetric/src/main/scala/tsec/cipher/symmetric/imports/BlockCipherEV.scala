@@ -22,11 +22,13 @@ protected[tsec] class BlockCipherEV[C](val cipherName: String, val blockSizeByte
 
   implicit val keyGen: CipherKeyGen[C] = this
 
+  private val keySizeBits = keySizeBytes*8
+
   def generator: KG = KG.getInstance(cipherName)
 
   def generateKeyUnsafe(): SecretKey[C] = {
     val gen = generator
-    gen.init(keySizeBytes)
+    gen.init(keySizeBits)
     SecretKey[C](gen.generateKey())
   }
 
@@ -61,6 +63,8 @@ private[tsec] class AESEV[A](val keySizeBytes: Int) extends AES[A] with CipherKe
   implicit val ev: AES[A]          = this
   implicit val kg: CipherKeyGen[A] = this
 
+  private val keySizeBits = keySizeBytes*8
+
   def generator: KG = KG.getInstance(cipherName)
 
   def generateKey(): Either[CipherKeyBuildError, SecretKey[A]] =
@@ -68,7 +72,7 @@ private[tsec] class AESEV[A](val keySizeBytes: Int) extends AES[A] with CipherKe
 
   def generateKeyUnsafe(): SecretKey[A] = {
     val gen = generator
-    gen.init(keySizeBytes)
+    gen.init(keySizeBits)
     SecretKey[A](gen.generateKey())
   }
 

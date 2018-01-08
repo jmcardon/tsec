@@ -12,7 +12,6 @@ protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int) ext
   implicit val macTag: MacTag[A] = this
 
   override val algorithm: String = algo
-  override val keyLength: Int    = keyL
 
   def generator: KeyGenerator = KeyGenerator.getInstance(algo)
 

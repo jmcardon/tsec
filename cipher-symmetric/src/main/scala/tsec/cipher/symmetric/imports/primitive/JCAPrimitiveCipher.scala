@@ -8,10 +8,10 @@ import cats.syntax.all._
 import tsec.cipher.common.padding.SymmetricPadding
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.core.{CipherAlgebra, Iv}
-import tsec.cipher.symmetric.imports.{Cipher, CipherMode, IvProcess, SecretKey}
+import tsec.cipher.symmetric.imports.{BlockCipher, CipherMode, IvProcess, SecretKey}
 
 sealed abstract class JCAPrimitiveCipher[F[_], A, M, P](private val queue: JQueue[JCipher])(
-  implicit algoTag: Cipher[A],
+  implicit algoTag: BlockCipher[A],
   modeSpec: CipherMode[M],
   paddingTag: SymmetricPadding[P],
   ivProcess: IvProcess[A, M, P, SecretKey],
@@ -37,6 +37,7 @@ sealed abstract class JCAPrimitiveCipher[F[_], A, M, P](private val queue: JQueu
       CipherText[A, M, P](encrypted, iv)
     }
 
+
   def decrypt(cipherText: CipherText[A, M, P], key: SecretKey[A]): F[PlainText] = F.delay {
     val instance = getInstance
     ivProcess.decryptInit(instance, Iv[A, M](cipherText.iv), key)
@@ -47,13 +48,13 @@ sealed abstract class JCAPrimitiveCipher[F[_], A, M, P](private val queue: JQueu
 }
 
 object JCAPrimitiveCipher {
-  private def getJCipherUnsafe[A, M, P](
-    implicit algoTag: Cipher[A],
+  private[tsec] def getJCipherUnsafe[A, M, P](
+    implicit algoTag: BlockCipher[A],
     modeSpec: CipherMode[M],
     paddingTag: SymmetricPadding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.cipherName}/${modeSpec.mode}/${paddingTag.algorithm}")
 
-  private def genQueueUnsafe[A: Cipher, M: CipherMode, P: SymmetricPadding](
+  private[tsec] def genQueueUnsafe[A: BlockCipher, M: CipherMode, P: SymmetricPadding](
     queueLen: Int
   ): JQueue[JCipher] = {
     val q = new JQueue[JCipher]()
@@ -65,7 +66,7 @@ object JCAPrimitiveCipher {
     q
   }
 
-  def apply[F[_], A: Cipher, M: CipherMode, P: SymmetricPadding](
+  def apply[F[_], A: BlockCipher, M: CipherMode, P: SymmetricPadding](
     queueSize: Int = 15
   )(implicit F: Sync[F], ivProcess: IvProcess[A, M, P, SecretKey]): F[JCAPrimitiveCipher[F, A, M, P]] =
     F.delay(genQueueUnsafe(queueSize)).map(new JCAPrimitiveCipher[F, A, M, P](_) {})

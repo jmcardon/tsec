@@ -5,30 +5,64 @@ import javax.crypto.{Cipher => JCipher, SecretKey => JSecretKey}
 
 import cats.evidence.Is
 import tsec.cipher.common.padding.{NoPadding, PKCS7Padding, SymmetricPadding}
-import tsec.cipher.symmetric.core.{Iv, IvStrategy}
-import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
+import tsec.cipher.symmetric.core.Iv
+import tsec.cipher.symmetric.imports.primitive.{JCAAEADPrimitive, JCAPrimitiveCipher}
 import tsec.common.JKeyGenerator
 
 package object imports {
 
+  private[tsec] val AESBlockSize = 16
+
+  /** Our general cipher type class,
+    * to carry cipher name information,
+    * block
+    *
+    * @tparam A
+    */
   trait Cipher[A] {
     def cipherName: String
-    def blockSizeBytes: Int
     def keySizeBytes: Int
   }
 
-  trait BlockCipher[A] extends Cipher[A]
+  /** Our general typeclass over block ciphers
+    *
+    * @tparam A
+    */
+  trait BlockCipher[A] extends Cipher[A] {
+    def blockSizeBytes: Int
+  }
 
-  trait AES[A] extends BlockCipher[A] {
+  /** Typeclass evidence that some type A
+    * is also an Authenticated Encryption Cipher
+    *
+    * It does not inherit from cipher, to
+    * simply exist as an evidence typeclass
+    */
+  trait AECipher[A]
+
+  /** Typeclass evidence for a construction
+    * that serves as encryption for
+    * Authenticated encryption with Additional Data
+    *
+    */
+  trait AEADCipher[A] extends AECipher[A]
+
+  /** Our typeclass generalizing over AES,
+    * that lends itself to variable key sizes
+    * (128, 192 and 256 bits).
+    *
+    */
+  trait AES[A] extends BlockCipher[A] with AEADCipher[A] {
     val cipherName: String  = "AES"
     val blockSizeBytes: Int = 16
   }
 
   /**
-    * This trait propagates type information about a parametrized T being a symmetric cipher mode of operation
-    * @tparam T
+    * This trait propagates type information
+    * about a parametrized M being a symmetric cipher mode of operation
+    * @tparam M
     */
-  trait CipherMode[T] {
+  trait CipherMode[M] {
     def mode: String
   }
 
@@ -64,7 +98,7 @@ package object imports {
   }
 
   private[tsec] def standardProcess[A, M, P: SymmetricPadding](
-      implicit cipher: Cipher[A]
+      implicit cipher: BlockCipher[A]
   ): IvProcess[A, M, P, SecretKey] =
     new IvProcess[A, M, P, SecretKey] {
 
@@ -89,21 +123,21 @@ package object imports {
   sealed trait CBC
 
   object CBC extends WithCipherMode[CBC]("CBC") {
-    implicit def cbcProcess[A, P: SymmetricPadding](implicit cipher: Cipher[A]): IvProcess[A, CBC, P, SecretKey] =
+    implicit def cbcProcess[A, P: SymmetricPadding](implicit cipher: BlockCipher[A]): IvProcess[A, CBC, P, SecretKey] =
       standardProcess[A, CBC, P]
   }
 
   sealed trait CFB
 
   object CFB extends WithCipherMode[CFB]("CFB") {
-    implicit def cfbProcess[A](implicit cipher: Cipher[A]): IvProcess[A, CFB, NoPadding, SecretKey] =
+    implicit def cfbProcess[A](implicit cipher: BlockCipher[A]): IvProcess[A, CFB, NoPadding, SecretKey] =
       standardProcess[A, CFB, NoPadding]
   }
 
   sealed trait CFBx
 
   object CFBx extends WithCipherMode[CFBx]("CFBx") {
-    implicit def cfbxProcess[A](implicit cipher: Cipher[A]): IvProcess[A, CFBx, NoPadding, SecretKey] =
+    implicit def cfbxProcess[A](implicit cipher: BlockCipher[A]): IvProcess[A, CFBx, NoPadding, SecretKey] =
       standardProcess[A, CFBx, NoPadding]
   }
 
@@ -111,7 +145,7 @@ package object imports {
 
   object CTR extends WithCipherMode[CTR]("CTR") {
     implicit def ctrProcess[A, P: SymmetricPadding](
-        implicit cipher: Cipher[A]
+        implicit cipher: BlockCipher[A]
     ): IvProcess[A, CTR, P, SecretKey] =
       standardProcess[A, CTR, P]
   }
@@ -119,7 +153,7 @@ package object imports {
   sealed trait ECB
 
   object ECB extends WithCipherMode[ECB]("ECB") {
-    implicit def ecbProcess[A: Cipher]: IvProcess[A, ECB, NoPadding, SecretKey] =
+    implicit def ecbProcess[A: BlockCipher]: IvProcess[A, ECB, NoPadding, SecretKey] =
       new IvProcess[A, ECB, NoPadding, SecretKey] {
         private[tsec] def encryptInit(cipher: JCipher, iv: Iv[A, ECB], key: SecretKey[A]): Unit =
           cipher.init(JCipher.ENCRYPT_MODE, key.toJavaKey)
@@ -161,7 +195,7 @@ package object imports {
   sealed trait NoMode
 
   object NoMode extends WithCipherMode[NoMode]("NoMode") {
-    implicit def noModeProcess[A: Cipher]: IvProcess[A, NoMode, NoPadding, SecretKey] =
+    implicit def noModeProcess[A: BlockCipher]: IvProcess[A, NoMode, NoPadding, SecretKey] =
       new IvProcess[A, NoMode, NoPadding, SecretKey] {
         private[tsec] def encryptInit(cipher: JCipher, iv: Iv[A, NoMode], key: SecretKey[A]): Unit =
           cipher.init(JCipher.ENCRYPT_MODE, key.toJavaKey)
@@ -174,32 +208,35 @@ package object imports {
   sealed trait OFB
 
   object OFB extends WithCipherMode[OFB]("OFB") {
-    implicit def ofbProcess[A](implicit cipher: Cipher[A]): IvProcess[A, OFB, NoPadding, SecretKey] =
+    implicit def ofbProcess[A](implicit cipher: BlockCipher[A]): IvProcess[A, OFB, NoPadding, SecretKey] =
       standardProcess[A, OFB, NoPadding]
   }
 
   sealed trait OFBx
 
   object OFBx extends WithCipherMode[OFBx]("OFBx") {
-    implicit def ofbxProcess[A](implicit cipher: Cipher[A]): IvProcess[A, OFBx, NoPadding, SecretKey] =
+    implicit def ofbxProcess[A](implicit cipher: BlockCipher[A]): IvProcess[A, OFBx, NoPadding, SecretKey] =
       standardProcess[A, OFBx, NoPadding]
   }
 
   sealed trait PCBC
 
   object PCBC extends WithCipherMode[PCBC]("PCBC") {
-    implicit def pcbcProcess[A, P: SymmetricPadding](implicit cipher: Cipher[A]): IvProcess[A, PCBC, P, SecretKey] =
+    implicit def pcbcProcess[A, P: SymmetricPadding](implicit cipher: BlockCipher[A]): IvProcess[A, PCBC, P, SecretKey] =
       standardProcess[A, PCBC, P]
   }
 
-  type AESGCMEncrypted[A] = CipherText[A, GCM, NoPadding]
+  /** Type aliases for default constructions **/
+  type GCMCipherText[A] = CipherText[A, GCM, NoPadding]
 
-  type CBCEncrypted[A] = CipherText[A, CBC, PKCS7Padding]
+  type AESGCMEncryptor[F[_],A] = JCAAEADPrimitive[F, A, GCM, NoPadding]
 
-  type CBCIVStrategy[A] = IvStrategy[A, CBC]
+  type CBCCipherText[A] = CipherText[A, CBC, PKCS7Padding]
 
-  type CBCCipher[F[_], C] = JCAPrimitiveCipher[F, C, CBC, PKCS7Padding]
+  type CBCEncryptor[F[_], C] = JCAPrimitiveCipher[F, C, CBC, PKCS7Padding]
 
-  type CTREncrypted[A] = CipherText[A, CTR, NoPadding]
+  type CTRCipherText[A] = CipherText[A, CTR, NoPadding]
+
+  type CTREncryptor[F[_], C] = JCAPrimitiveCipher[F, C, CTR, NoPadding]
 
 }

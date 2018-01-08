@@ -22,7 +22,8 @@ trait CipherAlgebra[F[_], A, M, P, K[_]] {
 
 }
 
-trait AEADCiph[F[_], A, M, P, K[_]] extends CipherAlgebra[F, A, M, P, K] {
+//Todo: Abstract over auth tag, combined and non-combined
+trait AEADAlgebra[F[_], A, M, P, K[_]] extends CipherAlgebra[F, A, M, P, K] {
 
   /** Encrypt our plaintext using additional authentication parameters,
     * Primarily for GCM mode and CCM mode
