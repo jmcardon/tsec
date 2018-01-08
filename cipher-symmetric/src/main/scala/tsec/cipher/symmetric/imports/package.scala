@@ -45,7 +45,9 @@ package object imports {
     * Authenticated encryption with Additional Data
     *
     */
-  trait AEADCipher[A] extends AECipher[A]
+  trait AEADCipher[A] extends AECipher[A] {
+    def tagSizeBytes: Int
+  }
 
   /** Our typeclass generalizing over AES,
     * that lends itself to variable key sizes
@@ -55,6 +57,7 @@ package object imports {
   trait AES[A] extends BlockCipher[A] with AEADCipher[A] {
     val cipherName: String  = "AES"
     val blockSizeBytes: Int = 16
+    val tagSizeBytes: Int   = GCM.NISTTagLengthBits / 8
   }
 
   /**
@@ -176,7 +179,7 @@ package object imports {
       * by: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
       *  Iv length of 96 bits is recommended as per the spec on page 8
       */
-    val NISTIvLengthBits  = 96
+    val NISTTagLengthBits = 128
     val NISTIvLengthBytes = 12
 
     implicit def gcmProcess[A](implicit aes: AES[A]): IvProcess[A, GCM, NoPadding, SecretKey] =
@@ -188,14 +191,14 @@ package object imports {
           cipher.init(
             JCipher.ENCRYPT_MODE,
             key.toJavaKey,
-            new GCMParameterSpec(GCM.NISTIvLengthBits, iv)
+            new GCMParameterSpec(GCM.NISTTagLengthBits, iv)
           )
 
         private[tsec] def decryptInit(cipher: JCipher, iv: Iv[A, GCM], key: SecretKey[A]): Unit =
           cipher.init(
             JCipher.DECRYPT_MODE,
             key.toJavaKey,
-            new GCMParameterSpec(GCM.NISTIvLengthBits, iv)
+            new GCMParameterSpec(GCM.NISTTagLengthBits, iv)
           )
       }
 

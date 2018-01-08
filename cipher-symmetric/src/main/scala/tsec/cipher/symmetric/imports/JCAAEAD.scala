@@ -49,4 +49,43 @@ class JCAAEAD[A, M, P, CT](implicit ev: CT =:= CipherText[A, M, P])
       implicit F: Sync[F],
       S: JCAAEADPrimitive[F, A, M, P]
   ): F[PlainText] = S.decryptAAD(cipherText, key, aad)
+
+  def encryptDetached[F[_]](
+      plainText: PlainText,
+      key: SecretKey[A]
+  )(implicit F: Sync[F], S: JCAAEADPrimitive[F, A, M, P], ivStrategy: IvStrategy[A, M]): F[(CT, AuthTag[A])] =
+    for {
+      iv        <- ivStrategy.genIv[F](plainText.content.length)
+      encrypted <- S.encryptDetached(plainText, key, iv)
+    } yield encrypted.asInstanceOf[(CT, AuthTag[A])] //Todo: How to workaround without copying and forcing the cast
+
+  def encryptDetached[F[_]](plainText: PlainText, key: SecretKey[A], iv: Iv[A, M])(
+      implicit F: Sync[F],
+      S: JCAAEADPrimitive[F, A, M, P]
+  ): F[(CT, AuthTag[A])] = S.encryptDetached(plainText, key, iv).asInstanceOf[F[(CT, AuthTag[A])]] //Todo: :(
+
+  def encryptWithAADDetached[F[_]](plainText: PlainText, key: SecretKey[A], aad: AAD)(
+      implicit F: Sync[F],
+      S: JCAAEADPrimitive[F, A, M, P],
+      ivStrategy: IvStrategy[A, M]
+  ): F[(CT, AuthTag[A])] =
+    for {
+      iv        <- ivStrategy.genIv[F](plainText.content.length)
+      encrypted <- S.encryptAADDetached(plainText, key, iv, aad)
+    } yield encrypted.asInstanceOf[(CT, AuthTag[A])] //Todo: How to workaround without copying and forcing the cast
+
+  def encryptWithAADDetached[F[_]](plainText: PlainText, key: SecretKey[A], iv: Iv[A, M], aad: AAD)(
+      implicit F: Sync[F],
+      S: JCAAEADPrimitive[F, A, M, P]
+  ): F[(CT, AuthTag[A])] = S.encryptAADDetached(plainText, key, iv, aad).asInstanceOf[F[(CT, AuthTag[A])]] //Todo: :(
+
+  def decryptDetached[F[_]](cipherText: CT, key: SecretKey[A], authTag: AuthTag[A])(
+      implicit F: Sync[F],
+      S: JCAAEADPrimitive[F, A, M, P]
+  ): F[PlainText] = S.decryptDetached(cipherText, key, authTag)
+
+  def decryptWithAADDetached[F[_]](cipherText: CT, key: SecretKey[A], aad: AAD, authTag: AuthTag[A])(
+      implicit F: Sync[F],
+      S: JCAAEADPrimitive[F, A, M, P]
+  ): F[PlainText] = S.decryptAADDetached(cipherText, key, aad, authTag)
 }

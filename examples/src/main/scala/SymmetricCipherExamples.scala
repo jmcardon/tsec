@@ -27,36 +27,49 @@ object SymmetricCipherExamples {
   //Feel free to choose any of the default Cipher constructions.
   //For non-authenticated ciphers, we recommend AES-CTR
 
-  val toEncrypt            = "hi hello welcome to tsec".utf8Bytes
-  implicit val encryptor   = AES128CTR.genEncryptor[IO].unsafeRunSync()
+  val toEncrypt = "hi hello welcome to tsec".utf8Bytes
+
   implicit val ctrStrategy = AES128CTR.defaultIvStrategy
 
-  val onlyEncrypt: IO[String] = for {
-    key       <- AES128.generateLift[IO] //Generate our key
-    encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
-    decrypted <- AES128CTR.decrypt[IO](encrypted, key)
-  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+  val onlyEncrypt: IO[String] = AES128CTR
+    .genEncryptor[IO]
+    .flatMap(
+      implicit instance =>
+        for {
+          key       <- AES128.generateLift[IO] //Generate our key
+          encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
+          decrypted <- AES128CTR.decrypt[IO](encrypted, key)
+        } yield decrypted.content.toUtf8String
+    ) // "hi hello welcome to tsec!"
 
   /** You can also turn it into a singular array with the IV concatenated at the end */
-  val onlyEncrypt2: IO[String] = for {
-    key       <- AES128.generateLift[IO]                          //Generate our key
-    encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
-    array = encrypted.toSingleArray
-    from      <- IO.fromEither(AES128CTR.ciphertextFromArray(array))
-    decrypted <- AES128CTR.decrypt[IO](from, key)
-  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+  val onlyEncrypt2: IO[String] = AES128CTR
+    .genEncryptor[IO]
+    .flatMap(
+      implicit instance =>
+        for {
+          key       <- AES128.generateLift[IO]                          //Generate our key
+          encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
+          array = encrypted.toSingleArray
+          from      <- IO.fromEither(AES128CTR.ciphertextFromArray(array))
+          decrypted <- AES128CTR.decrypt[IO](from, key)
+        } yield decrypted.content.toUtf8String
+    ) // "hi hello welcome to tsec!"
 
   /** An authenticated encryption and decryption */
-  implicit val instance    = AES128GCM.genEncryptor[IO].unsafeRunSync()
   implicit val gcmstrategy = AES128GCM.defaultIvStrategy
 
   val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)
-  val encryptAAD: IO[String] = for {
-    key       <- AES128.generateLift[IO]                                      //Generate our key
-    encrypted <- AES128GCM.encryptWithAAD[IO](PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
-    decrypted <- AES128GCM
-      .decryptWithAAD[IO](encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
-  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+  val encryptAAD: IO[String] = AES128GCM
+    .genEncryptor[IO]
+    .flatMap(
+      implicit instance =>
+        for {
+          key       <- AES128.generateLift[IO]                                      //Generate our key
+          encrypted <- AES128GCM.encryptWithAAD[IO](PlainText(toEncrypt), key, aad) //Encrypt
+          decrypted <- AES128GCM.decryptWithAAD[IO](encrypted, key, aad)            //Decrypt
+        } yield decrypted.content.toUtf8String
+    ) // "hi hello welcome to tsec!"
 
   /** For more advanced usage, i.e you know which cipher you want specifically, you must import padding
     * as well as the low level package

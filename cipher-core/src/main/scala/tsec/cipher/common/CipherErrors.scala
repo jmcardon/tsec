@@ -31,6 +31,9 @@ trait CipherErrors {
   /** Ciphertext related errors */
   case class CipherTextError(cause: String) extends CipherError
 
+  /** Authentication tag related errors */
+  case class AuthTagError(cause: String) extends CipherError
+
   /** NoSuchInstance error */
   case object NoSuchInstanceError extends CipherError {
     def cause: String =
