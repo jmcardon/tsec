@@ -20,7 +20,7 @@ lazy val scalacOpts = scalacOptions := Seq(
 )
 
 lazy val micrositeSettings = Seq(
-  libraryDependencies += "com.47deg" %% "github4s" % "0.17.0",
+  libraryDependencies += Libraries.gitHub4s,
   micrositeName := "TSec",
   micrositeBaseUrl := "/tsec",
   micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",

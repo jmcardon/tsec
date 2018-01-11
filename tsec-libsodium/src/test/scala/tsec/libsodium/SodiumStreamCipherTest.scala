@@ -32,7 +32,8 @@ class SodiumStreamCipherTest extends SodiumSpec {
         .covary[IO]
         .through(XChacha20Poly1305.encryptionPipe[IO](state, 10))
         .through(XChacha20Poly1305.decryptionPipe[IO](state.header, key, 10))
-        .runLog
+        .compile
+        .toVector
     } yield original.toArray
 
     program.unsafeRunSync().toHexString mustBe testVector.toHexString
@@ -48,7 +49,8 @@ class SodiumStreamCipherTest extends SodiumSpec {
         .covary[IO]
         .through(XChacha20Poly1305.encryptionPipe[IO](state, 10))
         .through(XChacha20Poly1305.decryptionPipe[IO](state.header, key2, 10))
-        .runLog
+        .compile
+        .toVector
     } yield original.toArray
 
     program.attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
@@ -65,7 +67,8 @@ class SodiumStreamCipherTest extends SodiumSpec {
         .covary[IO]
         .through(XChacha20Poly1305.encryptionPipe[IO](state1, 10))
         .through(XChacha20Poly1305.decryptionPipe[IO](state2.header, key2, 10))
-        .runLog
+        .compile
+        .toVector
     } yield original.toArray
 
     program.attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
