@@ -27,7 +27,7 @@ class GenericHash extends SodiumSpec {
       forAll { (s: String) =>
         val program = for {
           h1 <- platform.hash[IO](s.utf8Bytes)
-          h2 <- Stream.emits(s.utf8Bytes).covary[IO].through(platform.hashPipe).runLog
+          h2 <- Stream.emits(s.utf8Bytes).covary[IO].through(platform.hashPipe).compile.toVector
         } yield (h1, h2.toArray)
 
         val (h1, h2) = program.unsafeRunSync()
