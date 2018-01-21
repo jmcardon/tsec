@@ -1,5 +1,3 @@
-import cats.effect.IO
-import tsec.cipher.symmetric.core.IvStrategy
 
 object SymmetricCipherExamples {
 
@@ -22,14 +20,17 @@ object SymmetricCipherExamples {
   /** These are the imports you will need for basic usage */
   import tsec.common._
   import tsec.cipher.symmetric._
+  import tsec.cipher.symmetric.core.IvStrategy
   import tsec.cipher.symmetric.imports._
+  import cats.effect.IO
+
 
   //Feel free to choose any of the default Cipher constructions.
   //For non-authenticated ciphers, we recommend AES-CTR
 
   val toEncrypt = "hi hello welcome to tsec".utf8Bytes
 
-  implicit val ctrStrategy = AES128CTR.defaultIvStrategy
+  implicit val ctrStrategy: IvStrategy[AES128, CTR] = AES128CTR.defaultIvStrategy
 
   val onlyEncrypt: IO[String] = AES128CTR
     .genEncryptor[IO]
@@ -84,7 +85,7 @@ object SymmetricCipherExamples {
   val advancedUsage: IO[String] = for {
     instance  <- JCAPrimitiveCipher[IO, DES, CBC, PKCS7Padding]()
     key       <- DES.generateLift[IO]
-    iv        <- desStrategy.genIv[IO](toEncrypt.length)
+    iv        <- desStrategy.genIv[IO]
     encrypted <- instance.encrypt(PlainText(toEncrypt), key, iv) //Encrypt our message, with our auth data
     decrypted <- instance.decrypt(encrypted, key) //Decrypt our message: We need to pass it the same AAD
   } yield decrypted.toUtf8String

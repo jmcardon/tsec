@@ -53,16 +53,21 @@ If want want to create services, create a request handler as such:
 
 ```tut:silent
  import java.util.UUID
+ 
  import org.http4s.HttpService
  import org.http4s.dsl.io._
  import tsec.authentication._
- import tsec.cipher.symmetric.imports.{AES128, SecretKey}
+ import tsec.cipher.symmetric.imports.{AES128, AES128GCM, SecretKey}
  import cats.effect.IO
+ 
  import scala.concurrent.duration._
  
  object EncryptedCookieExample {
  
    import http4sExamples.ExampleAuthHelpers._
+   
+   implicit val encryptor = AES128GCM.genEncryptor[IO].unsafeRunSync()
+   implicit val gcmstrategy = AES128GCM.defaultIvStrategy
  
    val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]] =
      dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]](_.id)
@@ -78,7 +83,7 @@ If want want to create services, create a request handler as such:
    )
  
    val key: SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key
- 
+
    val authWithBackingStore = //Instantiate a stateful authenticator
      EncryptedCookieAuthenticator.withBackingStore(
        settings,
