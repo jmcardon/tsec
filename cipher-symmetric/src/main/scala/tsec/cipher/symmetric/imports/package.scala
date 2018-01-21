@@ -3,6 +3,7 @@ package tsec.cipher.symmetric
 import javax.crypto.spec.{GCMParameterSpec, IvParameterSpec}
 import javax.crypto.{Cipher => JCipher, SecretKey => JSecretKey}
 
+import cats.effect.Sync
 import cats.evidence.Is
 import tsec.cipher.common.padding.{NoPadding, PKCS7Padding, SymmetricPadding}
 import tsec.cipher.symmetric.core.{Iv, IvStrategy}
@@ -58,6 +59,10 @@ package object imports {
     val cipherName: String  = "AES"
     val blockSizeBytes: Int = 16
     val tagSizeBytes: Int   = GCM.NISTTagLengthBits / 8
+  }
+
+  object AES {
+    def apply[A](implicit a: AES[A]): AES[A] = a
   }
 
   /**
@@ -204,7 +209,11 @@ package object imports {
 
     def randomIVStrategy[A: AES]: GCMIVStrategy[A] =
       new IvStrategy[A, GCM] with ManagedRandom {
-        def genIvUnsafe(ptSizeBytes: Int): Iv[A, GCM] = {
+
+        def genIv[F[_]](implicit F: Sync[F]): F[Iv[A, GCM]] =
+          F.delay(genIvUnsafe)
+
+        def genIvUnsafe: Iv[A, GCM] = {
           val nonce = new Array[Byte](GCM.NISTIvLengthBytes)
           nextBytes(nonce)
           Iv[A, GCM](nonce)

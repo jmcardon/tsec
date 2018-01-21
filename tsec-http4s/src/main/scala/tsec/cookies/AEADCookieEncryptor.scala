@@ -18,7 +18,7 @@ object AEADCookieEncryptor {
     else {
       val messageBytes = message.utf8Bytes
       for {
-        iv        <- ivStrat.genIv[F](messageBytes.length)
+        iv        <- ivStrat.genIv[F]
         encrypted <- authEncryptor.encryptAAD(PlainText(messageBytes), key, iv, aad)
       } yield AEADCookie.fromEncrypted[A](encrypted, aad)
     }

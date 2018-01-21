@@ -529,7 +529,7 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F](plainText.length)
+          iv        <- ivStrategy.genIv[F]
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
         } yield encrypted.toSingleArray.toB64String
       }
@@ -700,7 +700,7 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F](plainText.length)
+          iv        <- ivStrategy.genIv[F]
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
         } yield encrypted.toSingleArray.toB64String
       }
