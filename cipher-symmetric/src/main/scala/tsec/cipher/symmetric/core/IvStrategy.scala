@@ -44,7 +44,3 @@ trait CounterIvStrategy[A, M] extends IvStrategy[A, M] {
 
   def unsafeNumGenerated: Long
 }
-
-private[tsec] class FailedAtomicLong extends AtomicLong {
-
-}
