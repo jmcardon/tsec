@@ -1,7 +1,5 @@
 package tsec.cipher.symmetric.core
 
-import java.util.concurrent.atomic.AtomicLong
-
 import cats.effect.Sync
 import tsec.cipher.symmetric.imports.{BlockCipher, CipherMode}
 import tsec.common.ManagedRandom

@@ -8,6 +8,7 @@ trait CipherAlgebra[F[_], A, M, P, K[_]] {
     *
     * @param plainText the plaintext to encrypt
     * @param key       the SecretKey to use
+    * @param iv        the initialization vector
     * @return
     */
   def encrypt(plainText: PlainText, key: K[A], iv: Iv[A, M]): F[CipherText[A, M, P]]
@@ -29,6 +30,7 @@ trait AEADAlgebra[F[_], A, M, P, K[_]] extends CipherAlgebra[F, A, M, P, K] {
     *
     * @param plainText the plaintext to encrypt
     * @param key       the SecretKey to use
+    * @param iv        the initialization vector
     * @return
     */
   def encryptDetached(plainText: PlainText, key: K[A], iv: Iv[A, M]): F[(CipherText[A, M, P], AuthTag[A])]
@@ -37,6 +39,7 @@ trait AEADAlgebra[F[_], A, M, P, K[_]] extends CipherAlgebra[F, A, M, P, K] {
     *
     * @param cipherText the plaintext to encrypt
     * @param key        the SecretKey to use
+    * @param tag        the authentication tag
     * @return
     */
   def decryptDetached(cipherText: CipherText[A, M, P], key: K[A], tag: AuthTag[A]): F[PlainText]
@@ -47,6 +50,7 @@ trait AEADAlgebra[F[_], A, M, P, K[_]] extends CipherAlgebra[F, A, M, P, K] {
     *
     * @param plainText the plaintext to encrypt
     * @param key       the SecretKey to use
+    * @param iv        the initialization vector
     * @param aad       The additional authentication information
     * @return
     */
@@ -69,6 +73,7 @@ trait AEADAlgebra[F[_], A, M, P, K[_]] extends CipherAlgebra[F, A, M, P, K] {
     *
     * @param plainText the plaintext to encrypt
     * @param key       the SecretKey to use
+    * @param iv        the initialization vector
     * @param aad       The additional authentication information
     * @return
     */
@@ -81,6 +86,7 @@ trait AEADAlgebra[F[_], A, M, P, K[_]] extends CipherAlgebra[F, A, M, P, K] {
     * @param cipherText the plaintext to encrypt
     * @param key        the SecretKey to use
     * @param aad        The additional authentication information
+    * @param tag        the authentication tag
     * @return
     */
   def decryptAADDetached(cipherText: CipherText[A, M, P], key: K[A], aad: AAD, tag: AuthTag[A]): F[PlainText]

@@ -64,7 +64,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key2      <- keyGen.generateLift[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key1)
           decrypted <- algebra.decrypt[IO](encrypted, key2)
-        } yield new String(decrypted, "UTF-8")
+        } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)
           testEncryptionDecryption.attempt.unsafeRunSync() mustNot equal(Right(testMessage))
       }
@@ -146,7 +146,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key2      <- keyGen.generateLift[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key1)
           decrypted <- algebra.decrypt[IO](encrypted, key2)
-        } yield new String(decrypted, "UTF-8")
+        } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)
           testEncryptionDecryption.attempt.unsafeRunSync() mustNot equal(Right(testMessage))
       }
@@ -161,7 +161,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key1      <- keyGen.generateLift[IO]
           encrypted <- algebra.encryptWithAAD[IO](testPlainText, key1, aad1)
           decrypted <- algebra.decryptWithAAD[IO](encrypted, key1, aad2)
-        } yield new String(decrypted, "UTF-8")
+        } yield decrypted.toUtf8String
         if (!testMessage.isEmpty && !AAD1.isEmpty && !AAD2.isEmpty)
           testEncryptionDecryption.attempt.unsafeRunSync() mustNot equal(Right(testMessage))
       }
@@ -215,7 +215,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key2      <- keyGen.generateLift[IO]
           encrypted <- algebra.encryptDetached[IO](testPlainText, key1)
           decrypted <- algebra.decryptDetached[IO](encrypted._1, key2, encrypted._2)
-        } yield new String(decrypted, "UTF-8")
+        } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)
           testEncryptionDecryption.attempt.unsafeRunSync() mustNot equal(Right(testMessage))
       }
@@ -230,7 +230,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key1      <- keyGen.generateLift[IO]
           encrypted <- algebra.encryptWithAADDetached[IO](testPlainText, key1, aad1)
           decrypted <- algebra.decryptWithAADDetached[IO](encrypted._1, key1, aad2, encrypted._2)
-        } yield new String(decrypted, "UTF-8")
+        } yield decrypted.toUtf8String
         if (!testMessage.isEmpty && !AAD1.isEmpty && !AAD2.isEmpty)
           testEncryptionDecryption.attempt.unsafeRunSync() mustNot equal(Right(testMessage))
       }
