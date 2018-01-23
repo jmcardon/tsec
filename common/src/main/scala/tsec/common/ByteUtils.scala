@@ -25,7 +25,7 @@ object ByteUtils {
     a(0) << 24 | (a(1) & 0xFF) << 16 | (a(2) & 0xFF) << 8 | (a(3) & 0xFF)
 
   @inline def bytesToInt(a: Array[Byte]): Option[Int] =
-    if (a.length < Integer.BYTES) None
+    if (a.length != Integer.BYTES) None
     else Some(unsafeBytesToInt(a))
 
   @inline def longToBytes(x: Long): Array[Byte] =
@@ -51,7 +51,7 @@ object ByteUtils {
       a(7).toLong & 0xff
 
   @inline def bytesToLong(a: Array[Byte]): Option[Long] =
-    if (a.length < java.lang.Long.BYTES) None
+    if (a.length != java.lang.Long.BYTES) None
     else Some(unsafeBytesToLong(a))
 
 }
