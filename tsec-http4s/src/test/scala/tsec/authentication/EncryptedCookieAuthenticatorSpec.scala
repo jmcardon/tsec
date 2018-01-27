@@ -2,6 +2,7 @@ package tsec.authentication
 
 import java.time.Instant
 import java.util.UUID
+
 import cats.data.OptionT
 import cats.effect.IO
 import org.http4s.{Request, Response}
@@ -10,19 +11,24 @@ import tsec.cipher.symmetric.imports._
 import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
 import io.circe.parser.decode
 import io.circe.generic.auto._
+import tsec.cipher.common.padding.NoPadding
+import tsec.cipher.symmetric.imports.primitive.JCAAEADPrimitive
+
 import scala.concurrent.duration._
 
 class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
   private val cookieName = "hi"
 
-  implicit def cookieBackingStore[A: AuthEncryptor] = dummyBackingStore[IO, UUID, AuthEncryptedCookie[A, Int]](_.id)
+  implicit def cookieBackingStore[A: AES] = dummyBackingStore[IO, UUID, AuthEncryptedCookie[A, Int]](_.id)
 
-  def genStatefulAuthenticator[A](
-      implicit authEncryptor: AuthEncryptor[A],
-      keygen: CipherKeyGen[A],
+  def genStatefulAuthenticator[A: AES](
+      implicit keygen: CipherKeyGen[A],
       store: BackingStore[IO, UUID, AuthEncryptedCookie[A, Int]]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
+    implicit val instance = JCAAEADPrimitive[IO, A, GCM, NoPadding]().unsafeRunSync()
+    implicit val stategy = GCM.randomIVStrategy[A]
+
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val authenticator = EncryptedCookieAuthenticator.withBackingStore[IO, Int, DummyUser, A](
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
@@ -60,9 +66,12 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
   }
 
   def genStatelessAuthenticator[A](
-      implicit authEncryptor: AuthEncryptor[A],
+      implicit authEncryptor: AES[A],
       keygen: CipherKeyGen[A]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
+    implicit val instance = JCAAEADPrimitive[IO, A, GCM, NoPadding]().unsafeRunSync()
+    implicit val stategy = GCM.randomIVStrategy[A]
+
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val secretKey  = keygen.generateKeyUnsafe()
     val authenticator = EncryptedCookieAuthenticator.stateless[IO, Int, DummyUser, A](
@@ -88,8 +97,8 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
           case Some(rawCookie) =>
             val coerced = AEADCookie[A](rawCookie.content)
             for {
-              contentRaw <- OptionT.fromOption[IO](
-                AEADCookieEncryptor.retrieveFromSigned[A](coerced, secretKey).toOption
+              contentRaw <- OptionT.liftF(
+                AEADCookieEncryptor.retrieveFromSigned[IO, A](coerced, secretKey)
               )
               internal <- OptionT.fromOption[IO](decode[AuthEncryptedCookie.Internal[Int]](contentRaw).toOption)
             } yield AuthEncryptedCookie.build[A, Int](internal, coerced, rawCookie)

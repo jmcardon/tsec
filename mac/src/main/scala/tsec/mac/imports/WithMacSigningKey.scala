@@ -7,12 +7,11 @@ import tsec.common.ErrorConstruct._
 import cats.syntax.either._
 import tsec.mac.core.MacTag
 
-protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyL: Int) extends MacTag[A] with MacKeyGenerator[A] {
+protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyLenBits: Int) extends MacTag[A] with MacKeyGenerator[A] {
 
   implicit val macTag: MacTag[A] = this
 
   override val algorithm: String = algo
-  override val keyLength: Int    = keyL
 
   def generator: KeyGenerator = KeyGenerator.getInstance(algo)
 

@@ -35,18 +35,25 @@ TSec was made to improve on this. We provide types where the JCA does not, as we
 all the encryption type information the JCA does not, so you can rip out a few hairs at compile time, not when you have to hotfix 
 in production.
 
-The same thing, in TSec, plus decryption:
+The same thing, in TSec, plus decryption (as a pure expression):
 
 ```tut
+import cats.effect.IO
 import tsec.common._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 
 val toEncrypt = "Hello".utf8Bytes
-val onlyEncrypt: Either[CipherError, String] = for {
-  instance  <- DefaultAuthEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances  
-  key       <- DefaultAuthEncryptor.keyGen.generateKey() //Generate our key
-  encrypted <- instance.encrypt(PlainText(toEncrypt), key) //Encrypt our message
-  decrypted <- instance.decrypt(encrypted, key)
-} yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+
+/** An authenticated encryption and decryption */
+implicit val gcmstrategy = AES128GCM.defaultIvStrategy
+
+val encryptAAD: IO[String] = AES128GCM.genEncryptor[IO].flatMap(
+  implicit instance =>
+    for {
+      key       <- AES128.generateLift[IO]                                      //Generate our key
+      encrypted <- AES128GCM.encrypt[IO](PlainText(toEncrypt), key) //Encrypt
+      decrypted <- AES128GCM.decrypt[IO](encrypted, key)            //Decrypt
+    } yield decrypted.toUtf8String // "Hello!"
+) 
 ```

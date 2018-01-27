@@ -21,71 +21,113 @@ For debian-like distros:
 Follow the instructions [here](http://tipsonubuntu.com/2016/07/31/install-oracle-java-8-9-ubuntu-16-04-linux-mint-18)
 then use: `sudo apt-get install oracle-java8-unlimited-jce-policy`
 
+## Introduction
+
+For symmetric ciphers, we provide a low level as well as a high-level api construction.
+
+Symmetric ciphers, as an introduction, have the following basic properties, for all non-empty m:
+```
+ E(K, m) = c
+ D(K, c) = m
+ D(K, E(K, m)) = m
+ 
+ Where:
+    E: Encryption function
+    D: Decryption function
+    K: Some symmetric key
+    m: Some message, or plainText
+    c: Some ciphertext
+```
+
 ## Usage
 
 These are the imports you will need for basic usage:
 
 ```tut:silent
- import tsec.common._
- import tsec.cipher.symmetric._
- import tsec.cipher.symmetric.imports._
+  import tsec.common._
+  import tsec.cipher.symmetric._
+  import tsec.cipher.symmetric.core.IvStrategy
+  import tsec.cipher.symmetric.imports._
 ```
 
-First, we'll use the default Encryptors, which resolve to AES/CTR/NoPadding for Non authenticated encryption,
-and AES/GCM/NoPadding for Authenticated encryption. All ciphers have their Random number generator re-seeded
-after a reasonable amount of uses.
+In tsec, we provide a few default constructions for simple AES encryption:
+`AES/CTR` and `AES/CBC`. For Authenticated encryption, 
+we provide an `AES/GCM` construction.
+
+To be able to generate initialization vectors for a particular cipher, you must either
+have an implicit `IvStrategy[A, M]`(where A is the algorithm type, i.e `AES128`,
+and `M` is the mode, such as `CTR`) in scope, or pass it explicitly:
+
 
 ```tut
+  import cats.effect.IO
+
   val toEncrypt = "hi hello welcome to tsec".utf8Bytes
-  val onlyEncrypt: Either[CipherError, String] = for {
-    instance  <- DefaultEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
-    key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
-    encrypted <- instance.encrypt(PlainText(toEncrypt), key) //Encrypt our message
-    decrypted <- instance.decrypt(encrypted, key)
-  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+  
+  implicit val ctrStrategy: IvStrategy[AES128, CTR] = AES128CTR.defaultIvStrategy
+  
+  val onlyEncrypt: IO[String] = AES128CTR.genEncryptor[IO].flatMap(
+      implicit instance =>
+        for {
+          key       <- AES128.generateLift[IO] //Generate our key
+          encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
+          decrypted <- AES128CTR.decrypt[IO](encrypted, key)
+        } yield decrypted.toUtf8String
+    ) // "hi hello welcome to tsec!"
 
-  /** You can also turn it into a singlular array with the IV concatenated at the end */
-  val onlyEncrypt2: Either[CipherError, String] = for {
-    instance  <- DefaultEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
-    key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
-    encrypted <- instance.encrypt(PlainText(toEncrypt), key) //Encrypt our message
-    array = encrypted.toSingleArray
-    from      <- DefaultEncryptor.fromSingleArray(array)
-    decrypted <- instance.decrypt(from, key)
-  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
-
-  /** An authenticated encryption and decryption */
-  val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)
-  val encryptAAD: Either[CipherError, String] = for {
-    instance  <- DefaultAuthEncryptor.instance //Instances are unsafe! Some JVMs may not have particular instances
-    key       <- DefaultEncryptor.keyGen.generateKey() //Generate our key
-    encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
-    decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
-  } yield decrypted.content.toUtf8String // "hi hello welcome to tsec!"
+  /** You can also turn it into a singular array with the IV concatenated at the end */
+  val onlyEncrypt2: IO[String] = AES128CTR.genEncryptor[IO].flatMap(
+      implicit instance =>
+        for {
+          key       <- AES128.generateLift[IO]                          //Generate our key
+          encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
+          array = encrypted.toSingleArray
+          from      <- IO.fromEither(AES128CTR.ciphertextFromArray(array))
+          decrypted <- AES128CTR.decrypt[IO](from, key)
+        } yield decrypted.toUtf8String
+    ) // "hi hello welcome to tsec!"
 ```
 
-For more advanced usage, i.e you know which cipher you want specifically, you must import padding.
-Note: AEAD modes are separate from general cipher modes, for correctness. Thus they are a separate import
+For authenticated encryption and decryption
 
 ```tut
-  import tsec.cipher.common.padding._
-  import tsec.cipher.symmetric.imports.aead._
-  val advancedUsage: Either[CipherError, String] = for {
-    instance  <- JCAAEADImpure[AES128, GCM, NoPadding]
-    key       <- AES128.generateKey()
-    encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
-    decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
-  } yield decrypted.content.toUtf8String
+  /** An authenticated encryption and decryption */
+  implicit val gcmstrategy = AES128GCM.defaultIvStrategy
 
-  /** For interpretation into any F[_]: Sync,
-    * use JCASymmPure or AEADPure
+  val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)
+  val encryptAAD: IO[String] = AES128GCM.genEncryptor[IO].flatMap(
+      implicit instance =>
+        for {
+          key       <- AES128.generateLift[IO]                                      //Generate our key
+          encrypted <- AES128GCM.encryptWithAAD[IO](PlainText(toEncrypt), key, aad) //Encrypt
+          decrypted <- AES128GCM.decryptWithAAD[IO](encrypted, key, aad)            //Decrypt
+        } yield decrypted.toUtf8String
+    ) // "hi hello welcome to tsec!"
+
+
+```
+
+Finally, For more advanced usage, i.e you know which cipher you want specifically, you must import 
+both padding as well as the primitive package.
+
+Note: This is not recommended. Use at your own risk.
+
+```tut
+  /** For more advanced usage, i.e you know which cipher you want specifically, you must import padding
+    * as well as the low level package
+    *
+    * this is not recommended, but useful for.. science!
+    *
     */
-  import cats.effect.{IO, Sync}
+  import tsec.cipher.common.padding._
+  import tsec.cipher.symmetric.imports.primitive._
+  val desStrategy = IvStrategy.defaultStrategy[DES, CBC]
 
-  val advancedUsage2: IO[String] = for {
-    instance  <- JCAAEAD[IO, AES128, GCM, NoPadding]()
-    key       <- AES128.generateLift[IO]
-    encrypted <- instance.encryptAAD(PlainText(toEncrypt), key, aad) //Encrypt our message, with our auth data
-    decrypted <- instance.decryptAAD(encrypted, key, aad) //Decrypt our message: We need to pass it the same AAD
-  } yield decrypted.content.toUtf8String
+  val advancedUsage: IO[String] = for {
+    instance  <- JCAPrimitiveCipher[IO, DES, CBC, PKCS7Padding]()
+    key       <- DES.generateLift[IO]
+    iv        <- desStrategy.genIv[IO]
+    encrypted <- instance.encrypt(PlainText(toEncrypt), key, iv) //Encrypt our message, with our auth data
+    decrypted <- instance.decrypt(encrypted, key) //Decrypt our message: We need to pass it the same AAD
+  } yield decrypted.toUtf8String
 ```

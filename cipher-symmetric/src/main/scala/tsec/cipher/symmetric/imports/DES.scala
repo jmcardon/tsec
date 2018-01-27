@@ -1,4 +1,5 @@
 package tsec.cipher.symmetric.imports
 
 sealed trait DES
-object DES extends WithAEADCipher[DES]("DES", 56)
+
+object DES extends BlockCipherEV[DES]("DES", 8, 8)

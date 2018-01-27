@@ -20,39 +20,39 @@ package object cookies {
   type AEADCookie[A] = AEADCookie$$.Repr[A]
 
   sealed trait EVCookieEncrypt[F[_]] {
-    def fromEncrypted[A: AuthEncryptor](a: AEADCipherText[A], aad: AAD): F[A]
+    def fromEncrypted[A: AES](a: GCMCipherText[A], aad: AAD): F[A]
 
-    def toString[A: AuthEncryptor](a: F[A]): String
+    def toString[A: AES](a: F[A]): String
 
-    def subst[G[_], A: AuthEncryptor](fa: G[F[A]]): G[String]
+    def subst[G[_], A: AES](fa: G[F[A]]): G[String]
   }
 
   implicit object AEADCookie extends EVCookieEncrypt[AEADCookie] {
-    @inline def fromEncrypted[A: AuthEncryptor](a: AEADCipherText[A], aad: AAD): AEADCookie[A] =
-      AEADCookie$$.is[A].coerce(a.toSingleArray.toB64String + "-" + aad.aad.toB64String)
+    @inline def fromEncrypted[A: AES](a: GCMCipherText[A], aad: AAD): AEADCookie[A] =
+      AEADCookie$$.is[A].coerce(a.toSingleArray.toB64String + "-" + aad.toB64String)
 
-    @inline def toString[A: AuthEncryptor](a: AEADCookie[A]): String = AEADCookie$$.is.coerce(a)
+    @inline def toString[A: AES](a: AEADCookie[A]): String = AEADCookie$$.is.coerce(a)
 
-    @inline def subst[G[_], A: AuthEncryptor](fa: G[AEADCookie[A]]): G[String] = AEADCookie$$.is[A].flip.substitute[G](fa)
+    @inline def subst[G[_], A: AES](fa: G[AEADCookie[A]]): G[String] = AEADCookie$$.is[A].flip.substitute[G](fa)
 
-    @inline def apply[A: AuthEncryptor](raw: String): AEADCookie[A] = AEADCookie$$.is[A].coerce(raw)
+    @inline def apply[A: AES](raw: String): AEADCookie[A] = AEADCookie$$.is[A].coerce(raw)
 
-    def getEncryptedContent[A](
+    def getEncryptedContent[F[_], A: AES](
         signed: AEADCookie[A]
-    )(implicit encryptor: AuthEncryptor[A]): Either[CipherTextError, AEADCipherText[A]] = {
+    )(implicit encryptor: GCMEncryptor[F, A]): Either[CipherTextError, GCMCipherText[A]] = {
       val split = toString[A](signed).split("-")
       if (split.length != 2)
         Left(CipherTextError("String encoded improperly"))
       else {
-        encryptor.fromSingleArray(split(0).base64Bytes)
+        CipherText.fromArray(split(0).base64Bytes)(encryptor.ivProcess)
       }
     }
 
-    implicit def circeDecoder[A: AuthEncryptor]: Decoder[AEADCookie[A]] = new Decoder[AEADCookie[A]] {
+    implicit def circeDecoder[A: AES]: Decoder[AEADCookie[A]] = new Decoder[AEADCookie[A]] {
       def apply(c: HCursor) = c.as[String].map(AEADCookie.apply[A])
     }
 
-    implicit def circeEncoder[A: AuthEncryptor]: Encoder[AEADCookie[A]] = new Encoder[AEADCookie[A]] {
+    implicit def circeEncoder[A: AES]: Encoder[AEADCookie[A]] = new Encoder[AEADCookie[A]] {
       def apply(a: AEADCookie[A]): Json = Json.fromString(a)
     }
 
@@ -101,6 +101,6 @@ package object cookies {
 
     @inline def is[A]: Is[String, SignedCookie[A]] = SignedCookie$$.is[A]
   }
-  implicit final def cookieEQ[A: MacTag]: Eq[SignedCookie[A]]       = Eq.by[SignedCookie[A], String](identity[String])
-  implicit final def ecookieEQ[A: AuthEncryptor]: Eq[AEADCookie[A]] = Eq.by[AEADCookie[A], String](identity[String])
+  implicit final def cookieEQ[A: MacTag]: Eq[SignedCookie[A]] = Eq.by[SignedCookie[A], String](identity[String])
+  implicit final def ecookieEQ[A: AES]: Eq[AEADCookie[A]]     = Eq.by[AEADCookie[A], String](identity[String])
 }

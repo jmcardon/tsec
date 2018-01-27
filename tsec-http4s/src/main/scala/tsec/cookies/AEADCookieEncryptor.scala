@@ -1,35 +1,42 @@
 package tsec.cookies
 
+import cats.effect.Sync
+import cats.syntax.all._
 import tsec.common._
 import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.core.IvStrategy
 import tsec.cipher.symmetric.imports._
 
 object AEADCookieEncryptor {
 
-  def signAndEncrypt[A](message: String, aad: AAD, key: SecretKey[A])(
-      implicit authEncryptor: AuthEncryptor[A]
-  ): Either[CipherError, AEADCookie[A]] =
+  def signAndEncrypt[F[_]: Sync, A: AES](message: String, aad: AAD, key: SecretKey[A])(
+      implicit authEncryptor: GCMEncryptor[F, A],
+      ivStrat: IvStrategy[A, GCM]
+  ): F[AEADCookie[A]] =
     if (message.isEmpty)
-      Left(EncryptError("Cannot encrypt an empty string!"))
-    else
+      Sync[F].raiseError(EncryptError("Cannot encrypt an empty string!"))
+    else {
+      val messageBytes = message.utf8Bytes
       for {
-        instance  <- authEncryptor.instance
-        encrypted <- instance.encryptAAD(PlainText(message.utf8Bytes), key, aad)
+        iv        <- ivStrat.genIv[F]
+        encrypted <- authEncryptor.encryptAAD(PlainText(messageBytes), key, iv, aad)
       } yield AEADCookie.fromEncrypted[A](encrypted, aad)
+    }
 
-  def retrieveFromSigned[A](message: AEADCookie[A], key: SecretKey[A])(
-      implicit authEncryptor: AuthEncryptor[A]
-  ): Either[CipherError, String] = {
+  def retrieveFromSigned[F[_], A: AES](message: AEADCookie[A], key: SecretKey[A])(
+      implicit authEncryptor: GCMEncryptor[F, A],
+      F: Sync[F],
+      ivStrat: IvStrategy[A, GCM]
+  ): F[String] = {
     val split = message.split("-")
     if (split.length != 2)
-      Left(DecryptError("Could not decode cookie"))
+      F.raiseError(DecryptError("Could not decode cookie"))
     else {
       val aad = AAD(split(1).base64Bytes)
       for {
-        instance   <- authEncryptor.instance
-        cipherText <- authEncryptor.fromSingleArray(split(0).base64Bytes)
-        decrypted  <- instance.decryptAAD(cipherText, key, aad)
-      } yield decrypted.content.toUtf8String
+        cipherText <- F.fromEither(CipherText.fromArray(split(0).base64Bytes)(authEncryptor.ivProcess))
+        decrypted  <- authEncryptor.decryptAAD(cipherText, key, aad)
+      } yield decrypted.toUtf8String
     }
   }
 
