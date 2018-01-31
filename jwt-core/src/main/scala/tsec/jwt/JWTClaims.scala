@@ -48,8 +48,11 @@ sealed abstract case class JWTClaims(
       c
     ) {}
 
-  def getCustomClaim[A: Decoder](key: String): Result[A] =
+  def getCustom[A: Decoder](key: String): Result[A] =
     cachedCursor.downField(key).as[A]
+
+  def getCustomF[F[_], A: Decoder](key: String)(implicit F: Sync[F]): F[A] =
+    F.fromEither(cachedCursor.downField(key).as[A])
 
   def withIssuer(isr: String): JWTClaims = {
     val modified =
@@ -224,7 +227,7 @@ sealed abstract class JWTClaimsBuilder[F[_]](
     this
   }
 
-  def build(implicit F: Sync[F]): JWTClaims = {
+  def build: JWTClaims = {
     val itr: Iterable[(String, Json)] = JWTClaims.lhmIterator[String, Json](claims)
 
     new JWTClaims(
@@ -248,7 +251,7 @@ object JWTClaimsBuilder {
       audience: Option[Either[String, List[String]]] = None, //case-sensitive
       expiration: Option[Instant] = None,
       notBefore: Option[Instant] = None,
-      issuedAt: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
+      issuedAt: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       jwtId: String = SecureRandomId.generate //Case sensitive, and in our implementation, secure enough using UUIDv4
   ): JWTClaimsBuilder[F] = {
     val hashMap = new LHM[String, Json](JWTClaims.StandardClaims.length)
@@ -292,7 +295,8 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       expiration: Option[Instant] = None,
       notBefore: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       issuedAt: Option[Instant] = None,
-      jwtId: String = SecureRandomId.generate
+      jwtId: String = SecureRandomId.generate,
+      customFields: Seq[(String, Json)] = Nil
   ): JWTClaims = default(
     issuer,
     subject,
@@ -300,7 +304,8 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     expiration,
     notBefore,
     issuedAt,
-    jwtId
+    jwtId,
+    customFields
   )
 
   def default(
@@ -310,7 +315,8 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       expiration: Option[Instant] = None,
       notBefore: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       issuedAt: Option[Instant] = None,
-      jwtId: String = SecureRandomId.generate
+      jwtId: String = SecureRandomId.generate,
+      customFields: Seq[(String, Json)] = Nil
   ): JWTClaims = {
     val hashMap = new LHM[String, Json](JWTClaims.StandardClaims.length)
     hashMap.put(JWTClaims.Issuer, issuer.map(Json.fromString).getOrElse(Json.Null))
@@ -322,6 +328,10 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     hashMap.put(JWTClaims.JwtId, Json.fromString(jwtId))
 
     val cursor = HCursor.fromJson(Json.fromFields(JWTClaims.lhmIterator[String, Json](hashMap)))
+
+    customFields.foreach {
+      case (k, v) => hashMap.putIfAbsent(k, v)
+    }
 
     new JWTClaims(
       issuer,
@@ -342,7 +352,8 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       expiration: Option[FiniteDuration] = None,
       notBefore: Option[FiniteDuration] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       issuedAt: Option[FiniteDuration] = None,
-      jwtId: String = SecureRandomId.generate
+      jwtId: String = SecureRandomId.generate,
+      customFields: Seq[(String, Json)] = Nil
   )(implicit F: Sync[F]): F[JWTClaims] = F.map(F.delay(Instant.now().getEpochSecond)) { now =>
     val exp = expiration.map(s => Instant.ofEpochSecond(s.toSeconds + now))
     val nbf = notBefore.map(s => Instant.ofEpochSecond(s.toSeconds + now))
@@ -357,40 +368,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     hashMap.put(JWTClaims.IssuedAt, iat.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.JwtId, Json.fromString(jwtId))
 
-    val cursor = HCursor.fromJson(Json.fromFields(JWTClaims.lhmIterator[String, Json](hashMap)))
-
-    new JWTClaims(
-      issuer,
-      subject,
-      audience,
-      exp,
-      nbf,
-      iat,
-      jwtId,
-      cursor
-    ) {}
-  }
-
-  def withCustomFields(
-      issuer: Option[String] = None,
-      subject: Option[String] = None,
-      audience: Option[Either[String, List[String]]] = None,
-      expiration: Option[Instant] = None,
-      notBefore: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
-      issuedAt: Option[Instant] = None,
-      jwtId: String = SecureRandomId.generate,
-      fields: Seq[(String, Json)]
-  ): JWTClaims = {
-    val hashMap = new LHM[String, Json](JWTClaims.StandardClaims.length)
-    hashMap.put(JWTClaims.Issuer, issuer.map(Json.fromString).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Subject, subject.map(Json.fromString).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Audience, audience.map(_.fold(_.asJson, _.asJson)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Expiration, expiration.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.NotBefore, notBefore.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.IssuedAt, issuedAt.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.JwtId, Json.fromString(jwtId))
-
-    fields.foreach {
+    customFields.foreach {
       case (k, v) => hashMap.putIfAbsent(k, v)
     }
 
@@ -400,9 +378,9 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       issuer,
       subject,
       audience,
-      expiration,
-      notBefore,
-      issuedAt,
+      exp,
+      nbf,
+      iat,
       jwtId,
       cursor
     ) {}
