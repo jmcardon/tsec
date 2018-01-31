@@ -58,7 +58,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
         for {
           newToken <- JWTMac
             .build[IO, A](
-              b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
+              b.jwt.body.withExpiry(Instant.now().minusSeconds(10000)),
               macKey
             )
 
@@ -100,7 +100,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
         for {
           newToken <- JWTMac
             .build[IO, A](
-              b.jwt.body.copy(expiration = Some(Instant.now().minusSeconds(10000).getEpochSecond)),
+              b.jwt.body.withExpiry(Instant.now().minusSeconds(10000)),
               macKey
             )
 
@@ -141,7 +141,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
           newToken <- JWTMac
-            .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
+            .build[IO, A](b.jwt.body.withExpiry(expiredInstant), macKey)
 
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
@@ -149,7 +149,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def timeoutAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
-          newToken <- JWTMac.build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
+          newToken <- JWTMac.build[IO, A](b.jwt.body.withIAT(expiredInstant), macKey)
         } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
@@ -187,7 +187,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       def expireAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
-          newToken <- JWTMac.build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
+          newToken <- JWTMac.build[IO, A](b.jwt.body.withExpiry(expiredInstant), macKey)
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
 
@@ -195,7 +195,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
           newToken <- JWTMac
-            .build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
+            .build[IO, A](b.jwt.body.withIAT(expiredInstant), macKey)
         } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
@@ -235,14 +235,14 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
         val expiredInstant = Instant.now().minusSeconds(10000)
         for {
           newToken <- JWTMac
-            .build[IO, A](b.jwt.body.copy(expiration = Some(expiredInstant.getEpochSecond)), macKey)
+            .build[IO, A](b.jwt.body.withExpiry(expiredInstant), macKey)
         } yield b.copy(jwt = newToken, expiry = expiredInstant)
       }
 
       def timeoutAuthenticator(b: AugmentedJWT[A, Int]): IO[AugmentedJWT[A, Int]] = {
         val expiredInstant = Instant.now().minusSeconds(20000)
         for {
-          newToken <- JWTMac.build[IO, A](b.jwt.body.copy(issuedAt = Some(expiredInstant.getEpochSecond)), macKey)
+          newToken <- JWTMac.build[IO, A](b.jwt.body.withIAT(expiredInstant), macKey)
         } yield b.copy(jwt = newToken, lastTouched = Some(expiredInstant))
       }
 
