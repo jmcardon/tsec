@@ -295,4 +295,6 @@ public class SodiumJNI {
   public final static native int crypto_stream_xsalsa20_noncebytes();
   public final static native int crypto_stream_xsalsa20_xor(byte[] jarg1, byte[] jarg2, int jarg3, byte[] jarg4, byte[] jarg5);
   public final static native int crypto_stream_xsalsa20_xor_ic(byte[] jarg1, byte[] jarg2, int jarg3, byte[] jarg4, int jarg5, byte[] jarg6);
+  public final static native void crypto_kdf_keygen(byte[] jarg1);
+  public final static native int crypto_kdf_derive_from_key(byte[] jarg1, int jarg2, int jarg3, byte[] jarg4, byte[] jarg5);
 }
