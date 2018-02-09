@@ -430,8 +430,7 @@ object EncryptedCookieAuthenticator {
         * @return
         */
       def discard(authenticator: AuthEncryptedCookie[A, I]): F[AuthEncryptedCookie[A, I]] =
-        F.delay(Instant.now())
-          .map(now => authenticator.copy[A, I](content = AEADCookie[A]("invalid"), expiry = now))
+        F.delay(authenticator.copy[A, I](content = AEADCookie[A]("invalid"), expiry = Instant.EPOCH))
 
       /** Renew all of our cookie's possible expirations.
         * If there is a timeout, refresh that as well. otherwise, simply update the expiry.

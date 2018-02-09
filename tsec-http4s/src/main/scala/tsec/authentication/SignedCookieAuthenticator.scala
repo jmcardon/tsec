@@ -189,7 +189,9 @@ object SignedCookieAuthenticator {
         tokenStore.update(authenticator)
 
       def discard(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
-        tokenStore.delete(authenticator.id).map(_ => authenticator)
+        tokenStore
+          .delete(authenticator.id)
+          .map(_ => authenticator.copy(content = SignedCookie[Alg]("invalid"), expiry = Instant.EPOCH))
 
       /** Renew an authenticator: Reset it's expiry and whatnot.
         *
