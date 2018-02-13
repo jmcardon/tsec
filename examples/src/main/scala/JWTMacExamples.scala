@@ -36,16 +36,17 @@ object JWTMacExamples {
   JWTClaims(customFields = Seq(Doge.WowSuchClaim -> Doge("w00f", 8008135, 80085L).asJson))
 
   def builderStuff[F[_]: Sync]: F[JWTClaims] =
-    Sync[F].map(JWTClaimsBuilder[F]().withField[Doge](Doge.WowSuchClaim, Doge("w00f", 8008135, 80085L)))(_.build)
+    Sync[F].pure(JWTClaims(customFields = List(Doge.WowSuchClaim -> Doge("w00f", 8008135, 80085L).asJson)))
 
   /** encoding custom claims **/
   def jwtWithCustom[F[_]: Sync]: F[(JWTMac[HMACSHA256], Doge)] =
     for {
       key <- HMACSHA256.generateLift[F]
-      claimsBuilder <- JWTClaimsBuilder[F]()
-        .withExpiry(10.minutes)
-        .flatMap(_.withField(Doge.WowSuchClaim, Doge("w00f", 8008135, 80085L)))
-      claims          <- Sync[F].pure(claimsBuilder.build)
+      claims <- JWTClaims
+        .withDuration[F](
+          expiration = Some(10.minutes),
+          customFields = List(Doge.WowSuchClaim -> Doge("w00f", 8008135, 80085L).asJson)
+        )
       jwt             <- JWTMac.build[F, HMACSHA256](claims, key)
       verifiedFromObj <- JWTMac.verifyFromInstance[F, HMACSHA256](jwt, key)
       stringjwt       <- JWTMac.buildToString[F, HMACSHA256](claims, key) //Or build it straight to string

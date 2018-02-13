@@ -45,12 +45,6 @@ We can add it via explicit json serialization as such:
   JWTClaims(customFields = Seq(WowSuchClaim -> Doge("w00f", 8008135, 80085L).asJson))
 ```
 
-Or via the builder pattern:
-```tut
-  def builderStuff[F[_]: Sync]: F[JWTClaims] =
-    Sync[F].map(JWTClaimsBuilder[F]().withField[Doge](WowSuchClaim, Doge("w00f", 8008135, 80085L)))(_.build)
-```
-
 
 The JWT module comes with two ways to work with JWT by default interpreting
  into a Target `F[_]` with a `Sync[F]`, or interpreting into `Either[Throwable, A]`

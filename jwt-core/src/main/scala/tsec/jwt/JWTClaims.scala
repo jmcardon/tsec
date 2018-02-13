@@ -5,26 +5,45 @@ import java.time.Instant
 import java.util.{LinkedHashMap => LHM}
 
 import cats.effect.Sync
+import cats.instances.string._
 import io.circe.Decoder.Result
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
-import tsec.common.{SecureRandomId, TSecError}
+import tsec.common.{ByteUtils, SecureRandomId, TSecError}
 import tsec.jws.JWSSerializer
+import tsec.internal.CirceShim
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
+/** Represents the JWT Claims in
+  * https://tools.ietf.org/html/rfc7519#section-4
+  *
+  * Times are IEEE Std 1003.1, 2013 Edition time in seconds. They are represented
+  * in a java.time.Instant objects. At serialization time, they are
+  * represented as `Long`.
+  *
+  * Note: When feeding `Instant` instances directly, milliseconds are discarded
+  *
+  * @param issuer Issuer claim, Case insensitive
+  * @param subject Subject, Case-sensitive string
+  * @param audience The audience Case-sensitive. Can be either a list or a single string
+  * @param expiration The token expiration time
+  * @param notBefore identifies the time before which the JWT MUST NOT be accepted for processing.
+  * @param issuedAt identifies the time at which the JWT was issued
+  * @param jwtId provides a unique identifier for the JWT
+  */
 sealed abstract case class JWTClaims(
-    issuer: Option[String] = None, //Case insensitive
-    subject: Option[String] = None, //Case-sensitive
-    audience: Option[Either[String, List[String]]] = None, //case-sensitive
-    expiration: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
-    notBefore: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
+    issuer: Option[String],
+    subject: Option[String],
+    audience: Option[Either[String, List[String]]], //case-sensitive
+    expiration: Option[Instant],
+    notBefore: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
     issuedAt: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
-    jwtId: String = SecureRandomId.generate, //Case sensitive, and in our implementation, secure enough using UUIDv4
-    private[tsec] val cachedCursor: HCursor
+    jwtId: String, //Case sensitive, and in our implementation, secure enough using UUIDv4
+    private[tsec] val cachedObj: JsonObject
 ) { self =>
 
   private def copy(
@@ -35,7 +54,7 @@ sealed abstract case class JWTClaims(
       notBefore: Option[Instant] = self.notBefore,
       issuedAt: Option[Instant] = self.issuedAt,
       jwtId: String = self.jwtId,
-      c: HCursor
+      c: JsonObject
   ): JWTClaims =
     new JWTClaims(
       issuer,
@@ -49,82 +68,70 @@ sealed abstract case class JWTClaims(
     ) {}
 
   def getCustom[A: Decoder](key: String): Result[A] =
-    cachedCursor.downField(key).as[A]
+    cachedObj(key).map(_.as[A]).getOrElse(Left(DecodingFailure("No Such key", Nil)))
 
   def getCustomF[F[_], A: Decoder](key: String)(implicit F: Sync[F]): F[A] =
-    F.fromEither(cachedCursor.downField(key).as[A])
+    cachedObj(key)
+      .map(s => F.fromEither(s.as[A]))
+      .getOrElse(F.raiseError(DecodingFailure("No Such key", Nil)))
 
-  def withIssuer(isr: String): JWTClaims = {
-    val modified =
-      cachedCursor
-        .downField(JWTClaims.Issuer)
-        .withFocus(_ => Json.fromString(isr))
-
+  def withIssuer(isr: String): JWTClaims =
     copy(
       issuer = Some(isr),
-      c = modified.top.get.hcursor //This is ok, since we can guarantee via construction that `Expiration` exists
+      c = cachedObj.add(JWTClaims.Issuer, Json.fromString(isr))
     )
-  }
 
-  def withSubject(subj: String): JWTClaims = {
-    val modified =
-      cachedCursor
-        .downField(JWTClaims.Subject)
-        .withFocus(_ => Json.fromString(subj))
-
+  def withSubject(subj: String): JWTClaims =
     copy(
       subject = Some(subj),
-      c = modified.top.get.hcursor //This is ok, since we can guarantee via construction that `Expiration` exists
+      c = cachedObj.add(JWTClaims.Subject, Json.fromString(subj))
     )
-  }
 
-  def withExpiry(duration: Instant): JWTClaims = {
-    val modified =
-      cachedCursor
-        .downField(JWTClaims.Expiration)
-        .withFocus(_ => Json.fromLong(duration.getEpochSecond))
+  def withCustomField[A](key: String, value: A)(implicit e: Encoder[A]): Either[JWTClaims.InvalidField, JWTClaims] =
+    if (ByteUtils.contains[String](JWTClaims.StandardClaims, key))
+      Left(JWTClaims.InvalidFieldError)
+    else {
+      Right(
+        copy(
+          c = cachedObj.add(key, e(value))
+        )
+      )
+    }
 
+  def withCustomFieldF[F[_], A](key: String, value: A)(implicit F: Sync[F], e: Encoder[A]): F[JWTClaims] =
+    if (ByteUtils.contains[String](JWTClaims.StandardClaims, key))
+      F.raiseError[JWTClaims](JWTClaims.InvalidFieldError)
+    else {
+      F.pure(
+        copy(
+          c = cachedObj.add(key, e(value))
+        )
+      )
+    }
+
+  def withExpiry(duration: Instant): JWTClaims =
     copy(
       expiration = Some(duration),
-      c = modified.top.get.hcursor //This is ok, since we can guarantee via construction that `Expiration` exists
+      c = cachedObj.add(JWTClaims.Expiration, Json.fromLong(duration.getEpochSecond))
     )
-  }
 
-  def withIAT(duration: Instant): JWTClaims = {
-    val modified =
-      cachedCursor
-        .downField(JWTClaims.IssuedAt)
-        .withFocus(_ => Json.fromLong(duration.getEpochSecond))
-
+  def withIAT(duration: Instant): JWTClaims =
     copy(
       issuedAt = Some(duration),
-      c = modified.top.get.hcursor //This is ok, since we can guarantee via construction that `iat` exists
+      c = cachedObj.add(JWTClaims.IssuedAt, Json.fromLong(duration.getEpochSecond))
     )
-  }
 
-  def withNBF(duration: Instant): JWTClaims = {
-    val modified: ACursor =
-      cachedCursor
-        .downField(JWTClaims.NotBefore)
-        .withFocus(_ => Json.fromLong(duration.getEpochSecond))
-
+  def withNBF(duration: Instant): JWTClaims =
     copy(
       notBefore = Some(duration),
-      c = modified.top.get.hcursor //This is ok, since we can guarantee via construction that `iat` exists
+      c = cachedObj.add(JWTClaims.NotBefore, Json.fromLong(duration.getEpochSecond))
     )
-  }
 
-  def withJwtID(jwtId: String): JWTClaims = {
-    val modified: ACursor =
-      cachedCursor
-        .downField(JWTClaims.JwtId)
-        .withFocus(_ => Json.fromString(jwtId))
-
+  def withJwtID(jwtId: String): JWTClaims =
     copy(
       jwtId = jwtId,
-      c = modified.top.get.hcursor //This is ok, since we can guarantee via construction that `iat` exists
+      c = cachedObj.add(JWTClaims.JwtId, Json.fromString(jwtId))
     )
-  }
 
   def isNotExpired(now: Instant): Boolean = expiration.forall(e => now.isBefore(e))
   def isAfterNBF(now: Instant): Boolean   = notBefore.forall(e => now.isAfter(e))
@@ -133,160 +140,13 @@ sealed abstract case class JWTClaims(
 
 }
 
-sealed abstract class JWTClaimsBuilder[F[_]](
-    issuer: Option[String] = None, //Case insensitive
-    subject: Option[String] = None, //Case-sensitive
-    audience: Option[Either[String, List[String]]] = None, //case-sensitive
-    expiration: Option[Instant] = None,
-    notBefore: Option[Instant] = None,
-    issuedAt: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
-    jwtId: String = SecureRandomId.generate, //Case sensitive, and in our implementation, secure enough using UUIDv4
-    private[tsec] val claims: LHM[String, Json]
-) {
-
-  def withIssuer(isr: String)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = F.delay {
-    claims.put(JWTClaims.Issuer, Json.fromString(isr))
-    this
-  }
-
-  def withSubject(sub: String)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = F.delay {
-    claims.put(JWTClaims.Subject, Json.fromString(sub))
-    this
-  }
-
-  def withAudience(aud: Either[String, List[String]])(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = F.delay {
-    claims.put(JWTClaims.Audience, aud.fold(_.asJson, _.asJson))
-    this
-  }
-
-  def withIssuedAt(duration: FiniteDuration)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] =
-    F.map(F.delay(Instant.now().getEpochSecond)) { now =>
-      claims.put(JWTClaims.IssuedAt, Json.fromLong(now + duration.toSeconds))
-      this
-    }
-
-  def withExpiry(expiry: FiniteDuration)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] =
-    F.map(F.delay(Instant.now().getEpochSecond)) { now =>
-      claims.put(JWTClaims.Expiration, Json.fromLong(now + expiry.toSeconds))
-      this
-    }
-
-  def withNotBefore(notBefore: FiniteDuration)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] =
-    F.map(F.delay(Instant.now().getEpochSecond)) { now =>
-      claims.put(JWTClaims.NotBefore, Json.fromLong(now + notBefore.toSeconds))
-      this
-    }
-
-  def withIssuedAt(instant: Instant)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = F.delay {
-    claims.put(JWTClaims.IssuedAt, Json.fromLong(instant.getEpochSecond))
-    this
-  }
-
-  def withExpiry(expiry: Instant)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = F.delay {
-    claims.put(JWTClaims.Expiration, Json.fromLong(expiry.getEpochSecond))
-    this
-  }
-
-  def withNotBefore(notBefore: Instant)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = F.delay {
-    claims.put(JWTClaims.NotBefore, Json.fromLong(notBefore.getEpochSecond))
-    this
-  }
-
-  def withJWTId(id: String)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = F.delay {
-    claims.put(JWTClaims.JwtId, Json.fromString(id))
-    this
-  }
-
-  def withField[A](name: String, value: A)(implicit F: Sync[F], encoder: Encoder[A]): F[JWTClaimsBuilder[F]] =
-    F.delay {
-      claims.putIfAbsent(name, encoder(value))
-      this
-    }
-
-  def withFields(fields: (String, Json)*)(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] = withFieldSeq(fields)
-
-  def withFieldSeq(fields: Seq[(String, Json)])(implicit F: Sync[F]): F[JWTClaimsBuilder[F]] =
-    F.delay {
-      fields.foreach {
-        case (k, v) => claims.putIfAbsent(k, v)
-      }
-      this
-    }
-
-  def unsafeWithField[A](name: String, value: A)(encoder: Encoder[A]): JWTClaimsBuilder[F] = {
-    claims.putIfAbsent(name, encoder(value))
-    this
-  }
-
-  def unsafeWithFields(fields: (String, Json)*): JWTClaimsBuilder[F] = unsafeWithFieldSeq(fields)
-
-  def unsafeWithFieldSeq(fields: Seq[(String, Json)]): JWTClaimsBuilder[F] = {
-    fields.foreach {
-      case (k, v) => claims.putIfAbsent(k, v)
-    }
-    this
-  }
-
-  def build: JWTClaims = {
-    val itr: Iterable[(String, Json)] = JWTClaims.lhmIterator[String, Json](claims)
-
-    new JWTClaims(
-      issuer,
-      subject,
-      audience,
-      expiration,
-      notBefore,
-      issuedAt,
-      jwtId,
-      HCursor.fromJson(Json.fromFields(itr))
-    ) {}
-  }
-
-}
-
-object JWTClaimsBuilder {
-  def apply[F[_]](
-      issuer: Option[String] = None, //Case insensitive
-      subject: Option[String] = None, //Case-sensitive
-      audience: Option[Either[String, List[String]]] = None, //case-sensitive
-      expiration: Option[Instant] = None,
-      notBefore: Option[Instant] = None,
-      issuedAt: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
-      jwtId: String = SecureRandomId.generate //Case sensitive, and in our implementation, secure enough using UUIDv4
-  ): JWTClaimsBuilder[F] = {
-    val hashMap = new LHM[String, Json](JWTClaims.StandardClaims.length)
-    hashMap.put(JWTClaims.Issuer, issuer.map(Json.fromString).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Subject, subject.map(Json.fromString).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Audience, audience.map(_.fold(_.asJson, _.asJson)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Expiration, expiration.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.NotBefore, notBefore.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.IssuedAt, issuedAt.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.JwtId, Json.fromString(jwtId))
-
-    new JWTClaimsBuilder[F](issuer, subject, audience, expiration, notBefore, issuedAt, jwtId, hashMap) {}
-  }
-
-}
-
 object JWTClaims extends JWSSerializer[JWTClaims] {
-  private[tsec] def lhmIterator[A, B](lhm: LHM[A, B]): Iterable[(A, B)] = new Iterable[(A, B)] {
-    def iterator: Iterator[(A, B)] = new Iterator[(A, B)] {
-
-      private[this] val underlying = lhm.entrySet.iterator
-
-      final def hasNext: Boolean = underlying.hasNext
-
-      final def next(): (A, B) = {
-        val field = underlying.next()
-
-        (field.getKey, field.getValue)
-      }
-    }
-  }
 
   object InvalidFieldError extends TSecError {
     def cause: String = "Standard JWT Field Violation"
   }
+
+  type InvalidField = InvalidFieldError.type
 
   def apply(
       issuer: Option[String] = None,
@@ -313,7 +173,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       subject: Option[String] = None,
       audience: Option[Either[String, List[String]]] = None,
       expiration: Option[Instant] = None,
-      notBefore: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
+      notBefore: Option[Instant] = None,
       issuedAt: Option[Instant] = None,
       jwtId: String = SecureRandomId.generate,
       customFields: Seq[(String, Json)] = Nil
@@ -327,8 +187,6 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     hashMap.put(JWTClaims.IssuedAt, issuedAt.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.JwtId, Json.fromString(jwtId))
 
-    val cursor = HCursor.fromJson(Json.fromFields(JWTClaims.lhmIterator[String, Json](hashMap)))
-
     customFields.foreach {
       case (k, v) => hashMap.putIfAbsent(k, v)
     }
@@ -337,11 +195,11 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       issuer,
       subject,
       audience,
-      expiration,
-      notBefore,
-      issuedAt,
+      expiration.map(s => Instant.ofEpochSecond(s.getEpochSecond)),
+      notBefore.map(s => Instant.ofEpochSecond(s.getEpochSecond)),
+      issuedAt.map(s => Instant.ofEpochSecond(s.getEpochSecond)),
       jwtId,
-      cursor
+      CirceShim.fromLinkedHashMap(hashMap)
     ) {}
   }
 
@@ -372,8 +230,6 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       case (k, v) => hashMap.putIfAbsent(k, v)
     }
 
-    val cursor = HCursor.fromJson(Json.fromFields(JWTClaims.lhmIterator[String, Json](hashMap)))
-
     new JWTClaims(
       issuer,
       subject,
@@ -382,7 +238,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       nbf,
       iat,
       jwtId,
-      cursor
+      CirceShim.fromLinkedHashMap(hashMap)
     ) {}
   }
 
@@ -399,7 +255,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     Array(Issuer, Subject, Audience, Expiration, NotBefore, IssuedAt, JwtId)
 
   implicit val encoder: Encoder[JWTClaims] = new Encoder[JWTClaims] {
-    def apply(a: JWTClaims): Json = a.cachedCursor.value
+    def apply(a: JWTClaims): Json = Json.fromJsonObject(a.cachedObj)
   }
 
   final private def unsafeInstant(i: Option[Long]): Decoder.Result[Option[Instant]] = i match {
@@ -414,20 +270,27 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
   }
 
   implicit val claimsDecoder: Decoder[JWTClaims] = new Decoder[JWTClaims] {
-    def apply(c: HCursor): Result[JWTClaims] =
-      for {
-        iss        <- c.downField("iss").as[Option[String]]
-        sub        <- c.downField("sub").as[Option[String]]
-        aud        <- c.downField("aud").as[Option[Either[String, List[String]]]]
-        expiration <- c.downField("exp").as[Option[Long]].flatMap(unsafeInstant)
-        nbf        <- c.downField("nbf").as[Option[Long]].flatMap(unsafeInstant)
-        iat        <- c.downField("iat").as[Option[Long]].flatMap(unsafeInstant)
-        jwtid      <- c.downField("jti").as[String]
-      } yield new JWTClaims(iss, sub, aud, expiration, nbf, iat, jwtid, c) {}
+    def apply(c: HCursor): Result[JWTClaims] = c.value.asObject match {
+      case Some(obj) =>
+        for {
+          iss        <- c.downField(Issuer).as[Option[String]]
+          sub        <- c.downField(Subject).as[Option[String]]
+          aud        <- c.downField(Audience).as[Option[Either[String, List[String]]]]
+          expiration <- c.downField(Expiration).as[Option[Long]].flatMap(unsafeInstant)
+          nbf        <- c.downField(NotBefore).as[Option[Long]].flatMap(unsafeInstant)
+          iat        <- c.downField(IssuedAt).as[Option[Long]].flatMap(unsafeInstant)
+          jwtid      <- c.downField(JwtId).as[String]
+        } yield new JWTClaims(iss, sub, aud, expiration, nbf, iat, jwtid, obj) {}
+
+      case None =>
+        Left(DecodingFailure("Invalid JSON", Nil))
+    }
+
   }
 
   def serializeToUtf8(body: JWTClaims): Array[Byte] = JWTPrinter.pretty(body.asJson).getBytes(StandardCharsets.UTF_8)
 
   def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWTClaims] =
     decode[JWTClaims](new String(array, StandardCharsets.UTF_8))
+
 }

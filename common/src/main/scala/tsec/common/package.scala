@@ -29,23 +29,23 @@ package object common {
   }
 
   // ByteBuffer capacity based on https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
-  implicit val intPrimitiveEncoder = new TSecPrimitiveEncoder[Int] {
+  implicit val intPrimitiveEncoder: TSecPrimitiveEncoder[Int] = new TSecPrimitiveEncoder[Int] {
     def encode(v: Int) = ByteBuffer.allocate(4).putInt(v).array()
   }
 
-  implicit val longPrimitiveEncoder = new TSecPrimitiveEncoder[Long] {
+  implicit val longPrimitiveEncoder: TSecPrimitiveEncoder[Long] = new TSecPrimitiveEncoder[Long] {
     def encode(v: Long) = ByteBuffer.allocate(8).putLong(v).array()
   }
 
-  implicit val shortPrimitiveEncoder = new TSecPrimitiveEncoder[Short] {
+  implicit val shortPrimitiveEncoder: TSecPrimitiveEncoder[Short] = new TSecPrimitiveEncoder[Short] {
     def encode(v: Short) = ByteBuffer.allocate(4).putShort(v).array()
   }
 
-  implicit val floatPrimitiveEncoder = new TSecPrimitiveEncoder[Float] {
+  implicit val floatPrimitiveEncoder: TSecPrimitiveEncoder[Float] = new TSecPrimitiveEncoder[Float] {
     def encode(v: Float) = ByteBuffer.allocate(4).putFloat(v).array()
   }
 
-  implicit val doublePrimitiveEncoder = new TSecPrimitiveEncoder[Double] {
+  implicit val doublePrimitiveEncoder: TSecPrimitiveEncoder[Double] = new TSecPrimitiveEncoder[Double] {
     def encode(v: Double) = ByteBuffer.allocate(8).putDouble(v).array()
   }
 
