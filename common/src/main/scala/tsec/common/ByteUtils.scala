@@ -14,7 +14,7 @@ object ByteUtils {
     *  remove that crap
     *
     */
-  @inline final def find[A: Eq](arr: Array[A], p: A => Boolean): Boolean =
+  @inline final def find[A](arr: Array[A], p: A => Boolean): Boolean =
     if (arr.isEmpty)
       false
     else {
