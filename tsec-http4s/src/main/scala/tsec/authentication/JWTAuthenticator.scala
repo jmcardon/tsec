@@ -133,9 +133,9 @@ object JWTAuthenticator {
           expiry      = now.plusSeconds(expiryDuration.toSeconds)
           lastTouched = maxIdle.map(_ => now)
           claims = JWTClaims(
-            issuedAt = Some(now.getEpochSecond),
+            issuedAt = Some(now),
             jwtId = cookieId,
-            expiration = Some(expiry.getEpochSecond)
+            expiration = Some(expiry)
           )
           signed  <- JWTMac.build[F, A](claims, signingKey)
           created <- tokenStore.put(AugmentedJWT(cookieId, signed, body, expiry, lastTouched))
@@ -150,7 +150,7 @@ object JWTAuthenticator {
       def renew(authenticator: AugmentedJWT[A, I]): F[AugmentedJWT[A, I]] =
         F.delay(Instant.now()).flatMap { now =>
           val updatedExpiry = now.plusSeconds(expiryDuration.toSeconds)
-          val newBody       = authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond))
+          val newBody       = authenticator.jwt.body.withExpiry(updatedExpiry)
           maxIdle match {
             case Some(idleTime) =>
               for {
@@ -265,7 +265,7 @@ object JWTAuthenticator {
           lastTouched = settings.maxIdle.map(_ => now)
           claims = JWTClaims(
             jwtId = cookieId,
-            expiration = Some(expiry.getEpochSecond)
+            expiration = Some(expiry)
           )
           signed  <- JWTMac.build[F, A](claims, signingKey)
           created <- tokenStore.put(AugmentedJWT(cookieId, signed, body, expiry, lastTouched))
@@ -280,7 +280,7 @@ object JWTAuthenticator {
       def renew(authenticator: AugmentedJWT[A, I]): F[AugmentedJWT[A, I]] =
         F.delay(Instant.now()).flatMap { now =>
           val updatedExpiry = now.plusSeconds(settings.expiryDuration.toSeconds)
-          val newBody       = authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond))
+          val newBody       = authenticator.jwt.body.withExpiry(updatedExpiry)
           settings.maxIdle match {
             case Some(idleTime) =>
               for {
@@ -361,7 +361,7 @@ object JWTAuthenticator {
       private def verify(body: JWTMac[A]): OptionT[F, Option[Instant]] = maxIdle match {
         case Some(max) =>
           for {
-            iat <- OptionT.liftF(F.delay(body.body.issuedAt.map(Instant.ofEpochSecond)))
+            iat <- OptionT.liftF(F.delay(body.body.issuedAt))
             now <- OptionT.liftF(F.delay(Instant.now()))
             instant <- if (!iat.exists(_.plusSeconds(max.toSeconds).isBefore(now)))
               OptionT.pure(iat)
@@ -388,7 +388,7 @@ object JWTAuthenticator {
             SecureRandomId.coerce(extracted.body.jwtId),
             extracted,
             id,
-            Instant.ofEpochSecond(expiry),
+            expiry,
             lastTouched
           )
           refreshed <- OptionT.liftF(refresh(augmented))
@@ -404,10 +404,10 @@ object JWTAuthenticator {
           lastTouched = maxIdle.map(_ => now)
           subj        = Some(body.asJson.pretty(JWTPrinter))
           claims = JWTClaims(
-            issuedAt = Some(now.getEpochSecond),
+            issuedAt = Some(now),
             subject = subj,
             jwtId = cookieId,
-            expiration = Some(expiryTime.getEpochSecond),
+            expiration = Some(expiryTime),
           )
           out <- JWTMac.build[F, A](claims, signingKey)
         } yield AugmentedJWT(cookieId, out, body, expiryTime, lastTouched)
@@ -420,11 +420,7 @@ object JWTAuthenticator {
         for {
           now <- F.delay(Instant.now)
           jwt <- JWTMac.build(
-            authenticator.jwt.body.copy(
-              expiration = Some(now.getEpochSecond),
-              custom = None,
-              jwtId = SecureRandomId.generate
-            ),
+            authenticator.jwt.body.withExpiry(now).withJwtID(SecureRandomId.generate),
             signingKey
           )
         } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, now, authenticator.lastTouched)
@@ -435,7 +431,7 @@ object JWTAuthenticator {
           updatedExpiry = now.plusSeconds(expiry.toSeconds)
           authBody      = authenticator.jwt.body
           jwt <- JWTMac.build(
-            authBody.copy(issuedAt = Some(now.getEpochSecond), expiration = Some(updatedExpiry.getEpochSecond)),
+            authBody.withIAT(now).withExpiry(updatedExpiry),
             signingKey
           )
           aug = maxIdle match {
@@ -450,7 +446,7 @@ object JWTAuthenticator {
         case Some(_) =>
           for {
             now      <- F.delay(Instant.now())
-            newToken <- JWTMac.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
+            newToken <- JWTMac.build(authenticator.jwt.body.withIAT(now), signingKey)
           } yield authenticator.copy(jwt = newToken, lastTouched = Some(now))
         case None =>
           F.pure(authenticator)
@@ -564,14 +560,14 @@ object JWTAuthenticator {
           now         <- OptionT.liftF(F.delay(Instant.now))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
-          lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
+          lastTouched <- checkTimeout(extracted.body.issuedAt)
           decodedBody <- OptionT.liftF(decryptIdentity(rawId))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           augmented = AugmentedJWT(
             SecureRandomId.coerce(extracted.body.jwtId),
             extracted,
             decodedBody,
-            Instant.ofEpochSecond(expiry),
+            expiry,
             lastTouched
           )
           refreshed <- OptionT.liftF(refresh(augmented))
@@ -587,10 +583,10 @@ object JWTAuthenticator {
           lastTouched = maxIdle.map(_ => now)
           messageBody <- encryptIdentity(body, lastTouched)
           claims = JWTClaims(
-            issuedAt = Some(now.getEpochSecond),
+            issuedAt = Some(now),
             subject = Some(messageBody),
             jwtId = cookieId,
-            expiration = Some(expiry.getEpochSecond),
+            expiration = Some(expiry),
           )
           jwt <- JWTMac.build[F, A](claims, signingKey)
         } yield AugmentedJWT(cookieId, jwt, body, expiry, lastTouched)
@@ -603,11 +599,7 @@ object JWTAuthenticator {
         for {
           now <- F.delay(Instant.now())
           jwt <- JWTMac.build(
-            authenticator.jwt.body.copy(
-              expiration = Some(now.getEpochSecond),
-              custom = None,
-              jwtId = SecureRandomId.generate
-            ),
+            authenticator.jwt.body.withExpiry(now).withJwtID(SecureRandomId.generate),
             signingKey
           )
         } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, now, authenticator.lastTouched)
@@ -619,14 +611,13 @@ object JWTAuthenticator {
             case Some(_) =>
               JWTMac
                 .build(
-                  authenticator.jwt.body
-                    .copy(expiration = Some(updatedExpiry.getEpochSecond), issuedAt = Some(now.getEpochSecond)),
+                  authenticator.jwt.body.withExpiry(updatedExpiry).withIAT(now),
                   signingKey
                 )
                 .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, Some(now)))
             case None =>
               JWTMac
-                .build(authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond)), signingKey)
+                .build(authenticator.jwt.body.withExpiry(updatedExpiry), signingKey)
                 .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, None))
           }
         }
@@ -635,7 +626,7 @@ object JWTAuthenticator {
         case Some(_) =>
           for {
             now <- F.delay(Instant.now())
-            jwt <- JWTMac.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
+            jwt <- JWTMac.build(authenticator.jwt.body.withIAT(now), signingKey)
           } yield authenticator.copy(jwt = jwt, lastTouched = Some(now))
 
         case None =>
@@ -730,14 +721,14 @@ object JWTAuthenticator {
           now         <- OptionT.liftF(F.delay(Instant.now))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
-          lastTouched <- checkTimeout(extracted.body.issuedAt.map(Instant.ofEpochSecond))
+          lastTouched <- checkTimeout(extracted.body.issuedAt)
           decodedBody <- OptionT.liftF(decryptIdentity(rawId))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           augmented = AugmentedJWT(
             SecureRandomId.coerce(extracted.body.jwtId),
             extracted,
             decodedBody,
-            Instant.ofEpochSecond(expiry),
+            expiry,
             lastTouched
           )
           refreshed <- OptionT.liftF(refresh(augmented))
@@ -753,10 +744,10 @@ object JWTAuthenticator {
           lastTouched = settings.maxIdle.map(_ => now)
           messageBody <- encryptIdentity(body, lastTouched)
           claims = JWTClaims(
-            issuedAt = Some(now.getEpochSecond),
+            issuedAt = Some(now),
             subject = Some(messageBody),
             jwtId = cookieId,
-            expiration = Some(expiry.getEpochSecond),
+            expiration = Some(expiry),
           )
           newToken <- JWTMac.build[F, A](claims, signingKey)
 
@@ -771,11 +762,7 @@ object JWTAuthenticator {
         for {
           now <- F.delay(Instant.now())
           jwt <- JWTMac.build(
-            authenticator.jwt.body.copy(
-              subject = None,
-              expiration = Some(now.getEpochSecond),
-              jwtId = SecureRandomId.generate
-            ),
+            authenticator.jwt.body.withSubject("").withExpiry(now).withJwtID(SecureRandomId.generate),
             signingKey
           )
         } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, now, authenticator.lastTouched)
@@ -787,14 +774,13 @@ object JWTAuthenticator {
             case Some(idleTime) =>
               JWTMac
                 .build(
-                  authenticator.jwt.body
-                    .copy(expiration = Some(updatedExpiry.getEpochSecond), issuedAt = Some(now.getEpochSecond)),
+                  authenticator.jwt.body.withExpiry(updatedExpiry).withIAT(now),
                   signingKey
                 )
                 .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, Some(now)))
             case None =>
               JWTMac
-                .build(authenticator.jwt.body.copy(expiration = Some(updatedExpiry.getEpochSecond)), signingKey)
+                .build(authenticator.jwt.body.withExpiry(updatedExpiry), signingKey)
                 .map(AugmentedJWT(authenticator.id, _, authenticator.identity, updatedExpiry, None))
           }
         }
@@ -803,7 +789,7 @@ object JWTAuthenticator {
         case Some(_) =>
           for {
             now      <- F.delay(Instant.now())
-            newToken <- JWTMac.build(authenticator.jwt.body.copy(issuedAt = Some(now.getEpochSecond)), signingKey)
+            newToken <- JWTMac.build(authenticator.jwt.body.withIAT(now), signingKey)
           } yield authenticator.copy(jwt = newToken, lastTouched = Some(now))
         case None =>
           F.pure(authenticator)

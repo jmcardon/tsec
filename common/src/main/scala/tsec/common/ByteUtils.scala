@@ -2,18 +2,60 @@ package tsec.common
 
 import java.security.MessageDigest
 
+import cats.Eq
+import cats.syntax.eq._
+
 object ByteUtils {
 
-  @inline def zeroByteArray(a: Array[Byte]): Unit =
+  /** Only exists because the scala stdlib decided
+    * iterators were the best way to implement a .find operation.
+    *
+    *  Will remove iff the new collections
+    *  remove that crap
+    *
+    */
+  @inline final def find[A](arr: Array[A], p: A => Boolean): Boolean =
+    if (arr.isEmpty)
+      false
+    else {
+      var i = 0
+      while (i < arr.length) {
+        if (p(arr(i)))
+          return true
+        i += 1
+      }
+      false
+    }
+
+  /** Only exists because the scala stdlib decided
+    * iterators were the best way to implement a .find operation.
+    *
+    *  Will remove iff the new collections
+    *  remove that crap
+    *
+    */
+  @inline final def contains[A: Eq](arr: Array[A], elem: A): Boolean =
+    if (arr.isEmpty)
+      false
+    else {
+      var i = 0
+      while (i < arr.length) {
+        if (arr(i) === elem)
+          return true
+        i += 1
+      }
+      false
+    }
+  @inline final def zeroByteArray(a: Array[Byte]): Unit =
     java.util.Arrays.fill(a, 0.toByte)
 
-  @inline def zeroCharArray(a: Array[Char]): Unit =
+  @inline final def zeroCharArray(a: Array[Char]): Unit =
     java.util.Arrays.fill(a, 0.toChar)
 
-  @inline def constantTimeEquals(a: Array[Byte], b: Array[Byte]): Boolean =
+  @inline final def constantTimeEquals(a: Array[Byte], b: Array[Byte]): Boolean =
     MessageDigest.isEqual(a, b)
 
-  @inline def intToBytes(a: Int): Array[Byte] =
+  @inline final def intToBytes(a: Int): Array[Byte] =
     Array(
       (a >> 24).toByte,
       (a >> 16).toByte,
@@ -21,14 +63,14 @@ object ByteUtils {
       a.toByte
     )
 
-  @inline def unsafeBytesToInt(a: Array[Byte]): Int =
+  @inline final def unsafeBytesToInt(a: Array[Byte]): Int =
     a(0) << 24 | (a(1) & 0xFF) << 16 | (a(2) & 0xFF) << 8 | (a(3) & 0xFF)
 
-  @inline def bytesToInt(a: Array[Byte]): Option[Int] =
+  @inline final def bytesToInt(a: Array[Byte]): Option[Int] =
     if (a.length != Integer.BYTES) None
     else Some(unsafeBytesToInt(a))
 
-  @inline def longToBytes(x: Long): Array[Byte] =
+  @inline final def longToBytes(x: Long): Array[Byte] =
     Array[Byte](
       (x >> 56).toByte,
       (x >> 48).toByte,
