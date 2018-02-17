@@ -11,12 +11,12 @@ object Dependencies {
     val bouncyCastleV = "1.58"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.4"
-    val http4sV       = "0.18.0-M8"
+    val http4sV       = "0.18.0"
     val scalacheckV   = "1.13.5"
     val commonsCodecV = "1.11"
-    val fs2Version    = "0.10.0-M11"
+    val fs2Version    = "0.10.0"
     val log4sV        = "1.4.0"
-    val gitHub4s      = "0.17.0"
+    val gitHub4s      = "0.18.1"
   }
 
   object Libraries {

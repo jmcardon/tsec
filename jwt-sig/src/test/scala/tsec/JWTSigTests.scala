@@ -1,19 +1,16 @@
 package tsec
 
 import java.security.Security
-
-import cats.effect.IO
-import tsec.jws.signature._
-import tsec.jwt.algorithms.JWTSigAlgo
-import tsec.signature.imports._
-
-import scala.concurrent.duration._
 import java.time.Instant
 
+import cats.effect.IO
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
+import tsec.jws.signature._
 import tsec.jwt.JWTClaims
+import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature.core.KFTag
+import tsec.signature.imports._
 
 class JWTSigTests extends TestSpec with MustMatchers {
 
