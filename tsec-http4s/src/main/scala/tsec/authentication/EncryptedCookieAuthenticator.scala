@@ -136,6 +136,13 @@ object AuthEncryptedCookie {
 
 object EncryptedCookieAuthenticator {
 
+  private[tsec] def isExpired[I: Encoder: Decoder, A: AES](
+      internal: AuthEncryptedCookie[A, I],
+      now: Instant,
+      maxIdle: Option[FiniteDuration]
+  ): Boolean =
+    !internal.isExpired(now) && !maxIdle.exists(internal.isTimedOut(now, _))
+
   /** The default Encrypted cookie Authenticator, with a backing store.
     *
     * @param settings the cookie settings
@@ -213,7 +220,7 @@ object EncryptedCookieAuthenticator {
           raw: AEADCookie[A],
           now: Instant
       ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedOut(now, _))
+        internal.content === raw && isExpired[I, A](internal, now, settings.maxIdle)
 
       /** lift the validation onto an optionT
         *
@@ -265,7 +272,7 @@ object EncryptedCookieAuthenticator {
         *
         */
       def discard(authenticator: AuthEncryptedCookie[A, I]): F[AuthEncryptedCookie[A, I]] =
-        tokenStore.delete(authenticator.id).map(_ => authenticator)
+        tokenStore.delete(authenticator.id).map(_ => authenticator.copy(expiry = Instant.EPOCH))
 
       /** Renew, aka reset both the expiry as well as the last touched (if present) value
         *
@@ -363,17 +370,11 @@ object EncryptedCookieAuthenticator {
         * useless
         *
         */
-      private def validateCookie(
-          internal: AuthEncryptedCookie[A, I],
-          now: Instant
-      ): Boolean =
-        !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedOut(now, _))
-
       private def validateAndRefresh(
           internal: AuthEncryptedCookie[A, I],
           now: Instant
       ): OptionT[F, AuthEncryptedCookie[A, I]] =
-        if (validateCookie(internal, now)) OptionT.liftF(refresh(internal)) else OptionT.none
+        if (isExpired(internal, now, settings.maxIdle)) OptionT.liftF(refresh(internal)) else OptionT.none
 
       def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest(settings.cookieName, request).map(_.content)
@@ -430,8 +431,7 @@ object EncryptedCookieAuthenticator {
         * @return
         */
       def discard(authenticator: AuthEncryptedCookie[A, I]): F[AuthEncryptedCookie[A, I]] =
-        F.delay(Instant.now())
-          .map(now => authenticator.copy[A, I](content = AEADCookie[A]("invalid"), expiry = now))
+        F.delay(authenticator.copy[A, I](content = AEADCookie[A]("invalid"), expiry = Instant.EPOCH))
 
       /** Renew all of our cookie's possible expirations.
         * If there is a timeout, refresh that as well. otherwise, simply update the expiry.

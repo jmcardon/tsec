@@ -69,4 +69,27 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
   CookieReqTest[HMACSHA384]("HMACSHA384 Authenticator", genAuthenticator[HMACSHA384])
   CookieReqTest[HMACSHA512]("HMACSHA512 Authenticator", genAuthenticator[HMACSHA512])
 
+  def signedCookieTests[A: MacTag](auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) = {
+
+    behavior of "Signed Cookie Authenticator " + MacTag[A].algorithm
+
+    it should "expire tokens on discard" in {
+
+      val program: IO[Boolean] = for {
+        cookie  <- auth.auth.create(0)
+        expired <- auth.auth.discard(cookie)
+        now     <- IO(Instant.now())
+      } yield SignedCookieAuthenticator.isExpired(expired, now, None)
+
+      program.unsafeRunSync() mustBe false
+
+    }
+
+  }
+
+  signedCookieTests[HMACSHA1](genAuthenticator[HMACSHA1])
+  signedCookieTests[HMACSHA256](genAuthenticator[HMACSHA256])
+  signedCookieTests[HMACSHA384](genAuthenticator[HMACSHA384])
+  signedCookieTests[HMACSHA512](genAuthenticator[HMACSHA512])
+
 }
