@@ -265,7 +265,7 @@ object EncryptedCookieAuthenticator {
         *
         */
       def discard(authenticator: AuthEncryptedCookie[A, I]): F[AuthEncryptedCookie[A, I]] =
-        tokenStore.delete(authenticator.id).map(_ => authenticator)
+        tokenStore.delete(authenticator.id).map(_ => authenticator.copy(expiry = Instant.EPOCH))
 
       /** Renew, aka reset both the expiry as well as the last touched (if present) value
         *
