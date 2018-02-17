@@ -1,6 +1,5 @@
 package tsec.libsodium
 
-import cats.data.StateT
 import tsec.common._
 import cats.effect.IO
 import org.scalacheck.Gen

@@ -13,7 +13,7 @@ ________________________________________
 [ ![Latest Version](https://api.bintray.com/packages/jmcardon/tsec/tsec-common/images/download.svg) ](https://bintray.com/jmcardon/tsec/tsec-common/_latestVersion)
 
 
-### Latest Release: 0.0.1-M8
+### Latest Release: 0.0.1-M9
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
@@ -65,7 +65,7 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M8"
+val tsecV = "0.0.1-M9"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
