@@ -82,6 +82,21 @@ object AuthenticatedCookie {
 
 object SignedCookieAuthenticator {
 
+  private[tsec] def isExpired[I: Encoder: Decoder, Alg: MacTag](
+      internal: AuthenticatedCookie[Alg, I],
+      now: Instant,
+      maxIdle: Option[FiniteDuration]
+  ): Boolean =
+    !internal.isExpired(now) && !maxIdle.exists(internal.isTimedOut(now, _))
+
+  private[tsec] def validateCookie[I: Encoder: Decoder, Alg: MacTag](
+      internal: AuthenticatedCookie[Alg, I],
+      raw: SignedCookie[Alg],
+      now: Instant,
+      maxIdle: Option[FiniteDuration]
+  ): Boolean =
+    internal.content === raw && isExpired[I, Alg](internal, now, maxIdle)
+
   def apply[F[_], I: Decoder: Encoder, V, Alg: MacTag](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
@@ -137,19 +152,12 @@ object SignedCookieAuthenticator {
         * @param now The current time.
         * @return
         */
-      private def validateCookie(
-          internal: AuthenticatedCookie[Alg, I],
-          raw: SignedCookie[Alg],
-          now: Instant
-      ): Boolean =
-        internal.content === raw && !internal.isExpired(now) && !settings.maxIdle.exists(internal.isTimedOut(now, _))
-
       private def validateAndRefresh(
           internal: AuthenticatedCookie[Alg, I],
           raw: SignedCookie[Alg],
           now: Instant
       ): OptionT[F, AuthenticatedCookie[Alg, I]] =
-        if (validateCookie(internal, raw, now)) OptionT.liftF(refresh(internal)) else OptionT.none
+        if (validateCookie(internal, raw, now, settings.maxIdle)) OptionT.liftF(refresh(internal)) else OptionT.none
 
       def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
