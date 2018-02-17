@@ -37,7 +37,7 @@ internals shift as we find better/more performant abstractions.
 
 We will guarantee compatibility between minor versions (i.e 0.0.1 => 0.0.2) but not major versions (0.0.1 => 0.1.0)
 
-0.0.1-M8 is here for scala 2.12+ and Cats 1.0.0-RC1!
+0.0.1-M8 is here for scala 2.12+ and Cats 1.0.1!
 
 To get started, if you are on sbt 0.13.16+, add
 
