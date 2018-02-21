@@ -4,14 +4,14 @@ import javax.crypto.Mac
 
 import cats.syntax.either._
 import tsec.common.ErrorConstruct._
-import tsec.mac.core.{MacAlgebra, MacTag}
+import tsec.mac.core.{MacPrimitiveAlgebra, MacTag}
 
 /** JCA mac interpreter
   *
   * @param macTag
   * @tparam A
   */
-class JMacInterpreterImpure[A](implicit macTag: MacTag[A]) extends MacAlgebra[MacErrorM, A, MacSigningKey] {
+class JMacInterpreterImpure[A](implicit macTag: MacTag[A]) extends MacPrimitiveAlgebra[MacErrorM, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: Either[MacInstanceError, Mac] =

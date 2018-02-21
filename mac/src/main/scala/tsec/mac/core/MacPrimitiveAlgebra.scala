@@ -1,6 +1,6 @@
 package tsec.mac.core
 
-trait MacAlgebra[F[_], A, K[_]] {
+trait MacPrimitiveAlgebra[F[_], A, K[_]] {
   type M
 
   def genInstance: F[M]

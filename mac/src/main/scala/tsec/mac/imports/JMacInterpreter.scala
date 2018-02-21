@@ -6,12 +6,12 @@ import cats.effect.Sync
 import cats.syntax.all._
 import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 
-import tsec.mac.core.{MacAlgebra, MacTag}
+import tsec.mac.core.{MacPrimitiveAlgebra, MacTag}
 
 sealed protected[tsec] abstract class JMacInterpreter[F[_], A](tl: JQueue[Mac])(
     implicit F: Sync[F],
     macTag: MacTag[A]
-) extends MacAlgebra[F, A, MacSigningKey] {
+) extends MacPrimitiveAlgebra[F, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: F[Mac] =

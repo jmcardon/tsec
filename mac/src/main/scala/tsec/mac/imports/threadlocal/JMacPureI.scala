@@ -4,11 +4,11 @@ import javax.crypto.Mac
 
 import cats.effect.IO
 import tsec.common.QueueAlloc
-import tsec.mac.core.{MacAlgebra, MacTag}
+import tsec.mac.core.{MacPrimitiveAlgebra, MacTag}
 import tsec.mac.imports.MacSigningKey
 
 sealed abstract class JMacPureI[A](tl: QueueAlloc[Mac])(implicit macTag: MacTag[A])
-    extends MacAlgebra[IO, A, MacSigningKey] {
+    extends MacPrimitiveAlgebra[IO, A, MacSigningKey] {
   type M = Mac
 
   def genInstance: IO[Mac] =
