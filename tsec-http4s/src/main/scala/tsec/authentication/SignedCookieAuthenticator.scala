@@ -9,8 +9,8 @@ import io.circe.{Decoder, Encoder}
 import org.http4s._
 import tsec.cookies._
 import tsec.mac.imports._
-import tsec.messagedigests._
-import tsec.messagedigests.imports._
+import tsec.hashing._
+import tsec.hashing.imports._
 import tsec.common._
 import cats.syntax.all._
 import tsec.mac.core.JCAMacTag

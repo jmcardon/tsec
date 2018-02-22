@@ -13,9 +13,9 @@ package object core {
     type PHash[A] <: String
 
     def apply[A](pw: String): PasswordHash[A] = pw.asInstanceOf[PasswordHash[A]]
-    def subst[A]: PartiallyApplied[A]         = new PartiallyApplied[A]
+    def subst[A]: PwPartiallyApplied[A]         = new PwPartiallyApplied[A]
 
-    private[core] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[core] final class PwPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[String]): F[PasswordHash[A]] = value.asInstanceOf[F[PasswordHash[A]]]
     }
   }

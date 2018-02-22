@@ -16,8 +16,8 @@ import tsec.cipher.symmetric.imports._
 import tsec.common._
 import tsec.cookies._
 import tsec.jwt.JWTPrinter
-import tsec.messagedigests._
-import tsec.messagedigests.imports._
+import tsec.hashing._
+import tsec.hashing.imports._
 
 import scala.concurrent.duration.FiniteDuration
 
