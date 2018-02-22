@@ -8,7 +8,7 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 import tsec.mac.imports.MacVerificationError
 import io.circe.{Decoder, Encoder, HCursor, Json}
-import tsec.mac.core.{MAC, MacTag}
+import tsec.mac.core.{MAC, JCAMacTag}
 
 package object cookies {
 
@@ -67,22 +67,22 @@ package object cookies {
   type SignedCookie[A] = SignedCookie$$.Repr[A]
 
   sealed trait EVCookieMac[F[_]] {
-    def from[A: MacTag](a: MAC[A], joined: String): F[A]
+    def from[A: JCAMacTag](a: MAC[A], joined: String): F[A]
 
-    def apply[A: MacTag](raw: String): F[A]
+    def apply[A: JCAMacTag](raw: String): F[A]
 
-    def toString[A: MacTag](a: F[A]): String
+    def toString[A: JCAMacTag](a: F[A]): String
   }
 
   implicit object SignedCookie extends EVCookieMac[SignedCookie] {
-    @inline def from[A: MacTag](signed: MAC[A], joined: String): SignedCookie[A] =
+    @inline def from[A: JCAMacTag](signed: MAC[A], joined: String): SignedCookie[A] =
       SignedCookie$$.is.coerce(joined + "-" + signed.toB64String)
 
-    @inline def apply[A: MacTag](raw: String): SignedCookie[A] = SignedCookie$$.is.coerce(raw)
+    @inline def apply[A: JCAMacTag](raw: String): SignedCookie[A] = SignedCookie$$.is.coerce(raw)
 
-    @inline def toString[A: MacTag](a: SignedCookie[A]): String = SignedCookie$$.is.coerce(a)
+    @inline def toString[A: JCAMacTag](a: SignedCookie[A]): String = SignedCookie$$.is.coerce(a)
 
-    def getContent[A: MacTag](signed: SignedCookie[A]): Either[MacVerificationError, String] = {
+    def getContent[A: JCAMacTag](signed: SignedCookie[A]): Either[MacVerificationError, String] = {
       val split = toString(signed).split("-")
       if (split.length != 2)
         Left(MacVerificationError("String encoded improperly"))
@@ -101,6 +101,6 @@ package object cookies {
 
     @inline def is[A]: Is[String, SignedCookie[A]] = SignedCookie$$.is[A]
   }
-  implicit final def cookieEQ[A: MacTag]: Eq[SignedCookie[A]] = Eq.by[SignedCookie[A], String](identity[String])
+  implicit final def cookieEQ[A: JCAMacTag]: Eq[SignedCookie[A]] = Eq.by[SignedCookie[A], String](identity[String])
   implicit final def ecookieEQ[A: AES]: Eq[AEADCookie[A]]     = Eq.by[AEADCookie[A], String](identity[String])
 }

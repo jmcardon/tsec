@@ -13,11 +13,11 @@ import tsec.messagedigests._
 import tsec.messagedigests.imports._
 import tsec.common._
 import cats.syntax.all._
-import tsec.mac.core.MacTag
+import tsec.mac.core.JCAMacTag
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg: MacTag] private[tsec] (
+abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg: JCAMacTag] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 ) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]]
@@ -82,14 +82,14 @@ object AuthenticatedCookie {
 
 object SignedCookieAuthenticator {
 
-  private[tsec] def isExpired[I: Encoder: Decoder, Alg: MacTag](
+  private[tsec] def isExpired[I: Encoder: Decoder, Alg: JCAMacTag](
       internal: AuthenticatedCookie[Alg, I],
       now: Instant,
       maxIdle: Option[FiniteDuration]
   ): Boolean =
     !internal.isExpired(now) && !maxIdle.exists(internal.isTimedOut(now, _))
 
-  private[tsec] def validateCookie[I: Encoder: Decoder, Alg: MacTag](
+  private[tsec] def validateCookie[I: Encoder: Decoder, Alg: JCAMacTag](
       internal: AuthenticatedCookie[Alg, I],
       raw: SignedCookie[Alg],
       now: Instant,
@@ -97,7 +97,7 @@ object SignedCookieAuthenticator {
   ): Boolean =
     internal.content === raw && isExpired[I, Alg](internal, now, maxIdle)
 
-  def apply[F[_], I: Decoder: Encoder, V, Alg: MacTag](
+  def apply[F[_], I: Decoder: Encoder, V, Alg: JCAMacTag](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
       idStore: BackingStore[F, I, V],

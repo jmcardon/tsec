@@ -7,9 +7,9 @@ package object core {
     type Type[A] <: Array[Byte]
 
     def apply[A](value: Array[Byte]): Iv[A] = value.asInstanceOf[Iv[A]]
-    def subst[A]: PartiallyApplied[A]       = new PartiallyApplied[A]
+    def subst[A]: IvPartiallyApplied[A]       = new IvPartiallyApplied[A]
 
-    private[core] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[core] final class IvPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[Iv[A]] =
         value.asInstanceOf[F[Iv[A]]]
     }
@@ -21,9 +21,9 @@ package object core {
     type Type[A] <: Array[Byte]
 
     def apply[A](value: Array[Byte]): RawCipherText[A] = value.asInstanceOf[RawCipherText[A]]
-    def subst[A]: PartiallyApplied[A]                  = new PartiallyApplied[A]
+    def subst[A]: RawCTPartiallyApplied[A]                  = new RawCTPartiallyApplied[A]
 
-    private[core] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[core] final class RawCTPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[RawCipherText[A]] =
         value.asInstanceOf[F[RawCipherText[A]]]
     }

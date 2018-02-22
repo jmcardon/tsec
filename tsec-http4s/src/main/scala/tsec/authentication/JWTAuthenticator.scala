@@ -17,7 +17,7 @@ import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.{JWTClaims, JWTPrinter}
-import tsec.mac.core.MacTag
+import tsec.mac.core.JCAMacTag
 import tsec.mac.imports.MacSigningKey
 
 import scala.concurrent.duration.FiniteDuration
@@ -64,7 +64,7 @@ object JWTAuthenticator {
   /** Create a JWT Authenticator that will transport it as a
     * bearer token
     */
-  def withBackingStore[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag](
+  def withBackingStore[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
@@ -199,7 +199,7 @@ object JWTAuthenticator {
     * an arbitrary header, with a backing store.
     *
     */
-  def withBackingStoreArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag](
+  def withBackingStoreArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       settings: TSecJWTSettings,
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
       identityStore: BackingStore[F, I, V],
@@ -341,7 +341,7 @@ object JWTAuthenticator {
     * @tparam A the mac signing algorithm
     * @return
     */
-  def stateless[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag](
+  def stateless[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       expiry: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       identityStore: BackingStore[F, I, V],
@@ -487,7 +487,7 @@ object JWTAuthenticator {
     * @tparam E
     * @return
     */
-  def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag, E: AES](
+  def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E: AES](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       identityStore: BackingStore[F, I, V],
@@ -654,7 +654,7 @@ object JWTAuthenticator {
     * transported in an arbitrary header
     *
     */
-  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag, E](
+  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
       settings: TSecJWTSettings,
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],

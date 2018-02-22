@@ -5,7 +5,7 @@ import cats.effect.Sync
 import cats.implicits._
 import tsec.common._
 import tsec.jws._
-import tsec.mac.core.{MAC, MacPrograms, MacTag}
+import tsec.mac.core.{MAC, JCAMacPrograms, JCAMacTag}
 import tsec.mac.imports._
 import java.time.Instant
 
@@ -21,7 +21,7 @@ import tsec.jwt.JWTClaims
   */
 sealed abstract class JWSMacCV[F[_], A](
     implicit hs: JWSSerializer[JWSMacHeader[A]],
-    programs: MacPrograms[F, A, MacSigningKey],
+    programs: JCAMacPrograms[F, A, MacSigningKey],
     M: MonadError[F, Throwable]
 ) {
 
@@ -91,13 +91,13 @@ sealed abstract class JWSMacCV[F[_], A](
 
 object JWSMacCV {
 
-  implicit def genSigner[F[_]: Sync, A: MacTag](
+  implicit def genSigner[F[_]: Sync, A: JCAMacTag](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       alg: JCAMac[F, A],
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
-  implicit def genSignerEither[A: MacTag](
+  implicit def genSignerEither[A: JCAMacTag](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       alg: JCAMacImpure[A]
   ): JWSMacCV[MacErrorM, A] =

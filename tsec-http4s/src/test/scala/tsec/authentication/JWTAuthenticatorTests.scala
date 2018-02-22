@@ -8,7 +8,7 @@ import tsec.cipher.symmetric.imports._
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.core.MacTag
+import tsec.mac.core.JCAMacTag
 import tsec.mac.imports._
 
 class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
@@ -151,8 +151,8 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
   )
 
   /** End Stateless Encrypted Auth Bearer Header Tests **/
-  def checkAuthHeader[A: JWTMacAlgo: MacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGenerator[A]) = {
-    behavior of MacTag[A].algorithm + " JWT Token64 check"
+  def checkAuthHeader[A: JWTMacAlgo: JCAMacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGenerator[A]) = {
+    behavior of JCAMacTag[A].algorithm + " JWT Token64 check"
     macKeyGen
       .generateLift[IO]
       .map { key =>

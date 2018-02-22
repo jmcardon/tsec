@@ -1,12 +1,12 @@
 package tsec.cookies
 
 import tsec.common._
-import tsec.mac.core.{MAC, MacTag}
+import tsec.mac.core.{MAC, JCAMacTag}
 import tsec.mac.imports._
 
 object CookieSigner {
 
-  def sign[A: MacTag](message: String, nonce: String, key: MacSigningKey[A])(
+  def sign[A: JCAMacTag](message: String, nonce: String, key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
   ): Either[Throwable, SignedCookie[A]] =
     if (message.isEmpty)
@@ -16,7 +16,7 @@ object CookieSigner {
       signer.sign(toSign, key).map(SignedCookie.from[A](_, toSign.toB64String))
     }
 
-  def verify[A: MacTag](signed: SignedCookie[A], key: MacSigningKey[A])(
+  def verify[A: JCAMacTag](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
   ): MacErrorM[Boolean] =
     signed.split("-") match {
@@ -26,7 +26,7 @@ object CookieSigner {
         Left(MacVerificationError("Invalid cookie"))
     }
 
-  def verifyAndRetrieve[A: MacTag](signed: SignedCookie[A], key: MacSigningKey[A])(
+  def verifyAndRetrieve[A: JCAMacTag](signed: SignedCookie[A], key: MacSigningKey[A])(
       implicit signer: JCAMacImpure[A]
   ): Either[Throwable, String] = {
     val split = signed.split("-")

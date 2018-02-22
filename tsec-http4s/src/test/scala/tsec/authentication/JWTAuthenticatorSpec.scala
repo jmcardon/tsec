@@ -12,7 +12,7 @@ import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.imports.MacKeyGenerator
-import tsec.mac.core.MacTag
+import tsec.mac.core.JCAMacTag
 
 import scala.concurrent.duration._
 
@@ -34,7 +34,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Stateful tests using Authorization: Header
     *
     */
-  def stateful[A: JWTMacAlgo: MacTag](
+  def stateful[A: JWTMacAlgo: JCAMacTag](
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: MacKeyGenerator[A],
       store: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]]
@@ -78,7 +78,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Stateful arbitrary header tests
     *
     */
-  def statefulArbitraryH[A: JWTMacAlgo: MacTag](
+  def statefulArbitraryH[A: JWTMacAlgo: JCAMacTag](
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: MacKeyGenerator[A],
       store: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]]
@@ -120,7 +120,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Unencrypted stateless in bearer tests
     *
     */
-  def stateless[A: JWTMacAlgo: MacTag](
+  def stateless[A: JWTMacAlgo: JCAMacTag](
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
@@ -161,7 +161,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Encrypted Stateless non-bearer tests
     *
     */
-  def statelessEncrypted[A: JWTMacAlgo: MacTag, E](
+  def statelessEncrypted[A: JWTMacAlgo: JCAMacTag, E](
       implicit cv: JWSMacCV[IO, A],
       enc: AES[E],
       eKeyGen: CipherKeyGen[E],
@@ -207,7 +207,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Encrypted Stateless bearer token
     *
     */
-  def statelessBearerEncrypted[A: JWTMacAlgo: MacTag, E](
+  def statelessBearerEncrypted[A: JWTMacAlgo: JCAMacTag, E](
       implicit cv: JWSMacCV[IO, A],
       enc: AES[E],
       eKeyGen: CipherKeyGen[E],
