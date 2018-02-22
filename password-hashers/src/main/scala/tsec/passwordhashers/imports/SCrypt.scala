@@ -1,10 +1,10 @@
 package tsec.passwordhashers.imports
 
-import tsec.passwordhashers.core.{PasswordHash, PasswordHasher}
+import tsec.passwordhashers.core.{PasswordHash, PasswordHashAPI}
 
 sealed trait SCrypt
 
-object SCrypt extends PasswordHasher[SCrypt, DummyImplicit] {
+object SCrypt extends PasswordHashAPI[SCrypt, DummyImplicit] {
 
   private[tsec] def hashPassUnsafe(p: Array[Byte])(implicit S: DummyImplicit): String =
     SCryptUtil.scrypt(p, DefaultSCryptN, DefaultSCryptR, DefaultSCryptP)

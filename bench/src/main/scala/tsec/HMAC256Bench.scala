@@ -21,13 +21,12 @@ class HMAC256Bench {
   lazy val key             = HMACSHA256.generateKeyUnsafe()
   lazy val rand            = new Random()
   lazy val longPlaintext   = Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes
-  lazy val jca             = JCAMac[IO, HMACSHA256]
 
   @Benchmark
   def testJCA(): Unit =
     (for {
-      o     <- jca.sign(longPlaintext, key)
-      verif <- jca.verify(longPlaintext, o, key)
+      o     <- HMACSHA256.sign[IO](longPlaintext, key)
+      verif <- HMACSHA256.verify[IO](longPlaintext, o, key)
     } yield assert(verif)).unsafeRunSync()
 
   @Benchmark

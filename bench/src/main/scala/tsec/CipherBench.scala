@@ -6,8 +6,9 @@ import javax.crypto.Cipher
 
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
-import tsec.cipher.symmetric.imports.{AES256, GCMEncryptor, SecretKey, AES256GCM => JAESGCM}
-import tsec.cipher.symmetric.{PlainText => OPlainText}
+import tsec.cipher.symmetric.imports.{SecretKey, AES256GCM => JAESGCM}
+import tsec.cipher.symmetric.core.{PlainText => OPlainText}
+import tsec.cipher.symmetric.imports.AESGCM.AESGCMEncryptor
 import tsec.common._
 import tsec.libsodium._
 import tsec.libsodium.cipher._
@@ -26,13 +27,13 @@ class CipherBench {
   lazy val sodiumAESKey: SodiumKey[AES256GCM]      = AES256GCM.generateKeyUnsafe
 
   /** AES using tsec classes **/
-  lazy val jcaAESKey: SecretKey[AES256] = AES256.generateKeyUnsafe()
-  implicit lazy val jcaAESInstance: GCMEncryptor[IO, AES256] =
+  lazy val jcaAESKey: SecretKey[JAESGCM] = JAESGCM.unsafeGenerate
+  implicit lazy val jcaAESInstance: AESGCMEncryptor[JAESGCM] =
     JAESGCM.genEncryptor[IO].unsafeRunSync()
   implicit lazy val ivStrategy = JAESGCM.defaultIvStrategy
 
   /** Our AES using the JCA raw classes. Note: We reuse cipher the instance for speed, but it's not thread safe **/
-  lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(AES256.generateKeyUnsafe())
+  lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(JAESGCM.unsafeGenerate)
   lazy val jcaRAWInstance: Cipher      = Cipher.getInstance("AES/GCM/NoPadding")
 
   /** Our random plaintext **/

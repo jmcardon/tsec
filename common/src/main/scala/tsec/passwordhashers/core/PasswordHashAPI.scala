@@ -4,7 +4,7 @@ import java.nio.CharBuffer
 import cats.effect.Sync
 import tsec.common._
 
-trait PasswordHasher[A, S] {
+trait PasswordHashAPI[A, S] {
 
   def hashpwUnsafe(p: String)(implicit S: S): PasswordHash[A] = hashpwUnsafe(p.utf8Bytes)
 

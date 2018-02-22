@@ -1,22 +1,47 @@
 package tsec.cipher.symmetric.imports
 
-import cats.effect.Sync
+import cats.MonadError
+import cats.effect.{IO, Sync}
+import cats.instances.either._
 import tsec.cipher.common.padding.PKCS7Padding
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core.IvStrategy
-import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
+import tsec.cipher.symmetric.core._
+import tsec.cipher.symmetric.imports.primitive._
 
-sealed abstract class AESCBCConstruction[A: AES] extends JCACipher[A, CBC, PKCS7Padding, CBCCipherText[A]] {
-  def genEncryptor[F[_]: Sync]: F[CBCEncryptor[F, A]] = JCAPrimitiveCipher[F, A, CBC, PKCS7Padding]()
+sealed abstract class AESCBCConstruction[A] extends JCACipher[A, CBC, PKCS7Padding] {
+  def encryptor[F[_]: Sync](implicit c: BlockCipher[A]): F[Encryptor[F, A, SecretKey]] =
+    JCAPrimitiveCipher.sync[F, A, CBC, PKCS7Padding]()
 
-  def defaultIvStrategy: IvStrategy[A, CBC] = IvStrategy.defaultStrategy[A, CBC]
+  def defaultIvStrategy[F[_]: Sync](implicit c: BlockCipher[A]): IvGen[F, A] = JCAIvGen.random[F, A]
 
-  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A, CBC, PKCS7Padding]] =
-    CipherText.fromArray[A, CBC, PKCS7Padding, SecretKey](array)
+  @deprecated("use ciphertextFromConcat", "0.0.1-M10")
+  def ciphertextFromArray(array: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
+    ciphertextFromConcat(array)
+
+  def ciphertextFromConcat(rawCT: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
+    CTOPS.ciphertextFromArray[A, CBC, PKCS7Padding](rawCT)
+
+  object either {
+
+    def encryptor(implicit c: BlockCipher[A]): Either[Throwable, Encryptor[Either[Throwable, ?], A, SecretKey]] =
+      JCAPrimitiveCipher.monadError[Either[Throwable, ?], A, CBC, PKCS7Padding]()
+
+    def defaultIvStrategy(implicit c: BlockCipher[A]): IvGen[Either[Throwable, ?], A] =
+      JCAIvGen
+        .random[IO, A]
+        .unsafeNat[Either[Throwable, ?]](MonadError[Either[Throwable, ?], Throwable].catchNonFatal(_))
+
+  }
 }
 
-object AES128CBC extends AESCBCConstruction[AES128]
+sealed trait AES128CBC
 
-object AES192CBC extends AESCBCConstruction[AES192]
+object AES128CBC extends AESCBCConstruction[AES128CBC] with AES128[AES128CBC]
 
-object AES256CBC extends AESCBCConstruction[AES256]
+sealed trait AES192CBC
+
+object AES192CBC extends AESCBCConstruction[AES192CBC] with AES192[AES192CBC]
+
+sealed trait AES256CBC
+
+object AES256CBC extends AESCBCConstruction[AES256CBC] with AES256[AES256CBC]

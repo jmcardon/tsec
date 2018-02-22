@@ -9,7 +9,7 @@ import tsec.passwordhashers.imports.internal.JBCrypt
 
 sealed trait BCrypt
 
-object BCrypt extends PasswordHasher[BCrypt, DummyImplicit] {
+object BCrypt extends PasswordHashAPI[BCrypt, DummyImplicit] {
 
   private[tsec] def hashPassUnsafe(p: Array[Byte])(implicit S: DummyImplicit): String =
     JBCrypt.hashpw(p, JBCryptUtil.genSalt(DefaultBcryptRounds))

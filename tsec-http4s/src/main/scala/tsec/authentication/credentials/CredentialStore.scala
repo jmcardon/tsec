@@ -21,7 +21,7 @@ trait CredentialStore[F[_], C, P] {
   def authenticate(credentials: C): F[Boolean]
 }
 
-abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PasswordHasher[P])
+abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PasswordHashAPI[P])
     extends CredentialStore[F, RawCredentials[Id], P] {
 
   def retrievePass(id: Id): F[PasswordHash[P]]

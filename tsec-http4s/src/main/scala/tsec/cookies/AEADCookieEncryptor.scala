@@ -4,14 +4,14 @@ import cats.effect.Sync
 import cats.syntax.all._
 import tsec.common._
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core.IvStrategy
+import tsec.cipher.symmetric.core.IvGen
 import tsec.cipher.symmetric.imports._
 
 object AEADCookieEncryptor {
 
   def signAndEncrypt[F[_]: Sync, A: AES](message: String, aad: AAD, key: SecretKey[A])(
       implicit authEncryptor: GCMEncryptor[F, A],
-      ivStrat: IvStrategy[A, GCM]
+      ivStrat: IvGen[A, GCM]
   ): F[AEADCookie[A]] =
     if (message.isEmpty)
       Sync[F].raiseError(EncryptError("Cannot encrypt an empty string!"))
@@ -26,7 +26,7 @@ object AEADCookieEncryptor {
   def retrieveFromSigned[F[_], A: AES](message: AEADCookie[A], key: SecretKey[A])(
       implicit authEncryptor: GCMEncryptor[F, A],
       F: Sync[F],
-      ivStrat: IvStrategy[A, GCM]
+      ivStrat: IvGen[A, GCM]
   ): F[String] = {
     val split = message.split("-")
     if (split.length != 2)

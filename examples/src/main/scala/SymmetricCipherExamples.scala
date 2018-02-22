@@ -1,4 +1,3 @@
-
 object SymmetricCipherExamples {
 
   /** IMPORTANT NOTE: DO NOT SKIP
@@ -19,25 +18,23 @@ object SymmetricCipherExamples {
     */
   /** These are the imports you will need for basic usage */
   import tsec.common._
-  import tsec.cipher.symmetric._
-  import tsec.cipher.symmetric.core.IvStrategy
+  import tsec.cipher.symmetric.core._
   import tsec.cipher.symmetric.imports._
   import cats.effect.IO
-
 
   //Feel free to choose any of the default Cipher constructions.
   //For non-authenticated ciphers, we recommend AES-CTR
 
   val toEncrypt = "hi hello welcome to tsec".utf8Bytes
 
-  implicit val ctrStrategy: IvStrategy[AES128, CTR] = AES128CTR.defaultIvStrategy
+  implicit val ctrStrategy: IvGen[AES128CTR] = AES128CTR.defaultIvStrategy
 
   val onlyEncrypt: IO[String] = AES128CTR
     .genEncryptor[IO]
     .flatMap(
       implicit instance =>
         for {
-          key       <- AES128.generateLift[IO] //Generate our key
+          key       <- AES128CTR.generateKey[IO] //Generate our key
           encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
           decrypted <- AES128CTR.decrypt[IO](encrypted, key)
         } yield decrypted.toUtf8String
@@ -49,10 +46,10 @@ object SymmetricCipherExamples {
     .flatMap(
       implicit instance =>
         for {
-          key       <- AES128.generateLift[IO]                          //Generate our key
+          key       <- AES128CTR.generateKey[IO]                        //Generate our key
           encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
-          array = encrypted.toSingleArray
-          from      <- IO.fromEither(AES128CTR.ciphertextFromArray(array))
+          array = encrypted.toConcatenated
+          from      <- IO.fromEither(AES128CTR.ciphertextFromConcat(array))
           decrypted <- AES128CTR.decrypt[IO](from, key)
         } yield decrypted.toUtf8String
     ) // "hi hello welcome to tsec!"
@@ -66,7 +63,7 @@ object SymmetricCipherExamples {
     .flatMap(
       implicit instance =>
         for {
-          key       <- AES128.generateLift[IO]                                      //Generate our key
+          key       <- AES128GCM.generateKey[IO]                                    //Generate our key
           encrypted <- AES128GCM.encryptWithAAD[IO](PlainText(toEncrypt), key, aad) //Encrypt
           decrypted <- AES128GCM.decryptWithAAD[IO](encrypted, key, aad)            //Decrypt
         } yield decrypted.toUtf8String
@@ -80,11 +77,11 @@ object SymmetricCipherExamples {
     */
   import tsec.cipher.common.padding._
   import tsec.cipher.symmetric.imports.primitive._
-  val desStrategy = IvStrategy.defaultStrategy[DES, CBC]
+  val desStrategy = JCAIvGen.random[DES]
 
   val advancedUsage: IO[String] = for {
     instance  <- JCAPrimitiveCipher[IO, DES, CBC, PKCS7Padding]()
-    key       <- DES.generateLift[IO]
+    key       <- DES.generateKey[IO]
     iv        <- desStrategy.genIv[IO]
     encrypted <- instance.encrypt(PlainText(toEncrypt), key, iv) //Encrypt our message, with our auth data
     decrypted <- instance.decrypt(encrypted, key) //Decrypt our message: We need to pass it the same AAD

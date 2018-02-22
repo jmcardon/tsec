@@ -28,7 +28,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
     * @param programs our password hasher programs to test against
     * @tparam A the password hashing algorithm
     */
-  final def testSpec[A](specname: String)(programs: PasswordHasher[A, DummyImplicit]): Unit = {
+  final def testSpec[A](specname: String)(programs: PasswordHashAPI[A, DummyImplicit]): Unit = {
     specname should "generate and verify with default settings" in {
       forAll { (s: String) =>
         val hash =

@@ -1,5 +1,5 @@
 package tsec.cipher.symmetric.imports
 
-sealed trait AES128
-
-object AES128 extends AESEV[AES128](16)
+trait AES128[A] extends AESEV[A] {
+  val keySizeBytes: Int = 16
+}

@@ -5,7 +5,7 @@ import cats.effect.Sync
 import cats.implicits._
 import tsec.common._
 import tsec.jws._
-import tsec.mac.core.{MAC, JCAMacPrograms, JCAMacTag}
+import tsec.mac.core.{JCAMacPrograms, JCAMacTag, MAC}
 import tsec.mac.imports._
 import java.time.Instant
 
@@ -21,8 +21,8 @@ import tsec.jwt.JWTClaims
   */
 sealed abstract class JWSMacCV[F[_], A](
     implicit hs: JWSSerializer[JWSMacHeader[A]],
-    programs: JCAMacPrograms[F, A, MacSigningKey],
-    M: MonadError[F, Throwable]
+    programs: JCAMac[A],
+    M: Sync[F]
 ) {
 
   /**  Generic Error. Any mishandling of the errors could leak information to an attacker. */
@@ -30,17 +30,17 @@ sealed abstract class JWSMacCV[F[_], A](
 
   def sign(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[MAC[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
-    programs.sign(toSign.asciiBytes, key)
+    programs.sign[F](toSign.asciiBytes, key)
   }
 
   def signAndBuild(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWTMac[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
-    programs.sign(toSign.asciiBytes, key).map(s => JWTMac.buildToken[A](header, body, s))
+    programs.sign[F](toSign.asciiBytes, key).map(s => JWTMac.buildToken[A](header, body, s))
   }
 
   def signToString(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[String] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
-    programs.sign(toSign.asciiBytes, key).map(s => toSign + "." + s.toB64UrlString)
+    programs.sign[F](toSign.asciiBytes, key).map(s => toSign + "." + s.toB64UrlString)
   }
 
   def verify(jwt: String, key: MacSigningKey[A], now: Instant): F[Boolean] = {
@@ -55,8 +55,8 @@ sealed abstract class JWSMacCV[F[_], A](
       } yield claims).fold(
         _ => M.pure(false),
         claims =>
-          programs.algebra
-            .sign((split(0) + "." + split(1)).asciiBytes, key)
+          programs
+            .sign[F]((split(0) + "." + split(1)).asciiBytes, key)
             .map {
               ByteUtils.constantTimeEquals(_, providedBytes) && claims.isNotExpired(now) && claims
                 .isAfterNBF(now) && claims.isValidIssued(now)
@@ -93,14 +93,8 @@ object JWSMacCV {
 
   implicit def genSigner[F[_]: Sync, A: JCAMacTag](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMac[F, A],
+      alg: JCAMac[A],
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
-
-  implicit def genSignerEither[A: JCAMacTag](
-      implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMacImpure[A]
-  ): JWSMacCV[MacErrorM, A] =
-    new JWSMacCV[MacErrorM, A]() {}
 
 }

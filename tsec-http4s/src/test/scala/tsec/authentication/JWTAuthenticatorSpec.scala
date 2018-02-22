@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import org.http4s.{Header, Request}
 import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.symmetric.core.IvStrategy
+import tsec.cipher.symmetric.core.IvGen
 import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
 import tsec.cipher.symmetric.imports.{AES, CTR, CipherKeyGen}
 import tsec.common.SecureRandomId
