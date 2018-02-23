@@ -4,7 +4,7 @@ import tsec.passwordhashers.core._
 
 sealed trait HardenedSCrypt
 
-object HardenedSCrypt extends PasswordHashAPI[HardenedSCrypt, DummyImplicit] {
+object HardenedSCrypt extends PasswordHashAPI[HardenedSCrypt] {
   private[tsec] def hashPassUnsafe(p: Array[Byte])(implicit S: DummyImplicit) =
     SCryptUtil.scrypt(p, SCryptHardenedN, SCryptHardenedR, SCryptHardenedP)
 

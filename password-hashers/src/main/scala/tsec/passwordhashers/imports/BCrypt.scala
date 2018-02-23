@@ -9,12 +9,12 @@ import tsec.passwordhashers.imports.internal.JBCrypt
 
 sealed trait BCrypt
 
-object BCrypt extends PasswordHashAPI[BCrypt, DummyImplicit] {
+object BCrypt extends JCAPasswordPlatform[BCrypt] {
 
-  private[tsec] def hashPassUnsafe(p: Array[Byte])(implicit S: DummyImplicit): String =
+  private[tsec] def unsafeHashpw(p: Array[Byte]): String =
     JBCrypt.hashpw(p, JBCryptUtil.genSalt(DefaultBcryptRounds))
 
-  private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[BCrypt])(implicit S: DummyImplicit): Boolean =
+  private[tsec] def unsafeCheckpw(p: Array[Byte], hash: PasswordHash[BCrypt]): Boolean =
     JBCrypt.checkpw(p, hash)
 
   def hashpwWithRounds[F[_]](p: String, rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =

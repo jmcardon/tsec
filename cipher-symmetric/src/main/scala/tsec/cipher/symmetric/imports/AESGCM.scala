@@ -34,22 +34,22 @@ sealed abstract class AESGCMConstruction[A] extends JCAAEAD[A, GCM, NoPadding] {
     new CounterIvGen[F, A] {
       private val delta                      = 1000000
       private val maxVal: Int                = Int.MaxValue - delta
-      private val numGen: AtomicInteger      = new AtomicInteger(Int.MinValue)
       private val fixedCounter: Array[Byte]  = Array.fill[Byte](8)(0.toByte)
       private val atomicNonce: AtomicInteger = new AtomicInteger(Int.MinValue)
 
-      def numGenerated: F[Long] = F.delay(unsafeNumGenerated)
+      def refresh: F[Unit] = F.delay(atomicNonce.set(Int.MinValue))
 
-      def unsafeNumGenerated: Long = numGen.get().toLong
+      def counterState: F[Long] = F.delay(unsafeCounterState)
+
+      def unsafeCounterState: Long = atomicNonce.get().toLong
 
       def genIv: F[Iv[A]] =
         F.delay(genIvUnsafe)
 
       def genIvUnsafe: Iv[A] =
-        if (numGen.get() >= maxVal)
+        if (atomicNonce.get() >= maxVal)
           throw IvError("Maximum safe nonce number reached")
         else {
-          numGen.incrementAndGet()
           val nonce = atomicNonce.incrementAndGet()
           val iv    = new Array[Byte](12) //GCM optimal iv len
           iv(0) = (nonce >> 24).toByte

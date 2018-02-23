@@ -1,14 +1,14 @@
 package tsec.passwordhashers.imports
 
-import tsec.passwordhashers.core.{PasswordHash, PasswordHashAPI}
+import tsec.passwordhashers.core._
 
 sealed trait SCrypt
 
-object SCrypt extends PasswordHashAPI[SCrypt, DummyImplicit] {
+object SCrypt extends JCAPasswordPlatform[SCrypt] {
 
-  private[tsec] def hashPassUnsafe(p: Array[Byte])(implicit S: DummyImplicit): String =
+  private[tsec] def unsafeHashpw(p: Array[Byte]): String =
     SCryptUtil.scrypt(p, DefaultSCryptN, DefaultSCryptR, DefaultSCryptP)
 
-  private[tsec] def checkPassUnsafe(p: Array[Byte], hash: PasswordHash[SCrypt])(implicit S: DummyImplicit): Boolean =
+  private[tsec] def unsafeCheckpw(p: Array[Byte], hash: PasswordHash[SCrypt]): Boolean =
     SCryptUtil.check(p, hash)
 }

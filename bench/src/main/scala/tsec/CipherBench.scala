@@ -7,8 +7,7 @@ import javax.crypto.Cipher
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
 import tsec.cipher.symmetric.imports.{SecretKey, AES256GCM => JAESGCM}
-import tsec.cipher.symmetric.core.{PlainText => OPlainText}
-import tsec.cipher.symmetric.imports.AESGCM.AESGCMEncryptor
+import tsec.cipher.symmetric.core.{AuthEncryptor, IvGen, PlainText => OPlainText}
 import tsec.common._
 import tsec.libsodium._
 import tsec.libsodium.cipher._
@@ -28,9 +27,9 @@ class CipherBench {
 
   /** AES using tsec classes **/
   lazy val jcaAESKey: SecretKey[JAESGCM] = JAESGCM.unsafeGenerate
-  implicit lazy val jcaAESInstance: AESGCMEncryptor[JAESGCM] =
+  implicit lazy val jcaAESInstance: AuthEncryptor[IO, JAESGCM, SecretKey] =
     JAESGCM.genEncryptor[IO].unsafeRunSync()
-  implicit lazy val ivStrategy = JAESGCM.defaultIvStrategy
+  implicit lazy val ivStrategy: IvGen[IO, JAESGCM] = JAESGCM.defaultIvStrategy[IO]
 
   /** Our AES using the JCA raw classes. Note: We reuse cipher the instance for speed, but it's not thread safe **/
   lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(JAESGCM.unsafeGenerate)

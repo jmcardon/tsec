@@ -8,13 +8,13 @@ import tsec.common._
 import tsec.hashing.imports._
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
-import tsec.hashing.core.{CryptoHashAlgebra, JCADigestTag}
+import tsec.hashing.core.{CryptoHashAPI, JCADigestTag}
 
 class HasherTest extends TestSpec with MustMatchers with PropertyChecks {
   val str     = "hello World"
   val strList = List("a", "a", "bcd")
 
-  def hashTests[A](hfun: CryptoHashAlgebra[A, DummyImplicit])(implicit tag: JCADigestTag[A]): Unit = {
+  def hashTests[A](hfun: CryptoHashAPI[A, DummyImplicit])(implicit tag: JCADigestTag[A]): Unit = {
     s"A cryptographic hash function for ${tag.algorithm}" should s"generate an equal hash for two equal byte arrays" in {
       forAll { (s1: String, s2: String) =>
         val h1 = hfun.unsafeHash(s1.utf8Bytes)

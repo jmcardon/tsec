@@ -11,7 +11,9 @@ import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, Request, Response}
+import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
 import tsec.common._
 import tsec.jws.mac._
@@ -495,8 +497,8 @@ object JWTAuthenticator {
       encryptionKey: SecretKey[E]
   )(
       implicit cv: JWSMacCV[F, A],
-      enc: CTREncryptor[F, E],
-      ivStrategy: CTRIVStrategy[E],
+      enc: JEncryptor[F, E],
+      ivStrategy: IvGen[F, E],
       F: Sync[F]
   ): StatelessJWTAuthenticator[F, I, V, A] =
     new StatelessJWTAuthenticator[F, I, V, A](expiryDuration, maxIdle) {
@@ -525,7 +527,7 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F]
+          iv        <- ivStrategy.genIv
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
         } yield encrypted.toSingleArray.toB64String
       }
@@ -538,7 +540,7 @@ object JWTAuthenticator {
         */
       private def decryptIdentity(body: String): F[I] =
         for {
-          cipherText <- F.fromEither(CipherText.fromArray(body.base64Bytes)(enc.ivProcess))
+          cipherText <- F.fromEither(CTOPS.ciphertextFromArray[E, CTR, NoPadding](body.base64Bytes))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
           decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded
@@ -654,15 +656,15 @@ object JWTAuthenticator {
     * transported in an arbitrary header
     *
     */
-  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
+  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E: AES](
       settings: TSecJWTSettings,
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
   )(
       implicit cv: JWSMacCV[F, A],
-      enc: CTREncryptor[F, E],
-      ivStrategy: CTRIVStrategy[E],
+      enc: JEncryptor[F, E],
+      ivStrategy: IvGen[F, E],
       F: Sync[F]
   ): StatelessJWTAuthenticator[F, I, V, A] =
     new StatelessJWTAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
@@ -691,7 +693,7 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F]
+          iv        <- ivStrategy.genIv
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
         } yield encrypted.toSingleArray.toB64String
       }
@@ -699,7 +701,7 @@ object JWTAuthenticator {
       /** Decode the body's internal Id type value **/
       private def decryptIdentity(body: String): F[I] =
         for {
-          cipherText <- F.fromEither(CipherText.fromArray(body.base64Bytes)(enc.ivProcess))
+          cipherText <- F.fromEither(CTOPS.ciphertextFromArray[E, CTR, NoPadding](body.base64Bytes))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
           decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded

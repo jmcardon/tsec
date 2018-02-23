@@ -1,6 +1,6 @@
 package tsec.cipher.symmetric.core
 
-import cats.Applicative
+import cats.{Applicative, MonadError}
 import cats.effect.Sync
 import tsec.common.ManagedRandom
 
@@ -30,7 +30,9 @@ object JCAIvGen {
 }
 
 trait CounterIvGen[F[_], A] extends IvGen[F, A] {
-  def numGenerated: F[Long]
+  def refresh: F[Unit]
 
-  def unsafeNumGenerated: Long
+  def counterState: F[Long]
+
+  def unsafeCounterState: Long
 }

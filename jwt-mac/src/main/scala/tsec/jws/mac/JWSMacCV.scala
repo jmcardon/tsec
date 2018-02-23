@@ -1,11 +1,13 @@
 package tsec.jws.mac
 
+import java.security.MessageDigest
+
 import cats.MonadError
 import cats.effect.Sync
 import cats.implicits._
 import tsec.common._
 import tsec.jws._
-import tsec.mac.core.{JCAMacPrograms, JCAMacTag, MAC}
+import tsec.mac.core.{JCAMacTag, MAC, MessageAuth}
 import tsec.mac.imports._
 import java.time.Instant
 
@@ -21,8 +23,8 @@ import tsec.jwt.JWTClaims
   */
 sealed abstract class JWSMacCV[F[_], A](
     implicit hs: JWSSerializer[JWSMacHeader[A]],
-    programs: JCAMac[A],
-    M: Sync[F]
+    programs: MessageAuth[F, A, MacSigningKey],
+    M: MonadError[F, Throwable]
 ) {
 
   /**  Generic Error. Any mishandling of the errors could leak information to an attacker. */
@@ -30,17 +32,17 @@ sealed abstract class JWSMacCV[F[_], A](
 
   def sign(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[MAC[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
-    programs.sign[F](toSign.asciiBytes, key)
+    programs.sign(toSign.asciiBytes, key)
   }
 
   def signAndBuild(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[JWTMac[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
-    programs.sign[F](toSign.asciiBytes, key).map(s => JWTMac.buildToken[A](header, body, s))
+    programs.sign(toSign.asciiBytes, key).map(s => JWTMac.buildToken[A](header, body, s))
   }
 
   def signToString(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[String] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
-    programs.sign[F](toSign.asciiBytes, key).map(s => toSign + "." + s.toB64UrlString)
+    programs.sign(toSign.asciiBytes, key).map(s => toSign + "." + s.toB64UrlString)
   }
 
   def verify(jwt: String, key: MacSigningKey[A], now: Instant): F[Boolean] = {
@@ -56,9 +58,9 @@ sealed abstract class JWSMacCV[F[_], A](
         _ => M.pure(false),
         claims =>
           programs
-            .sign[F]((split(0) + "." + split(1)).asciiBytes, key)
+            .sign((split(0) + "." + split(1)).asciiBytes, key)
             .map {
-              ByteUtils.constantTimeEquals(_, providedBytes) && claims.isNotExpired(now) && claims
+              MessageDigest.isEqual(_, providedBytes) && claims.isNotExpired(now) && claims
                 .isAfterNBF(now) && claims.isValidIssued(now)
           }
       )
@@ -76,7 +78,7 @@ sealed abstract class JWSMacCV[F[_], A](
         claims <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
         bytes <- M.ensure(programs.sign((split(0) + "." + split(1)).asciiBytes, key))(defaultError)(
           signed =>
-            ByteUtils.constantTimeEquals(signed, signedBytes)
+            MessageDigest.isEqual(signed, signedBytes)
               && claims.isNotExpired(now)
               && claims.isAfterNBF(now)
               && claims.isValidIssued(now)
@@ -93,8 +95,13 @@ object JWSMacCV {
 
   implicit def genSigner[F[_]: Sync, A: JCAMacTag](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMac[A],
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
+
+  implicit def eitherSigner[A: JCAMacTag](
+      implicit hs: JWSSerializer[JWSMacHeader[A]],
+      alg: MessageAuth[Either[Throwable, ?], A, MacSigningKey],
+  ): JWSMacCV[Either[Throwable, ?], A] =
+    new JWSMacCV[Either[Throwable, ?], A]() {}
 
 }

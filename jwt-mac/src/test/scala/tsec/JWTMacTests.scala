@@ -16,7 +16,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
   def jwtBehavior[A](
       implicit algo: JWTMacAlgo[A],
-      cv: JWSMacCV[MacErrorM, A],
+      cv: JWSMacCV[Either[Throwable, ?], A],
       cv2: JWSMacCV[IO, A],
       hs: JWSSerializer[JWSMacHeader[A]],
       keyGen: MacKeyGenerator[A]

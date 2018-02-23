@@ -11,12 +11,11 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.http4s._
-import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
 import tsec.common._
 import tsec.cookies._
 import tsec.jwt.JWTPrinter
-import tsec.hashing._
 import tsec.hashing.imports._
 
 import scala.concurrent.duration.FiniteDuration
@@ -162,8 +161,8 @@ object EncryptedCookieAuthenticator {
       key: SecretKey[A]
   )(
       implicit F: Sync[F],
-      instance: GCMEncryptor[F, A],
-      ivStrat: GCMIVStrategy[A]
+      instance: JAuthEncryptor[F, A],
+      ivStrat: IvGen[F, A]
   ): StatefulECAuthenticator[F, I, V, A] =
     new StatefulECAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
 
@@ -209,7 +208,7 @@ object EncryptedCookieAuthenticator {
         *
         */
       private def generateAAD(message: String) =
-        AAD((message + Instant.now.toEpochMilli).utf8Bytes.hash[SHA1])
+        AAD(SHA1.hash((message + Instant.now.toEpochMilli).utf8Bytes))
 
       /** Validate the cookie against the raw representation, and
         * validate against possibly expiration or timeout
@@ -337,8 +336,8 @@ object EncryptedCookieAuthenticator {
       key: SecretKey[A]
   )(
       implicit F: Sync[F],
-      instance: GCMEncryptor[F, A],
-      ivStrat: GCMIVStrategy[A]
+      instance: JAuthEncryptor[F, A],
+      ivStrat: IvGen[F, A]
   ): StatelessECAuthenticator[F, I, V, A] =
     new StatelessECAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
 
@@ -364,7 +363,7 @@ object EncryptedCookieAuthenticator {
         )
 
       private def generateAAD(message: String) =
-        AAD((message + Instant.now.toEpochMilli).utf8Bytes.hash[SHA1])
+        AAD(SHA1.hash((message + Instant.now.toEpochMilli).utf8Bytes))
 
       /** Inside a stateless cookie, we do not have a backing store, thus checking with the AuthEncryptedCookie is
         * useless

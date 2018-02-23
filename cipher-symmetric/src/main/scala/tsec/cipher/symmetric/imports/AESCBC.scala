@@ -1,8 +1,6 @@
 package tsec.cipher.symmetric.imports
 
-import cats.MonadError
-import cats.effect.{IO, Sync}
-import cats.instances.either._
+import cats.effect.Sync
 import tsec.cipher.common.padding.PKCS7Padding
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.core._
@@ -20,18 +18,6 @@ sealed abstract class AESCBCConstruction[A] extends JCACipher[A, CBC, PKCS7Paddi
 
   def ciphertextFromConcat(rawCT: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
     CTOPS.ciphertextFromArray[A, CBC, PKCS7Padding](rawCT)
-
-  object either {
-
-    def encryptor(implicit c: BlockCipher[A]): Either[Throwable, Encryptor[Either[Throwable, ?], A, SecretKey]] =
-      JCAPrimitiveCipher.monadError[Either[Throwable, ?], A, CBC, PKCS7Padding]()
-
-    def defaultIvStrategy(implicit c: BlockCipher[A]): IvGen[Either[Throwable, ?], A] =
-      JCAIvGen
-        .random[IO, A]
-        .unsafeNat[Either[Throwable, ?]](MonadError[Either[Throwable, ?], Throwable].catchNonFatal(_))
-
-  }
 }
 
 sealed trait AES128CBC

@@ -1,9 +1,9 @@
 package tsec.hashing.core
 
-import cats.effect.Sync
+import cats.Id
 import fs2.Pipe
 
-trait CryptoHashAlgebra[A, S] {
+trait CryptoHashAPI[A] {
 
   /** The cryptographic hash function, in its
     * raw form
@@ -14,7 +14,8 @@ trait CryptoHashAlgebra[A, S] {
     *
     * @return
     */
-  def unsafeHash(bytes: Array[Byte])(implicit S: S): CryptoHash[A]
+  final def unsafeHash(bytes: Array[Byte])(implicit C: CryptoHasher[Id, A]): CryptoHash[A] =
+    C.hash(bytes)
 
   /** Lift a the cryptographic hash function into an
     * F[_] which captures side effects.
@@ -22,13 +23,14 @@ trait CryptoHashAlgebra[A, S] {
     * The underlying hash function may or may not side effect.
     * @return
     */
-  def hashF[F[_]](bytes: Array[Byte])(implicit F: Sync[F], S: S): F[CryptoHash[A]]
+  final def hashF[F[_]](bytes: Array[Byte])(implicit C: CryptoHasher[F, A]): F[CryptoHash[A]] =
+    C.hash(bytes)
 
   /** A pipe that transforms a byte stream into the stream of its
     * cryptographic hash.
     *
     * Useful for hashes of arbitrary length.
     */
-  def hashPipe[F[_]](implicit F: Sync[F], S: S): Pipe[F, Byte, Byte]
+  def hashPipe[F[_]](implicit C: CryptoHasher[F, A]): Pipe[F, Byte, Byte] = C.hashPipe
 
 }

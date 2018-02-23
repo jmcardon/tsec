@@ -2,9 +2,7 @@ package tsec.cipher.symmetric.imports
 
 import java.util.concurrent.atomic.AtomicLong
 
-import cats.MonadError
-import cats.instances.either._
-import cats.effect.{IO, Sync}
+import cats.effect.Sync
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.core._
@@ -45,22 +43,22 @@ sealed abstract class AESCTRConstruction[A] extends JCACipher[A, CTR, NoPadding]
     new CounterIvGen[F, A] {
       private val delta                     = 1000000L
       private val maxVal: Long              = Long.MaxValue - delta
-      private val numGen: AtomicLong        = new AtomicLong(Long.MinValue)
       private val fixedCounter: Array[Byte] = Array.fill[Byte](8)(0.toByte)
       private val atomicNonce: AtomicLong   = new AtomicLong(Long.MinValue)
 
-      def numGenerated: F[Long] = F.delay(unsafeNumGenerated)
+      def refresh: F[Unit] = F.delay(atomicNonce.set(Long.MinValue))
 
-      def unsafeNumGenerated: Long = numGen.get()
+      def counterState: F[Long] = F.delay(unsafeCounterState)
+
+      def unsafeCounterState: Long = atomicNonce.get()
 
       def genIv: F[Iv[A]] =
         F.delay(genIvUnsafe)
 
       def genIvUnsafe: Iv[A] =
-        if (numGen.get() >= maxVal)
+        if (atomicNonce.get() >= maxVal) {
           throw IvError("Maximum safe nonce number reached")
-        else {
-          numGen.incrementAndGet()
+        } else {
           val nonce = atomicNonce.incrementAndGet()
           val iv    = new Array[Byte](16) //AES block size
           iv(0) = (nonce >> 56).toByte
@@ -75,41 +73,6 @@ sealed abstract class AESCTRConstruction[A] extends JCACipher[A, CTR, NoPadding]
           Iv[A](iv)
         }
     }
-
-  object either {
-    def encryptor(implicit c: BlockCipher[A]): Either[Throwable, Encryptor[Either[Throwable, ?], A, SecretKey]] =
-      JCAPrimitiveCipher.monadError[Either[Throwable, ?], A, CTR, NoPadding]()
-
-    /** Our default Iv strategy for CTR mode
-      * produces randomized IVs
-      *
-      *
-      * @return
-      */
-    def defaultIvStrategy(implicit c: BlockCipher[A]) =
-      JCAIvGen.random[IO, A].unsafeNat(MonadError[Either[Throwable, ?], Throwable].catchNonFatal(_))
-
-    /** An incremental iv generator, intended for use
-      * with a single key.
-      *
-      * See: https://crypto.stanford.edu/~dabo/cs255/lectures/PRP-PRF.pdf,
-      * courtesy of dan boneh
-      *
-      * For a 128 bit iv, we use a 64 bit leftmost bits as a nonce,
-      * and the rightmost 64 bits (zeroed out) as the counter.
-      *
-      * This means, using the `incremental` strategy, you can safely generate
-      * generate 2^64 - 10^6 different nonces maximum, each of which can safely increment
-      * a maximum of 2^64 blocks.
-      *
-      * 2^64 - 10^6 is a safe limit to possibly avoid overflowing the safe number of nonces you can
-      * generate with one key.
-      *
-      * @return
-      */
-//    def incrementalIvStrategy[F[_]](implicit F: Sync[F]): CounterIvGen[F, A] =
-
-  }
 
   @deprecated("use ciphertextFromConcat", "0.0.1-M10")
   def ciphertextFromArray(array: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
