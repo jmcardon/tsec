@@ -140,6 +140,6 @@ object TSecCSRF {
       cookieName: String = "tsec-csrf",
       tokenLength: Int = 32,
       clock: Clock = Clock.systemUTC()
-  )(implicit mac: JCAMac[F, A]): TSecCSRF[F, A] =
+  ): TSecCSRF[F, A] =
     new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock)
 }

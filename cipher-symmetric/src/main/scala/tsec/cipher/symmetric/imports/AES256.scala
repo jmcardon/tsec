@@ -1,5 +1,7 @@
 package tsec.cipher.symmetric.imports
 
-trait AES256[A] extends AESEV[A]{
+import tsec.cipher.symmetric.core.AES
+
+trait AES256[A] extends AES[A] {
   val keySizeBytes: Int = 32
 }

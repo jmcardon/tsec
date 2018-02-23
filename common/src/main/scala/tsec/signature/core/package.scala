@@ -1,10 +1,10 @@
-package tsec.signatures
+package tsec.signature
 
 package object core {
 
-  type CryptoSignature[A] = CryptoSig.Sig[A]
+  type CryptoSignature[A] = CryptoSignature.Sig[A]
 
-  object CryptoSig {
+  object CryptoSignature {
     type Sig[A] <: Array[Byte]
 
     def apply[A](value: Array[Byte]) = value.asInstanceOf[CryptoSignature[A]]

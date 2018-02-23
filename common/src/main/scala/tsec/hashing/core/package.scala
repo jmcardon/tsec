@@ -1,8 +1,5 @@
 package tsec.hashing
 
-import cats.Eq
-import cats.instances.byte._
-
 package object core {
 
   type CryptoHash[A] = CryptoHash.Type[A]

@@ -141,6 +141,10 @@ package object core {
 
   object AES {
     def apply[A](implicit a: AES[A]): AES[A] = a
+
+    val AES128KeySizeBytes = 16
+    val AES192KeySizeBytes = 24
+    val AES256KeySizeBytes = 32
   }
 
   /**

@@ -489,7 +489,7 @@ object JWTAuthenticator {
     * @tparam E
     * @return
     */
-  def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E: AES](
+  def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       identityStore: BackingStore[F, I, V],
@@ -497,6 +497,7 @@ object JWTAuthenticator {
       encryptionKey: SecretKey[E]
   )(
       implicit cv: JWSMacCV[F, A],
+      E: AESCTR[E],
       enc: JEncryptor[F, E],
       ivStrategy: IvGen[F, E],
       F: Sync[F]
@@ -529,7 +530,7 @@ object JWTAuthenticator {
         for {
           iv        <- ivStrategy.genIv
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
-        } yield encrypted.toSingleArray.toB64String
+        } yield encrypted.toConcatenated.toB64String
       }
 
       /** Decode the body's internal value.
@@ -540,7 +541,7 @@ object JWTAuthenticator {
         */
       private def decryptIdentity(body: String): F[I] =
         for {
-          cipherText <- F.fromEither(CTOPS.ciphertextFromArray[E, CTR, NoPadding](body.base64Bytes))
+          cipherText <- F.fromEither(E.ciphertextFromConcat(body.base64Bytes))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
           decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded
@@ -656,13 +657,14 @@ object JWTAuthenticator {
     * transported in an arbitrary header
     *
     */
-  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E: AES](
+  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
       settings: TSecJWTSettings,
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
   )(
       implicit cv: JWSMacCV[F, A],
+      E: AESCTR[E],
       enc: JEncryptor[F, E],
       ivStrategy: IvGen[F, E],
       F: Sync[F]
@@ -695,13 +697,13 @@ object JWTAuthenticator {
         for {
           iv        <- ivStrategy.genIv
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
-        } yield encrypted.toSingleArray.toB64String
+        } yield encrypted.toConcatenated.toB64String
       }
 
       /** Decode the body's internal Id type value **/
       private def decryptIdentity(body: String): F[I] =
         for {
-          cipherText <- F.fromEither(CTOPS.ciphertextFromArray[E, CTR, NoPadding](body.base64Bytes))
+          cipherText <- F.fromEither(E.ciphertextFromConcat(body.base64Bytes))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
           decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded

@@ -11,6 +11,7 @@ import tsec.signature.imports._
 
 class SignatureTests extends TestSpec with MustMatchers {
 
+  //Todo: Property check here
   val toSign        = "HItHERE!".utf8Bytes
   val F: Effect[IO] = IO.ioEffect
 
@@ -30,7 +31,7 @@ class SignatureTests extends TestSpec with MustMatchers {
       val expression: IO[Boolean] = for {
         keyPair <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         signed  <- interp.sign(toSign, keyPair.privateKey)
-        verify  <- interp.verifyKI(toSign, signed, keyPair.publicKey)
+        verify  <- interp.verify(toSign, signed, keyPair.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe true
@@ -41,7 +42,7 @@ class SignatureTests extends TestSpec with MustMatchers {
         keyPair1 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         keyPair2 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
         signed   <- interp.sign(toSign, keyPair1.privateKey)
-        verify   <- interp.verifyKI(toSign, signed, keyPair2.publicKey)
+        verify   <- interp.verify(toSign, signed, keyPair2.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe false

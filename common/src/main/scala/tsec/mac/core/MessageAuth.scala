@@ -1,9 +1,9 @@
 package tsec.mac.core
 
-trait MessageAuth[F[_], A, MK[_]] {
+trait MessageAuth[F[_], A, K[_]] {
 
-  def sign(in: Array[Byte], key: MK[A]): F[MAC[A]]
+  def sign(in: Array[Byte], key: K[A]): F[MAC[A]]
 
-  def verify(in: Array[Byte], hashed: MAC[A], key: MK[A]): F[Boolean]
+  def verify(in: Array[Byte], hashed: MAC[A], key: K[A]): F[Boolean]
 
 }

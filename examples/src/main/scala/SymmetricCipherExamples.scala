@@ -27,7 +27,7 @@ object SymmetricCipherExamples {
 
   val toEncrypt = "hi hello welcome to tsec".utf8Bytes
 
-  implicit val ctrStrategy: IvGen[AES128CTR] = AES128CTR.defaultIvStrategy
+  implicit val ctrStrategy: IvGen[IO, AES128CTR] = AES128CTR.defaultIvStrategy[IO]
 
   val onlyEncrypt: IO[String] = AES128CTR
     .genEncryptor[IO]
@@ -55,7 +55,7 @@ object SymmetricCipherExamples {
     ) // "hi hello welcome to tsec!"
 
   /** An authenticated encryption and decryption */
-  implicit val gcmstrategy = AES128GCM.defaultIvStrategy
+  implicit val gcmstrategy = AES128GCM.defaultIvStrategy[IO]
 
   val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)
   val encryptAAD: IO[String] = AES128GCM
@@ -77,12 +77,12 @@ object SymmetricCipherExamples {
     */
   import tsec.cipher.common.padding._
   import tsec.cipher.symmetric.imports.primitive._
-  val desStrategy = JCAIvGen.random[DES]
+  val desStrategy = JCAIvGen.random[IO, DES]
 
   val advancedUsage: IO[String] = for {
-    instance  <- JCAPrimitiveCipher[IO, DES, CBC, PKCS7Padding]()
+    instance  <- JCAPrimitiveCipher.sync[IO, DES, CBC, PKCS7Padding]()
     key       <- DES.generateKey[IO]
-    iv        <- desStrategy.genIv[IO]
+    iv        <- desStrategy.genIv
     encrypted <- instance.encrypt(PlainText(toEncrypt), key, iv) //Encrypt our message, with our auth data
     decrypted <- instance.decrypt(encrypted, key) //Decrypt our message: We need to pass it the same AAD
   } yield decrypted.toUtf8String

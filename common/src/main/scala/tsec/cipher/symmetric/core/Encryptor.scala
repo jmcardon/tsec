@@ -16,8 +16,6 @@ trait Encryptor[F[_], A, K[_]] {
 
 }
 
-object Encryptor
-
 trait AuthEncryptor[F[_], A, K[_]] extends Encryptor[F, A, K] {
 
   def encryptDetached(plainText: PlainText, key: K[A])(

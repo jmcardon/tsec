@@ -8,7 +8,8 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports.primitive.JCAAEADPrimitive
 
-sealed abstract class AESGCMConstruction[A] extends JCAAEAD[A, GCM, NoPadding] {
+sealed abstract class AESGCM[A] extends JCAAEAD[A, GCM, NoPadding] with AES[A] with JCAKeyGen[A] {
+  implicit val ae: AESGCM[A] = this
 
   def genEncryptor[F[_]: Sync](implicit c: AES[A]): F[AuthEncryptor[F, A, SecretKey]] =
     JCAAEADPrimitive.sync[F, A, GCM, NoPadding]()
@@ -62,21 +63,21 @@ sealed abstract class AESGCMConstruction[A] extends JCAAEAD[A, GCM, NoPadding] {
     }
 
   @deprecated("use ciphertextFromConcat", "0.0.1-M10")
-  def ciphertextFromArray(array: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
+  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A]] =
     ciphertextFromConcat(array)
 
-  def ciphertextFromConcat(rawCT: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
+  def ciphertextFromConcat(rawCT: Array[Byte]): Either[CipherTextError, CipherText[A]] =
     CTOPS.ciphertextFromArray[A, GCM, NoPadding](rawCT)
 }
 
 sealed trait AES128GCM
 
-object AES128GCM extends AESGCMConstruction[AES128GCM] with AES128[AES128GCM]
+object AES128GCM extends AESGCM[AES128GCM] with AES128[AES128GCM]
 
 sealed trait AES192GCM
 
-object AES192GCM extends AESGCMConstruction[AES192GCM] with AES192[AES192GCM]
+object AES192GCM extends AESGCM[AES192GCM] with AES192[AES192GCM]
 
 sealed trait AES256GCM
 
-object AES256GCM extends AESGCMConstruction[AES256GCM] with AES256[AES256GCM]
+object AES256GCM extends AESGCM[AES256GCM] with AES256[AES256GCM]

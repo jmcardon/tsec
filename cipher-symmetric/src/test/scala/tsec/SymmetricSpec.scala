@@ -8,20 +8,18 @@ import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.imports.primitive.{JCAAEADPrimitive, JCAPrimitiveCipher}
 import tsec.common._
-import tsec.keygen.symmetric.SymmetricKeyGen
+import tsec.keygen.symmetric._
 
 import scala.util.Random
 
 class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
-  type JCASymmetric[A, M, P]     = JCACipher[A, M, P] with SymmetricKeyGen[A, SecretKey, DummyImplicit]
-  type JCAAEADSymmetric[A, M, P] = JCAAEAD[A, M, P] with SymmetricKeyGen[A, SecretKey, DummyImplicit]
-
-  final def cipherTest[A, M, P](algebra: JCASymmetric[A, M, P])(
+  final def cipherTest[A, M, P](algebra: JCACipherAPI[A, M, P] with SymmKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],
       mode: CipherMode[M],
       p: SymmetricPadding[P],
-      ivProcess: IvProcess[A, M, P]
+      ivProcess: IvProcess[A, M, P],
+      S: SymmetricKeyGen[IO, A, SecretKey]
   ): Unit = {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""
@@ -84,12 +82,13 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
     }
   }
 
-  final def authCipherTest[A, M, P](algebra: JCAAEADSymmetric[A, M, P])(
+  final def authCipherTest[A, M, P](algebra: JCAAEAD[A, M, P] with SymmKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],
       aead: AEADCipher[A],
       mode: CipherMode[M],
       p: SymmetricPadding[P],
-      ivProcess: IvProcess[A, M, P]
+      ivProcess: IvProcess[A, M, P],
+      S: SymmetricKeyGen[IO, A, SecretKey]
   ): Unit = {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""

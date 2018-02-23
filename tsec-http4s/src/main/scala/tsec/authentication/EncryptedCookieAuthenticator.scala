@@ -135,7 +135,7 @@ object AuthEncryptedCookie {
 
 object EncryptedCookieAuthenticator {
 
-  private[tsec] def isExpired[I: Encoder: Decoder, A: AES](
+  private[tsec] def isExpired[I: Encoder: Decoder, A: AESGCM](
       internal: AuthEncryptedCookie[A, I],
       now: Instant,
       maxIdle: Option[FiniteDuration]
@@ -154,7 +154,7 @@ object EncryptedCookieAuthenticator {
     * @tparam V the expected user type, V aka value
     * @return An encrypted cookie authenticator
     */
-  def withBackingStore[F[_], I: Decoder: Encoder, V, A: AES](
+  def withBackingStore[F[_], I: Decoder: Encoder, V, A: AESGCM](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthEncryptedCookie[A, I]],
       identityStore: BackingStore[F, I, V],
@@ -330,7 +330,7 @@ object EncryptedCookieAuthenticator {
     * we encrypt it as part of the contents
     *
     */
-  def stateless[F[_], I: Decoder: Encoder, V, A: AES](
+  def stateless[F[_], I: Decoder: Encoder, V, A: AESGCM](
       settings: TSecCookieSettings,
       identityStore: BackingStore[F, I, V],
       key: SecretKey[A]

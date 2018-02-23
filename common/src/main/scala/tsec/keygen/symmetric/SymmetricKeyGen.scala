@@ -1,17 +1,13 @@
 package tsec.keygen.symmetric
 
-import cats.effect.Sync
+import cats.Id
 
-trait SymmetricKeyGen[Alg, K[_], S] {
+trait SymmetricKeyGen[F[_], Y, K[_]] {
 
-  def generateKey[F[_]](implicit F: Sync[F], S: S): F[K[Alg]] =
-    F.delay(unsafeGenerate)
+  def generateKey: F[K[Y]]
 
-  def unsafeGenerate(implicit S: S): K[Alg]
-
-  def build[F[_]](rawKey: Array[Byte])(implicit F: Sync[F], S: S): F[K[Alg]] =
-    F.delay(unsafeBuild(rawKey))
-
-  def unsafeBuild(rawKey: Array[Byte])(implicit S: S): K[Alg]
+  def build(rawKey: Array[Byte]): F[K[Y]]
 
 }
+
+trait IdKeyGen[Y, K[_]] extends SymmetricKeyGen[Id, Y, K]

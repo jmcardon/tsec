@@ -14,7 +14,7 @@ class MacTests extends TestSpec with MustMatchers {
   def macTest[T](
       implicit keyGen: JKeyGenerator[T, MacSigningKey, MacKeyBuildError],
       tag: JCAMacTag[T],
-      pureinstance: JCAMac[T]
+      pureinstance: JCAMac[IO, T]
   ): Unit = {
     behavior of tag.algorithm
 
@@ -24,8 +24,8 @@ class MacTests extends TestSpec with MustMatchers {
 
       val res = for {
         k        <- keyGen.generateLift[IO]
-        signed   <- pureinstance.sign[IO](dataToSign, k)
-        verified <- pureinstance.verify[IO](dataToSign, signed, k)
+        signed   <- pureinstance.sign(dataToSign, k)
+        verified <- pureinstance.verify(dataToSign, signed, k)
       } yield verified
 
       res.unsafeRunSync() mustBe true
@@ -36,8 +36,8 @@ class MacTests extends TestSpec with MustMatchers {
 
       val res: IO[Boolean] = for {
         k       <- keyGen.generateLift[IO]
-        signed1 <- pureinstance.sign[IO](dataToSign, k)
-        signed2 <- pureinstance.sign[IO](dataToSign, k)
+        signed1 <- pureinstance.sign(dataToSign, k)
+        signed2 <- pureinstance.sign(dataToSign, k)
       } yield MessageDigest.isEqual(signed1, signed2)
       res.unsafeRunSync() mustBe true
     }
@@ -48,8 +48,8 @@ class MacTests extends TestSpec with MustMatchers {
 
       val res = for {
         k       <- keyGen.generateLift[IO]
-        signed1 <- pureinstance.sign[IO](dataToSign, k)
-        cond    <- pureinstance.verify[IO](incorrect, signed1, k)
+        signed1 <- pureinstance.sign(dataToSign, k)
+        cond    <- pureinstance.verify(incorrect, signed1, k)
       } yield cond
 
       res.unsafeRunSync() mustBe false
@@ -62,8 +62,8 @@ class MacTests extends TestSpec with MustMatchers {
       val res = for {
         k       <- keyGen.generateLift[IO]
         k2      <- keyGen.generateLift[IO]
-        signed1 <- pureinstance.sign[IO](dataToSign, k)
-        cond    <- pureinstance.verify[IO](dataToSign, signed1, k2)
+        signed1 <- pureinstance.sign(dataToSign, k)
+        cond    <- pureinstance.verify(dataToSign, signed1, k2)
       } yield cond
 
       res.unsafeRunSync() mustBe false

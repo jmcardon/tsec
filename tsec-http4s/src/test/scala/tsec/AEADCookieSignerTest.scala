@@ -3,27 +3,28 @@ package tsec
 import cats.effect.IO
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
-import tsec.cipher.common.padding.NoPadding
+import tsec.common._
 import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
-import tsec.cipher.symmetric.imports.primitive.JCAAEADPrimitive
 import tsec.cookies.AEADCookieEncryptor
+import tsec.keygen.symmetric.SymmetricKeyGen
 
 class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyChecks {
 
-  def aeadCookieTest[A](implicit cipher: AES[A], keyGen: CipherKeyGen[A]) = {
-    implicit val strategy = GCM.randomIVStrategy[A]
+  def aeadCookieTest[A](implicit api: AESGCM[A], keyGen: SymmetricKeyGen[IO, A, SecretKey]): Unit = {
+    implicit val strategy = api.defaultIvStrategy[IO]
 
-    implicit val instance = JCAAEADPrimitive[IO, A, GCM, NoPadding]().unsafeRunSync()
+    implicit val instance = api.genEncryptor[IO].unsafeRunSync()
 
-    behavior of s"AEAD Cookie encrypting with ${cipher.cipherName}${cipher.keySizeBytes * 8}"
+    behavior of s"AEAD Cookie encrypting with ${api.cipherName}${api.keySizeBytes * 8}"
 
     it should "Encrypt and decrypt properly" in {
       val now = java.time.Instant.now().toString
       forAll { (s: String) =>
         val encryptDecrypt = for {
-          key       <- keyGen.generateLift[IO]
-          encrypted <- AEADCookieEncryptor.signAndEncrypt[IO, A](s, AAD.buildFromStringUTF8(now), key)
+          key       <- keyGen.generateKey
+          encrypted <- AEADCookieEncryptor.signAndEncrypt[IO, A](s, AAD(now.utf8Bytes), key)
           decrypted <- AEADCookieEncryptor.retrieveFromSigned[IO, A](encrypted, key)
         } yield decrypted
 
@@ -38,9 +39,9 @@ class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyCheck
       val now = java.time.Instant.now().toString
       forAll { (s: String) =>
         val encryptDecrypt = for {
-          key       <- keyGen.generateLift[IO]
-          key2      <- keyGen.generateLift[IO]
-          encrypted <- AEADCookieEncryptor.signAndEncrypt[IO, A](s, AAD.buildFromStringUTF8(now), key)
+          key       <- keyGen.generateKey
+          key2      <- keyGen.generateKey
+          encrypted <- AEADCookieEncryptor.signAndEncrypt[IO, A](s, AAD(now.utf8Bytes), key)
           decrypted <- AEADCookieEncryptor.retrieveFromSigned[IO, A](encrypted, key2)
         } yield decrypted
 
@@ -52,7 +53,7 @@ class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyCheck
     }
   }
 
-  aeadCookieTest[AES128]
-  aeadCookieTest[AES192]
-  aeadCookieTest[AES256]
+  aeadCookieTest[AES128GCM]
+  aeadCookieTest[AES192GCM]
+  aeadCookieTest[AES256GCM]
 }

@@ -6,7 +6,7 @@ import tsec.hashing.core._
 protected[imports] abstract class AsCryptoHash[H](repr: String) extends JCADigestTag[H] with CryptoHashAPI[H] {
 
   /** Get our instance of jca crypto hash **/
-  def hash(s: Array[Byte]): CryptoHash[H] = implicitly[CryptoHasher[Id, H]].unsafeHash(s)
+  def hash(s: Array[Byte])(implicit C: CryptoHasher[Id, H]): CryptoHash[H] = C.hash(s)
 
   def algorithm: String = repr
 

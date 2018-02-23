@@ -26,13 +26,13 @@ class CipherBench {
   lazy val sodiumAESKey: SodiumKey[AES256GCM]      = AES256GCM.generateKeyUnsafe
 
   /** AES using tsec classes **/
-  lazy val jcaAESKey: SecretKey[JAESGCM] = JAESGCM.unsafeGenerate
+  lazy val jcaAESKey: SecretKey[JAESGCM] = JAESGCM.unsafeGenerateKey
   implicit lazy val jcaAESInstance: AuthEncryptor[IO, JAESGCM, SecretKey] =
     JAESGCM.genEncryptor[IO].unsafeRunSync()
   implicit lazy val ivStrategy: IvGen[IO, JAESGCM] = JAESGCM.defaultIvStrategy[IO]
 
   /** Our AES using the JCA raw classes. Note: We reuse cipher the instance for speed, but it's not thread safe **/
-  lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(JAESGCM.unsafeGenerate)
+  lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(JAESGCM.unsafeGenerateKey)
   lazy val jcaRAWInstance: Cipher      = Cipher.getInstance("AES/GCM/NoPadding")
 
   /** Our random plaintext **/

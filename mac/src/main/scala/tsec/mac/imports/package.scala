@@ -68,7 +68,7 @@ package object imports {
   object JCAMac {
     def sync[F[_], A](
         numInstances: Int = 10
-    )(implicit tag: JCAMacTag[A], F: Sync[F]): MessageAuth[F, A, MacSigningKey] = {
+    )(implicit tag: JCAMacTag[A], F: Sync[F]): JCAMac[F, A] = {
       val queue = new JQueue[Mac]()
       var i     = 0
       while (i < numInstances) {
@@ -82,7 +82,7 @@ package object imports {
 
     def monadError[F[_], A](
         numInstances: Int = 10
-    )(implicit tag: JCAMacTag[A], F: MonadError[F, Throwable]): MessageAuth[F, A, MacSigningKey] = {
+    )(implicit tag: JCAMacTag[A], F: MonadError[F, Throwable]): JCAMac[F, A] = {
       val queue = new JQueue[Mac]()
       var i     = 0
       while (i < numInstances) {
@@ -96,8 +96,8 @@ package object imports {
 
   }
 
-  implicit def gen[F[_]: Sync, A: JCAMacTag]: MessageAuth[F, A, MacSigningKey] = JCAMac.sync[F, A]()
-  implicit def genEither[A: JCAMacTag]: MessageAuth[Either[Throwable, ?], A, MacSigningKey] =
-    JCAMac.monadError[Either[Throwable, ?], A]()
+  implicit def gen[F[_]: Sync, A: JCAMacTag]: JCAMac[F, A] = JCAMac.sync[F, A]()
+  implicit def genEither[A: JCAMacTag]: JCAMac[MacErrorM, A] =
+    JCAMac.monadError[MacErrorM, A]()
 
 }

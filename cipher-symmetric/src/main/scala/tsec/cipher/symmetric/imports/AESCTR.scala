@@ -8,9 +8,10 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
 
-sealed abstract class AESCTRConstruction[A] extends JCACipher[A, CTR, NoPadding] { outer =>
+sealed abstract class AESCTR[A] extends JCACipherAPI[A, CTR, NoPadding] with AES[A] with JCAKeyGen[A] {
+  implicit val ae: AESCTR[A] = this
 
-  def encryptor[F[_]: Sync](implicit c: BlockCipher[A]): F[Encryptor[F, A, SecretKey]] =
+  def genEncryptor[F[_]: Sync](implicit c: BlockCipher[A]): F[Encryptor[F, A, SecretKey]] =
     JCAPrimitiveCipher.sync[F, A, CTR, NoPadding]()
 
   /** Our default Iv strategy for CTR mode
@@ -75,21 +76,21 @@ sealed abstract class AESCTRConstruction[A] extends JCACipher[A, CTR, NoPadding]
     }
 
   @deprecated("use ciphertextFromConcat", "0.0.1-M10")
-  def ciphertextFromArray(array: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
+  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A]] =
     ciphertextFromConcat(array)
 
-  def ciphertextFromConcat(rawCT: Array[Byte])(implicit a: AES[A]): Either[CipherTextError, CipherText[A]] =
+  def ciphertextFromConcat(rawCT: Array[Byte]): Either[CipherTextError, CipherText[A]] =
     CTOPS.ciphertextFromArray[A, CTR, NoPadding](rawCT)
 }
 
 sealed trait AES128CTR
 
-object AES128CTR extends AESCTRConstruction[AES128CTR] with AES128[AES128CTR]
+object AES128CTR extends AESCTR[AES128CTR] with AES128[AES128CTR]
 
 sealed trait AES192CTR
 
-object AES192CTR extends AESCTRConstruction[AES192CTR] with AES192[AES192CTR]
+object AES192CTR extends AESCTR[AES192CTR] with AES192[AES192CTR]
 
 sealed trait AES256CTR
 
-object AES256CTR extends AESCTRConstruction[AES256CTR] with AES256[AES256CTR]
+object AES256CTR extends AESCTR[AES256CTR] with AES256[AES256CTR]

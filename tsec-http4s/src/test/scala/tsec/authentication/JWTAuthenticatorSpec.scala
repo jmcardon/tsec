@@ -4,13 +4,11 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.http4s.{Header, Request}
-import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.symmetric.core.IvGen
-import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
-import tsec.cipher.symmetric.imports.{AES, CTR, CipherKeyGen}
+import tsec.cipher.symmetric.imports._
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
+import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.imports.MacKeyGenerator
 import tsec.mac.core.JCAMacTag
 
@@ -163,16 +161,16 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     */
   def statelessEncrypted[A: JWTMacAlgo: JCAMacTag, E](
       implicit cv: JWSMacCV[IO, A],
-      enc: AES[E],
-      eKeyGen: CipherKeyGen[E],
+      enc: AESCTR[E],
+      idKeyGen: IdKeyGen[E, SecretKey],
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
-    implicit val instance = JCAPrimitiveCipher[IO, E, CTR, NoPadding]().unsafeRunSync()
-    implicit val strategy = IvStrategy.defaultStrategy[E, CTR]
+    implicit val instance = enc.genEncryptor[IO].unsafeRunSync()
+    implicit val strategy = enc.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
-    val cryptoKey  = eKeyGen.generateKeyUnsafe()
+    val cryptoKey  = enc.unsafeGenerateKey
     val authenticator = JWTAuthenticator.statelessEncryptedArbitrary[IO, Int, DummyUser, A, E](
       settings,
       dummyStore,
@@ -209,16 +207,16 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     */
   def statelessBearerEncrypted[A: JWTMacAlgo: JCAMacTag, E](
       implicit cv: JWSMacCV[IO, A],
-      enc: AES[E],
-      eKeyGen: CipherKeyGen[E],
+      enc: AESCTR[E],
+      idKeyGen: IdKeyGen[E, SecretKey],
       macKeyGen: MacKeyGenerator[A]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
-    implicit val instance = JCAPrimitiveCipher[IO, E, CTR, NoPadding]().unsafeRunSync()
-    implicit val strategy = IvStrategy.defaultStrategy[E, CTR]
+    implicit val instance = enc.genEncryptor[IO].unsafeRunSync()
+    implicit val strategy = enc.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKeyUnsafe()
-    val cryptoKey  = eKeyGen.generateKeyUnsafe()
+    val cryptoKey  = enc.unsafeGenerateKey
     val authenticator = JWTAuthenticator.statelessEncrypted[IO, Int, DummyUser, A, E](
       settings.expiryDuration,
       settings.maxIdle,

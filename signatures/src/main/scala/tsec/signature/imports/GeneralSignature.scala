@@ -7,12 +7,15 @@ import cats.syntax.either._
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
 import tsec.common.ErrorConstruct._
-import tsec.signature.core.{ECKFTag, KFTag, RSAKFTag, SigAlgoTag}
+import tsec.signature.core._
 
-abstract class GeneralSignature[A](signature: String, keyFactoryRepr: String) extends SigAlgoTag[A] with KFTag[A] {
+abstract class GeneralSignature[A](signature: String, keyFactoryRepr: String)
+    extends SigAlgoTag[A]
+    with KFTag[A]
+    with CertSignatureAPI[A, SigPublicKey, SigPrivateKey, SigCertificate] {
 
-  override lazy val algorithm: String = signature
-  implicit val sig: SigAlgoTag[A]     = this
+  val algorithm: String           = signature
+  implicit val sig: SigAlgoTag[A] = this
 
   val keyFactoryAlgo: String = keyFactoryRepr
 
@@ -39,7 +42,10 @@ abstract class GeneralSignature[A](signature: String, keyFactoryRepr: String) ex
     SigPublicKey[A](KeyFactory.getInstance(kt.keyFactoryAlgo).generatePublic(new X509EncodedKeySpec(keyBytes)))
 }
 
-abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAlgoTag[A] {
+abstract class RSASignature[A](signature: String)
+    extends RSAKFTag[A]
+    with SigAlgoTag[A]
+    with CertSignatureAPI[A, SigPublicKey, SigPrivateKey, SigCertificate] {
 
   override lazy val algorithm: String = signature
 
@@ -88,7 +94,8 @@ abstract class RSASignature[A](signature: String) extends RSAKFTag[A] with SigAl
 abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
     extends SigAlgoTag[A]
     with ECCurve[A]
-    with ECKFTag[A] {
+    with ECKFTag[A]
+    with CertSignatureAPI[A, SigPublicKey, SigPrivateKey, SigCertificate] {
 
   override lazy val algorithm: String = signature
 

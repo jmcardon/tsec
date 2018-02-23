@@ -17,11 +17,8 @@ package object imports {
 
     private def genInstance = MessageDigest.getInstance(digestTag.algorithm)
 
-    def unsafeHash(bytes: Array[Byte]): CryptoHash[A] =
-      CryptoHash[A](genInstance.digest(bytes))
-
     def hash(bytes: Array[Byte]): F[CryptoHash[A]] =
-      F.pure(unsafeHash(bytes))
+      F.pure(CryptoHash[A](genInstance.digest(bytes)))
 
     /** In this case, we use the same code as fs2, but we resolve
       * the hash string prefix from the implicit
@@ -51,7 +48,7 @@ package object imports {
       * pure
       */
     def hash[A](implicit C: CryptoHasher[Id, A], J: JCADigestTag[A]): CryptoHash[A] =
-      C.unsafeHash(bytes)
+      C.hash(bytes)
   }
 
   implicit final def hashOps(value: Array[Byte]): ArrayHashOps = new ArrayHashOps(value)
