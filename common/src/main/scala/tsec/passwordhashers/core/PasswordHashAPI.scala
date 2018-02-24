@@ -8,7 +8,7 @@ import tsec.common._
 
 trait PasswordHashAPI[A] {
 
-  def hashpwUnsafe(p: String)(implicit P: PasswordHasher[Id, A]): PasswordHash[A] = hashpwUnsafe(p.utf8Bytes)
+  def hashpwUnsafe(p: String)(implicit P: PasswordHasher[Id, A]): PasswordHash[A] = hashpwUnsafe(p.asciiBytes)
 
   /** Hash a password in a char array
     * then clear the data in the password original
@@ -39,7 +39,7 @@ trait PasswordHashAPI[A] {
     out
   }
 
-  def hashpw[F[_]](p: String)(implicit P: PasswordHasher[F, A]): F[PasswordHash[A]] = hashpw[F](p.utf8Bytes)
+  def hashpw[F[_]](p: String)(implicit P: PasswordHasher[F, A]): F[PasswordHash[A]] = hashpw[F](p.asciiBytes)
 
   /** Hash a password in a char array
     * then clear the data in the password original
@@ -67,7 +67,7 @@ trait PasswordHashAPI[A] {
     * @return
     */
   def checkpwUnsafe(p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean =
-    checkpwUnsafe(p.utf8Bytes, hash)
+    checkpwUnsafe(p.asciiBytes, hash)
 
   /** Check against a bcrypt hash in an unsafe
     * manner.
@@ -103,7 +103,7 @@ trait PasswordHashAPI[A] {
     * It may raise an error for a malformed hash
     */
   def checkpw[F[_]: Sync](p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
-    checkpw[F](p.utf8Bytes, hash)
+    checkpw[F](p.asciiBytes, hash)
 
   /** Check against a bcrypt hash in a pure way
     *

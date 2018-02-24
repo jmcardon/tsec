@@ -6,11 +6,14 @@ import cats.effect.IO
 import tsec.common._
 import tsec.libsodium.hashing._
 import fs2._
+import tsec.hashing.core.CryptoHasher
 import tsec.libsodium.hashing.internal.SodiumHashPlatform
 
 class GenericHash extends SodiumSpec {
 
-  def hashTest[A](platform: SodiumHashPlatform[A]) = {
+  def hashTest[A](platform: SodiumHashPlatform[A])(
+      implicit hasher: CryptoHasher[IO, A]
+  ) = {
     behavior of "Sodium hash for " + platform.algorithm
 
     it should "hash two byte arrays into equal hash values" in {

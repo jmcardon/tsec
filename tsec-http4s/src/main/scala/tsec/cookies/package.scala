@@ -27,7 +27,7 @@ package object cookies {
 
     def getEncryptedContent[F[_], A: AES](
         signed: AEADCookie[A]
-    )(implicit encryptor: AuthEncryptor[F, A, SecretKey]): Either[CipherTextError, CipherText[A]] = {
+    )(implicit encryptor: AADEncryptor[F, A, SecretKey]): Either[CipherTextError, CipherText[A]] = {
       val split = signed.split("-")
       if (split.length != 2)
         Left(CipherTextError("String encoded improperly"))

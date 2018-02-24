@@ -5,11 +5,17 @@ import tsec.cipher.symmetric.core._
 import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 import tsec.common._
+import tsec.keygen.symmetric.SymmetricKeyGen
 
 class SodiumCipherTest extends SodiumSpec {
 
-  final def testSecretBoxCipher[A](platform: SodiumCipherPlatform[A]): Unit = {
+  final def testSecretBoxCipher[A](platform: SodiumCipherPlatform[A])(
+      implicit E: AuthEncryptor[IO, A, SodiumKey],
+      kg: SymmetricKeyGen[IO, A, SodiumKey]
+  ): Unit = {
     behavior of s"${platform.algorithm} symmetric key"
+
+    implicit val ivGen = platform.defaultIvGen[IO]
 
     it should "generate key, encrypt and decrypt properly" in {
       forAll { (s: String) =>

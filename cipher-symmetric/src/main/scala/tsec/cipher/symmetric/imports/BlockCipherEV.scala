@@ -13,7 +13,7 @@ import tsec.keygen.symmetric._
   * A represents AES.
   *
   */
-private[tsec] trait JCAKeyGen[A] extends SymmKeyGenAPI[A, SecretKey] {
+private[tsec] trait JCAKeyGen[A] extends SymmetricKeyGenAPI[A, SecretKey] {
   private def keySizeBits(implicit B: BlockCipher[A]) = B.keySizeBytes * 8
 
   private def generator(implicit B: BlockCipher[A]): KG = KG.getInstance(B.cipherName)

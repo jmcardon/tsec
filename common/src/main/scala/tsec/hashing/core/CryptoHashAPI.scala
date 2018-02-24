@@ -23,7 +23,7 @@ trait CryptoHashAPI[A] {
     * The underlying hash function may or may not side effect.
     * @return
     */
-  final def hashF[F[_]](bytes: Array[Byte])(implicit C: CryptoHasher[F, A]): F[CryptoHash[A]] =
+  final def hash[F[_]](bytes: Array[Byte])(implicit C: CryptoHasher[F, A]): F[CryptoHash[A]] =
     C.hash(bytes)
 
   /** A pipe that transforms a byte stream into the stream of its

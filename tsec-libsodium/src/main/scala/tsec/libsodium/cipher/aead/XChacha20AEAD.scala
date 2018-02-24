@@ -50,6 +50,44 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
       key
     )
 
+  private[tsec] def sodiumEncryptDetached(
+      cout: Array[Byte],
+      tagOut: Array[Byte],
+      pt: PlainText,
+      nonce: Array[Byte],
+      key: SodiumKey[XChacha20AEAD]
+  )(implicit S: ScalaSodium): Int =
+    S.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
+      cout,
+      tagOut,
+      NullPtrInt,
+      pt,
+      pt.length,
+      NullPtrBytes,
+      0,
+      NullPtrBytes,
+      nonce,
+      key
+    )
+
+  private[tsec] def sodiumDecryptDetached(
+      origOut: Array[Byte],
+      ct: CipherText[XChacha20AEAD],
+      tagIn: AuthTag[XChacha20AEAD],
+      key: SodiumKey[XChacha20AEAD]
+  )(implicit S: ScalaSodium): Int =
+    S.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
+      origOut,
+      NullPtrBytes,
+      ct.content,
+      ct.content.length,
+      tagIn,
+      NullPtrBytes,
+      0,
+      ct.nonce,
+      key
+    )
+
   private[tsec] def sodiumEncryptAAD(
       cout: Array[Byte],
       pt: PlainText,

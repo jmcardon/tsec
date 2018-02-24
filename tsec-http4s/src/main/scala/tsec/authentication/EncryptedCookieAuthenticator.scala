@@ -208,7 +208,7 @@ object EncryptedCookieAuthenticator {
         *
         */
       private def generateAAD(message: String) =
-        AAD(SHA1.hash((message + Instant.now.toEpochMilli).utf8Bytes))
+        AAD(SHA1.hashPure((message + Instant.now.toEpochMilli).utf8Bytes))
 
       /** Validate the cookie against the raw representation, and
         * validate against possibly expiration or timeout
@@ -363,7 +363,7 @@ object EncryptedCookieAuthenticator {
         )
 
       private def generateAAD(message: String) =
-        AAD(SHA1.hash((message + Instant.now.toEpochMilli).utf8Bytes))
+        AAD(SHA1.hashPure((message + Instant.now.toEpochMilli).utf8Bytes))
 
       /** Inside a stateless cookie, we do not have a backing store, thus checking with the AuthEncryptedCookie is
         * useless

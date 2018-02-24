@@ -14,7 +14,7 @@ import scala.util.Random
 
 class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
-  final def cipherTest[A, M, P](algebra: JCACipherAPI[A, M, P] with SymmKeyGenAPI[A, SecretKey])(
+  final def cipherTest[A, M, P](algebra: JCACipherAPI[A, M, P] with SymmetricKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],
       mode: CipherMode[M],
       p: SymmetricPadding[P],
@@ -82,7 +82,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
     }
   }
 
-  final def authCipherTest[A, M, P](algebra: JCAAEAD[A, M, P] with SymmKeyGenAPI[A, SecretKey])(
+  final def authCipherTest[A, M, P](algebra: JCAAEAD[A, M, P] with SymmetricKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],
       aead: AEADCipher[A],
       mode: CipherMode[M],

@@ -1,14 +1,16 @@
 package tsec.libsodium
 
 import cats.effect.IO
+import tsec.common._
 import tsec.cipher.symmetric.core._
 import tsec.libsodium.cipher.CryptoSecretBox
 import tsec.libsodium.kx._
-import tsec.common._
 
 class KeyExchangeTest extends SodiumSpec {
 
   behavior of "Sodium KeyExchange"
+
+  implicit val strategy = CryptoSecretBox.defaultIvGen[IO]
 
   it should "encrypt and decrypt properly" in {
     forAll { (s: String) =>

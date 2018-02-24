@@ -11,7 +11,7 @@ import tsec.cipher.symmetric.imports.primitive.JCAAEADPrimitive
 sealed abstract class AESGCM[A] extends JCAAEAD[A, GCM, NoPadding] with AES[A] with JCAKeyGen[A] {
   implicit val ae: AESGCM[A] = this
 
-  def genEncryptor[F[_]: Sync](implicit c: AES[A]): F[AuthEncryptor[F, A, SecretKey]] =
+  def genEncryptor[F[_]: Sync](implicit c: AES[A]): F[AADEncryptor[F, A, SecretKey]] =
     JCAAEADPrimitive.sync[F, A, GCM, NoPadding]()
 
   /** Our default Iv strategy for GCM mode

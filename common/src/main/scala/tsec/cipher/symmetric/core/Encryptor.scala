@@ -17,7 +17,6 @@ trait Encryptor[F[_], A, K[_]] {
 }
 
 trait AuthEncryptor[F[_], A, K[_]] extends Encryptor[F, A, K] {
-
   def encryptDetached(plainText: PlainText, key: K[A])(
       implicit ivStrategy: IvGen[F, A],
       F: Monad[F]
@@ -25,6 +24,12 @@ trait AuthEncryptor[F[_], A, K[_]] extends Encryptor[F, A, K] {
     F.flatMap(ivStrategy.genIv)(encryptDetached(plainText, key, _))
 
   def encryptDetached(plainText: PlainText, key: K[A], iv: Iv[A]): F[(CipherText[A], AuthTag[A])]
+
+  def decryptDetached(cipherText: CipherText[A], key: K[A], authTag: AuthTag[A]): F[PlainText]
+
+}
+
+trait AADEncryptor[F[_], A, K[_]] extends AuthEncryptor[F, A, K] {
 
   def encryptWithAAD(plainText: PlainText, key: K[A], aad: AAD)(
       implicit ivStrategy: IvGen[F, A],
@@ -41,8 +46,6 @@ trait AuthEncryptor[F[_], A, K[_]] extends Encryptor[F, A, K] {
     F.flatMap(ivStrategy.genIv)(encryptWithAADDetached(plainText, key, _, aad))
 
   def encryptWithAADDetached(plainText: PlainText, key: K[A], iv: Iv[A], aad: AAD): F[(CipherText[A], AuthTag[A])]
-
-  def decryptDetached(cipherText: CipherText[A], key: K[A], authTag: AuthTag[A]): F[PlainText]
 
   def decryptWithAAD(cipherText: CipherText[A], key: K[A], aad: AAD): F[PlainText]
 

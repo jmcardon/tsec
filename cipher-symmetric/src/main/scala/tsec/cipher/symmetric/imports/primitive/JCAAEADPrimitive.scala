@@ -20,7 +20,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     paddingTag: SymmetricPadding[P],
     F: MonadError[F, Throwable],
     private[tsec] val ivProcess: IvProcess[A, M, P],
-) extends AuthEncryptor[F, A, SecretKey]
+) extends AADEncryptor[F, A, SecretKey]
     with CanCatch[F] {
 
   private def getInstance: JCipher = {
@@ -139,7 +139,7 @@ object JCAAEADPrimitive {
 
   private[tsec] def sync[F[_], A: BlockCipher: AEADCipher, M: CipherMode, P: SymmetricPadding](
       queueSize: Int = 15
-  )(implicit F: Sync[F], ivProcess: IvProcess[A, M, P]): F[AuthEncryptor[F, A, SecretKey]] =
+  )(implicit F: Sync[F], ivProcess: IvProcess[A, M, P]): F[AADEncryptor[F, A, SecretKey]] =
     F.delay(JCAPrimitiveCipher.genQueueUnsafe[A, M, P](queueSize))
       .map(new JCAAEADPrimitive[F, A, M, P](_) {
         def catchF[C](thunk: => C): F[C] = F.delay(thunk)
@@ -147,7 +147,7 @@ object JCAAEADPrimitive {
 
   private[tsec] def monadError[F[_], A: BlockCipher: AEADCipher, M: CipherMode, P: SymmetricPadding](
       queueSize: Int = 15
-  )(implicit F: MonadError[F, Throwable], ivProcess: IvProcess[A, M, P]): F[AuthEncryptor[F, A, SecretKey]] =
+  )(implicit F: MonadError[F, Throwable], ivProcess: IvProcess[A, M, P]): F[AADEncryptor[F, A, SecretKey]] =
     F.catchNonFatal(JCAPrimitiveCipher.genQueueUnsafe[A, M, P](queueSize))
       .map(
         q =>

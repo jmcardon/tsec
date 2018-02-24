@@ -1,6 +1,6 @@
 package tsec.keygen.symmetric
 
-trait SymmKeyGenAPI[Alg, K[_]] {
+private[tsec] trait SymmetricKeyGenAPI[Alg, K[_]] {
 
   @deprecated("0.0.1-M10", "use generateKey")
   def generateLift[F[_]](implicit S: SymmetricKeyGen[F, Alg, K]): F[K[Alg]] = generateKey[F]

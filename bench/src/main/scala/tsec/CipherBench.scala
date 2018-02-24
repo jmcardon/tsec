@@ -22,14 +22,16 @@ class CipherBench {
 
   /** Our libsodium setup **/
   implicit lazy val sodium: ScalaSodium            = ScalaSodium.getSodiumUnsafe
-  lazy val chachaKey: SodiumKey[XChacha20Poly1305] = XChacha20Poly1305.generateKeyUnsafe
-  lazy val sodiumAESKey: SodiumKey[AES256GCM]      = AES256GCM.generateKeyUnsafe
+  lazy val chachaKey: SodiumKey[XChacha20Poly1305] = XChacha20Poly1305.unsafeGenerateKey
+  lazy val sodiumAESKey: SodiumKey[AES256GCM]      = AES256GCM.unsafeGenerateKey
 
   /** AES using tsec classes **/
   lazy val jcaAESKey: SecretKey[JAESGCM] = JAESGCM.unsafeGenerateKey
-  implicit lazy val jcaAESInstance: AuthEncryptor[IO, JAESGCM, SecretKey] =
+  implicit lazy val jcaAESInstance: AADEncryptor[IO, JAESGCM, SecretKey] =
     JAESGCM.genEncryptor[IO].unsafeRunSync()
-  implicit lazy val ivStrategy: IvGen[IO, JAESGCM] = JAESGCM.defaultIvStrategy[IO]
+  implicit lazy val ivStrategy: IvGen[IO, JAESGCM]  = JAESGCM.defaultIvStrategy[IO]
+  implicit lazy val ivStrat2: IvGen[IO, AES256GCM] = AES256GCM.defaultIvGen[IO]
+  implicit lazy val ivStrat3: IvGen[IO, XChacha20Poly1305] = XChacha20Poly1305.defaultIvGen[IO]
 
   /** Our AES using the JCA raw classes. Note: We reuse cipher the instance for speed, but it's not thread safe **/
   lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(JAESGCM.unsafeGenerateKey)

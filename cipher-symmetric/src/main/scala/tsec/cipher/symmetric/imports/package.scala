@@ -220,6 +220,6 @@ package object imports {
   }
 
   type JEncryptor[F[_], A]     = Encryptor[F, A, SecretKey]
-  type JAuthEncryptor[F[_], A] = AuthEncryptor[F, A, SecretKey]
+  type JAuthEncryptor[F[_], A] = AADEncryptor[F, A, SecretKey]
 
 }

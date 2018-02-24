@@ -5,25 +5,22 @@ import cats.syntax.all._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.passwordhashers.{PWStrengthParam => PS}
 import tsec.libsodium.passwordhashers._
+import tsec.passwordhashers.core.{PasswordHash, PasswordHashAPI, PasswordHasher}
 
-trait SodiumPasswordHasher[PwTyp] {
+trait SodiumPasswordHasher[P] extends PasswordHashAPI[P] {
   val hashingAlgorithm: String
   val saltLen: Int
   val outLen: Int
 
-  def hashPassword[F[_], S](
+  def hashpwWithStrength[F[_], S](
       p: String,
       strength: S
-  )(implicit pws: PS[PwTyp, S], F: Sync[F], S: ScalaSodium): F[PasswordHash[PwTyp]]
-
-  def checkPass[F[_]](raw: String, hash: PasswordHash[PwTyp])(
-      implicit F: Sync[F],
-      S: ScalaSodium
-  ): F[Boolean]
+  )(implicit pws: PS[P, S], F: Sync[F], S: ScalaSodium): F[PasswordHash[P]]
 
   final def checkPassShortCircuit[F[_]](
       raw: String,
-      hash: PasswordHash[PwTyp]
-  )(implicit F: Sync[F], S: ScalaSodium): F[Unit] =
-    checkPass[F](raw, hash).flatMap(res => if (res) F.unit else F.raiseError(SodiumPasswordError("Invalid password")))
+      hash: PasswordHash[P]
+  )(implicit F: Sync[F], S: ScalaSodium, P: PasswordHasher[F, P]): F[Unit] =
+    checkpw[F](raw, hash).flatMap(res => if (res) F.unit else F.raiseError(SodiumPasswordError("Invalid password")))
+
 }

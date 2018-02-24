@@ -2,6 +2,7 @@ package tsec.libsodium.authentication
 
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication.internal.SodiumMacPlatform
+import tsec.mac.core.MAC
 
 sealed trait HS512
 
@@ -14,7 +15,7 @@ object HS512 extends SodiumMacPlatform[HS512] {
       implicit S: ScalaSodium
   ): Int = S.crypto_auth(out, in, in.length, key)
 
-  private[tsec] def sodiumVerify(in: Array[Byte], hashed: SodiumMAC[HS512], key: SodiumMACKey[HS512])(
+  private[tsec] def sodiumVerify(in: Array[Byte], hashed: MAC[HS512], key: SodiumMACKey[HS512])(
       implicit S: ScalaSodium
   ): Int = S.crypto_auth_verify(hashed, in, in.length, key)
 }

@@ -18,7 +18,7 @@ object BCrypt extends JCAPasswordPlatform[BCrypt] {
     JBCrypt.checkpw(p, hash)
 
   def hashpwWithRounds[F[_]](p: String, rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
-    hashpwWithRounds[F](p.utf8Bytes, rounds)
+    hashpwWithRounds[F](p.asciiBytes, rounds)
 
   def hashpwWithRounds[F[_]](p: Array[Byte], rounds: Int)(implicit F: Sync[F]): F[PasswordHash[BCrypt]] =
     if (rounds < 10 || rounds > 30)

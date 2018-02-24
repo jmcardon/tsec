@@ -30,8 +30,7 @@ trait CipherAPI[A, K[_]] {
   ): F[PlainText] = E.decrypt(cipherText, key)
 }
 
-/** Our AEAD algebra **/
-trait AEADApi[A, K[_]] extends CipherAPI[A, K] {
+trait AuthCipherAPI[A, K[_]] extends CipherAPI[A, K] {
 
   final def encryptDetached[F[_]: Monad](plainText: PlainText, key: K[A])(
       implicit E: AuthEncryptor[F, A, K],
@@ -48,46 +47,51 @@ trait AEADApi[A, K[_]] extends CipherAPI[A, K] {
       implicit E: AuthEncryptor[F, A, K]
   ): F[(CipherText[A], AuthTag[A])] = E.encryptDetached(plainText, key, iv)
 
+  final def decryptDetached[F[_]](cipherText: CipherText[A], key: K[A], authTag: AuthTag[A])(
+      implicit E: AuthEncryptor[F, A, K]
+  ): F[PlainText] = E.decryptDetached(cipherText, key, authTag)
+
+}
+
+/** Our AEAD algebra **/
+trait AEADAPI[A, K[_]] extends AuthCipherAPI[A, K] {
+
   final def encryptWithAAD[F[_]: Monad](plainText: PlainText, key: K[A], aad: AAD)(
-      implicit E: AuthEncryptor[F, A, K],
+      implicit E: AADEncryptor[F, A, K],
       ivStrategy: IvGen[F, A]
   ): F[CipherText[A]] =
     ivStrategy.genIv.flatMap(encryptWithAAD[F](plainText, key, _, aad))
 
   final def encryptWithAAD[F[_]](plainText: PlainText, key: K[A], ivs: IvGen[F, A], aad: AAD)(
-      implicit E: AuthEncryptor[F, A, K],
+      implicit E: AADEncryptor[F, A, K],
       F: Monad[F]
   ): F[CipherText[A]] = encryptWithAAD[F](plainText, key, aad)(F, E, ivs)
 
   final def encryptWithAAD[F[_]](plainText: PlainText, key: K[A], iv: Iv[A], aad: AAD)(
-      implicit E: AuthEncryptor[F, A, K]
+      implicit E: AADEncryptor[F, A, K]
   ): F[CipherText[A]] = E.encryptWithAAD(plainText, key, iv, aad)
 
   final def encryptWithAADDetached[F[_]: Monad](plainText: PlainText, key: K[A], aad: AAD)(
-      implicit E: AuthEncryptor[F, A, K],
+      implicit E: AADEncryptor[F, A, K],
       ivStrategy: IvGen[F, A]
   ): F[(CipherText[A], AuthTag[A])] =
     ivStrategy.genIv.flatMap(encryptWithAADDetached[F](plainText, key, _, aad))
 
   final def encryptWithAADDetached[F[_]](plainText: PlainText, key: K[A], ivs: IvGen[F, A], aad: AAD)(
-      implicit E: AuthEncryptor[F, A, K],
+      implicit E: AADEncryptor[F, A, K],
       F: Monad[F]
   ): F[(CipherText[A], AuthTag[A])] = encryptWithAADDetached[F](plainText, key, aad)(F, E, ivs)
 
   final def encryptWithAADDetached[F[_]](plainText: PlainText, key: K[A], iv: Iv[A], aad: AAD)(
-      implicit E: AuthEncryptor[F, A, K]
+      implicit E: AADEncryptor[F, A, K]
   ): F[(CipherText[A], AuthTag[A])] = E.encryptWithAADDetached(plainText, key, iv, aad)
 
-  final def decryptDetached[F[_]](cipherText: CipherText[A], key: K[A], authTag: AuthTag[A])(
-      implicit E: AuthEncryptor[F, A, K]
-  ): F[PlainText] = E.decryptDetached(cipherText, key, authTag)
-
   final def decryptWithAAD[F[_]](cipherText: CipherText[A], key: K[A], aad: AAD)(
-      implicit E: AuthEncryptor[F, A, K]
+      implicit E: AADEncryptor[F, A, K]
   ): F[PlainText] = E.decryptWithAAD(cipherText, key, aad)
 
   final def decryptWithAADDetached[F[_]](cipherText: CipherText[A], key: K[A], aad: AAD, authTag: AuthTag[A])(
-      implicit E: AuthEncryptor[F, A, K]
+      implicit E: AADEncryptor[F, A, K]
   ): F[PlainText] = E.decryptWithAADDetached(cipherText, key, aad, authTag)
 
 }
