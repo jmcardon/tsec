@@ -1,11 +1,10 @@
 package tsec
 
 import cats.data.OptionT
-import cats.evidence.Is
 import org.bouncycastle.util.encoders.Hex
 import org.http4s.{Request, Response}
 import org.http4s.server.Middleware
-import tsec.common.{ManagedRandom, StringNewt}
+import tsec.common.ManagedRandom
 
 package object csrf {
 

@@ -18,6 +18,12 @@ package object core {
     private[core] final class PwPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[String]): F[PasswordHash[A]] = value.asInstanceOf[F[PasswordHash[A]]]
     }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[PasswordHash[A]]): F[String] = value.asInstanceOf[F[String]]
+    }
   }
 
   final case class PasswordError(cause: String) extends TSecError

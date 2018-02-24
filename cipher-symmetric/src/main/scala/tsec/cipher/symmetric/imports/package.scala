@@ -21,11 +21,12 @@ package object imports {
     def apply[A](key: JSecretKey): SecretKey[A]     = key.asInstanceOf[SecretKey[A]]
     def toJavaKey[A](key: SecretKey[A]): JSecretKey = key.asInstanceOf[JSecretKey]
     def subst[A]: SecretKPartiallyApplied[A]        = new SecretKPartiallyApplied[A]
-    def unsubst[A]: SecretKUnwrap[A]                = new SecretKUnwrap[A]
 
     private[tsec] class SecretKPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[JSecretKey]): F[SecretKey[A]] = value.asInstanceOf[F[SecretKey[A]]]
     }
+
+    def unsubst[A]: SecretKUnwrap[A] = new SecretKUnwrap[A]
 
     private[tsec] class SecretKUnwrap[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[SecretKey[A]]): F[JSecretKey] = value.asInstanceOf[F[JSecretKey]]
@@ -218,7 +219,7 @@ package object imports {
       }
   }
 
-  type JEncryptor[F[_], A] = Encryptor[F, A, SecretKey]
+  type JEncryptor[F[_], A]     = Encryptor[F, A, SecretKey]
   type JAuthEncryptor[F[_], A] = AuthEncryptor[F, A, SecretKey]
 
 }

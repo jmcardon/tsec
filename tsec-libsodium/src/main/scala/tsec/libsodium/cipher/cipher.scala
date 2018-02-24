@@ -15,6 +15,12 @@ package object cipher {
     private[tsec] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[SodiumKey[A]] = value.asInstanceOf[F[SodiumKey[A]]]
     }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[SodiumKey[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
   type CryptoStreamHeader = CryptoStreamHeader.Type

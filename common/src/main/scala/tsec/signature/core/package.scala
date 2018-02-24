@@ -14,6 +14,12 @@ package object core {
     private[core] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[CryptoSignature[A]] = value.asInstanceOf[F[CryptoSignature[A]]]
     }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[CryptoSignature[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
 }

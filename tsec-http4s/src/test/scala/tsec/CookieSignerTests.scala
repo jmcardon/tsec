@@ -5,7 +5,7 @@ import java.util.UUID
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
-import tsec.cookies.{CookieSigner, SignedCookie}
+import tsec.cookies.CookieSigner
 import tsec.mac.core.JCAMacTag
 import tsec.mac.imports._
 
@@ -21,9 +21,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
         val verified = for {
           key    <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          stringer  = SignedCookie.toString[A](signed)
-          recoerced = SignedCookie[A](stringer)
-          verify <- CookieSigner.verify[A](recoerced, key)
+          verify <- CookieSigner.verify[A](signed, key)
         } yield verify
 
         if (s.isEmpty)
@@ -38,9 +36,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
         val verified = for {
           key    <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          stringer  = SignedCookie.toString[A](signed)
-          recoerced = SignedCookie[A](stringer)
-          verify <- CookieSigner.verifyAndRetrieve[A](recoerced, key)
+          verify <- CookieSigner.verifyAndRetrieve[A](signed, key)
         } yield verify
 
         if (s.isEmpty)
@@ -71,9 +67,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
         val verified = for {
           key    <- keyGen.generateKey()
           signed <- CookieSigner.sign[A](s.toString, System.currentTimeMillis().toString, key)
-          stringer  = SignedCookie.toString[A](signed)
-          recoerced = SignedCookie[A](stringer)
-          verify <- CookieSigner.verifyAndRetrieve[A](recoerced, key)
+          verify <- CookieSigner.verifyAndRetrieve[A](signed, key)
         } yield UUID.fromString(verify)
         verified mustBe Right(s)
       }

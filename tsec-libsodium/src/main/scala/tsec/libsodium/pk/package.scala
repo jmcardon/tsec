@@ -1,36 +1,44 @@
 package tsec.libsodium
 
-import cats.evidence.Is
-import tsec.common.HKByteArrayNewt
-
 package object pk {
 
-  // Todo: Macro??? Seriously this is so repetitive
-  private[tsec] val PrivateEncKey$$ : HKByteArrayNewt = new HKByteArrayNewt {
-    type Repr[A] = Array[Byte]
-
-    def is[G] = Is.refl[Repr[G]]
-  }
-
-  type PrivateKey[A] = PrivateEncKey$$.Repr[A]
+  type PrivateKey[A] = PrivateKey.Type[A]
 
   //Todo: Check keyLen for building.
   object PrivateKey {
-    def apply[A](bytes: Array[Byte]): PrivateKey[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], PrivateKey[A]] = PrivateEncKey$$.is[A]
+    type Type[A] <: Array[Byte]
+
+    def apply[A](value: Array[Byte]): PrivateKey[A] = value.asInstanceOf[PrivateKey[A]]
+    def subst[A]: PartiallyApplied[A]               = new PartiallyApplied[A]
+
+    private[tsec] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[Array[Byte]]): F[PrivateKey[A]] = value.asInstanceOf[F[PrivateKey[A]]]
+    }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[PrivateKey[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
-  private[tsec] val PublicEncKey$$ : HKByteArrayNewt = new HKByteArrayNewt {
-    type Repr[A] = Array[Byte]
-
-    def is[G] = Is.refl[Repr[G]]
-  }
-
-  type PublicKey[A] = PublicEncKey$$.Repr[A]
+  type PublicKey[A] = PublicKey.Type[A]
 
   object PublicKey {
-    def apply[A](bytes: Array[Byte]): PublicKey[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], PublicKey[A]] = PublicEncKey$$.is[A]
+    type Type[A] <: Array[Byte]
+
+    def apply[A](value: Array[Byte]): PublicKey[A] = value.asInstanceOf[PublicKey[A]]
+    def subst[A]: PartiallyApplied[A]               = new PartiallyApplied[A]
+
+    private[tsec] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[Array[Byte]]): F[PublicKey[A]] = value.asInstanceOf[F[PublicKey[A]]]
+    }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[PublicKey[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
   final case class SodiumKeyPair[A](pubKey: PublicKey[A], privKey: PrivateKey[A])

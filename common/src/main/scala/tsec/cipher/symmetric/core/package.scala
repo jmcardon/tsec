@@ -13,6 +13,12 @@ package object core {
       def apply[F[_]](value: F[Array[Byte]]): F[Iv[A]] =
         value.asInstanceOf[F[Iv[A]]]
     }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[Iv[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
   type RawCipherText[A] = RawCipherText.Type[A]
@@ -27,21 +33,13 @@ package object core {
       def apply[F[_]](value: F[Array[Byte]]): F[RawCipherText[A]] =
         value.asInstanceOf[F[RawCipherText[A]]]
     }
-  }
 
-//  type Nonce[A] = Nonce.Type[A]
-//
-//  object Nonce {
-//    type Type[A] <: Array[Byte]
-//    def apply[A](value: Array[Byte]): Nonce[A] = value.asInstanceOf[Nonce[A]]
-//
-//    def subst[A]: NoncePartiallyApplied[A] = new NoncePartiallyApplied[A]
-//
-//    private[core] final class NoncePartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
-//      def apply[F[_]](value: F[Array[Byte]]): F[Nonce[A]] =
-//        value.asInstanceOf[F[Nonce[A]]]
-//    }
-//  }
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[RawCipherText[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
+  }
 
   type PlainText = PlainText.Type
 
@@ -73,6 +71,12 @@ package object core {
     private[core] final class AuthTagPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[AuthTag[A]] =
         value.asInstanceOf[F[AuthTag[A]]]
+    }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[AuthTag[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
     }
   }
 

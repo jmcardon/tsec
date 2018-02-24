@@ -32,6 +32,12 @@ package object imports {
     private[tsec] class SKPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[JSecretKey]): F[MacSigningKey[A]] = value.asInstanceOf[F[MacSigningKey[A]]]
     }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[MacSigningKey[A]]): F[JSecretKey] = value.asInstanceOf[F[JSecretKey]]
+    }
   }
 
   final class SigningKeyOps[A](val key: MacSigningKey[A]) extends AnyVal {

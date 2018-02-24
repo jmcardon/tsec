@@ -1,17 +1,16 @@
 package tsec.common
 
-import cats.evidence.Is
 import org.apache.commons.codec.binary.Hex
 
 case class SecureRandomIdGenerator(sizeInBytes: Int = 32) extends ManagedRandom {
   def generate: SecureRandomId = {
     val byteArray = new Array[Byte](sizeInBytes)
     nextBytes(byteArray)
-    SecureRandomId$$.is.flip.coerce(new String(Hex.encodeHex(byteArray)))
+    new String(Hex.encodeHex(byteArray)).asInstanceOf[SecureRandomId]
   }
 }
 
 object SecureRandomId extends SecureRandomIdGenerator(32) {
-  @inline def is: Is[SecureRandomId, String] = SecureRandomId$$.is
-  def coerce(s: String): SecureRandomId      = is.flip.coerce(s)
+  def apply(s: String): SecureRandomId  = s.asInstanceOf[SecureRandomId]
+  def coerce(s: String): SecureRandomId = s.asInstanceOf[SecureRandomId]
 }

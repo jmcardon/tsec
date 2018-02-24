@@ -120,7 +120,7 @@ object JWTAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
+          retrieved <- tokenStore.get(SecureRandomId(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed))
@@ -251,7 +251,7 @@ object JWTAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
+          retrieved <- tokenStore.get(SecureRandomId(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed))

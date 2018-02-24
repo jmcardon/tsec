@@ -1,48 +1,43 @@
 package tsec.libsodium.pk
 
-import cats.evidence.Is
-import tsec.common.HKByteArrayNewt
-
 package object signatures {
 
-  private[tsec] val RawMessage$$ : HKByteArrayNewt = new HKByteArrayNewt {
-    type Repr[A] = Array[Byte]
-
-    def is[G] = Is.refl[Repr[G]]
-  }
-
-  type RawMessage[A] = RawMessage$$.Repr[A]
+  type RawMessage[A] = RawMessage.Type[A]
 
   object RawMessage {
-    def apply[A](bytes: Array[Byte]): RawMessage[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], RawMessage[A]] = RawMessage$$.is[A]
+    type Type[A] <: Array[Byte]
+
+    def apply[A](value: Array[Byte]): RawMessage[A] = value.asInstanceOf[RawMessage[A]]
+    def subst[A]: PartiallyApplied[A]               = new PartiallyApplied[A]
+
+    private[tsec] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[Array[Byte]]): F[RawMessage[A]] = value.asInstanceOf[F[RawMessage[A]]]
+    }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[RawMessage[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
-  private[tsec] val SignedMessage$$ : HKByteArrayNewt = new HKByteArrayNewt {
-    type Repr[A] = Array[Byte]
-
-    def is[G] = Is.refl[Repr[G]]
-  }
-
-  type SignedMessage[A] = SignedMessage$$.Repr[A]
+  type SignedMessage[A] = SignedMessage.Type[A]
 
   object SignedMessage {
-    def apply[A](bytes: Array[Byte]): SignedMessage[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], SignedMessage[A]] = SignedMessage$$.is[A]
-  }
+    type Type[A] <: Array[Byte]
 
+    def apply[A](value: Array[Byte]): SignedMessage[A] = value.asInstanceOf[SignedMessage[A]]
+    def subst[A]: PartiallyApplied[A]                  = new PartiallyApplied[A]
 
-  private[tsec] val Signature$$ : HKByteArrayNewt = new HKByteArrayNewt {
-    type Repr[A] = Array[Byte]
+    private[tsec] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[Array[Byte]]): F[SignedMessage[A]] = value.asInstanceOf[F[SignedMessage[A]]]
+    }
 
-    def is[G] = Is.refl[Repr[G]]
-  }
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
 
-  type Signature[A] = Signature$$.Repr[A]
-
-  object Signature {
-    def apply[A](bytes: Array[Byte]): Signature[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], Signature[A]] = Signature$$.is[A]
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[SignedMessage[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
 }
