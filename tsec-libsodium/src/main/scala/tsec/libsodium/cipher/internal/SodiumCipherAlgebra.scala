@@ -1,8 +1,8 @@
 package tsec.libsodium.cipher.internal
 
+import tsec.cipher.symmetric.core._
 import cats.effect.Sync
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.cipher._
 
 trait SodiumCipherAlgebra[A, K[_]] {
 
@@ -13,7 +13,7 @@ trait SodiumCipherAlgebra[A, K[_]] {
     * @param key the SecretKey to use
     * @return
     */
-  def encrypt[F[_]](plainText: PlainText, key: K[A])(implicit F: Sync[F], S: ScalaSodium): F[SodiumCipherText[A]]
+  def encrypt[F[_]](plainText: PlainText, key: K[A])(implicit F: Sync[F], S: ScalaSodium): F[CipherText[A]]
 
   /** Decrypt our ciphertext, that has the authentication tag in a joined
     * manner.
@@ -22,7 +22,7 @@ trait SodiumCipherAlgebra[A, K[_]] {
     * @param key the SecretKey to use
     * @return
     */
-  def decrypt[F[_]](cipherText: SodiumCipherText[A], key: K[A])(implicit F: Sync[F], S: ScalaSodium): F[PlainText]
+  def decrypt[F[_]](cipherText: CipherText[A], key: K[A])(implicit F: Sync[F], S: ScalaSodium): F[PlainText]
 
   /** Encrypt our plaintext with a typed secret key,
     * and return the authentication tag separately
@@ -34,7 +34,7 @@ trait SodiumCipherAlgebra[A, K[_]] {
   def encryptDetached[F[_]](plainText: PlainText, key: K[A])(
       implicit F: Sync[F],
       S: ScalaSodium
-  ): F[(SodiumCipherText[A], AuthTag[A])]
+  ): F[(CipherText[A], AuthTag[A])]
 
   /** Decrypt our ciphertext, with the authentication tag
     * fed in separately.
@@ -43,7 +43,7 @@ trait SodiumCipherAlgebra[A, K[_]] {
     * @param key the SecretKey to use
     * @return
     */
-  def decryptDetached[F[_]](cipherText: SodiumCipherText[A], key: K[A], authTag: AuthTag[A])(
+  def decryptDetached[F[_]](cipherText: CipherText[A], key: K[A], authTag: AuthTag[A])(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText]

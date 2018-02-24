@@ -1,5 +1,6 @@
 package tsec.libsodium.cipher.aead
 
+import tsec.cipher.symmetric.core._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
@@ -34,7 +35,7 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
 
   private[tsec] def sodiumDecrypt(
       origOut: Array[Byte],
-      ct: SodiumCipherText[XChacha20AEAD],
+      ct: CipherText[XChacha20AEAD],
       key: SodiumKey[XChacha20AEAD]
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_decrypt(
@@ -54,7 +55,7 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
       pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[XChacha20AEAD],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_encrypt(
       cout,
@@ -70,9 +71,9 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
 
   private[tsec] def sodiumDecryptAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[XChacha20AEAD],
+      ct: CipherText[XChacha20AEAD],
       key: SodiumKey[XChacha20AEAD],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_decrypt(
       origOut,
@@ -92,7 +93,7 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
       pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[XChacha20AEAD],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
       cout,
@@ -109,10 +110,10 @@ object XChacha20AEAD extends SodiumAEADPlatform[XChacha20AEAD] {
 
   private[tsec] def sodiumDecryptDetachedAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[XChacha20AEAD],
+      ct: CipherText[XChacha20AEAD],
       tagIn: AuthTag[XChacha20AEAD],
       key: SodiumKey[XChacha20AEAD],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
       origOut,

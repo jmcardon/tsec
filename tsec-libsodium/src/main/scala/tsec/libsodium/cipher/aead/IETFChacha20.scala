@@ -1,5 +1,6 @@
 package tsec.libsodium.cipher.aead
 
+import tsec.cipher.symmetric.core._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.internal.SodiumAEADPlatform
@@ -34,7 +35,7 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
 
   private[tsec] def sodiumDecrypt(
       origOut: Array[Byte],
-      ct: SodiumCipherText[IETFChacha20],
+      ct: CipherText[IETFChacha20],
       key: SodiumKey[IETFChacha20]
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_ietf_decrypt(
@@ -54,7 +55,7 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
       pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[IETFChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_ietf_encrypt(
       cout,
@@ -70,9 +71,9 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
 
   private[tsec] def sodiumDecryptAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[IETFChacha20],
+      ct: CipherText[IETFChacha20],
       key: SodiumKey[IETFChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_ietf_decrypt(
       origOut,
@@ -92,7 +93,7 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
       pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[IETFChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_ietf_encrypt_detached(
       cout,
@@ -109,10 +110,10 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
 
   private[tsec] def sodiumDecryptDetachedAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[IETFChacha20],
+      ct: CipherText[IETFChacha20],
       tagIn: AuthTag[IETFChacha20],
       key: SodiumKey[IETFChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
       origOut,

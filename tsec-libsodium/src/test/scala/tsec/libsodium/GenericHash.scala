@@ -1,5 +1,7 @@
 package tsec.libsodium
 
+import java.security.MessageDigest
+
 import cats.effect.IO
 import tsec.common._
 import tsec.libsodium.hashing._
@@ -62,7 +64,7 @@ class GenericHash extends SodiumSpec {
         k2 <- Blake2b.generateKey[IO]
         h1 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k1)
         h2 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k2)
-      } yield ByteUtils.constantTimeEquals(h1, h2)
+      } yield MessageDigest.isEqual(h1, h2)
 
       program.unsafeRunSync() mustBe false
     }

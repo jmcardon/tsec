@@ -7,7 +7,7 @@ import javax.crypto.Cipher
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
 import tsec.cipher.symmetric.imports.{SecretKey, AES256GCM => JAESGCM}
-import tsec.cipher.symmetric.core.{AuthEncryptor, IvGen, PlainText => OPlainText}
+import tsec.cipher.symmetric.core._
 import tsec.common._
 import tsec.libsodium._
 import tsec.libsodium.cipher._
@@ -36,8 +36,8 @@ class CipherBench {
   lazy val jcaRAWInstance: Cipher      = Cipher.getInstance("AES/GCM/NoPadding")
 
   /** Our random plaintext **/
-  lazy val longPlaintext: OPlainText = OPlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
-  lazy val nPlaintext: PlainText     = PlainText(longPlaintext)
+  lazy val longPlaintext: PlainText = PlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
+  lazy val nPlaintext: PlainText    = PlainText(longPlaintext)
 
   @Benchmark
   def testJCARawSideEffecting(): Unit = {

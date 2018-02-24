@@ -49,7 +49,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key       <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key)
           keyRepr = key.getEncoded
-          built     <- algebra.build[IO](keyRepr)
+          built     <- algebra.buildKey[IO](keyRepr)
           decrypted <- algebra.decrypt[IO](encrypted, built)
         } yield decrypted.toUtf8String
         testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
@@ -75,7 +75,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
     it should "Not allow a key with incorrect length" in {
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
       val keyLenTest: IO[Boolean] = for {
-        k <- algebra.build[IO](randomKey)
+        k <- algebra.buildKey[IO](randomKey)
       } yield k.getEncoded.length < randomKey.length
 
       keyLenTest.attempt.unsafeRunSync() mustBe a[Left[_, _]]
@@ -118,7 +118,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key       <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key)
           keyRepr = key.getEncoded
-          built     <- algebra.build[IO](keyRepr)
+          built     <- algebra.buildKey[IO](keyRepr)
           decrypted <- algebra.decrypt[IO](encrypted, built)
         } yield decrypted.toUtf8String
         testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
@@ -187,7 +187,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           key       <- algebra.generateKey[IO]
           encrypted <- algebra.encryptDetached[IO](testPlainText, key)
           keyRepr = key.getEncoded
-          built     <- algebra.build[IO](keyRepr)
+          built     <- algebra.buildKey[IO](keyRepr)
           decrypted <- algebra.decryptDetached[IO](encrypted._1, built, encrypted._2)
         } yield decrypted.toUtf8String
         testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
@@ -241,7 +241,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
     it should "Not allow a key with incorrect length" in {
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
       val keyLenTest: IO[Boolean] = for {
-        k <- algebra.build[IO](randomKey)
+        k <- algebra.buildKey[IO](randomKey)
       } yield k.getEncoded.length < randomKey.length
 
       keyLenTest.attempt.unsafeRunSync() mustBe a[Left[_, _]]

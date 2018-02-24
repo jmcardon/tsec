@@ -1,5 +1,6 @@
 package tsec.libsodium.cipher.aead
 
+import tsec.cipher.symmetric.core._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
@@ -34,7 +35,7 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
 
   private[tsec] def sodiumDecrypt(
       origOut: Array[Byte],
-      ct: SodiumCipherText[OriginalChacha20],
+      ct: CipherText[OriginalChacha20],
       key: SodiumKey[OriginalChacha20]
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_decrypt(
@@ -54,7 +55,7 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
       pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[OriginalChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_encrypt(
       cout,
@@ -70,9 +71,9 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
 
   private[tsec] def sodiumDecryptAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[OriginalChacha20],
+      ct: CipherText[OriginalChacha20],
       key: SodiumKey[OriginalChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_decrypt(
       origOut,
@@ -92,7 +93,7 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
       pt: PlainText,
       nonce: Array[Byte],
       key: SodiumKey[OriginalChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_encrypt_detached(
       cout,
@@ -109,10 +110,10 @@ object OriginalChacha20 extends SodiumAEADPlatform[OriginalChacha20] {
 
   private[tsec] def sodiumDecryptDetachedAAD(
       origOut: Array[Byte],
-      ct: SodiumCipherText[OriginalChacha20],
+      ct: CipherText[OriginalChacha20],
       tagIn: AuthTag[OriginalChacha20],
       key: SodiumKey[OriginalChacha20],
-      aad: SodiumAAD
+      aad: AAD
   )(implicit S: ScalaSodium): Int =
     S.crypto_aead_chacha20poly1305_decrypt_detached(
       origOut,

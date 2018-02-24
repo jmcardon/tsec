@@ -11,8 +11,6 @@ import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, Request, Response}
-import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
 import tsec.common._

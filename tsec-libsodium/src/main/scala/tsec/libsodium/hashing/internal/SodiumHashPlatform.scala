@@ -2,17 +2,18 @@ package tsec.libsodium.hashing.internal
 
 import cats.effect.Sync
 import fs2._
+import tsec.hashing.core.CryptoHash
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.hashing.{Hash, HashState}
+import tsec.libsodium.hashing._
 
 trait SodiumHashPlatform[A] extends SodiumHash[A] with SodiumHashAlgebra[A] {
   implicit val sodiumHash: SodiumHash[A]               = this
   implicit val sodiumHashAlgebra: SodiumHashAlgebra[A] = this
 
-  final def hash[F[_]](bytes: Array[Byte])(implicit F: Sync[F], S: ScalaSodium): F[Hash[A]] = F.delay {
+  final def hash[F[_]](bytes: Array[Byte])(implicit F: Sync[F], S: ScalaSodium): F[CryptoHash[A]] = F.delay {
     val out = new Array[Byte](hashLen)
     sodiumHash(bytes, out)
-    Hash[A](out)
+    CryptoHash[A](out)
   }
 
   final def hashPipe[F[_]](implicit F: Sync[F], S: ScalaSodium): Pipe[F, Byte, Byte] = { in =>

@@ -9,18 +9,13 @@ import tsec.common.{ManagedRandom, StringNewt}
 
 package object csrf {
 
-  protected val CSRFToken$$ : StringNewt = new StringNewt {
-    type I = String
-    val is: Is[I, String] = Is.refl[I]
-  }
-
-  type CSRFToken = CSRFToken$$.I
+  type CSRFToken = CSRFToken.Token
 
   object CSRFToken extends ManagedRandom {
+    type Token <: String
 
-    @inline def is: Is[CSRFToken, String] = CSRFToken$$.is
-
-    def apply(s: String): CSRFToken = is.flip.coerce(s)
+    def apply(s: String): CSRFToken   = s.asInstanceOf[CSRFToken]
+    def subst[F[_]](value: F[String]): F[CSRFToken] = value.asInstanceOf[F[CSRFToken]]
 
     def generateHexBase(tokenLength: Int = 32): String = {
       val tokenBytes = new Array[Byte](tokenLength)

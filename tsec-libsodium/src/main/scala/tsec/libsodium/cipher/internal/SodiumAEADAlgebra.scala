@@ -1,8 +1,8 @@
 package tsec.libsodium.cipher.internal
 
+import tsec.cipher.symmetric.core._
 import cats.effect.Sync
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.cipher._
 
 trait SodiumAEADAlgebra[A, K[_]] {
 
@@ -14,12 +14,12 @@ trait SodiumAEADAlgebra[A, K[_]] {
   def encrypt[F[_]](plaintext: PlainText, key: K[A])(
       implicit F: Sync[F],
       S: ScalaSodium
-  ): F[SodiumCipherText[A]]
+  ): F[CipherText[A]]
 
   /** Decrypt our ciphertext, that has the authentication tag in a joined
     * manner.
     */
-  def decrypt[F[_]](cipherText: SodiumCipherText[A], key: K[A])(
+  def decrypt[F[_]](cipherText: CipherText[A], key: K[A])(
     implicit F: Sync[F],
     S: ScalaSodium
   ): F[PlainText]
@@ -29,15 +29,15 @@ trait SodiumAEADAlgebra[A, K[_]] {
     * using additional authentication data
     *
     */
-  def encryptAAD[F[_]](plaintext: PlainText, key: K[A], aad: SodiumAAD)(
+  def encryptAAD[F[_]](plaintext: PlainText, key: K[A], aad: AAD)(
       implicit F: Sync[F],
       S: ScalaSodium
-  ): F[SodiumCipherText[A]]
+  ): F[CipherText[A]]
 
   /** Decrypt our ciphertext, that has the authentication tag in a joined
     * manner.
     */
-  def decryptAAD[F[_]](cipherText: SodiumCipherText[A], key: K[A], aad: SodiumAAD)(
+  def decryptAAD[F[_]](cipherText: CipherText[A], key: K[A], aad: AAD)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText]
@@ -46,16 +46,16 @@ trait SodiumAEADAlgebra[A, K[_]] {
     * and return the authentication tag separately
     *
     */
-  def encryptAADDetached[F[_]](plainText: PlainText, key: K[A], aad: SodiumAAD)(
+  def encryptAADDetached[F[_]](plainText: PlainText, key: K[A], aad: AAD)(
       implicit F: Sync[F],
       S: ScalaSodium
-  ): F[(SodiumCipherText[A], AuthTag[A])]
+  ): F[(CipherText[A], AuthTag[A])]
 
   /** Decrypt our ciphertext, with the authentication tag
     * fed in separately.
     *
     */
-  def decryptAADDetached[F[_]](cipherText: SodiumCipherText[A], key: K[A], authTag: AuthTag[A], aad: SodiumAAD)(
+  def decryptAADDetached[F[_]](cipherText: CipherText[A], key: K[A], authTag: AuthTag[A], aad: AAD)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[PlainText]

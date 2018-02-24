@@ -1,7 +1,8 @@
 package tsec.libsodium
 
 import cats.effect.IO
-import tsec.libsodium.cipher.{CryptoSecretBox, PlainText}
+import tsec.cipher.symmetric.core._
+import tsec.libsodium.cipher.CryptoSecretBox
 import tsec.libsodium.kx._
 import tsec.common._
 

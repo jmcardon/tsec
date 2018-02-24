@@ -1,7 +1,9 @@
 package tsec.libsodium.hashing
 
+import java.security.MessageDigest
+
 import cats.effect.Sync
-import tsec.common._
+import tsec.hashing.core.CryptoHash
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.ScalaSodium.NullPtrBytes
 import tsec.libsodium.hashing.internal.SodiumHashPlatform
@@ -41,38 +43,39 @@ object Blake2b extends SodiumHashPlatform[Blake2b] {
   def hashVarLen[F[_]](
       in: Array[Byte],
       len: Int = hashLen
-  )(implicit F: Sync[F], S: ScalaSodium): F[Hash[Blake2b]] =
+  )(implicit F: Sync[F], S: ScalaSodium): F[CryptoHash[Blake2b]] =
     F.delay {
       val outLen = math.max(MinHashLen, math.min(MaxHashLen, len))
       val out    = new Array[Byte](outLen)
       S.crypto_generichash(out, outLen, in, in.length, NullPtrBytes, 0)
-      Hash[Blake2b](out)
+      CryptoHash[Blake2b](out)
     }
 
-  def verify[F[_]](in: Array[Byte], compare: Hash[Blake2b], key: BlakeKey)(
+  def verify[F[_]](in: Array[Byte], compare: CryptoHash[Blake2b], key: BlakeKey)(
       implicit F: Sync[F],
       S: ScalaSodium
   ): F[Boolean] =
     F.delay {
       val out = new Array[Byte](compare.length)
       S.crypto_generichash(out, compare.length, in, in.length, key, key.length)
-      ByteUtils.constantTimeEquals(out, compare)
+      MessageDigest.isEqual(out, compare)
     }
 
-  def hashKeyed[F[_]](in: Array[Byte], key: BlakeKey)(implicit F: Sync[F], S: ScalaSodium): F[Hash[Blake2b]] = F.delay {
-    val out = new Array[Byte](hashLen)
-    S.crypto_generichash(out, hashLen, in, in.length, key, key.length)
-    Hash[Blake2b](out)
-  }
+  def hashKeyed[F[_]](in: Array[Byte], key: BlakeKey)(implicit F: Sync[F], S: ScalaSodium): F[CryptoHash[Blake2b]] =
+    F.delay {
+      val out = new Array[Byte](hashLen)
+      S.crypto_generichash(out, hashLen, in, in.length, key, key.length)
+      CryptoHash[Blake2b](out)
+    }
 
   def hashKeyedVarLen[F[_]](in: Array[Byte], key: BlakeKey, len: Int = hashLen)(
       implicit F: Sync[F],
       S: ScalaSodium
-  ): F[Hash[Blake2b]] = F.delay {
+  ): F[CryptoHash[Blake2b]] = F.delay {
     val outLen = math.max(MinHashLen, math.min(MaxHashLen, len))
     val out    = new Array[Byte](outLen)
     S.crypto_generichash(out, outLen, in, in.length, key, key.length)
-    Hash[Blake2b](out)
+    CryptoHash[Blake2b](out)
   }
 
   def stateSize(implicit S: ScalaSodium): Int = S.crypto_generichash_statebytes

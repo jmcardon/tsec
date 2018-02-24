@@ -5,6 +5,7 @@ import java.nio.CharBuffer
 import cats.Id
 import tsec.common._
 
+//Todo: deal with unsafe pw hashing in a more principled style
 trait PasswordHasher[F[_], A] {
 
   final def hashpwUnsafe(p: String): PasswordHash[A] = hashpwUnsafe(p.utf8Bytes)
