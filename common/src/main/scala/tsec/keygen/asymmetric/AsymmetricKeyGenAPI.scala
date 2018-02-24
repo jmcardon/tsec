@@ -2,7 +2,7 @@ package tsec.keygen.asymmetric
 
 import cats.Id
 
-trait AsymmKeyGenAPI[Alg, PubK[_], PrivK[_], KP[_]] {
+trait AsymmetricKeyGenAPI[Alg, PubK[_], PrivK[_], KP[_]] {
 
   final def generateKeyPair[F[_]](
       implicit S: AsymmetricKeyGen[F, Alg, PubK, PrivK, KP]
@@ -24,12 +24,12 @@ trait AsymmKeyGenAPI[Alg, PubK[_], PrivK[_], KP[_]] {
 
   final def buildPublicKey[F[_]](
       rawPk: Array[Byte]
-  )(implicit S: AsymmetricKeyGen[F, Alg, PubK, PrivK, KP]): F[PrivK[Alg]] =
+  )(implicit S: AsymmetricKeyGen[F, Alg, PubK, PrivK, KP]): F[PubK[Alg]] =
     S.buildPublicKey(rawPk)
 
   final def unsafeBuildPublicKey(rawPk: Array[Byte])(
       implicit S: AsymmetricKeyGen[Id, Alg, PubK, PrivK, KP]
-  ): PrivK[Alg] =
+  ): Id[PubK[Alg]] =
     S.buildPublicKey(rawPk)
 
 }

@@ -2,7 +2,7 @@ package tsec.libsodium
 
 import cats.effect.IO
 import tsec.common._
-import tsec.libsodium.pk.SignatureError
+import tsec.libsodium.pk.SodiumSignatureError
 import tsec.libsodium.pk.signatures._
 
 class PKSignaturesTest extends SodiumSpec {
@@ -63,7 +63,7 @@ class PKSignaturesTest extends SodiumSpec {
         signed   <- Ed25519Sig.signCombined[IO](RawMessage(s.utf8Bytes), keyPair.privKey)
         verify   <- Ed25519Sig.verifyCombined[IO](signed, keyPair2.pubKey)
       } yield verify
-      program.attempt.unsafeRunSync() mustBe a[Left[SignatureError, _]]
+      program.attempt.unsafeRunSync() mustBe a[Left[SodiumSignatureError, _]]
     }
   }
 
