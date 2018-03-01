@@ -269,6 +269,16 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       }
   }
 
+  // Default Decoder[Either[A, B]] is not used (see: https://tools.ietf.org/html/rfc7519#section-4.1.3)
+  // Also this custom decoder "not" polymorphic as its behaviour could be inconsistent for other A and B
+  implicit val audienceDecoder: Decoder[Either[String, List[String]]] = {
+    c: HCursor => 
+      c.as[String] match {
+        case Right(a) => Right(Left(a))
+        case _ => c.as[List[String]].map(Right(_))
+      }
+  }
+
   implicit val claimsDecoder: Decoder[JWTClaims] = new Decoder[JWTClaims] {
     def apply(c: HCursor): Result[JWTClaims] = c.value.asObject match {
       case Some(obj) =>
