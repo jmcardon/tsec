@@ -33,4 +33,18 @@ class JWTClaimsTest extends TestSpec {
     decode[JWTClaims](claims.asJson.toString()) mustBe Right(claims)
   }
 
+  it should "Deserialize the 'aud' field without failing" in {
+    val representation = """
+    {
+      "sub": "27",
+      "jti": "1235",
+      "aud": "localhost"
+    }
+    """
+    val expectedClaims = JWTClaims(
+
+    )
+    decode[JWTClaims](representation).isRight mustBe true
+  }
+
 }
