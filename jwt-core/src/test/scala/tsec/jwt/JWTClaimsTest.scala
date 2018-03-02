@@ -40,9 +40,6 @@ class JWTClaimsTest extends TestSpec {
       "aud": "localhost"
     }
     """
-    val expectedClaims = JWTClaims(
-
-    )
     decode[JWTClaims](representation).map(_.audience) mustBe Right(Some(JWTSingleAudience("localhost")))
   }
 
@@ -53,9 +50,6 @@ class JWTClaimsTest extends TestSpec {
       "aud": ["localhost", "domain"]
     }
     """
-    val expectedClaims = JWTClaims(
-
-    )
     decode[JWTClaims](representation).map(_.audience) mustBe Right(Some(JWTListAudience(List("localhost", "domain"))))
   }
 
