@@ -33,10 +33,9 @@ class JWTClaimsTest extends TestSpec {
     decode[JWTClaims](claims.asJson.toString()) mustBe Right(claims)
   }
 
-  it should "Deserialize the 'aud' field without failing" in {
+  it should "correctly deserialize the 'aud' field when it is a string literal" in {
     val representation = """
     {
-      "sub": "27",
       "jti": "1235",
       "aud": "localhost"
     }
@@ -44,7 +43,20 @@ class JWTClaimsTest extends TestSpec {
     val expectedClaims = JWTClaims(
 
     )
-    decode[JWTClaims](representation).isRight mustBe true
+    decode[JWTClaims](representation).map(_.audience) mustBe Right(Some(JWTSingleAudience("localhost")))
+  }
+
+  it should "correctly deserialize the 'aud' field when it is a list of strings" in {
+    val representation = """
+    {
+      "jti": "1235",
+      "aud": ["localhost", "domain"]
+    }
+    """
+    val expectedClaims = JWTClaims(
+
+    )
+    decode[JWTClaims](representation).map(_.audience) mustBe Right(Some(JWTListAudience(List("localhost", "domain"))))
   }
 
 }

@@ -38,7 +38,7 @@ import scala.util.control.NonFatal
 sealed abstract case class JWTClaims(
     issuer: Option[String],
     subject: Option[String],
-    audience: Option[Either[String, List[String]]], //case-sensitive
+    audience: Option[JWTAudience], //case-sensitive
     expiration: Option[Instant],
     notBefore: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
     issuedAt: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
@@ -49,7 +49,7 @@ sealed abstract case class JWTClaims(
   private def copy(
       issuer: Option[String] = self.issuer,
       subject: Option[String] = self.subject,
-      audience: Option[Either[String, List[String]]] = self.audience,
+      audience: Option[JWTAudience] = self.audience,
       expiration: Option[Instant] = self.expiration,
       notBefore: Option[Instant] = self.notBefore,
       issuedAt: Option[Instant] = self.issuedAt,
@@ -151,7 +151,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
   def apply(
       issuer: Option[String] = None,
       subject: Option[String] = None,
-      audience: Option[Either[String, List[String]]] = None,
+      audience: Option[JWTAudience] = None,
       expiration: Option[Instant] = None,
       notBefore: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       issuedAt: Option[Instant] = None,
@@ -171,7 +171,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
   def default(
       issuer: Option[String] = None,
       subject: Option[String] = None,
-      audience: Option[Either[String, List[String]]] = None,
+      audience: Option[JWTAudience] = None,
       expiration: Option[Instant] = None,
       notBefore: Option[Instant] = None,
       issuedAt: Option[Instant] = None,
@@ -181,7 +181,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     val hashMap = new LHM[String, Json](JWTClaims.StandardClaims.length)
     hashMap.put(JWTClaims.Issuer, issuer.map(Json.fromString).getOrElse(Json.Null))
     hashMap.put(JWTClaims.Subject, subject.map(Json.fromString).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Audience, audience.map(_.fold(_.asJson, _.asJson)).getOrElse(Json.Null))
+    hashMap.put(JWTClaims.Audience, audience.map(_.asJson).getOrElse(Json.Null))
     hashMap.put(JWTClaims.Expiration, expiration.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.NotBefore, notBefore.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.IssuedAt, issuedAt.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
@@ -206,7 +206,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
   def withDuration[F[_]](
       issuer: Option[String] = None,
       subject: Option[String] = None,
-      audience: Option[Either[String, List[String]]] = None,
+      audience: Option[JWTAudience] = None,
       expiration: Option[FiniteDuration] = None,
       notBefore: Option[FiniteDuration] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       issuedAt: Option[FiniteDuration] = None,
@@ -220,7 +220,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     val hashMap = new LHM[String, Json](JWTClaims.StandardClaims.length)
     hashMap.put(JWTClaims.Issuer, issuer.map(Json.fromString).getOrElse(Json.Null))
     hashMap.put(JWTClaims.Subject, subject.map(Json.fromString).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.Audience, audience.map(_.fold(_.asJson, _.asJson)).getOrElse(Json.Null))
+    hashMap.put(JWTClaims.Audience, audience.map(_.asJson).getOrElse(Json.Null))
     hashMap.put(JWTClaims.Expiration, exp.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.NotBefore, nbf.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.IssuedAt, iat.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
@@ -269,23 +269,13 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       }
   }
 
-  // Default Decoder[Either[A, B]] is not used (see: https://tools.ietf.org/html/rfc7519#section-4.1.3)
-  // Also this custom decoder "not" polymorphic as its behaviour could be inconsistent for other A and B
-  implicit val audienceDecoder: Decoder[Either[String, List[String]]] = {
-    c: HCursor => 
-      c.as[String] match {
-        case Right(a) => Right(Left(a))
-        case _ => c.as[List[String]].map(Right(_))
-      }
-  }
-
   implicit val claimsDecoder: Decoder[JWTClaims] = new Decoder[JWTClaims] {
     def apply(c: HCursor): Result[JWTClaims] = c.value.asObject match {
       case Some(obj) =>
         for {
           iss        <- c.downField(Issuer).as[Option[String]]
           sub        <- c.downField(Subject).as[Option[String]]
-          aud        <- c.downField(Audience).as[Option[Either[String, List[String]]]]
+          aud        <- c.downField(Audience).as[Option[JWTAudience]]
           expiration <- c.downField(Expiration).as[Option[Long]].flatMap(unsafeInstant)
           nbf        <- c.downField(NotBefore).as[Option[Long]].flatMap(unsafeInstant)
           iat        <- c.downField(IssuedAt).as[Option[Long]].flatMap(unsafeInstant)
