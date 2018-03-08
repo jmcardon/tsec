@@ -8,6 +8,26 @@ import tsec.common._
 //Todo: deal with unsafe pw hashing in a more principled style
 trait PasswordHasher[F[_], A] {
 
+  final def hashpw(p: String): F[PasswordHash[A]] = hashpw(p.asciiBytes)
+
+  /** Hash a password in a char array
+    * then clear the data in the password original
+    * array, as well as the byte encoding change,
+    * but in a pure fashion because
+    * side effects suck butt.
+    *
+    */
+  def hashpw(p: Array[Char]): F[PasswordHash[A]]
+
+  /** Hash a password in utf-8 encoded bytes,
+    * then clear the data in the password,
+    * but in a pure way.
+    *
+    * @param p the encoded password
+    * @return
+    */
+  def hashpw(p: Array[Byte]): F[PasswordHash[A]]
+
   final def hashpwUnsafe(p: String): PasswordHash[A] = hashpwUnsafe(p.asciiBytes)
 
   /** Hash a password in a char array
@@ -39,25 +59,24 @@ trait PasswordHasher[F[_], A] {
     out
   }
 
-  final def hashpw(p: String): F[PasswordHash[A]] = hashpw(p.asciiBytes)
-
-  /** Hash a password in a char array
-    * then clear the data in the password original
-    * array, as well as the byte encoding change,
-    * but in a pure fashion because
-    * side effects suck butt.
+  /** Check against a bcrypt hash in a pure way
     *
+    * It may raise an error for a malformed hash
     */
-  def hashpw(p: Array[Char]): F[PasswordHash[A]]
+  final def checkpw(p: String, hash: PasswordHash[A]): F[Boolean] =
+    checkpw(p.asciiBytes, hash)
 
-  /** Hash a password in utf-8 encoded bytes,
-    * then clear the data in the password,
-    * but in a pure way.
+  /** Check against a bcrypt hash in a pure way
     *
-    * @param p the encoded password
-    * @return
+    * It may raise an error for a malformed hash
     */
-  def hashpw(p: Array[Byte]): F[PasswordHash[A]]
+  def checkpw(p: Array[Char], hash: PasswordHash[A]): F[Boolean]
+
+  /** Check against a bcrypt hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpw(p: Array[Byte], hash: PasswordHash[A]): F[Boolean]
 
   /** Check against a bcrypt hash in an unsafe
     * manner.
@@ -95,25 +114,6 @@ trait PasswordHasher[F[_], A] {
     ByteUtils.zeroByteArray(bytes)
     out
   }
-
-  /** Check against a bcrypt hash in a pure way
-    *
-    * It may raise an error for a malformed hash
-    */
-  final def checkpw(p: String, hash: PasswordHash[A]): F[Boolean] =
-    checkpw(p.asciiBytes, hash)
-
-  /** Check against a bcrypt hash in a pure way
-    *
-    * It may raise an error for a malformed hash
-    */
-  def checkpw(p: Array[Char], hash: PasswordHash[A]): F[Boolean]
-
-  /** Check against a bcrypt hash in a pure way
-    *
-    * It may raise an error for a malformed hash
-    */
-  def checkpw(p: Array[Byte], hash: PasswordHash[A]): F[Boolean]
 
   /** Internal api **/
   private[tsec] def hashPassUnsafe(p: Array[Byte]): String
