@@ -12,7 +12,7 @@ object JWTMacExamples {
   /** You can interpret into any target Monad with an instance of Sync[F] using JwtMac */
   def jwtMonadic[F[_]: Sync]: F[JWTMac[HMACSHA256]] =
     for {
-      key             <- HMACSHA256.generateLift[F]
+      key             <- HMACSHA256.generateKey[F]
       claims          <- JWTClaims.withDuration[F](expiration = Some(10.minutes))
       jwt             <- JWTMac.build[F, HMACSHA256](claims, key) //You can sign and build a jwt object directly
       verifiedFromObj <- JWTMac.verifyFromInstance[F, HMACSHA256](jwt, key) //Verify from an object directly
@@ -41,7 +41,7 @@ object JWTMacExamples {
   /** encoding custom claims **/
   def jwtWithCustom[F[_]: Sync]: F[(JWTMac[HMACSHA256], Doge)] =
     for {
-      key <- HMACSHA256.generateLift[F]
+      key <- HMACSHA256.generateKey[F]
       claims <- JWTClaims
         .withDuration[F](
           expiration = Some(10.minutes),
@@ -59,7 +59,7 @@ object JWTMacExamples {
   val impureClaims = JWTClaims(expiration = Some(Instant.now.plusSeconds(10.minutes.toSeconds)))
 
   val jwt: Either[Throwable, JWTMac[HMACSHA256]] = for {
-    key             <- HMACSHA256.generateKey()
+    key             <- HMACSHA256.generateKey[MacErrorM]
     jwt             <- JWTMacImpure.build[HMACSHA256](impureClaims, key) //You can sign and build a jwt object directly
     verifiedFromObj <- JWTMacImpure.verifyFromInstance[HMACSHA256](jwt, key)
     stringjwt       <- JWTMacImpure.buildToString[HMACSHA256](impureClaims, key) //Or build it straight to string

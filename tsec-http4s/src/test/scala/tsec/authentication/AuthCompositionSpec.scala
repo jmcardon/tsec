@@ -2,6 +2,7 @@ package tsec.authentication
 
 import java.util.UUID
 
+import cats.Id
 import cats.data.OptionT
 import cats.effect.IO
 import org.http4s._
@@ -35,7 +36,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
     jwtSettings,
     backingStore1,
     dummyStore,
-    HMACSHA256.generateKeyUnsafe()
+    HMACSHA256.generateKey[Id]
   )
 
   val bearerTokenAuthenticator =
@@ -45,7 +46,7 @@ class AuthCompositionSpec extends AuthenticatorSpec {
     TSecCookieSettings(secure = false, expiryDuration = 10.minutes, maxIdle = None),
     backingStore3,
     dummyStore,
-    HMACSHA256.generateKeyUnsafe()
+    HMACSHA256.generateKey[Id]
   )
 
   val service: TSecAuthService[DummyUser, Authenticator[Int], IO] = TSecAuthService {

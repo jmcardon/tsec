@@ -13,13 +13,13 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
 
   implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary.apply(Gen.uuid)
 
-  def signerTests[A](implicit tag: JCAMacTag[A], keyGen: MacKeyGenerator[A]) = {
+  def signerTests[A](implicit tag: JCAMacTag[A], keyGen: MacKeyGen[MacErrorM, A]) = {
     behavior of "CookieSigner for algo " + tag.algorithm
 
     it should "Sign and verify any cookie properly with coercion" in {
       forAll { (s: String) =>
         val verified = for {
-          key    <- keyGen.generateKey()
+          key    <- keyGen.generateKey
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
           verify <- CookieSigner.verify[A](signed, key)
         } yield verify
@@ -34,7 +34,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
     it should "Sign and retrieve properly for any properly signed message" in {
       forAll { (s: String) =>
         val verified = for {
-          key    <- keyGen.generateKey()
+          key    <- keyGen.generateKey
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
           verify <- CookieSigner.verifyAndRetrieve[A](signed, key)
         } yield verify
@@ -49,8 +49,8 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
     it should "Not return true for verifying an incorrect key" in {
       forAll { (s: String) =>
         val verified = for {
-          key    <- keyGen.generateKey()
-          key2   <- keyGen.generateKey()
+          key    <- keyGen.generateKey
+          key2   <- keyGen.generateKey
           signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
           verify <- CookieSigner.verify[A](signed, key2)
         } yield verify
@@ -65,7 +65,7 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
     it should "verify UUIDs properly" in {
       forAll { (s: UUID) =>
         val verified = for {
-          key    <- keyGen.generateKey()
+          key    <- keyGen.generateKey
           signed <- CookieSigner.sign[A](s.toString, System.currentTimeMillis().toString, key)
           verify <- CookieSigner.verifyAndRetrieve[A](signed, key)
         } yield UUID.fromString(verify)

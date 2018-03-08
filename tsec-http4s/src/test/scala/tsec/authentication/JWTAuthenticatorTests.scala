@@ -151,10 +151,10 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
   )
 
   /** End Stateless Encrypted Auth Bearer Header Tests **/
-  def checkAuthHeader[A: JWTMacAlgo: JCAMacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGenerator[A]) = {
+  def checkAuthHeader[A: JWTMacAlgo: JCAMacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGen[IO, A]) = {
     behavior of JCAMacTag[A].algorithm + " JWT Token64 check"
     macKeyGen
-      .generateLift[IO]
+      .generateKey
       .map { key =>
         it should "pass token68 check" in {
           forAll { (testSubject: String) =>

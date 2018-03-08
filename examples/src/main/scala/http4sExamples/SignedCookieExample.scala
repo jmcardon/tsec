@@ -2,11 +2,13 @@ package http4sExamples
 
 import java.util.UUID
 
+import cats.Id
 import cats.effect.IO
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.mac.imports.{HMACSHA256, MacSigningKey}
+
 import scala.concurrent.duration._
 
 object SignedCookieExample {
@@ -26,7 +28,8 @@ object SignedCookieExample {
     maxIdle = None // Rolling window expiration. Set this to a FiniteDuration if you intend to have one
   )
 
-  val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift
+  //Our Signing key. Instantiate in a safe way using generateKey[F] where F[_]: Sync
+  val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id]
 
   val cookieAuth =
     SignedCookieAuthenticator(

@@ -2,6 +2,7 @@ package tsec
 
 import java.util.concurrent.TimeUnit
 
+import cats.Id
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
 import tsec.common._
@@ -18,7 +19,7 @@ class HMAC256Bench {
 
   implicit lazy val sodium = ScalaSodium.getSodiumUnsafe
   lazy val lsKey           = HS256.generateKey[IO].unsafeRunSync()
-  lazy val key             = HMACSHA256.generateKeyUnsafe()
+  lazy val key             = HMACSHA256.generateKey[Id]
   lazy val rand            = new Random()
   lazy val longPlaintext   = Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes
 

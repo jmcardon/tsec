@@ -18,6 +18,12 @@ package object common {
     override def getMessage: String = cause
   }
 
+  /** Convenience alias since
+    * Either[Throwable, ?] is really annoying
+    * to write over and over
+    */
+  type CatchE[A] = Either[Throwable, A]
+
   @deprecated(
     "methods over cats.evidence.Is have more " +
       "cast overhead than manually written newtypes. " +

@@ -10,21 +10,24 @@ import cats.effect.Sync
 import cats.instances.either._
 import cats.syntax.all._
 import tsec.common._
+import tsec.keygen.symmetric.{SymmetricKeyGen, SymmetricKeyGenAPI}
 import tsec.mac.core._
 
 package object imports {
 
   type MacErrorM[A] = Either[Throwable, A]
 
-  trait MacKeyGenerator[A] extends JKeyGenerator[A, MacSigningKey, MacKeyBuildError]
+  trait MacKeyGenerator[A] extends SymmetricKeyGenAPI[A, MacSigningKey]
 
   type MacSigningKey[A] = MacSigningKey.Type[A]
+
+  type MacKeyGen[F[_], A] = SymmetricKeyGen[F, A, MacSigningKey]
 
   object MacSigningKey {
     type Base$$1
     trait Tag$$1 extends Any
     type Type[A] <: Base$$1 with Tag$$1
-
+    @inline def apply[A](key: JSecretKey): MacSigningKey[A] = key.asInstanceOf[MacSigningKey[A]]
     @inline def fromJavaKey[A: JCAMacTag](key: JSecretKey): MacSigningKey[A] = key.asInstanceOf[MacSigningKey[A]]
     @inline def toJavaKey[A: JCAMacTag](key: MacSigningKey[A]): JSecretKey   = key.asInstanceOf[JSecretKey]
     def subst[A]: SKPartiallyApplied[A]                                      = new SKPartiallyApplied[A]()

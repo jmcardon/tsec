@@ -6,6 +6,7 @@ import java.util.UUID
 import cats.effect.IO
 import tsec.mac.imports._
 import org.http4s.Request
+import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.core.JCAMacTag
 
 import scala.concurrent.duration._
@@ -16,7 +17,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
   implicit def cookieBackingStore[A: JCAMacTag] = dummyBackingStore[IO, UUID, AuthenticatedCookie[A, Int]](_.id)
 
   def genAuthenticator[A: JCAMacTag](
-      implicit keyGenerator: MacKeyGenerator[A],
+      implicit keyGenerator: IdKeyGen[A, MacSigningKey],
       store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
   ): AuthSpecTester[AuthenticatedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
@@ -24,7 +25,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
       TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
       store,
       dummyStore,
-      keyGenerator.generateKeyUnsafe()
+      keyGenerator.generateKey
     )
     new AuthSpecTester[AuthenticatedCookie[A, Int]](authenticator, dummyStore) {
 
@@ -48,7 +49,7 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
           TSecCookieSettings(cookieName, false, expiryDuration = 10.minutes, maxIdle = Some(10.minutes)),
           store,
           dummyStore,
-          keyGenerator.generateKeyUnsafe()
+          keyGenerator.generateKey
         ).create(123)
     }
   }

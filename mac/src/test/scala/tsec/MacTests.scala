@@ -5,16 +5,16 @@ import java.security.MessageDigest
 import cats.effect.IO
 import org.scalatest.MustMatchers
 import tsec.common._
-import tsec.common.JKeyGenerator
+import tsec.keygen.symmetric.SymmetricKeyGen
 import tsec.mac.core.JCAMacTag
 import tsec.mac.imports._
 
 class MacTests extends TestSpec with MustMatchers {
 
-  def macTest[T](
-      implicit keyGen: JKeyGenerator[T, MacSigningKey, MacKeyBuildError],
-      tag: JCAMacTag[T],
-      pureinstance: JCAMac[IO, T]
+  def macTest[A](
+      implicit tag: JCAMacTag[A],
+      keyGen: SymmetricKeyGen[IO, A, MacSigningKey],
+      pureinstance: JCAMac[IO, A]
   ): Unit = {
     behavior of tag.algorithm
 
@@ -23,7 +23,7 @@ class MacTests extends TestSpec with MustMatchers {
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
 
       val res = for {
-        k        <- keyGen.generateLift[IO]
+        k        <- keyGen.generateKey
         signed   <- pureinstance.sign(dataToSign, k)
         verified <- pureinstance.verify(dataToSign, signed, k)
       } yield verified
@@ -35,7 +35,7 @@ class MacTests extends TestSpec with MustMatchers {
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
 
       val res: IO[Boolean] = for {
-        k       <- keyGen.generateLift[IO]
+        k       <- keyGen.generateKey
         signed1 <- pureinstance.sign(dataToSign, k)
         signed2 <- pureinstance.sign(dataToSign, k)
       } yield MessageDigest.isEqual(signed1, signed2)
@@ -47,7 +47,7 @@ class MacTests extends TestSpec with MustMatchers {
       val incorrect  = "hello my kekistanis".utf8Bytes
 
       val res = for {
-        k       <- keyGen.generateLift[IO]
+        k       <- keyGen.generateKey
         signed1 <- pureinstance.sign(dataToSign, k)
         cond    <- pureinstance.verify(incorrect, signed1, k)
       } yield cond
@@ -60,8 +60,8 @@ class MacTests extends TestSpec with MustMatchers {
       val dataToSign = "awwwwwwwwwwwwwwwwwwwwwww YEAH".utf8Bytes
 
       val res = for {
-        k       <- keyGen.generateLift[IO]
-        k2      <- keyGen.generateLift[IO]
+        k       <- keyGen.generateKey
+        k2      <- keyGen.generateKey
         signed1 <- pureinstance.sign(dataToSign, k)
         cond    <- pureinstance.verify(dataToSign, signed1, k2)
       } yield cond

@@ -1,12 +1,13 @@
 package http4sExamples
 
+import cats.Id
 import cats.effect.IO
-
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.common.SecureRandomId
 import tsec.mac.imports.{HMACSHA256, MacSigningKey}
+
 import scala.concurrent.duration._
 
 object jwtStatefulExample {
@@ -20,7 +21,7 @@ object jwtStatefulExample {
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val signingKey
-  : MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
+  : MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id] //Our signing key. Instantiate in a safe way using GenerateLift
 
   val jwtStatefulAuth =
     JWTAuthenticator.withBackingStore(

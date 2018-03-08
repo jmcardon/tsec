@@ -1,6 +1,6 @@
 package tsec.cipher.symmetric.core
 
-import cats.{Applicative, MonadError}
+import cats.Applicative
 import cats.effect.Sync
 import tsec.common.ManagedRandom
 
