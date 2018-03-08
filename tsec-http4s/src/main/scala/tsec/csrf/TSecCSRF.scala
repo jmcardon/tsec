@@ -5,7 +5,7 @@ import java.time.Clock
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
-import tsec.mac.imports.JCAMac
+import tsec.mac.imports.JCAMessageAuth
 import tsec.common._
 import tsec.mac.imports._
 import cats.syntax.all._
@@ -50,7 +50,7 @@ final class TSecCSRF[F[_], A: JCAMacTag] private[tsec] (
     val cookieName: String,
     val tokenLength: Int,
     clock: Clock
-)(implicit mac: JCAMac[F, A], F: Sync[F]) {
+)(implicit mac: JCAMessageAuth[F, A], F: Sync[F]) {
 
   def isEqual(s1: String, s2: String): Boolean =
     MessageDigest.isEqual(s1.utf8Bytes, s2.utf8Bytes)

@@ -60,6 +60,7 @@ type CSRFMiddleware[F[_]] =
 Thus, you can use it as such:
 
 ```tut
+  import cats.Id
   import cats.effect.IO
   import tsec.mac.imports._
   import cats.syntax.all._
@@ -67,7 +68,7 @@ Thus, you can use it as such:
   import org.http4s._
   import org.http4s.dsl.io._
 
-  val newKey = HMACSHA256.generateKeyUnsafe()
+  val newKey = HMACSHA256.unsafeGenerateKey
   val tsecCSRF = TSecCSRF[IO, HMACSHA256](newKey)
 
   val dummyService: HttpService[IO] = tsecCSRF.withNewToken(HttpService[IO] {

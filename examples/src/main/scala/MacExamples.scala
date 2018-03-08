@@ -32,7 +32,7 @@ object MacExamples {
     *
     */
   def usingTypeclass[F[_]: Sync, A](mToSign: Array[Byte], key: MacSigningKey[A])(
-      implicit messageAuth: JCAMac[F, A]
+      implicit messageAuth: JCAMessageAuth[F, A]
   ): F[Boolean] =
     for {
       signed   <- messageAuth.sign(mToSign, key)

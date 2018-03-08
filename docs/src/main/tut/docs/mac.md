@@ -25,9 +25,9 @@ Default Pure version with usage of cats effect `Sync[F]`
   def `mac'd-pure`[F[_]: Sync]: F[Boolean] =
     for {
       key       <- HMACSHA256.generateLift[F]                //Generate our key.
-      macValue  <- JCAMac.sign(toMac, key)                   //Generate our MAC bytes
-      verified  <- JCAMac.verify(toMac, macValue, key)       //Verify a byte array with a signed, typed instance
-      verified2 <- JCAMac.verifyArrays(toMac, macValue, key) //Alternatively, use arrays directly
+      macValue  <- HMACSHA256.sign[F](toMac, key)                   //Generate our MAC bytes
+      verified  <- HMACSHA256.verify[F](toMac, macValue, key)       //Verify a byte array with a signed, typed instance
+      verified2 <- HMACSHA256.verifyArrays[F](toMac, macValue, key) //Deprecated
     } yield verified
 ```
 
@@ -35,10 +35,10 @@ Default Pure version with usage of cats effect `Sync[F]`
 To use the _impure_ version:
 ```tut:silent
   val `mac'd`: Either[Throwable, Boolean] = for {
-    key       <- HMACSHA256.generateKey()                        //Generate our key.
-    macValue  <- JCAMacImpure.sign(toMac, key)                   //Generate our MAC bytes
-    verified  <- JCAMacImpure.verify(toMac, macValue, key)       //Verify a byte array with a signed, typed instance
-    verified2 <- JCAMacImpure.verifyArrays(toMac, macValue, key) //Alternatively, use arrays directly
+    key       <- HMACSHA256.generateKey[MacErrorM]                        //Generate our key.
+    macValue  <- HMACSHA256.sign[MacErrorM](toMac, key)                   //Generate our MAC bytes
+    verified  <- HMACSHA256.verify[MacErrorM](toMac, macValue, key)       //Verify a byte array with a signed, typed instance
+    verified2 <- HMACSHA256.verifyArrays[MacErrorM](toMac, macValue, key) //Deprecated
   } yield verified
 ```
 

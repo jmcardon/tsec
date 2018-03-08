@@ -1,6 +1,7 @@
 package tsec.hashing
 
 import cats.Id
+import cats.effect.IO
 
 package object imports {
 
@@ -36,6 +37,50 @@ package object imports {
               Stream.chunk(Chunk.bytes(d.digest()))
             }
       }
+  }
+
+  @deprecated(
+    """This (lame) abstraction is essentially serialization
+       and doesn't deservce its own type. There's very little
+       use for cryptographically hashing arbitrary objects.
+       As such, this isn't necessay
+    """.stripMargin,
+    "0.0.1-M11"
+  )
+  case class CryptoPickler[A](pickle: A => Array[Byte])
+
+  object JHasher {
+
+    @deprecated(""" Use [Algorithm].hash[Id]
+      """.stripMargin, "0.0.1-M11")
+    def hash[C, T](toHash: C)(implicit P: CryptoPickler[C], hasher: JHasher[Id, T]): CryptoHash[T] =
+      hasher.hash(P.pickle(toHash))
+
+    @deprecated(""" Use [Algorithm].hash[Id]
+      """.stripMargin, "0.0.1-M11")
+    def hashBytes[T](bytes: Array[Byte])(implicit hasher: JHasher[Id, T]): CryptoHash[T] =
+      hasher.hash(bytes)
+
+    @deprecated(""" Use [Algorithm].hash[Id]
+      """.stripMargin, "0.0.1-M11")
+    def hashToByteArray[T](bytes: Array[Byte])(implicit hasher: JHasher[Id, T]): Array[Byte] =
+      hasher.hash(bytes)
+
+    @deprecated("Lord almighty just avoid doing this.", "0.0.1-M11")
+    def combineAndHash[C, T](
+        toHash: cats.data.NonEmptyList[C]
+    )(implicit P: CryptoPickler[C], hasher: JHasher[IO, T]): CryptoHash[T] =
+      CryptoHash[T](
+        fs2.Stream
+          .emits(toHash.toList.flatMap(P.pickle(_).toList))
+          .covary[IO]
+          .through(hasher.hashPipe)
+          .compile
+          .toList
+          .unsafeRunSync()
+          .toArray
+      )
+
   }
 
   implicit def genHasher[F[_]: Applicative, T: JCADigestTag]: CryptoHasher[F, T] =

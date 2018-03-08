@@ -14,7 +14,7 @@ class MacTests extends TestSpec with MustMatchers {
   def macTest[A](
       implicit tag: JCAMacTag[A],
       keyGen: SymmetricKeyGen[IO, A, MacSigningKey],
-      pureinstance: JCAMac[IO, A]
+      pureinstance: JCAMessageAuth[IO, A]
   ): Unit = {
     behavior of tag.algorithm
 

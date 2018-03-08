@@ -2,11 +2,11 @@ package http4sExamples
 
 import java.util.UUID
 
+import cats.effect.IO
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.cipher.symmetric.imports._
-import cats.effect.IO
 
 import scala.concurrent.duration._
 

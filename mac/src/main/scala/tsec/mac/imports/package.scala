@@ -49,7 +49,7 @@ package object imports {
 
   implicit final def _macSigningOps[A](key: MacSigningKey[A]): SigningKeyOps[A] = new SigningKeyOps[A](key)
 
-  abstract class JCAMac[F[_]: Monad, A](tl: JQueue[Mac])(implicit macTag: JCAMacTag[A])
+  abstract class JCAMessageAuth[F[_]: Monad, A](tl: JQueue[Mac])(implicit macTag: JCAMacTag[A])
       extends MessageAuth[F, A, MacSigningKey]
       with CanCatch[F] {
 
@@ -74,39 +74,39 @@ package object imports {
 
   }
 
-  object JCAMac {
+  object JCAMessageAuth {
     def sync[F[_], A](
         numInstances: Int = 10
-    )(implicit tag: JCAMacTag[A], F: Sync[F]): JCAMac[F, A] = {
+    )(implicit tag: JCAMacTag[A], F: Sync[F]): JCAMessageAuth[F, A] = {
       val queue = new JQueue[Mac]()
       var i     = 0
       while (i < numInstances) {
         queue.add(Mac.getInstance(tag.algorithm))
         i += 1
       }
-      new JCAMac[F, A](queue) {
+      new JCAMessageAuth[F, A](queue) {
         def catchF[C](thunk: => C): F[C] = F.delay(thunk)
       }
     }
 
     def monadError[F[_], A](
         numInstances: Int = 10
-    )(implicit tag: JCAMacTag[A], F: MonadError[F, Throwable]): JCAMac[F, A] = {
+    )(implicit tag: JCAMacTag[A], F: MonadError[F, Throwable]): JCAMessageAuth[F, A] = {
       val queue = new JQueue[Mac]()
       var i     = 0
       while (i < numInstances) {
         queue.add(Mac.getInstance(tag.algorithm))
         i += 1
       }
-      new JCAMac[F, A](queue) {
+      new JCAMessageAuth[F, A](queue) {
         def catchF[C](thunk: => C): F[C] = F.catchNonFatal(thunk)
       }
     }
 
   }
 
-  implicit def gen[F[_]: Sync, A: JCAMacTag]: JCAMac[F, A] = JCAMac.sync[F, A]()
-  implicit def genEither[A: JCAMacTag]: JCAMac[MacErrorM, A] =
-    JCAMac.monadError[MacErrorM, A]()
+  implicit def gen[F[_]: Sync, A: JCAMacTag]: JCAMessageAuth[F, A] = JCAMessageAuth.sync[F, A]()
+  implicit def genEither[A: JCAMacTag]: JCAMessageAuth[MacErrorM, A] =
+    JCAMessageAuth.monadError[MacErrorM, A]()
 
 }
