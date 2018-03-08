@@ -1,14 +1,12 @@
 package tsec.passwordhashers.core
 
-import java.nio.CharBuffer
-
 import cats.Id
 import cats.effect.Sync
-import tsec.common._
 
 trait PasswordHashAPI[A] {
 
-  def hashpwUnsafe(p: String)(implicit P: PasswordHasher[Id, A]): PasswordHash[A] = hashpwUnsafe(p.asciiBytes)
+  def hashpwUnsafe(p: String)(implicit P: PasswordHasher[Id, A]): PasswordHash[A] =
+    P.hashpwUnsafe(p)
 
   /** Hash a password in a char array
     * then clear the data in the password original
@@ -17,15 +15,8 @@ trait PasswordHashAPI[A] {
     * @param p the encoded password
     * @return
     */
-  def hashpwUnsafe(p: Array[Char])(implicit P: PasswordHasher[Id, A]): PasswordHash[A] = {
-    val charbuffer = CharBuffer.wrap(p)
-    val bytes      = defaultCharset.encode(charbuffer).array()
-    val out        = P.hashpw(bytes)
-    //Clear pass
-    ByteUtils.zeroCharArray(p)
-    ByteUtils.zeroByteArray(bytes)
-    PasswordHash[A](out)
-  }
+  def hashpwUnsafe(p: Array[Char])(implicit P: PasswordHasher[Id, A]): PasswordHash[A] =
+    P.hashpwUnsafe(p)
 
   /** Hash a password in utf-8 encoded bytes,
     * then clear the data in the password
@@ -33,13 +24,11 @@ trait PasswordHashAPI[A] {
     * @param p the encoded password
     * @return
     */
-  def hashpwUnsafe(p: Array[Byte])(implicit P: PasswordHasher[Id, A]): PasswordHash[A] = {
-    val out = PasswordHash[A](P.hashpw(p))
-    ByteUtils.zeroByteArray(p)
-    out
-  }
+  def hashpwUnsafe(p: Array[Byte])(implicit P: PasswordHasher[Id, A]): PasswordHash[A] =
+    P.hashpwUnsafe(p)
 
-  def hashpw[F[_]](p: String)(implicit P: PasswordHasher[F, A]): F[PasswordHash[A]] = hashpw[F](p.asciiBytes)
+  def hashpw[F[_]](p: String)(implicit P: PasswordHasher[F, A]): F[PasswordHash[A]] =
+    P.hashpw(p)
 
   /** Hash a password in a char array
     * then clear the data in the password original
@@ -67,7 +56,7 @@ trait PasswordHashAPI[A] {
     * @return
     */
   def checkpwUnsafe(p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean =
-    checkpwUnsafe(p.asciiBytes, hash)
+    P.checkpwUnsafe(p, hash)
 
   /** Check against a bcrypt hash in an unsafe
     * manner.
@@ -75,12 +64,8 @@ trait PasswordHashAPI[A] {
     * It may throw an exception for a malformed password
     * @return
     */
-  def checkpwUnsafe(p: Array[Byte], hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean = {
-    val out = P.checkpw(p, hash)
-    //Clear pass
-    ByteUtils.zeroByteArray(p)
-    out
-  }
+  def checkpwUnsafe(p: Array[Byte], hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean =
+    P.checkpwUnsafe(p, hash)
 
   /** Check against a bcrypt hash in an unsafe
     * manner.
@@ -88,22 +73,15 @@ trait PasswordHashAPI[A] {
     * It may throw an exception for a malformed password
     * @return
     */
-  def checkpwUnsafe(p: Array[Char], hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean = {
-    val charbuffer = CharBuffer.wrap(p)
-    val bytes      = defaultCharset.encode(charbuffer).array()
-    val out        = P.checkpw(bytes, hash)
-    //Clear pass
-    ByteUtils.zeroCharArray(p)
-    ByteUtils.zeroByteArray(bytes)
-    out
-  }
+  def checkpwUnsafe(p: Array[Char], hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean =
+    P.checkpwUnsafe(p, hash)
 
   /** Check against a bcrypt hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
   def checkpw[F[_]: Sync](p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
-    checkpw[F](p.asciiBytes, hash)
+    P.checkpw(p, hash)
 
   /** Check against a bcrypt hash in a pure way
     *

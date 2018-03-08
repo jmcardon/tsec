@@ -100,7 +100,8 @@ trait PasswordHasher[F[_], A] {
     *
     * It may raise an error for a malformed hash
     */
-  final def checkpw(p: String, hash: PasswordHash[A]): F[Boolean] = checkpw(p.asciiBytes, hash)
+  final def checkpw(p: String, hash: PasswordHash[A]): F[Boolean] =
+    checkpw(p.asciiBytes, hash)
 
   /** Check against a bcrypt hash in a pure way
     *
