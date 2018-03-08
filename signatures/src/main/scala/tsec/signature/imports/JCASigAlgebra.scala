@@ -1,4 +1,4 @@
-package tsec.signature.core
+package tsec.signature.imports
 
 import java.security.Signature
 

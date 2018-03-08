@@ -1,6 +1,6 @@
 package tsec.keygen.asymmetric
 
-trait AsymmetricKeyGen[F[_], Alg, PubK[_], PrivK[_], KP[_]] {
+abstract class AsymmetricKeyGen[F[_], Alg, PubK[_], PrivK[_], KP[_]] {
 
   def generateKeyPair: F[KP[Alg]]
 

@@ -4,9 +4,8 @@ import java.security.Signature
 
 import cats.syntax.either._
 import tsec.common.ErrorConstruct._
-import tsec.signature.core.{JCASigAlgebra, SigAlgoTag}
 
-sealed abstract class JCASigInterpreterImpure[A](implicit signatureAlgorithm: SigAlgoTag[A])
+sealed abstract class JCASigInterpreterImpure[A](implicit signatureAlgorithm: JCASigTag[A])
     extends JCASigAlgebra[SigErrorM, A, SigPublicKey, SigPrivateKey, SigCertificate] {
 
   def genSignatureInstance: SigErrorM[Signature] =
@@ -37,6 +36,6 @@ sealed abstract class JCASigInterpreterImpure[A](implicit signatureAlgorithm: Si
 
 object JCASigInterpreterImpure {
 
-  implicit def genSig[A: SigAlgoTag]: JCASigInterpreterImpure[A] = new JCASigInterpreterImpure[A]() {}
+  implicit def genSig[A: JCASigTag]: JCASigInterpreterImpure[A] = new JCASigInterpreterImpure[A]() {}
 
 }

@@ -12,7 +12,7 @@ import cats.MonadError
 import cats.effect.Sync
 import tsec.jwt.JWTClaims
 
-sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
+sealed abstract class JWSSigCV[F[_], A: JCASigTag](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
     jwsSigAlgo: JWTSigAlgo[A],
     sigDSL: JCASigner[F, A],
@@ -84,12 +84,12 @@ sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
 }
 
 object JWSSigCV {
-  implicit def genCVPure[F[_]: Sync, A: SigAlgoTag](
+  implicit def genCVPure[F[_]: Sync, A: JCASigTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
       jwsSigAlgo: JWTSigAlgo[A]
   ): JWSSigCV[F, A] = new JWSSigCV[F, A]() {}
 
-  implicit def genCVImpure[A: SigAlgoTag](
+  implicit def genCVImpure[A: JCASigTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
       jwsSigAlgo: JWTSigAlgo[A]
   ): JWSSigCV[SigErrorM, A] = new JWSSigCV[SigErrorM, A]() {}

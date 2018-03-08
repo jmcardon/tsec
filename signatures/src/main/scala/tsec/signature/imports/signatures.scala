@@ -1,7 +1,5 @@
 package tsec.signature.imports
 
-import java.security.KeyPairGenerator
-
 sealed trait MD2withRSA
 
 object MD2withRSA extends GeneralSignature[MD2withRSA]("MD2withRSA", "RSA")
@@ -44,27 +42,15 @@ object SHA256withDSA extends GeneralSignature[SHA256withDSA]("SHA256withDSA", "D
 
 sealed trait NONEwithECDSA
 
-object NONEwithECDSA extends GeneralSignature[NONEwithECDSA]("NONEwithECDSA", "ECDSA") {
-
-  override def generateKeyPairUnsafe: SigKeyPair[NONEwithECDSA] =
-    SigKeyPair.fromKeyPair(KeyPairGenerator.getInstance(keyFactoryAlgo, "BC").generateKeyPair()) //ugly hack
-}
+object NONEwithECDSA extends GeneralSignature[NONEwithECDSA]("NONEwithECDSA", "ECDSA")
 
 sealed trait SHA1withECDSA
 
-object SHA1withECDSA extends GeneralSignature[SHA1withECDSA]("SHA1withECDSA", "ECDSA") {
-
-  override def generateKeyPairUnsafe: SigKeyPair[SHA1withECDSA] =
-    SigKeyPair.fromKeyPair(KeyPairGenerator.getInstance(keyFactoryAlgo, "BC").generateKeyPair()) //ugly hack
-}
+object SHA1withECDSA extends GeneralSignature[SHA1withECDSA]("SHA1withECDSA", "ECDSA")
 
 sealed trait SHA224withECDSA
 
-object SHA224withECDSA extends GeneralSignature[SHA224withECDSA]("SHA224withECDSA", "ECDSA") {
-
-  override def generateKeyPairUnsafe: SigKeyPair[SHA224withECDSA] =
-    SigKeyPair.fromKeyPair(KeyPairGenerator.getInstance(keyFactoryAlgo, "BC").generateKeyPair()) //ugly hack
-}
+object SHA224withECDSA extends GeneralSignature[SHA224withECDSA]("SHA224withECDSA", "ECDSA")
 
 sealed trait SHA256withECDSA
 

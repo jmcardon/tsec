@@ -9,7 +9,6 @@ import org.scalatest.MustMatchers
 import tsec.jws.signature._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
-import tsec.signature.core.KFTag
 import tsec.signature.imports._
 
 class JWTSigTests extends TestSpec with MustMatchers {
@@ -17,11 +16,10 @@ class JWTSigTests extends TestSpec with MustMatchers {
   if (Security.getProvider("BC") == null)
     Security.addProvider(new BouncyCastleProvider())
 
-  val F = IO.ioEffect
-
   def jwtSigTest[A](
       implicit algoTag: JWTSigAlgo[A],
-      kfTag: KFTag[A],
+      kfTag: JCASigKG[IO, A],
+      kfSigError: JCASigKG[SigErrorM, A],
       cv: JWSSigCV[IO, A],
       cv2: JWSSigCV[SigErrorM, A]
   ) = {
@@ -30,7 +28,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
     it should "Sign and verify properly for proper params" in {
       val expression: IO[JWTSig[A]] = for {
         now     <- IO(Instant.now())
-        keyPair <- F.fromEither(kfTag.generateKeyPair)
+        keyPair <- kfTag.generateKeyPair
         build <- JWTSig.signToString[IO, A](
           JWSSignedHeader[A](),
           JWTClaims(issuedAt = Some(now.minusSeconds(2)), expiration = Some(now.plusSeconds(25))),
@@ -45,8 +43,8 @@ class JWTSigTests extends TestSpec with MustMatchers {
     it should "not verify for an incorrect key" in {
       val expression: IO[JWTSig[A]] = for {
         now      <- IO(Instant.now())
-        keyPair  <- F.fromEither(kfTag.generateKeyPair)
-        keyPair2 <- F.fromEither(kfTag.generateKeyPair)
+        keyPair  <- kfTag.generateKeyPair
+        keyPair2 <- kfTag.generateKeyPair
         build <- JWTSig.signToString[IO, A](
           JWSSignedHeader[A](),
           JWTClaims(issuedAt = Some(now.minusSeconds(2)), expiration = Some(now.plusSeconds(5))),
@@ -60,7 +58,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
 
     it should "not verify for an expired claim" in {
       val expression: IO[JWTSig[A]] = for {
-        keyPair <- F.fromEither(kfTag.generateKeyPair)
+        keyPair <- kfTag.generateKeyPair
         now     <- IO(Instant.now)
         build <- JWTSig.signToString[IO, A](
           JWSSignedHeader[A](),
@@ -75,7 +73,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
 
     it should "not verify for a future iat" in {
       val expression: IO[JWTSig[A]] = for {
-        keyPair <- F.fromEither(kfTag.generateKeyPair)
+        keyPair <- kfTag.generateKeyPair
         now     <- IO(Instant.now)
         build <- JWTSig.signToString[IO, A](
           JWSSignedHeader[A](),
@@ -90,7 +88,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
 
     it should "not verify for a wrong nbf" in {
       val expression: IO[JWTSig[A]] = for {
-        keyPair <- F.fromEither(kfTag.generateKeyPair)
+        keyPair <- kfTag.generateKeyPair
         now     <- IO(Instant.now)
         build <- JWTSig.signToString[IO, A](
           JWSSignedHeader[A](),
@@ -107,7 +105,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
 
     it should "Sign and verify properly for proper params" in {
       val expression: Either[Throwable, JWTSig[A]] = for {
-        keyPair <- kfTag.generateKeyPair
+        keyPair <- kfSigError.generateKeyPair
         build <- JWTSigImpure.signToString(
           JWSSignedHeader[A](),
           JWTClaims(),
@@ -123,8 +121,8 @@ class JWTSigTests extends TestSpec with MustMatchers {
       val now = Instant.now()
 
       val expression = for {
-        keyPair  <- kfTag.generateKeyPair
-        keyPair2 <- kfTag.generateKeyPair
+        keyPair  <- kfSigError.generateKeyPair
+        keyPair2 <- kfSigError.generateKeyPair
         build <- JWTSigImpure.signToString[A](
           JWSSignedHeader[A](),
           JWTClaims(issuedAt = Some(now.minusSeconds(2)), expiration = Some(now.plusSeconds(5))),
@@ -140,7 +138,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
       val now = Instant.now()
 
       val expression = for {
-        keyPair <- kfTag.generateKeyPair
+        keyPair <- kfSigError.generateKeyPair
         build <- JWTSigImpure.signToString[A](
           JWSSignedHeader[A](),
           JWTClaims(expiration = Some(now.minusSeconds(2))),
@@ -156,7 +154,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
       val now = Instant.now()
 
       val expression = for {
-        keyPair <- kfTag.generateKeyPair
+        keyPair <- kfSigError.generateKeyPair
         build <- JWTSigImpure.signToString(
           JWSSignedHeader[A](),
           JWTClaims(issuedAt = Some(now.plusSeconds(20))),
@@ -172,7 +170,7 @@ class JWTSigTests extends TestSpec with MustMatchers {
       val now = Instant.now()
 
       val expression = for {
-        keyPair <- kfTag.generateKeyPair
+        keyPair <- kfSigError.generateKeyPair
         build <- JWTSigImpure.signToString(
           JWSSignedHeader[A](),
           JWTClaims(notBefore = Some(now.plusSeconds(20))),

@@ -18,7 +18,7 @@ package object imports {
   object SigCertificate {
     type Repr[A]
 
-    @inline def apply[A: SigAlgoTag](cert: Certificate): SigCertificate[A] = cert.asInstanceOf[SigCertificate[A]]
+    @inline def apply[A: JCASigTag](cert: Certificate): SigCertificate[A] = cert.asInstanceOf[SigCertificate[A]]
     @inline def toJavaCertificate[A](cert: SigCertificate[A]): Certificate = cert.asInstanceOf[Certificate]
   }
 
@@ -27,7 +27,7 @@ package object imports {
   object SigPublicKey {
     type Repr[A]
 
-    @inline def apply[A: SigAlgoTag](key: PublicKey): SigPublicKey[A] = key.asInstanceOf[SigPublicKey[A]]
+    @inline def apply[A: JCASigTag](key: PublicKey): SigPublicKey[A] = key.asInstanceOf[SigPublicKey[A]]
     @inline def toJavaPublicKey[A](key: SigPublicKey[A]): PublicKey   = key.asInstanceOf[PublicKey]
   }
 
@@ -36,13 +36,13 @@ package object imports {
   object SigPrivateKey {
     type Repr[A]
 
-    @inline def apply[A: SigAlgoTag](key: PrivateKey): SigPrivateKey[A] = key.asInstanceOf[SigPrivateKey[A]]
+    @inline def apply[A: JCASigTag](key: PrivateKey): SigPrivateKey[A] = key.asInstanceOf[SigPrivateKey[A]]
     @inline def toJavaPrivateKey[A](key: SigPrivateKey[A]): PrivateKey  = key.asInstanceOf[PrivateKey]
   }
 
-  import tsec.signature.core.{CertificateSigner, CryptoSignature, JCASigAlgebra, SigAlgoTag}
+  import tsec.signature.core.{CertificateSigner, CryptoSignature}
 
-  class JCASigner[F[_]: Monad, A: SigAlgoTag](
+  class JCASigner[F[_]: Monad, A: JCASigTag](
       algebra: JCASigAlgebra[F, A, SigPublicKey, SigPrivateKey, SigCertificate]
   ) extends CertificateSigner[F, A, SigPublicKey, SigPrivateKey, SigCertificate] {
 
@@ -132,11 +132,11 @@ package object imports {
 
   }
 
-  implicit def signer[F[_]: Sync, A: SigAlgoTag](
+  implicit def signer[F[_]: Sync, A: JCASigTag](
       implicit C: JCASigInterpreter[F, A]
   ): JCASigner[F, A] = new JCASigner[F, A](C)
 
-  implicit def impureSigner[A: SigAlgoTag](implicit jCASigner: JCASigInterpreterImpure[A]): JCASigner[SigErrorM, A] =
+  implicit def impureSigner[A: JCASigTag](implicit jCASigner: JCASigInterpreterImpure[A]): JCASigner[SigErrorM, A] =
     new JCASigner(jCASigner)
 
 }
