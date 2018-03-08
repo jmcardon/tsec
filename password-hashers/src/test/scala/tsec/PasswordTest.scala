@@ -4,6 +4,7 @@ import java.security.MessageDigest
 
 import cats.Eq
 import cats.effect.IO
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.common._
@@ -20,6 +21,12 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
     override def eqv(x: BCrypt, y: BCrypt): Boolean =
       x === y
   }
+
+  implicit val genStringAscii: Gen[String] = {
+    val choose = Gen.choose(33.toChar, 126.toChar)
+    Gen.listOf(choose).map(_.mkString)
+  }
+  implicit val arbStr = Arbitrary(genStringAscii)
 
   val plainPassword = "abc213A"
 
