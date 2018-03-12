@@ -1,14 +1,21 @@
 package tsec.libsodium
 
 import cats.effect.IO
+import tsec.cipher.symmetric.core._
 import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 import tsec.common._
+import tsec.keygen.symmetric.SymmetricKeyGen
 
 class SodiumCipherTest extends SodiumSpec {
 
-  final def testSecretBoxCipher[A](platform: SodiumCipherPlatform[A]) = {
+  final def testSecretBoxCipher[A](platform: SodiumCipherPlatform[A])(
+      implicit E: AuthEncryptor[IO, A, SodiumKey],
+      kg: SymmetricKeyGen[IO, A, SodiumKey]
+  ): Unit = {
     behavior of s"${platform.algorithm} symmetric key"
+
+    implicit val ivGen = platform.defaultIvGen[IO]
 
     it should "generate key, encrypt and decrypt properly" in {
       forAll { (s: String) =>
@@ -69,7 +76,7 @@ class SodiumCipherTest extends SodiumSpec {
             key         <- platform.generateKey[IO]
             encrypt     <- platform.encryptDetached[IO](pt, key)
             randomBytes <- ScalaSodium.randomBytes[IO](platform.macLen)
-            decrypt     <- platform.decryptDetached[IO](encrypt._1, key, AuthTag.is[A].coerce(randomBytes))
+            decrypt     <- platform.decryptDetached[IO](encrypt._1, key, AuthTag[A](randomBytes))
           } yield decrypt).attempt.unsafeRunSync() mustBe a[Left[SodiumCipherError, _]]
       }
     }

@@ -4,8 +4,7 @@ import cats.MonadError
 import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jwt.util.ParseEncodedKeySpec
 import tsec.mac.imports._
-import tsec.signature.core.{ECKFTag, RSAKFTag, SigAlgoTag}
-import tsec.signature.imports._
+import tsec.signature.imports.{JCASigTag, _}
 
 sealed trait JWA[A] {
   val jwtRepr: String
@@ -57,19 +56,24 @@ object JWA {
 
 abstract class JWTMacAlgo[A] extends JWA[A]
 
-abstract class JWTSigAlgo[A: SigAlgoTag] extends JWA[A] {
+abstract class JWTSigAlgo[A: JCASigTag] extends JWA[A] {
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]]
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]]
 }
 
-abstract class JWTECSig[A: SigAlgoTag: ECKFTag] extends JWTSigAlgo[A] {
+abstract class JWTECSig[A: JCASigTag: ECKFTag] extends JWTSigAlgo[A] {
+
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] =
     ParseEncodedKeySpec.concatSignatureToDER[F, A](bytes)
+
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] =
     ParseEncodedKeySpec.derToConcat[F, A](bytes)
+
 }
 
-abstract class JWTRSASig[A: SigAlgoTag: RSAKFTag] extends JWTSigAlgo[A] {
+abstract class JWTRSASig[A: JCASigTag: RSAKFTag] extends JWTSigAlgo[A] {
+
+
   def concatToJCA[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
   def jcaToConcat[F[_]](bytes: Array[Byte])(implicit me: MT[F]): F[Array[Byte]] = me.pure(bytes)
 }

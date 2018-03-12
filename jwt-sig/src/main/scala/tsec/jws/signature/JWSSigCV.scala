@@ -12,10 +12,10 @@ import cats.MonadError
 import cats.effect.Sync
 import tsec.jwt.JWTClaims
 
-sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
+sealed abstract class JWSSigCV[F[_], A: JCASigTag](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
     jwsSigAlgo: JWTSigAlgo[A],
-    sigDSL: SignaturePrograms.Aux[F, A, SigPublicKey[A], SigPrivateKey[A], SigCertificate[A]],
+    sigDSL: JCASigner[F, A],
     M: MonadError[F, Throwable]
 ) {
 
@@ -38,7 +38,7 @@ sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
     } yield toSign + "." + concat.toB64UrlString
   }
 
-  def verifyK(
+  def verify(
       jwt: String,
       pubKey: SigPublicKey[A],
       now: Instant
@@ -52,7 +52,7 @@ sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
       for {
         sigExtract <- jwsSigAlgo.concatToJCA[F](providedBytes)
         header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool       <- sigDSL.verifyK(toSign, sigExtract, pubKey)
+        bool       <- sigDSL.verify(toSign, CryptoSignature[A](sigExtract), pubKey)
         body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
           claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
         )
@@ -60,7 +60,7 @@ sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
     }
   }
 
-  def verifyC(
+  def verifyCert(
       jwt: String,
       cert: SigCertificate[A],
       now: Instant
@@ -74,7 +74,7 @@ sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
       for {
         sigExtract <- jwsSigAlgo.concatToJCA[F](providedBytes)
         header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool       <- sigDSL.verifyC(toSign, sigExtract, cert)
+        bool       <- sigDSL.verifyCert(toSign, CryptoSignature[A](sigExtract), cert)
         body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
           claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
         )
@@ -84,15 +84,13 @@ sealed abstract class JWSSigCV[F[_], A: SigAlgoTag](
 }
 
 object JWSSigCV {
-  implicit def genCVPure[F[_]: Sync, A: SigAlgoTag](
+  implicit def genCVPure[F[_]: Sync, A: JCASigTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
-      jwsSigAlgo: JWTSigAlgo[A],
-      sigDSL: JCASigner[F, A]
+      jwsSigAlgo: JWTSigAlgo[A]
   ): JWSSigCV[F, A] = new JWSSigCV[F, A]() {}
 
-  implicit def genCVImpure[A: SigAlgoTag](
+  implicit def genCVImpure[A: JCASigTag](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
-      jwsSigAlgo: JWTSigAlgo[A],
-      sigDSL: JCASignerImpure[A]
+      jwsSigAlgo: JWTSigAlgo[A]
   ): JWSSigCV[SigErrorM, A] = new JWSSigCV[SigErrorM, A]() {}
 }

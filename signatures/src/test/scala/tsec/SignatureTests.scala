@@ -3,24 +3,23 @@ package tsec
 import java.security.Security
 
 import tsec.common._
-import cats.effect.{Effect, IO}
+import cats.effect.IO
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
-import tsec.signature.core.{KFTag, SigAlgoTag}
-import tsec.signature.imports._
+import tsec.signature.imports.{JCASigTag, _}
 
 class SignatureTests extends TestSpec with MustMatchers {
 
-  val toSign        = "HItHERE!".utf8Bytes
-  val F: Effect[IO] = IO.ioEffect
+  //Todo: Property check here
+  val toSign = "HItHERE!".utf8Bytes
 
   if (Security.getProvider("BC") == null)
     Security.addProvider(new BouncyCastleProvider())
 
   def sigIOTests[A](
-      implicit algoTag: SigAlgoTag[A],
+      implicit algoTag: JCASigTag[A],
       interp: JCASigner[IO, A],
-      ecKFTag: KFTag[A]
+      ecKFTag: JCASigKG[IO, A]
   ): Unit = {
 
     behavior of s"${algoTag.algorithm}"
@@ -28,9 +27,9 @@ class SignatureTests extends TestSpec with MustMatchers {
     it should "sign and verify properly for correct keypair" in {
 
       val expression: IO[Boolean] = for {
-        keyPair <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
+        keyPair <- ecKFTag.generateKeyPair
         signed  <- interp.sign(toSign, keyPair.privateKey)
-        verify  <- interp.verifyKI(toSign, signed, keyPair.publicKey)
+        verify  <- interp.verify(toSign, signed, keyPair.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe true
@@ -38,10 +37,10 @@ class SignatureTests extends TestSpec with MustMatchers {
 
     it should "not verify for a wrong key pair" in {
       val expression: IO[Boolean] = for {
-        keyPair1 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
-        keyPair2 <- F.fromEither[SigKeyPair[A]](ecKFTag.generateKeyPair)
+        keyPair1 <- ecKFTag.generateKeyPair
+        keyPair2 <- ecKFTag.generateKeyPair
         signed   <- interp.sign(toSign, keyPair1.privateKey)
-        verify   <- interp.verifyKI(toSign, signed, keyPair2.publicKey)
+        verify   <- interp.verify(toSign, signed, keyPair2.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe false

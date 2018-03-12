@@ -4,12 +4,11 @@ import java.security.KeyFactory
 import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
 
 import cats.MonadError
-import tsec.signature.core.{ECKFTag, KFTag, SigAlgoTag}
 import tsec.signature.imports._
 
 object ParseEncodedKeySpec {
 
-  def pubKeyFromBytes[A: SigAlgoTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
+  def pubKeyFromBytes[F[_], A: JCASigTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
     val spec = new X509EncodedKeySpec(keyBytes)
     SigPublicKey[A](
       KeyFactory
@@ -18,7 +17,7 @@ object ParseEncodedKeySpec {
     )
   }
 
-  def privKeyFromBytes[A: SigAlgoTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
+  def privKeyFromBytes[F[_], A: JCASigTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
     val spec = new PKCS8EncodedKeySpec(keyBytes)
     SigPrivateKey[A](
       KeyFactory
@@ -78,7 +77,9 @@ object ParseEncodedKeySpec {
     * @tparam A
     * @return
     */
-  def concatSignatureToDER[F[_], A](signature: Array[Byte])(implicit me: MonadError[F, Throwable]): F[Array[Byte]] = {
+  def concatSignatureToDER[F[_], A](
+      signature: Array[Byte]
+  )(implicit me: MonadError[F, Throwable], ecTag: ECKFTag[A]): F[Array[Byte]] = {
     var (r, s) = signature.splitAt(signature.length / 2)
     r = r.dropWhile(_ == 0)
     if (r.length > 0 && r(0) < 0)

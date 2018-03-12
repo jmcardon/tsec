@@ -6,8 +6,8 @@ import javax.crypto.Cipher
 
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
-import tsec.cipher.symmetric.imports.{AES256, GCMEncryptor, SecretKey, AES256GCM => JAESGCM}
-import tsec.cipher.symmetric.{PlainText => OPlainText}
+import tsec.cipher.symmetric.imports.{SecretKey, AES256GCM => JAESGCM}
+import tsec.cipher.symmetric.core._
 import tsec.common._
 import tsec.libsodium._
 import tsec.libsodium.cipher._
@@ -22,22 +22,24 @@ class CipherBench {
 
   /** Our libsodium setup **/
   implicit lazy val sodium: ScalaSodium            = ScalaSodium.getSodiumUnsafe
-  lazy val chachaKey: SodiumKey[XChacha20Poly1305] = XChacha20Poly1305.generateKeyUnsafe
-  lazy val sodiumAESKey: SodiumKey[AES256GCM]      = AES256GCM.generateKeyUnsafe
+  lazy val chachaKey: SodiumKey[XChacha20Poly1305] = XChacha20Poly1305.unsafeGenerateKey
+  lazy val sodiumAESKey: SodiumKey[AES256GCM]      = AES256GCM.unsafeGenerateKey
 
   /** AES using tsec classes **/
-  lazy val jcaAESKey: SecretKey[AES256] = AES256.generateKeyUnsafe()
-  implicit lazy val jcaAESInstance: GCMEncryptor[IO, AES256] =
+  lazy val jcaAESKey: SecretKey[JAESGCM] = JAESGCM.unsafeGenerateKey
+  implicit lazy val jcaAESInstance: AADEncryptor[IO, JAESGCM, SecretKey] =
     JAESGCM.genEncryptor[IO].unsafeRunSync()
-  implicit lazy val ivStrategy = JAESGCM.defaultIvStrategy
+  implicit lazy val ivStrategy: IvGen[IO, JAESGCM]  = JAESGCM.defaultIvStrategy[IO]
+  implicit lazy val ivStrat2: IvGen[IO, AES256GCM] = AES256GCM.defaultIvGen[IO]
+  implicit lazy val ivStrat3: IvGen[IO, XChacha20Poly1305] = XChacha20Poly1305.defaultIvGen[IO]
 
   /** Our AES using the JCA raw classes. Note: We reuse cipher the instance for speed, but it's not thread safe **/
-  lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(AES256.generateKeyUnsafe())
+  lazy val jcaRAWKey: crypto.SecretKey = SecretKey.toJavaKey(JAESGCM.unsafeGenerateKey)
   lazy val jcaRAWInstance: Cipher      = Cipher.getInstance("AES/GCM/NoPadding")
 
   /** Our random plaintext **/
-  lazy val longPlaintext: OPlainText = OPlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
-  lazy val nPlaintext: PlainText     = PlainText(longPlaintext)
+  lazy val longPlaintext: PlainText = PlainText(Array.fill[Char](5000)(Random.nextInt(127).toChar).mkString.utf8Bytes)
+  lazy val nPlaintext: PlainText    = PlainText(longPlaintext)
 
   @Benchmark
   def testJCARawSideEffecting(): Unit = {

@@ -1,5 +1,7 @@
 package http4sExamples
 
+import cats.Id
+
 object csrfExample {
   import cats.effect.IO
   import tsec.mac.imports._
@@ -7,7 +9,7 @@ object csrfExample {
   import org.http4s._
   import org.http4s.dsl.io._
 
-  val newKey = HMACSHA256.generateKeyUnsafe()
+  val newKey = HMACSHA256.generateKey[Id]
   val tsecCSRF = TSecCSRF[IO, HMACSHA256](newKey)
 
   val dummyService: HttpService[IO] = tsecCSRF.withNewToken(HttpService[IO] {

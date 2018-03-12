@@ -40,7 +40,8 @@ lazy val commonSettings = Seq(
     Libraries.catsEffect,
     Libraries.scalaTest,
     Libraries.scalaCheck,
-    Libraries.commonsCodec
+    Libraries.commonsCodec,
+    Libraries.fs2IO
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion in ThisBuild := "2.12.4",
@@ -206,7 +207,6 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      Libraries.fs2,
       Libraries.fs2IO
     )
   )

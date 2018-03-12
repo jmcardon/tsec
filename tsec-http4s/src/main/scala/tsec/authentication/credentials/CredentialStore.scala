@@ -21,7 +21,7 @@ trait CredentialStore[F[_], C, P] {
   def authenticate(credentials: C): F[Boolean]
 }
 
-abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PasswordHasher[P])
+abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PasswordHasher[F, P])
     extends CredentialStore[F, RawCredentials[Id], P] {
 
   def retrievePass(id: Id): F[PasswordHash[P]]
@@ -29,7 +29,7 @@ abstract class PasswordStore[F[_]: Sync, Id, P](implicit h: PasswordHasher[P])
   def authenticate(credentials: RawCredentials[Id]): F[Boolean] =
     for {
       pass  <- retrievePass(credentials.identity)
-      check <- h.checkpw[F](credentials.rawPassword, pass)
+      check <- h.checkpw(credentials.rawPassword, pass)
     } yield check
 }
 

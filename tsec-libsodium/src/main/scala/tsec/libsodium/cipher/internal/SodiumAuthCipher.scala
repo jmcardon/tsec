@@ -1,5 +1,6 @@
 package tsec.libsodium.cipher.internal
 
+import tsec.cipher.symmetric.core._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher._
 
@@ -31,7 +32,7 @@ trait SodiumAuthCipher[A]  {
     * @param key the key
     * @return 0 if successful, any other number indicates unsuccessful
     */
-  private[tsec] def sodiumDecrypt(origOut: Array[Byte], ct: SodiumCipherText[A], key: SodiumKey[A])(
+  private[tsec] def sodiumDecrypt(origOut: Array[Byte], ct: CipherText[A], key: SodiumKey[A])(
     implicit S: ScalaSodium
   ): Int
 
@@ -63,7 +64,7 @@ trait SodiumAuthCipher[A]  {
     */
   private[tsec] def sodiumDecryptDetached(
     origOut: Array[Byte],
-    ct: SodiumCipherText[A],
+    ct: CipherText[A],
     tagIn: AuthTag[A],
     key: SodiumKey[A]
   )(implicit S: ScalaSodium): Int

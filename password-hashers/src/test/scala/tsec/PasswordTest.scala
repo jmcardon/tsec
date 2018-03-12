@@ -1,7 +1,10 @@
 package tsec
 
+import java.security.MessageDigest
+
 import cats.Eq
 import cats.effect.IO
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.common._
@@ -19,6 +22,12 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
       x === y
   }
 
+  implicit val genStringAscii: Gen[String] = {
+    val choose = Gen.choose(33.toChar, 126.toChar)
+    Gen.listOf(choose).map(_.mkString)
+  }
+  implicit val arbStr = Arbitrary(genStringAscii)
+
   val plainPassword = "abc213A"
 
   /** Our password spec in general
@@ -26,7 +35,9 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
     * @param programs our password hasher programs to test against
     * @tparam A the password hashing algorithm
     */
-  def testSpec[A](specname: String)(implicit programs: PasswordHasher[A]): Unit = {
+  final def testSpec[A](specname: String)(programs: PasswordHashAPI[A])(
+    implicit P: PasswordHasher[IO, A]
+  ): Unit = {
     specname should "generate and verify with default settings" in {
       forAll { (s: String) =>
         val hash =
@@ -67,8 +78,8 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
 
         hash.unsafeRunSync() mustBe true
         val zeroArray = Array.fill[Byte](arr.length)(0)
-        ByteUtils.constantTimeEquals(arr, zeroArray) mustBe true
-        ByteUtils.constantTimeEquals(checkArr, zeroArray) mustBe true
+        MessageDigest.isEqual(arr, zeroArray) mustBe true
+        MessageDigest.isEqual(checkArr, zeroArray) mustBe true
 
       }
     }
@@ -86,9 +97,9 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
     }
   }
 
-  testSpec[SCrypt]("SCrypt")
+  testSpec[SCrypt]("SCrypt")(SCrypt)
 
-  testSpec[BCrypt]("BCrypt")
+  testSpec[BCrypt]("BCrypt")(BCrypt)
 
 //  testSpec[HardenedSCrypt]("HardenedSCrypt") //Note: Takes _forever_
 

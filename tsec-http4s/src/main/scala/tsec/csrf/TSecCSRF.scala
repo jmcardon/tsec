@@ -5,14 +5,14 @@ import java.time.Clock
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
-import tsec.mac.imports.JCAMac
+import tsec.mac.imports.JCAMessageAuth
 import tsec.common._
 import tsec.mac.imports._
 import cats.syntax.all._
 import org.http4s.{Cookie, HttpService, Request, Response, Status}
 import org.http4s.util.CaseInsensitiveString
 import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
-import tsec.mac.core.MacTag
+import tsec.mac.core.JCAMacTag
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
@@ -44,13 +44,13 @@ import tsec.mac.core.MacTag
   * @param key the CSRF signing key
   * @param clock clock used as a nonce
   */
-final class TSecCSRF[F[_], A: MacTag] private[tsec] (
+final class TSecCSRF[F[_], A: JCAMacTag] private[tsec] (
     key: MacSigningKey[A],
     val headerName: String,
     val cookieName: String,
     val tokenLength: Int,
     clock: Clock
-)(implicit mac: JCAMac[F, A], F: Sync[F]) {
+)(implicit mac: JCAMessageAuth[F, A], F: Sync[F]) {
 
   def isEqual(s1: String, s2: String): Boolean =
     MessageDigest.isEqual(s1.utf8Bytes, s2.utf8Bytes)
@@ -134,12 +134,12 @@ final class TSecCSRF[F[_], A: MacTag] private[tsec] (
 }
 
 object TSecCSRF {
-  def apply[F[_]: Sync, A: MacTag](
+  def apply[F[_]: Sync, A: JCAMacTag](
       key: MacSigningKey[A],
       headerName: String = "X-TSec-Csrf",
       cookieName: String = "tsec-csrf",
       tokenLength: Int = 32,
       clock: Clock = Clock.systemUTC()
-  )(implicit mac: JCAMac[F, A]): TSecCSRF[F, A] =
+  ): TSecCSRF[F, A] =
     new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock)
 }

@@ -1,11 +1,13 @@
 package tsec.jws.mac
 
+import java.security.MessageDigest
+
 import cats.MonadError
 import cats.effect.Sync
 import cats.implicits._
 import tsec.common._
 import tsec.jws._
-import tsec.mac.core.{MAC, MacPrograms, MacTag}
+import tsec.mac.core.{JCAMacTag, MAC, MessageAuth}
 import tsec.mac.imports._
 import java.time.Instant
 
@@ -21,7 +23,7 @@ import tsec.jwt.JWTClaims
   */
 sealed abstract class JWSMacCV[F[_], A](
     implicit hs: JWSSerializer[JWSMacHeader[A]],
-    programs: MacPrograms[F, A, MacSigningKey],
+    programs: MessageAuth[F, A, MacSigningKey],
     M: MonadError[F, Throwable]
 ) {
 
@@ -55,10 +57,10 @@ sealed abstract class JWSMacCV[F[_], A](
       } yield claims).fold(
         _ => M.pure(false),
         claims =>
-          programs.algebra
+          programs
             .sign((split(0) + "." + split(1)).asciiBytes, key)
             .map {
-              ByteUtils.constantTimeEquals(_, providedBytes) && claims.isNotExpired(now) && claims
+              MessageDigest.isEqual(_, providedBytes) && claims.isNotExpired(now) && claims
                 .isAfterNBF(now) && claims.isValidIssued(now)
           }
       )
@@ -76,7 +78,7 @@ sealed abstract class JWSMacCV[F[_], A](
         claims <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
         bytes <- M.ensure(programs.sign((split(0) + "." + split(1)).asciiBytes, key))(defaultError)(
           signed =>
-            ByteUtils.constantTimeEquals(signed, signedBytes)
+            MessageDigest.isEqual(signed, signedBytes)
               && claims.isNotExpired(now)
               && claims.isAfterNBF(now)
               && claims.isValidIssued(now)
@@ -91,16 +93,14 @@ sealed abstract class JWSMacCV[F[_], A](
 
 object JWSMacCV {
 
-  implicit def genSigner[F[_]: Sync, A: MacTag](
-      implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMac[F, A],
+  implicit def genSigner[F[_]: Sync, A: JCAMacTag](
+      implicit hs: JWSSerializer[JWSMacHeader[A]]
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
-  implicit def genSignerEither[A: MacTag](
-      implicit hs: JWSSerializer[JWSMacHeader[A]],
-      alg: JCAMacImpure[A]
-  ): JWSMacCV[MacErrorM, A] =
-    new JWSMacCV[MacErrorM, A]() {}
+  implicit def eitherSigner[A: JCAMacTag](
+      implicit hs: JWSSerializer[JWSMacHeader[A]]
+  ): JWSMacCV[Either[Throwable, ?], A] =
+    new JWSMacCV[Either[Throwable, ?], A]() {}
 
 }

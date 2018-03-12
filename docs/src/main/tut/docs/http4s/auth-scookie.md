@@ -55,6 +55,7 @@ harder to simply brute force the key.
 ```tut:silent
 import java.util.UUID
 
+import cats.Id
 import cats.effect.IO
 import org.http4s.HttpService
 import org.http4s.dsl.io._
@@ -79,7 +80,7 @@ object SignedCookieExample {
     maxIdle = None // Rolling window expiration. Set this to a Finiteduration if you intend to have one
   )
 
-  val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our Signing key. Instantiate in a safe way using GenerateLift
+  val key: MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id] //Our Signing key. Instantiate in a safe way using GenerateLift
 
   val cookieAuth =
     SignedCookieAuthenticator(

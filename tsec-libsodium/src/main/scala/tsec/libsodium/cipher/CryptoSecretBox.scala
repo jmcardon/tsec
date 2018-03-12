@@ -1,5 +1,6 @@
 package tsec.libsodium.cipher
 
+import tsec.cipher.symmetric.core._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 
@@ -25,7 +26,7 @@ object CryptoSecretBox extends SodiumCipherPlatform[CryptoSecretBox] {
 
   @inline private[tsec] def sodiumDecrypt(
       origOut: Array[Byte],
-      ct: SodiumCipherText[CryptoSecretBox],
+      ct: CipherText[CryptoSecretBox],
       key: SodiumKey[CryptoSecretBox]
   )(implicit S: ScalaSodium): Int =
     S.crypto_secretbox_open_easy(origOut, ct.content, ct.content.length, ct.nonce, key)
@@ -41,7 +42,7 @@ object CryptoSecretBox extends SodiumCipherPlatform[CryptoSecretBox] {
 
   @inline private[tsec] def sodiumDecryptDetached(
       origOut: Array[Byte],
-      ct: SodiumCipherText[CryptoSecretBox],
+      ct: CipherText[CryptoSecretBox],
       tagIn: AuthTag[CryptoSecretBox],
       key: SodiumKey[CryptoSecretBox]
   )(implicit S: ScalaSodium): Int =

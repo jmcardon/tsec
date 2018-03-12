@@ -1,14 +1,19 @@
 package tsec.libsodium
 
+import java.security.MessageDigest
+
 import cats.effect.IO
 import tsec.common._
 import tsec.libsodium.hashing._
 import fs2._
+import tsec.hashing.core.CryptoHasher
 import tsec.libsodium.hashing.internal.SodiumHashPlatform
 
 class GenericHash extends SodiumSpec {
 
-  def hashTest[A](platform: SodiumHashPlatform[A]) = {
+  def hashTest[A](platform: SodiumHashPlatform[A])(
+      implicit hasher: CryptoHasher[IO, A]
+  ) = {
     behavior of "Sodium hash for " + platform.algorithm
 
     it should "hash two byte arrays into equal hash values" in {
@@ -62,7 +67,7 @@ class GenericHash extends SodiumSpec {
         k2 <- Blake2b.generateKey[IO]
         h1 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k1)
         h2 <- Blake2b.hashKeyed[IO](s.utf8Bytes, k2)
-      } yield ByteUtils.constantTimeEquals(h1, h2)
+      } yield MessageDigest.isEqual(h1, h2)
 
       program.unsafeRunSync() mustBe false
     }

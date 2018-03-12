@@ -1,9 +1,11 @@
 package tsec.passwordhashers.imports
 
+import java.security.MessageDigest
+
 import com.lambdaworks.codec.Base64
 import com.lambdaworks.crypto.{SCrypt => JSCrypt}
 import cats.syntax.either._
-import tsec.common.{ByteUtils, ManagedRandom}
+import tsec.common.ManagedRandom
 
 /** SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,
   * improving on SHA1PRNGs, bad security in particular.
@@ -48,7 +50,7 @@ object SCryptUtil extends ManagedRandom {
     Either.catchNonFatal(JSCrypt.scrypt(passwd, salt, N, r, p, 32)) match {
       case Left(_) => false
       case Right(derived1) =>
-        ByteUtils.constantTimeEquals(derived0, derived1)
+        MessageDigest.isEqual(derived0, derived1)
     }
   }
 

@@ -1,6 +1,7 @@
 package tsec.libsodium.cipher
 
 import cats.effect.Sync
+import tsec.cipher.symmetric.core._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 import fs2._
@@ -37,7 +38,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
 
   @inline private[tsec] def sodiumDecrypt(
       origOut: Array[Byte],
-      ct: SodiumCipherText[XChacha20Poly1305],
+      ct: CipherText[XChacha20Poly1305],
       key: SodiumKey[XChacha20Poly1305]
   )(implicit S: ScalaSodium): Int =
     S.crypto_secretbox_xchacha20poly1305_open_easy(origOut, ct.content, ct.content.length, ct.nonce, key)
@@ -53,7 +54,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
 
   @inline private[tsec] def sodiumDecryptDetached(
       origOut: Array[Byte],
-      ct: SodiumCipherText[XChacha20Poly1305],
+      ct: CipherText[XChacha20Poly1305],
       tagIn: AuthTag[XChacha20Poly1305],
       key: SodiumKey[XChacha20Poly1305]
   )(implicit S: ScalaSodium): Int =

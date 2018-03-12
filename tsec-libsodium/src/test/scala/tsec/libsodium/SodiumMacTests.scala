@@ -2,12 +2,17 @@ package tsec.libsodium
 
 import cats.effect.IO
 import tsec.common._
+import tsec.keygen.symmetric.SymmetricKeyGen
 import tsec.libsodium.authentication._
 import tsec.libsodium.authentication.internal.SodiumMacPlatform
+import tsec.mac.core.MessageAuth
 
 class SodiumMacTests extends SodiumSpec {
 
-  final def macTest[A](platform: SodiumMacPlatform[A]) = {
+  final def macTest[A](platform: SodiumMacPlatform[A])(
+      implicit M: MessageAuth[IO, A, SodiumMACKey],
+      KG: SymmetricKeyGen[IO, A, SodiumMACKey]
+  ) = {
     behavior of platform.algorithm
 
     it should "sign and verify for the same key" in {

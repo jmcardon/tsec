@@ -16,16 +16,17 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
   def jwtBehavior[A](
       implicit algo: JWTMacAlgo[A],
-      cv: JWSMacCV[MacErrorM, A],
+      cv: JWSMacCV[Either[Throwable, ?], A],
       cv2: JWSMacCV[IO, A],
       hs: JWSSerializer[JWSMacHeader[A]],
-      keyGen: MacKeyGenerator[A]
+      keyGen: MacKeyGen[IO, A],
+      idgen: MacKeyGen[MacErrorM, A]
   ) {
     behavior of "JWT pure" + algo.jwtRepr
 
     it should "sign and verify properly with no expiry" in {
       val res = for {
-        key      <- keyGen.generateLift[IO]
+        key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims(), key)
         verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
       } yield verified
@@ -35,7 +36,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
     it should "sign and verify properly for proper expiry" in {
       val res = for {
-        key      <- keyGen.generateLift[IO]
+        key      <- keyGen.generateKey
         claims   <- JWTClaims.withDuration[IO](expiration = Some(10.seconds))
         jwt      <- JWTMac.build[IO, A](claims, key)
         verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
@@ -46,7 +47,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
     it should "sign and verify properly for proper nbf, iat, and expiry" in {
       val res = for {
-        key    <- keyGen.generateLift[IO]
+        key    <- keyGen.generateKey
         claims <- JWTClaims.withDuration[IO](notBefore = Some(-2.seconds), expiration = Some(10.seconds))
         jwt <- JWTMac.build[IO, A](
           claims,
@@ -62,7 +63,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
       val expired = Instant.now().minusSeconds(20)
 
       val res = for {
-        key      <- keyGen.generateLift[IO]
+        key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims.default(expiration = Some(expired)), key)
         verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
       } yield verified
@@ -72,7 +73,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
     it should "fail verification if evaluated before nbf" in {
       val nbf = Instant.now().plusSeconds(20)
       val res = for {
-        key      <- keyGen.generateLift[IO]
+        key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims.default(notBefore = Some(nbf)), key)
         verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
       } yield verified
@@ -81,7 +82,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
     it should "fail verification if iat is some nonsensical time in the future" in {
       val res = for {
-        key      <- keyGen.generateLift[IO]
+        key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims().withIAT(Instant.now().plusSeconds(20)), key)
         verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
       } yield verified
@@ -92,7 +93,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
     it should "sign and verify properly with no expiry" in {
       val res = for {
-        key      <- keyGen.generateKey()
+        key      <- idgen.generateKey
         jwt      <- JWTMacImpure.build[A](JWTClaims(), key)
         verified <- JWTMacImpure.verifyFromInstance[A](jwt, key)
       } yield verified
@@ -102,7 +103,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
     it should "sign and verify properly for proper expiry" in {
       val res = for {
-        key      <- keyGen.generateKey()
+        key      <- idgen.generateKey
         jwt      <- JWTMacImpure.build[A](JWTClaims(expiration = Some(Instant.now().plusSeconds(10))), key)
         verified <- JWTMacImpure.verifyFromInstance[A](jwt, key)
       } yield verified
@@ -113,7 +114,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
     it should "sign and verify properly for proper nbf, iat, and expiry" in {
       val res = for {
         now <- Right(Instant.now)
-        key <- keyGen.generateKey()
+        key <- idgen.generateKey
         jwt <- JWTMacImpure.build[A](
           JWTClaims(notBefore = Some(now.minusSeconds(2)), expiration = Some(now.plusSeconds(10))),
           key
@@ -127,7 +128,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
     it should "fail verification for expired token" in {
       val res = for {
         expired  <- Right(Instant.now().minusSeconds(20))
-        key      <- keyGen.generateKey()
+        key      <- idgen.generateKey
         jwt      <- JWTMacImpure.build[A](JWTClaims(expiration = Some(expired)), key)
         verified <- JWTMacImpure.verifyFromInstance[A](jwt, key)
       } yield verified
@@ -137,7 +138,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
     it should "fail verification if evaluated before nbf" in {
       val res = for {
         nbf      <- Right(Instant.now().plusSeconds(20))
-        key      <- keyGen.generateKey()
+        key      <- idgen.generateKey
         jwt      <- JWTMacImpure.build[A](JWTClaims(notBefore = Some(nbf)), key)
         verified <- JWTMacImpure.verifyFromInstance[A](jwt, key)
       } yield verified
@@ -146,7 +147,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
     it should "fail verification if iat is some nonsensical time in the future" in {
       val res = for {
-        key      <- keyGen.generateKey()
+        key      <- idgen.generateKey
         now      <- Right(Instant.now.plusSeconds(20))
         jwt      <- JWTMacImpure.build[A](JWTClaims(issuedAt = Some(now)), key)
         verified <- JWTMacImpure.verifyFromInstance[A](jwt, key)
@@ -161,8 +162,8 @@ class JWTMacTests extends TestSpec with MustMatchers {
 
   "JWTS" should "not properly deserialize a JWT that is signed with a different algorithm and key" in {
     val res = for {
-      key       <- HMACSHA256.keyGen.generateKey()
-      key2      <- HMACSHA384.keyGen.generateKey()
+      key       <- HMACSHA256.generateKey[MacErrorM]
+      key2      <- HMACSHA384.generateKey[MacErrorM]
       jwtString <- JWTMacImpure.buildToString[HMACSHA256](JWTClaims(), key)
       verif     <- JWTMacImpure.verifyFromString[HMACSHA384](jwtString, key2)
     } yield verif

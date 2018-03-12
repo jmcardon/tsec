@@ -44,13 +44,13 @@ object JWTSig {
     jwt: String,
     pubKey: SigPublicKey[A]
   )(implicit F: Sync[F], sigCV: JWSSigCV[F, A]): F[JWTSig[A]] =
-    F.delay(Instant.now()).flatMap(sigCV.verifyK(jwt, pubKey, _))
+    F.delay(Instant.now()).flatMap(sigCV.verify(jwt, pubKey, _))
 
   def verifyC[F[_], A: JWTSigAlgo](
     jwt: String,
     cert: SigCertificate[A]
   )(implicit F: Sync[F], sigCV: JWSSigCV[F, A]): F[JWTSig[A]] =
-    F.delay(Instant.now()).flatMap(sigCV.verifyC(jwt, cert, _))
+    F.delay(Instant.now()).flatMap(sigCV.verifyCert(jwt, cert, _))
 
   def verifyKI[F[_], A: JWTSigAlgo](
     jwt: JWTSig[A],
@@ -87,12 +87,12 @@ object JWTSigImpure {
   def verifyK[A: JWTSigAlgo](
       jwt: String,
       pubKey: SigPublicKey[A]
-  )(implicit sigCV: JWSSigCV[SigErrorM, A]): SigErrorM[JWTSig[A]] = sigCV.verifyK(jwt, pubKey, Instant.now())
+  )(implicit sigCV: JWSSigCV[SigErrorM, A]): SigErrorM[JWTSig[A]] = sigCV.verify(jwt, pubKey, Instant.now())
 
   def verifyC[A: JWTSigAlgo](
       jwt: String,
       cert: SigCertificate[A]
-  )(implicit sigCV: JWSSigCV[SigErrorM, A]): SigErrorM[JWTSig[A]] = sigCV.verifyC(jwt, cert, Instant.now())
+  )(implicit sigCV: JWSSigCV[SigErrorM, A]): SigErrorM[JWTSig[A]] = sigCV.verifyCert(jwt, cert, Instant.now())
 
   def verifyKI[A: JWTSigAlgo](
       jwt: JWTSig[A],
@@ -104,6 +104,6 @@ object JWTSigImpure {
       jwt: JWTSig[A],
       cert: SigCertificate[A]
   )(implicit sigCV: JWSSigCV[SigErrorM, A]): SigErrorM[JWTSig[A]] =
-    sigCV.verifyC(jwt.toEncodedString, cert, Instant.now())
+    sigCV.verifyCert(jwt.toEncodedString, cert, Instant.now())
 
 }

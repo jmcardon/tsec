@@ -40,6 +40,7 @@ Notes:
 ```tut:silent
 import cats.effect.IO
 
+import cats.Id
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
@@ -57,8 +58,8 @@ object jwtStatefulExample {
   //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
-  val signingKey
-  : MacSigningKey[HMACSHA256] = HMACSHA256.generateKeyUnsafe() //Our signing key. Instantiate in a safe way using GenerateLift
+  //Our signing key. Instantiate in a safe way using .generateKey[F]
+  val signingKey: MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id] 
 
   val jwtStatefulAuth =
     JWTAuthenticator.withBackingStore(

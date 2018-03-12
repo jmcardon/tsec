@@ -4,4 +4,4 @@ import tsec.common.TSecError
 
 trait SodiumPKError extends TSecError
 
-case class SignatureError(cause: String) extends SodiumPKError
+case class SodiumSignatureError(cause: String) extends SodiumPKError

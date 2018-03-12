@@ -6,12 +6,14 @@ title: "Password Hashers"
 
 ## Password Hashers
 
-For password hashers, you have three options: BCrypt, SCrypt and HardenedSCrypt 
+For password hashers on the JCA, you have three options: BCrypt, SCrypt and HardenedSCrypt 
 (Which is basically scrypt but with much more secure parameters, but a lot slower).
 
-SCrypt is recommended over BCrypt, as it improves over the memory-hardness of BCrypt.
+SCrypt is recommended over BCrypt, as it improves over the memory-hardness of BCrypt. Over both,
+Argon2 from the libsodium package is preferred.
 
-Password hashing involves nonce generation, thus, it uses java's `SecureRandom`. Thus,
+Password hashing involves nonce generation, thus, it uses java's `SecureRandom` for the JCA, and 
+libsodium's own random function for the `libsodium` module. Thus,
 it is inherently side effecting. 
 
 Preferably, if possible, you want to receive your password as an `Array[Byte]` or
@@ -30,7 +32,7 @@ So for the default case of char arrays, we can hash into any `Sync[F]` as such:
 
 ```tut:silent
   import cats.effect.IO
-  import tsec.passwordhashers._
+  import tsec.passwordhashers.core._
   import tsec.passwordhashers.imports._
   val pass: Array[Char] = Array('h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd')
   val bestbcryptHash: IO[PasswordHash[BCrypt]]                 = BCrypt.hashpw[IO](pass)
@@ -61,15 +63,4 @@ a nonce using `SecureRandom`, thus it is side effecting.
 ```tut:silent
   val unsafeHash: PasswordHash[BCrypt] = BCrypt.hashpwUnsafe("hiThere")
   val unsafeCheck: Boolean             = BCrypt.checkpwUnsafe("hiThere", unsafeHash)
-```
-
-Note: As of 0.0.1-M6, the following syntax is deprecated and _will be removed_ for the next milestone
-
-```tut
-  val oldbcryptHash: PasswordHash[BCrypt]                 = "hiThere".hashPassword[BCrypt]
-  val oldscryptHash: PasswordHash[SCrypt]                 = "hiThere".hashPassword[SCrypt]
-  val oldhardenedScryptHash: PasswordHash[HardenedSCrypt] = "hiThere".hashPassword[HardenedSCrypt]
-
-  /** To Validate, you can check against a hash! */
-  val oldcheck: Boolean = "hiThere".checkWithHash[BCrypt](oldbcryptHash)
 ```

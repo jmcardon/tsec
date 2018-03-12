@@ -1,44 +1,38 @@
 package tsec.cipher.symmetric.core
 
+import cats.Applicative
 import cats.effect.Sync
-import tsec.cipher.symmetric.imports.{BlockCipher, CipherMode}
 import tsec.common.ManagedRandom
 
-trait IvStrategy[A, M] {
+object JCAIvGen {
+  def random[F[_], A](implicit C: BlockCipher[A], F: Sync[F]): IvGen[F, A] =
+    new IvGen[F, A] with ManagedRandom {
 
-  def genIv[F[_]](implicit F: Sync[F]): F[Iv[A, M]]
-
-  def genIvUnsafe: Iv[A, M]
-
-}
-
-object IvStrategy {
-  def defaultStrategy[A, M: CipherMode](implicit C: BlockCipher[A]): IvStrategy[A, M] =
-    new IvStrategy[A, M] with ManagedRandom {
-
-      def genIv[F[_]](implicit F: Sync[F]): F[Iv[A, M]] =
+      def genIv: F[Iv[A]] =
         F.delay(genIvUnsafe)
 
-      def genIvUnsafe: Iv[A, M] = {
+      def genIvUnsafe: Iv[A] = {
         val nonce = new Array[Byte](C.blockSizeBytes)
         nextBytes(nonce)
-        Iv[A, M](nonce)
+        Iv[A](nonce)
       }
     }
 
-  def emptyIv[A, M: CipherMode]: IvStrategy[A, M] =
-    new IvStrategy[A, M] {
+  def emptyIv[F[_], A](implicit F: Applicative[F]): IvGen[F, A] =
+    new IvGen[F, A] {
+      protected val cachedEmpty = Array.empty[Byte]
 
-      def genIv[F[_]](implicit F: Sync[F]): F[Iv[A, M]] =
-        F.pure(Iv[A, M](cachedEmpty))
+      def genIv: F[Iv[A]] =
+        F.pure(Iv[A](cachedEmpty))
 
-      protected val cachedEmpty                   = Array.empty[Byte]
-      def genIvUnsafe: Iv[A, M] = Iv[A, M](cachedEmpty)
+      def genIvUnsafe: Iv[A] = Iv[A](cachedEmpty)
     }
 }
 
-trait CounterIvStrategy[A, M] extends IvStrategy[A, M] {
-  def numGenerated[F[_]](implicit F: Sync[F]): F[Long]
+trait CounterIvGen[F[_], A] extends IvGen[F, A] {
+  def refresh: F[Unit]
 
-  def unsafeNumGenerated: Long
+  def counterState: F[Long]
+
+  def unsafeCounterState: Long
 }

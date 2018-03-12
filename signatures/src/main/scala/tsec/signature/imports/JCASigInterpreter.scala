@@ -4,12 +4,8 @@ import java.security.Signature
 import cats.effect.Sync
 import tsec.signature.core._
 
-sealed abstract class JCASigInterpreter[F[_], A](implicit M: Sync[F], signatureAlgorithm: SigAlgoTag[A])
-    extends SignatureAlgebra[F, A] {
-  type S     = Signature
-  type PubK  = SigPublicKey[A]
-  type PrivK = SigPrivateKey[A]
-  type Cert  = SigCertificate[A]
+sealed abstract class JCASigInterpreter[F[_], A](implicit M: Sync[F], signatureAlgorithm: JCASigTag[A])
+    extends JCASigAlgebra[F, A, SigPublicKey, SigPrivateKey, SigCertificate] {
 
   def genSignatureInstance: F[Signature] = M.delay(Signature.getInstance(signatureAlgorithm.algorithm))
 
@@ -32,8 +28,8 @@ sealed abstract class JCASigInterpreter[F[_], A](implicit M: Sync[F], signatureA
 
 object JCASigInterpreter {
 
-  def apply[F[_]: Sync, A: SigAlgoTag] = new JCASigInterpreter[F, A]() {}
+  def apply[F[_]: Sync, A: JCASigTag]: JCASigInterpreter[F, A] = new JCASigInterpreter[F, A]() {}
 
-  implicit def genSig[F[_]: Sync, A: SigAlgoTag]: JCASigInterpreter[F, A] = apply[F, A]
+  implicit def genSig[F[_]: Sync, A: JCASigTag]: JCASigInterpreter[F, A] = apply[F, A]
 
 }

@@ -4,15 +4,13 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.http4s.{Header, Request}
-import tsec.cipher.common.padding.NoPadding
-import tsec.cipher.symmetric.core.IvStrategy
-import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
-import tsec.cipher.symmetric.imports.{AES, CTR, CipherKeyGen}
+import tsec.cipher.symmetric.imports._
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.imports.MacKeyGenerator
-import tsec.mac.core.MacTag
+import tsec.keygen.symmetric.IdKeyGen
+import tsec.mac.core._
+import tsec.mac.imports._
 
 import scala.concurrent.duration._
 
@@ -34,13 +32,13 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Stateful tests using Authorization: Header
     *
     */
-  def stateful[A: JWTMacAlgo: MacTag](
+  def stateful[A: JWTMacAlgo: JCAMacTag](
       implicit cv: JWSMacCV[IO, A],
-      macKeyGen: MacKeyGenerator[A],
+      macKeyGen: IdKeyGen[A, MacSigningKey],
       store: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val macKey     = macKeyGen.generateKeyUnsafe()
+    val macKey     = macKeyGen.generateKey
     val authenticator = JWTAuthenticator.withBackingStore[IO, Int, DummyUser, A](
       settings.expiryDuration,
       settings.maxIdle,
@@ -71,20 +69,20 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
+        authenticator.withSigningKey(macKeyGen.generateKey).create(123)
     }
   }
 
   /** Stateful arbitrary header tests
     *
     */
-  def statefulArbitraryH[A: JWTMacAlgo: MacTag](
+  def statefulArbitraryH[A: JWTMacAlgo: JCAMacTag](
       implicit cv: JWSMacCV[IO, A],
-      macKeyGen: MacKeyGenerator[A],
+      macKeyGen: IdKeyGen[A, MacSigningKey],
       store: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val macKey     = macKeyGen.generateKeyUnsafe()
+    val macKey     = macKeyGen.generateKey
     val authenticator = JWTAuthenticator.withBackingStoreArbitrary[IO, Int, DummyUser, A](
       settings,
       store,
@@ -113,19 +111,19 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
+        authenticator.withSigningKey(macKeyGen.generateKey).create(123)
     }
   }
 
   /** Unencrypted stateless in bearer tests
     *
     */
-  def stateless[A: JWTMacAlgo: MacTag](
+  def stateless[A: JWTMacAlgo: JCAMacTag](
       implicit cv: JWSMacCV[IO, A],
-      macKeyGen: MacKeyGenerator[A]
+      macKeyGen: IdKeyGen[A, MacSigningKey]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val macKey     = macKeyGen.generateKeyUnsafe()
+    val macKey     = macKeyGen.generateKey
     val authenticator = JWTAuthenticator.stateless[IO, Int, DummyUser, A](
       settings.expiryDuration,
       settings.maxIdle,
@@ -154,25 +152,25 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
+        authenticator.withSigningKey(macKeyGen.generateKey).create(123)
     }
   }
 
   /** Encrypted Stateless non-bearer tests
     *
     */
-  def statelessEncrypted[A: JWTMacAlgo: MacTag, E](
+  def statelessEncrypted[A: JWTMacAlgo: JCAMacTag, E](
       implicit cv: JWSMacCV[IO, A],
-      enc: AES[E],
-      eKeyGen: CipherKeyGen[E],
-      macKeyGen: MacKeyGenerator[A]
+      enc: AESCTR[E],
+      idKeyGen: IdKeyGen[E, SecretKey],
+      macKeyGen: IdKeyGen[A, MacSigningKey]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
-    implicit val instance = JCAPrimitiveCipher[IO, E, CTR, NoPadding]().unsafeRunSync()
-    implicit val strategy = IvStrategy.defaultStrategy[E, CTR]
+    implicit val instance = enc.genEncryptor[IO].unsafeRunSync()
+    implicit val strategy = enc.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val macKey     = macKeyGen.generateKeyUnsafe()
-    val cryptoKey  = eKeyGen.generateKeyUnsafe()
+    val macKey     = macKeyGen.generateKey
+    val cryptoKey  = enc.unsafeGenerateKey
     val authenticator = JWTAuthenticator.statelessEncryptedArbitrary[IO, Int, DummyUser, A, E](
       settings,
       dummyStore,
@@ -200,25 +198,25 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
+        authenticator.withSigningKey(macKeyGen.generateKey).create(123)
     }
   }
 
   /** Encrypted Stateless bearer token
     *
     */
-  def statelessBearerEncrypted[A: JWTMacAlgo: MacTag, E](
+  def statelessBearerEncrypted[A: JWTMacAlgo: JCAMacTag, E](
       implicit cv: JWSMacCV[IO, A],
-      enc: AES[E],
-      eKeyGen: CipherKeyGen[E],
-      macKeyGen: MacKeyGenerator[A]
+      enc: AESCTR[E],
+      idKeyGen: IdKeyGen[E, SecretKey],
+      macKeyGen: IdKeyGen[A, MacSigningKey]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
-    implicit val instance = JCAPrimitiveCipher[IO, E, CTR, NoPadding]().unsafeRunSync()
-    implicit val strategy = IvStrategy.defaultStrategy[E, CTR]
+    implicit val instance = enc.genEncryptor[IO].unsafeRunSync()
+    implicit val strategy = enc.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
-    val macKey     = macKeyGen.generateKeyUnsafe()
-    val cryptoKey  = eKeyGen.generateKeyUnsafe()
+    val macKey     = macKeyGen.generateKey
+    val cryptoKey  = enc.unsafeGenerateKey
     val authenticator = JWTAuthenticator.statelessEncrypted[IO, Int, DummyUser, A, E](
       settings.expiryDuration,
       settings.maxIdle,
@@ -247,7 +245,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        authenticator.withSigningKey(macKeyGen.generateKeyUnsafe()).create(123)
+        authenticator.withSigningKey(macKeyGen.generateKey).create(123)
     }
   }
 

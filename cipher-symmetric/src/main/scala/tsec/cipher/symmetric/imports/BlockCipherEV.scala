@@ -3,90 +3,57 @@ package tsec.cipher.symmetric.imports
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator => KG}
 
-import cats.syntax.either._
+import cats.Id
+import cats.effect.Sync
 import tsec.cipher.symmetric._
-import tsec.common.ErrorConstruct._
-
-/** A helper class for a block cipher type C which
-  * carried information about key size
-  *
-  * @param cipherName stringy repr of the cipher
-  * @param blockSizeBytes block size
-  * @param keySizeBytes key size
-  */
-protected[tsec] class BlockCipherEV[C](val cipherName: String, val blockSizeBytes: Int, val keySizeBytes: Int)
-    extends BlockCipher[C]
-    with CipherKeyGen[C] {
-
-  implicit val tag: BlockCipher[C] = this
-
-  implicit val keyGen: CipherKeyGen[C] = this
-
-  private val keySizeBits = keySizeBytes*8
-
-  def generator: KG = KG.getInstance(cipherName)
-
-  def generateKeyUnsafe(): SecretKey[C] = {
-    val gen = generator
-    gen.init(keySizeBits)
-    SecretKey[C](gen.generateKey())
-  }
-
-  def generateKey(): Either[CipherKeyBuildError, SecretKey[C]] =
-    Either
-      .catchNonFatal(generateKeyUnsafe())
-      .mapError(CipherKeyBuildError.apply)
-
-  def buildKeyUnsafe(key: Array[Byte]): SecretKey[C] =
-    buildKey(key).fold(throw _, identity)
-
-  /** Only accept keys of the proper length */
-  def buildKey(key: Array[Byte]): Either[CipherKeyBuildError, SecretKey[C]] = {
-    if (key.length != keySizeBytes)
-      Left(CipherKeyBuildError("Incorrect key length"))
-    else
-      Right(
-        SecretKey[C](
-          new SecretKeySpec(key, cipherName)
-        )
-      )
-  }
-}
-
+import tsec.cipher.symmetric.core.BlockCipher
+import tsec.keygen.symmetric._
 
 /** A Helper type for providing implicit evidence that some type
   * A represents AES.
   *
-  * @param keySizeBytes the standard Rjindael key sizes
   */
-private[tsec] class AESEV[A](val keySizeBytes: Int) extends AES[A] with CipherKeyGen[A] {
-  implicit val ev: AES[A]          = this
-  implicit val kg: CipherKeyGen[A] = this
+private[tsec] trait JCAKeyGen[A] extends SymmetricKeyGenAPI[A, SecretKey] {
+  private def keySizeBits(implicit B: BlockCipher[A]) = B.keySizeBytes * 8
 
-  private val keySizeBits = keySizeBytes*8
+  private def generator(implicit B: BlockCipher[A]): KG = KG.getInstance(B.cipherName)
 
-  def generator: KG = KG.getInstance(cipherName)
+  implicit def newKeyGen[F[_]](implicit F: Sync[F], B: BlockCipher[A]): SymmetricKeyGen[F, A, SecretKey] =
+    new SymmetricKeyGen[F, A, SecretKey] {
+      def generateKey: F[SecretKey[A]] = F.delay(impl.unsafeGenerateKey)
 
-  def generateKey(): Either[CipherKeyBuildError, SecretKey[A]] =
-    Either.catchNonFatal(generateKeyUnsafe()).mapError(CipherKeyBuildError.apply)
+      def build(rawKey: Array[Byte]): F[SecretKey[A]] = F.delay(impl.unsafeBuild(rawKey))
+    }
 
-  def generateKeyUnsafe(): SecretKey[A] = {
-    val gen = generator
-    gen.init(keySizeBits)
-    SecretKey[A](gen.generateKey())
+  implicit def idKeyGen(implicit B: BlockCipher[A]): IdKeyGen[A, SecretKey] = new IdKeyGen[A, SecretKey] {
+    def generateKey: Id[SecretKey[A]] = impl.unsafeGenerateKey
+
+    def build(rawKey: Array[Byte]): Id[SecretKey[A]] = impl.unsafeBuild(rawKey)
   }
 
-  def buildKey(key: Array[Byte]): Either[CipherKeyBuildError, SecretKey[A]] =
-    if (key.length != keySizeBytes)
-      Left(CipherKeyBuildError("Incorrect key length"))
-    else
-      Right(
+  private[tsec] object impl {
+    def unsafeGenerateKey(implicit B: BlockCipher[A]): SecretKey[A] = {
+      val gen = generator
+      gen.init(keySizeBits)
+      SecretKey[A](gen.generateKey())
+    }
+
+    def unsafeBuild(rawKey: Array[Byte])(implicit B: BlockCipher[A]): SecretKey[A] =
+      if (rawKey.length != B.keySizeBytes)
+        throw CipherKeyBuildError("Incorrect key length")
+      else
         SecretKey[A](
-          new SecretKeySpec(key, cipherName)
+          new SecretKeySpec(rawKey, B.cipherName)
         )
-      )
+  }
+}
 
-  def buildKeyUnsafe(key: Array[Byte]): SecretKey[A] =
-    buildKey(key).fold(e => throw e, identity)
+/** A helper class for a block cipher type C which
+  * carried information about key size
+  */
+protected[tsec] class BlockCipherEV[A](val cipherName: String, val blockSizeBytes: Int, val keySizeBytes: Int)
+    extends BlockCipher[A]
+    with JCAKeyGen[A] {
 
+  implicit val BlockCipher: BlockCipher[A] = this
 }

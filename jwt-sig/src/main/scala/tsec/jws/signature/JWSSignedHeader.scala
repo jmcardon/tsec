@@ -9,8 +9,8 @@ import tsec.jwt.algorithms._
 import tsec.jwt.header._
 import tsec.common._
 import tsec.jws.header.JWSHeader
-import tsec.messagedigests.core.CryptoHash
-import tsec.messagedigests.imports._
+import tsec.hashing.core.CryptoHash
+import tsec.hashing.imports._
 
 case class JWSSignedHeader[A](
     `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"

@@ -2,9 +2,7 @@ package tsec.libsodium
 
 import java.nio.charset.Charset
 
-import cats.evidence.Is
 import tsec.common._
-import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
 
 package object passwordhashers {
 
@@ -14,18 +12,6 @@ package object passwordhashers {
 
   final class PWStrengthParam[PTyp, Str](val opLimit: Int, val memLimit: Int)
 
-  private[tsec] val PasswordHash$$ : HKStringNewt = new HKStringNewt {
-    type Repr[A] = String
-
-    def is[G] = Is.refl[String]
-  }
-
-  type PasswordHash[A] = PasswordHash$$.Repr[A]
-
-  object PasswordHash {
-    def apply[A: SodiumPasswordHasher](string: String): PasswordHash[A]  = is[A].coerce(string)
-    @inline def is[A: SodiumPasswordHasher]: Is[String, PasswordHash[A]] = PasswordHash$$.is[A]
-  }
 
   object PasswordStrength {
     object MinStrength

@@ -4,6 +4,7 @@ import cats.effect.IO
 import org.scalacheck.{Arbitrary, Gen}
 import tsec.libsodium.passwordhashers._
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
+import tsec.passwordhashers.core.PasswordHasher
 
 class SodiumPWHashTest extends SodiumSpec {
 
@@ -13,16 +14,17 @@ class SodiumPWHashTest extends SodiumSpec {
   }
   implicit val arbStr = Arbitrary(genStringAscii)
 
-  def testPasswordHash[PwTyp, S](hasher: SodiumPasswordHasher[PwTyp], stren: S)(
-      implicit p: PWStrengthParam[PwTyp, S]
+  def testPasswordHash[P, S](hasher: SodiumPasswordHasher[P], stren: S)(
+      implicit p: PWStrengthParam[P, S],
+    P: PasswordHasher[IO, P]
   ) = {
     behavior of s"${hasher.hashingAlgorithm} with strength $stren"
 
     it should "hash and verify properly" in {
       forAll { (s: String) =>
         val program = for {
-          hashed   <- hasher.hashPassword[IO, S](s, stren)
-          verified <- hasher.checkPass[IO](s, hashed)
+          hashed   <- hasher.hashpwWithStrength[IO, S](s, stren)
+          verified <- hasher.checkpw[IO](s, hashed)
         } yield verified
 
         if (!s.isEmpty) {
@@ -35,7 +37,7 @@ class SodiumPWHashTest extends SodiumSpec {
     it should "hash and verify properly (short circuit)" in {
       forAll { (s: String) =>
         val program = for {
-          hashed <- hasher.hashPassword[IO, S](s, stren)
+          hashed <- hasher.hashpwWithStrength[IO, S](s, stren)
           _      <- hasher.checkPassShortCircuit[IO](s, hashed)
         } yield ()
 
@@ -49,8 +51,8 @@ class SodiumPWHashTest extends SodiumSpec {
     it should "not verify for an incorrect password" in {
       forAll { (s: String, s2: String) =>
         val program = for {
-          hashed   <- hasher.hashPassword[IO, S](s, stren)
-          verified <- hasher.checkPass[IO](s2, hashed)
+          hashed   <- hasher.hashpwWithStrength[IO, S](s, stren)
+          verified <- hasher.checkpw[IO](s2, hashed)
         } yield verified
         if (!s.isEmpty)
           program.unsafeRunSync() mustBe s == s2
@@ -62,7 +64,7 @@ class SodiumPWHashTest extends SodiumSpec {
     it should "not verify for an incorrect password(short circuit)" in {
       forAll { (s: String, s2: String) =>
         val program = for {
-          hashed   <- hasher.hashPassword[IO, S](s, stren)
+          hashed   <- hasher.hashpwWithStrength[IO, S](s, stren)
           verified <- hasher.checkPassShortCircuit[IO](s2, hashed)
         } yield verified
         if (!s.isEmpty && s == s2)

@@ -1,5 +1,7 @@
 package tsec.cipher.symmetric.imports
 
-sealed trait AES192
+import tsec.cipher.symmetric.core.AES
 
-object AES192 extends AESEV[AES192](24)
+trait AES192[A] extends AES[A]{
+  val keySizeBytes: Int = 24
+}

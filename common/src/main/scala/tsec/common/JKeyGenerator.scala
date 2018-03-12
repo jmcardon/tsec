@@ -12,6 +12,7 @@ import cats.syntax.either._
   * @tparam K the key type, i.e Symmetric cipher or Mac key
   * @tparam KE the key error type
   */
+@deprecated("Use SymmetricKeyGen", "0.0.1-M10")
 protected[tsec] trait JKeyGenerator[A, K[_], KE] {
 
   /** The generator to return

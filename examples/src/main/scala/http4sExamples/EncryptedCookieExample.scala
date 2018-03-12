@@ -2,11 +2,11 @@ package http4sExamples
 
 import java.util.UUID
 
+import cats.effect.IO
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
-import tsec.cipher.symmetric.imports.{AES128, AES128GCM, SecretKey}
-import cats.effect.IO
+import tsec.cipher.symmetric.imports._
 
 import scala.concurrent.duration._
 
@@ -14,11 +14,11 @@ object EncryptedCookieExample {
 
   import ExampleAuthHelpers._
 
-  implicit val encryptor = AES128GCM.genEncryptor[IO].unsafeRunSync()
-  implicit val gcmstrategy = AES128GCM.defaultIvStrategy
+  implicit val encryptor   = AES128GCM.genEncryptor[IO].unsafeRunSync()
+  implicit val gcmstrategy = AES128GCM.defaultIvStrategy[IO]
 
-  val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]] =
-    dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128, Int]](_.id)
+  val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128GCM, Int]] =
+    dummyBackingStore[IO, UUID, AuthEncryptedCookie[AES128GCM, Int]](_.id)
 
   // We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
@@ -30,7 +30,7 @@ object EncryptedCookieExample {
     maxIdle = None // Rolling window expiration. Set this to a FiniteDuration if you intend to have one
   )
 
-  val key: SecretKey[AES128] = AES128.generateKeyUnsafe() //Our encryption key
+  val key: SecretKey[AES128GCM] = AES128GCM.unsafeGenerateKey //Our encryption key
 
   val authWithBackingStore = //Instantiate a stateful authenticator
     EncryptedCookieAuthenticator.withBackingStore(
@@ -56,14 +56,14 @@ object EncryptedCookieExample {
    */
   val service: HttpService[IO] = Auth {
     //Where user is the case class User above
-    case request@GET -> Root / "api" asAuthed user =>
+    case request @ GET -> Root / "api" asAuthed user =>
       /*
       Note: The request is of type: SecuredRequest, which carries:
       1. The request
       2. The Authenticator (i.e token)
       3. The identity (i.e in this case, User)
        */
-      val r: SecuredRequest[IO, User, AuthEncryptedCookie[AES128, Int]] = request
+      val r: SecuredRequest[IO, User, AuthEncryptedCookie[AES128GCM, Int]] = request
       Ok()
   }
 

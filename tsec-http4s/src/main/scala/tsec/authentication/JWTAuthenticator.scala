@@ -11,13 +11,13 @@ import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, Request, Response}
-import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
 import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.{JWTClaims, JWTPrinter}
-import tsec.mac.core.MacTag
+import tsec.mac.core.JCAMacTag
 import tsec.mac.imports.MacSigningKey
 
 import scala.concurrent.duration.FiniteDuration
@@ -64,7 +64,7 @@ object JWTAuthenticator {
   /** Create a JWT Authenticator that will transport it as a
     * bearer token
     */
-  def withBackingStore[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag](
+  def withBackingStore[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
@@ -120,7 +120,7 @@ object JWTAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
+          retrieved <- tokenStore.get(SecureRandomId(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed))
@@ -199,7 +199,7 @@ object JWTAuthenticator {
     * an arbitrary header, with a backing store.
     *
     */
-  def withBackingStoreArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag](
+  def withBackingStoreArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       settings: TSecJWTSettings,
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
       identityStore: BackingStore[F, I, V],
@@ -251,7 +251,7 @@ object JWTAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-          retrieved <- tokenStore.get(SecureRandomId.is.flip.coerce(extracted.id))
+          retrieved <- tokenStore.get(SecureRandomId(extracted.id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed))
@@ -341,7 +341,7 @@ object JWTAuthenticator {
     * @tparam A the mac signing algorithm
     * @return
     */
-  def stateless[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag](
+  def stateless[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       expiry: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       identityStore: BackingStore[F, I, V],
@@ -487,7 +487,7 @@ object JWTAuthenticator {
     * @tparam E
     * @return
     */
-  def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag, E: AES](
+  def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       identityStore: BackingStore[F, I, V],
@@ -495,8 +495,9 @@ object JWTAuthenticator {
       encryptionKey: SecretKey[E]
   )(
       implicit cv: JWSMacCV[F, A],
-      enc: CTREncryptor[F, E],
-      ivStrategy: CTRIVStrategy[E],
+      E: AESCTR[E],
+      enc: JEncryptor[F, E],
+      ivStrategy: IvGen[F, E],
       F: Sync[F]
   ): StatelessJWTAuthenticator[F, I, V, A] =
     new StatelessJWTAuthenticator[F, I, V, A](expiryDuration, maxIdle) {
@@ -525,9 +526,9 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F]
+          iv        <- ivStrategy.genIv
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
-        } yield encrypted.toSingleArray.toB64String
+        } yield encrypted.toConcatenated.toB64String
       }
 
       /** Decode the body's internal value.
@@ -538,7 +539,7 @@ object JWTAuthenticator {
         */
       private def decryptIdentity(body: String): F[I] =
         for {
-          cipherText <- F.fromEither(CipherText.fromArray(body.base64Bytes)(enc.ivProcess))
+          cipherText <- F.fromEither(E.ciphertextFromConcat(body.base64Bytes))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
           decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded
@@ -654,15 +655,16 @@ object JWTAuthenticator {
     * transported in an arbitrary header
     *
     */
-  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: MacTag, E](
+  def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
       settings: TSecJWTSettings,
       identityStore: BackingStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
   )(
       implicit cv: JWSMacCV[F, A],
-      enc: CTREncryptor[F, E],
-      ivStrategy: CTRIVStrategy[E],
+      E: AESCTR[E],
+      enc: JEncryptor[F, E],
+      ivStrategy: IvGen[F, E],
       F: Sync[F]
   ): StatelessJWTAuthenticator[F, I, V, A] =
     new StatelessJWTAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
@@ -691,15 +693,15 @@ object JWTAuthenticator {
         val plainText = PlainText(body.asJson.pretty(JWTPrinter).utf8Bytes)
 
         for {
-          iv        <- ivStrategy.genIv[F]
+          iv        <- ivStrategy.genIv
           encrypted <- enc.encrypt(plainText, encryptionKey, iv)
-        } yield encrypted.toSingleArray.toB64String
+        } yield encrypted.toConcatenated.toB64String
       }
 
       /** Decode the body's internal Id type value **/
       private def decryptIdentity(body: String): F[I] =
         for {
-          cipherText <- F.fromEither(CipherText.fromArray(body.base64Bytes)(enc.ivProcess))
+          cipherText <- F.fromEither(E.ciphertextFromConcat(body.base64Bytes))
           decrypted  <- enc.decrypt(cipherText, encryptionKey)
           decoded    <- F.fromEither(decode[I](decrypted.toUtf8String))
         } yield decoded

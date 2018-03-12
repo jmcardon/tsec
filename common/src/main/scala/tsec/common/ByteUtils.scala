@@ -52,6 +52,7 @@ object ByteUtils {
   @inline final def zeroCharArray(a: Array[Char]): Unit =
     java.util.Arrays.fill(a, 0.toChar)
 
+  @deprecated("use MessageDigest.isEqual", "0.0.1-M10")
   @inline final def constantTimeEquals(a: Array[Byte], b: Array[Byte]): Boolean =
     MessageDigest.isEqual(a, b)
 

@@ -4,37 +4,37 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.cipher.common.padding._
-import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core.IvStrategy
+import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
 import tsec.cipher.symmetric.imports.primitive.{JCAAEADPrimitive, JCAPrimitiveCipher}
 import tsec.common._
+import tsec.keygen.symmetric._
 
 import scala.util.Random
 
 class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
-  final def cipherTest[A, M, P, CT](algebra: JCACipher[A, M, P, CT])(
+  final def cipherTest[A, M, P](algebra: JCACipherAPI[A, M, P] with SymmetricKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],
       mode: CipherMode[M],
       p: SymmetricPadding[P],
-      keyGen: CipherKeyGen[A],
-      ivProcess: IvProcess[A, M, P, SecretKey]
+      ivProcess: IvProcess[A, M, P],
+      S: SymmetricKeyGen[IO, A, SecretKey]
   ): Unit = {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""
 
     behavior of spec
 
-    implicit val instance: JCAPrimitiveCipher[IO, A, M, P] = JCAPrimitiveCipher[IO, A, M, P]().unsafeRunSync()
+    implicit val instance: Encryptor[IO, A, SecretKey] = JCAPrimitiveCipher.sync[IO, A, M, P]().unsafeRunSync()
 
-    implicit val defaultStrat: IvStrategy[A, M] = IvStrategy.defaultStrategy[A, M]
+    implicit val defaultStrat: IvGen[IO, A] = JCAIvGen.random[IO, A]
 
     it should "Encrypt and decrypt for the same key" in {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key)
           decrypted <- algebra.decrypt[IO](encrypted, key)
         } yield decrypted.toUtf8String
@@ -46,10 +46,10 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key)
           keyRepr = key.getEncoded
-          built     <- keyGen.buildAndLift[IO](keyRepr)
+          built     <- algebra.buildKey[IO](keyRepr)
           decrypted <- algebra.decrypt[IO](encrypted, built)
         } yield decrypted.toUtf8String
         testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
@@ -60,8 +60,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key1      <- keyGen.generateLift[IO]
-          key2      <- keyGen.generateLift[IO]
+          key1      <- algebra.generateKey[IO]
+          key2      <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key1)
           decrypted <- algebra.decrypt[IO](encrypted, key2)
         } yield decrypted.toUtf8String
@@ -74,28 +74,28 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
     it should "Not allow a key with incorrect length" in {
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
-      val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
-        k <- keyGen.buildKey(randomKey)
+      val keyLenTest: IO[Boolean] = for {
+        k <- algebra.buildKey[IO](randomKey)
       } yield k.getEncoded.length < randomKey.length
 
-      keyLenTest mustBe a[Left[_, _]]
+      keyLenTest.attempt.unsafeRunSync() mustBe a[Left[_, _]]
     }
   }
 
-  final def authCipherTest[A, M, P, CT](algebra: JCAAEAD[A, M, P, CT])(
+  final def authCipherTest[A, M, P](algebra: JCAAEAD[A, M, P] with SymmetricKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],
       aead: AEADCipher[A],
       mode: CipherMode[M],
       p: SymmetricPadding[P],
-      keyGen: CipherKeyGen[A],
-      ivProcess: IvProcess[A, M, P, SecretKey]
+      ivProcess: IvProcess[A, M, P],
+      S: SymmetricKeyGen[IO, A, SecretKey]
   ): Unit = {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""
 
-    implicit val instance = JCAAEADPrimitive[IO, A, M, P]().unsafeRunSync()
+    implicit val instance = JCAAEADPrimitive.sync[IO, A, M, P]().unsafeRunSync()
 
-    implicit val defaultStrat = IvStrategy.defaultStrategy[A, M]
+    implicit val defaultStrat = JCAIvGen.random[IO, A]
 
     behavior of spec
 
@@ -103,7 +103,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key)
           decrypted <- algebra.decrypt[IO](encrypted, key)
         } yield decrypted.toUtf8String
@@ -115,10 +115,10 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key)
           keyRepr = key.getEncoded
-          built     <- keyGen.buildAndLift[IO](keyRepr)
+          built     <- algebra.buildKey[IO](keyRepr)
           decrypted <- algebra.decrypt[IO](encrypted, built)
         } yield decrypted.toUtf8String
         testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
@@ -130,7 +130,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val aad           = AAD(aadData.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encryptWithAAD[IO](testPlainText, key, aad)
           decrypted <- algebra.decryptWithAAD[IO](encrypted, key, aad)
         } yield decrypted.toUtf8String
@@ -142,8 +142,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key1      <- keyGen.generateLift[IO]
-          key2      <- keyGen.generateLift[IO]
+          key1      <- algebra.generateKey[IO]
+          key2      <- algebra.generateKey[IO]
           encrypted <- algebra.encrypt[IO](testPlainText, key1)
           decrypted <- algebra.decrypt[IO](encrypted, key2)
         } yield decrypted.toUtf8String
@@ -158,7 +158,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val aad1          = AAD(AAD1.utf8Bytes)
         val aad2          = AAD(AAD2.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key1      <- keyGen.generateLift[IO]
+          key1      <- algebra.generateKey[IO]
           encrypted <- algebra.encryptWithAAD[IO](testPlainText, key1, aad1)
           decrypted <- algebra.decryptWithAAD[IO](encrypted, key1, aad2)
         } yield decrypted.toUtf8String
@@ -172,7 +172,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encryptDetached[IO](testPlainText, key)
           decrypted <- algebra.decryptDetached[IO](encrypted._1, key, encrypted._2)
         } yield decrypted.toUtf8String
@@ -184,10 +184,10 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encryptDetached[IO](testPlainText, key)
           keyRepr = key.getEncoded
-          built     <- keyGen.buildAndLift[IO](keyRepr)
+          built     <- algebra.buildKey[IO](keyRepr)
           decrypted <- algebra.decryptDetached[IO](encrypted._1, built, encrypted._2)
         } yield decrypted.toUtf8String
         testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
@@ -199,7 +199,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val aad           = AAD(aadData.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key       <- keyGen.generateLift[IO]
+          key       <- algebra.generateKey[IO]
           encrypted <- algebra.encryptWithAADDetached[IO](testPlainText, key, aad)
           decrypted <- algebra.decryptWithAADDetached[IO](encrypted._1, key, aad, encrypted._2)
         } yield decrypted.toUtf8String
@@ -211,8 +211,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key1      <- keyGen.generateLift[IO]
-          key2      <- keyGen.generateLift[IO]
+          key1      <- algebra.generateKey[IO]
+          key2      <- algebra.generateKey[IO]
           encrypted <- algebra.encryptDetached[IO](testPlainText, key1)
           decrypted <- algebra.decryptDetached[IO](encrypted._1, key2, encrypted._2)
         } yield decrypted.toUtf8String
@@ -227,7 +227,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
         val aad1          = AAD(AAD1.utf8Bytes)
         val aad2          = AAD(AAD2.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
-          key1      <- keyGen.generateLift[IO]
+          key1      <- algebra.generateKey[IO]
           encrypted <- algebra.encryptWithAADDetached[IO](testPlainText, key1, aad1)
           decrypted <- algebra.decryptWithAADDetached[IO](encrypted._1, key1, aad2, encrypted._2)
         } yield decrypted.toUtf8String
@@ -240,11 +240,11 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
     it should "Not allow a key with incorrect length" in {
       val randomKey: Array[Byte] = (1 until 100).toArray.map(_ => Random.nextInt(128).toByte)
-      val keyLenTest: Either[CipherKeyBuildError, Boolean] = for {
-        k <- keyGen.buildKey(randomKey)
+      val keyLenTest: IO[Boolean] = for {
+        k <- algebra.buildKey[IO](randomKey)
       } yield k.getEncoded.length < randomKey.length
 
-      keyLenTest mustBe a[Left[_, _]]
+      keyLenTest.attempt.unsafeRunSync() mustBe a[Left[_, _]]
     }
   }
 

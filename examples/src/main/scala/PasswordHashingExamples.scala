@@ -1,7 +1,7 @@
 object PasswordHashingExamples {
 
   import cats.effect.IO
-  import tsec.passwordhashers._
+  import tsec.passwordhashers.core._
   import tsec.passwordhashers.imports._
 
   /** For password hashers, you have three options: BCrypt, SCrypt and HardenedScrypt
@@ -35,16 +35,5 @@ object PasswordHashingExamples {
     */
   val unsafeHash: PasswordHash[BCrypt] = BCrypt.hashpwUnsafe("hiThere")
   val unsafeCheck: Boolean             = BCrypt.checkpwUnsafe("hiThere", unsafeHash)
-
-  /** Note: The following syntax has now been deprecated since 0.0.1-M6,
-    * as it is mutating and possibly throws an error
-    *
-    */
-  val oldbcryptHash: PasswordHash[BCrypt]                 = "hiThere".hashPassword[BCrypt]
-  val oldscryptHash: PasswordHash[SCrypt]                 = "hiThere".hashPassword[SCrypt]
-  val oldhardenedScryptHash: PasswordHash[HardenedSCrypt] = "hiThere".hashPassword[HardenedSCrypt]
-
-  /** To Validate, you can check against a hash! */
-  val oldcheck: Boolean = "hiThere".checkWithHash[BCrypt](oldbcryptHash)
 
 }

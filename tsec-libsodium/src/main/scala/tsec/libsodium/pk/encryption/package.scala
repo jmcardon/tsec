@@ -1,33 +1,44 @@
 package tsec.libsodium.pk
 
-import cats.evidence.Is
-import tsec.common._
-
 package object encryption {
 
-  private[tsec] val PKAuthTag$$ : HKByteArrayNewt = new HKByteArrayNewt {
-    type Repr[A] = Array[Byte]
-
-    def is[G] = Is.refl[Repr[G]]
-  }
-
-  type PKAuthTag[A] = PKAuthTag$$.Repr[A]
+  type PKAuthTag[A] = PKAuthTag.Type[A]
 
   object PKAuthTag {
-    def apply[A](bytes: Array[Byte]): PKAuthTag[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], PKAuthTag[A]] = PKAuthTag$$.is[A]
+    type Type[A] <: Array[Byte]
+
+    def apply[A](bytes: Array[Byte]): PKAuthTag[A] = bytes.asInstanceOf[PKAuthTag[A]]
+
+    def subst[A]: PKAuthPartiallyApplied[A] = new PKAuthPartiallyApplied[A]
+
+    private[tsec] final class PKAuthPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[Array[Byte]]): F[PKAuthTag[A]] = value.asInstanceOf[F[PKAuthTag[A]]]
+    }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[PKAuthTag[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 
-  private[tsec] val SharedKey$$ : HKByteArrayNewt = new HKByteArrayNewt {
-    type Repr[A] = Array[Byte]
-
-    def is[G] = Is.refl[Repr[G]]
-  }
-
-  type SharedKey[A] = SharedKey$$.Repr[A]
+  type SharedKey[A] = SharedKey.Type[A]
 
   object SharedKey {
-    def apply[A](bytes: Array[Byte]): SharedKey[A]   = is[A].coerce(bytes)
-    @inline def is[A]: Is[Array[Byte], SharedKey[A]] = SharedKey$$.is[A]
+    type Type[A] <: Array[Byte]
+
+    def apply[A](bytes: Array[Byte]): SharedKey[A] = bytes.asInstanceOf[SharedKey[A]]
+
+    def subst[A]: PartiallyApplied[A] = new PartiallyApplied[A]
+
+    private[tsec] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[Array[Byte]]): F[SharedKey[A]] = value.asInstanceOf[F[SharedKey[A]]]
+    }
+
+    def unsubst[A]: PartiallyUnapplied[A] = new PartiallyUnapplied[A]
+
+    private[tsec] final class PartiallyUnapplied[A](val dummy: Boolean = true) extends AnyVal {
+      def apply[F[_]](value: F[SharedKey[A]]): F[Array[Byte]] = value.asInstanceOf[F[Array[Byte]]]
+    }
   }
 }
