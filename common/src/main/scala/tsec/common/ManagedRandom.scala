@@ -3,19 +3,17 @@ package tsec.common
 import java.security.SecureRandom
 import java.util.concurrent.atomic.LongAdder
 
-/** A trait that manages a secureRandom instance
-  * when
-  *
+/** A trait that manages a secureRandom instance.
   */
 trait ManagedRandom {
 
+  private val SecureRandomAlgorithm = "NativePRNGNonBlocking"
+
   /** Cache our random, and seed it properly as per
     * [[https://tersesystems.com/2015/12/17/the-right-way-to-use-securerandom/]]
-    *
-    * @note Random may block on linux machines.
     */
   private[tsec] var cachedRand: SecureRandom = {
-    val r = new SecureRandom()
+    val r = SecureRandom.getInstance(SecureRandomAlgorithm)
     r.nextBytes(new Array[Byte](20))
     r
   }
@@ -28,7 +26,7 @@ trait ManagedRandom {
 
   private def reSeed(): Unit = {
     adder.reset()
-    val tmpRand = new SecureRandom()
+    val tmpRand = SecureRandom.getInstance(SecureRandomAlgorithm)
     tmpRand.nextBytes(new Array[Byte](20))
     cachedRand = tmpRand
   }
