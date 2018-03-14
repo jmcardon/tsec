@@ -1,10 +1,10 @@
 package tsec.libsodium
 
 import cats.effect.IO
+import tsec.cipher.symmetric.libsodium.CryptoSecretBox
 import tsec.cipher.symmetric._
 import tsec.common._
-import tsec.libsodium.cipher.CryptoSecretBox
-import tsec.libsodium.kx._
+import tsec.kx.libsodium._
 
 class KeyExchangeTest extends SodiumSpec {
 

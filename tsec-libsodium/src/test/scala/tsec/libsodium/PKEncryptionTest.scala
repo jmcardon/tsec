@@ -3,7 +3,7 @@ package tsec.libsodium
 import cats.effect.IO
 import tsec.cipher.symmetric._
 import tsec.common._
-import tsec.libsodium.pk.encryption._
+import tsec.cipher.asymmetric.libsodium._
 
 class PKEncryptionTest extends SodiumSpec {
 

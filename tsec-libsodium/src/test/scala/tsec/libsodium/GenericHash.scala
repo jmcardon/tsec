@@ -6,8 +6,8 @@ import cats.effect.IO
 import fs2._
 import tsec.common._
 import tsec.hashing.CryptoHasher
-import tsec.libsodium.hashing._
-import tsec.libsodium.hashing.internal.SodiumHashPlatform
+import tsec.hashing.libsodium._
+import tsec.hashing.libsodium.internal.SodiumHashPlatform
 
 class GenericHash extends SodiumSpec {
 

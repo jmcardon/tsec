@@ -4,9 +4,8 @@ import cats.effect.IO
 import tsec.cipher.symmetric.{AADEncryptor, _}
 import tsec.common._
 import tsec.keygen.symmetric.SymmetricKeyGen
-import tsec.libsodium.cipher._
-import tsec.libsodium.cipher.aead._
-import tsec.libsodium.cipher.internal.SodiumAEADPlatform
+import tsec.cipher.symmetric.libsodium._
+import tsec.cipher.symmetric.libsodium.internal.SodiumAEADPlatform
 
 class SodiumAEADTest extends SodiumSpec {
 

@@ -10,8 +10,7 @@ import tsec.cipher.symmetric.jca.{SecretKey, AES256GCM => JAESGCM}
 import tsec.cipher.symmetric.{AADEncryptor, IvGen, _}
 import tsec.common._
 import tsec.libsodium._
-import tsec.libsodium.cipher._
-import tsec.libsodium.cipher.aead.AES256GCM
+import tsec.cipher.symmetric.libsodium._
 
 import scala.util.Random
 
