@@ -10,7 +10,7 @@ import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Cookie, HttpService, Request, Response, Status}
 import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
 import tsec.common._
-import tsec.mac.imports.{JCAMacTag, JCAMessageAuth, _}
+import tsec.mac.jca.{JCAMacTag, JCAMessageAuth, _}
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)

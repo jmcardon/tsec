@@ -4,11 +4,11 @@ import cats.effect.IO
 import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials}
 import org.scalatest.prop.PropertyChecks
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.imports.{JCAMacTag, _}
+import tsec.mac.jca.{JCAMacTag, _}
 
 class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
 

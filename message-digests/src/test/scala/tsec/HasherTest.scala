@@ -8,7 +8,7 @@ import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.common._
 import tsec.hashing.CryptoHashAPI
-import tsec.hashing.imports.{JCADigestTag, _}
+import tsec.hashing.jca.{JCADigestTag, _}
 
 class HasherTest extends TestSpec with MustMatchers with PropertyChecks {
   val str     = "hello World"

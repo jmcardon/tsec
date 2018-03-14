@@ -18,7 +18,7 @@ The default `JCASigner` interprets into any `F[_]: Sync` from `cats-effect`.
 ```tut:silent
   import tsec.common._
   import tsec.signature.core._
-  import tsec.signature.imports._
+  import tsec.signature.jca._
   import cats.effect.Sync
   import cats.syntax.all._
 

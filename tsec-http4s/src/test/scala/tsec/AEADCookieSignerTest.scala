@@ -4,7 +4,7 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.cookies.AEADCookieEncryptor
 import tsec.keygen.symmetric.SymmetricKeyGen

@@ -1,11 +1,10 @@
-import cats.effect.IO
-import tsec.mac.MessageAuth
-
 object MacExamples {
 
   /** Example message authentication: Note, will use byteutils */
+  import cats.effect.IO
   import tsec.common._
-  import tsec.mac.imports._
+  import tsec.mac._
+  import tsec.mac.jca._
 
   type ET[PhoneHome] = Either[Throwable, PhoneHome]
 

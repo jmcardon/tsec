@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.syntax.all._
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 import tsec.common._
 
 object AEADCookieEncryptor {

@@ -4,7 +4,7 @@ import java.security.KeyFactory
 import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
 
 import cats.MonadError
-import tsec.signature.imports._
+import tsec.signature.jca._
 
 object ParseEncodedKeySpec {
 

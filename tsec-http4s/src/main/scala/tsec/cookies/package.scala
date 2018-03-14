@@ -5,10 +5,10 @@ import cats.instances.string._
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.mac.MAC
-import tsec.mac.imports.{JCAMacTag, MacVerificationError}
+import tsec.mac.jca.{JCAMacTag, MacVerificationError}
 
 package object cookies {
 

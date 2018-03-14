@@ -8,7 +8,7 @@ import tsec.jws.JWSSerializer
 import tsec.jws.mac._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.imports._
+import tsec.mac.jca._
 
 import scala.concurrent.duration._
 

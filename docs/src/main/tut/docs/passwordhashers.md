@@ -33,7 +33,7 @@ So for the default case of char arrays, we can hash into any `Sync[F]` as such:
 ```tut:silent
   import cats.effect.IO
   import tsec.passwordhashers.core._
-  import tsec.passwordhashers.imports._
+  import tsec.passwordhashers.jca._
   val pass: Array[Char] = Array('h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd')
   val bestbcryptHash: IO[PasswordHash[BCrypt]]                 = BCrypt.hashpw[IO](pass)
   val bestscryptHash: IO[PasswordHash[SCrypt]]                 = SCrypt.hashpw[IO](pass)

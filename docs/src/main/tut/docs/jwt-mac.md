@@ -15,7 +15,7 @@ import cats.syntax.all._
 import cats.effect.Sync
 import tsec.jwt._
 import tsec.jws.mac._
-import tsec.mac.imports._
+import tsec.mac.jca._
 import scala.concurrent.duration._
 ```
 

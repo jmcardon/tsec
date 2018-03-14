@@ -8,7 +8,7 @@ import org.openjdk.jmh.annotations._
 import tsec.common._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication._
-import tsec.mac.imports._
+import tsec.mac.jca._
 
 import scala.util.Random
 

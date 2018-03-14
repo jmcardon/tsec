@@ -10,7 +10,7 @@ import tsec.jws.{JWSJWT, JWSSerializer}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac._
-import tsec.mac.imports.{MacErrorM, MacSigningKey}
+import tsec.mac.jca.{MacErrorM, MacSigningKey}
 
 sealed abstract case class JWTMac[A](header: JWSMacHeader[A], body: JWTClaims, signature: MAC[A])
     extends JWSJWT[A, MAC] {

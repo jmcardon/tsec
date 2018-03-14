@@ -9,7 +9,7 @@ import tsec.jws.{JWSJWT, JWSSerializer}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature._
-import tsec.signature.imports._
+import tsec.signature.jca._
 
 case class JWTSig[A](header: JWSSignedHeader[A], body: JWTClaims, signature: CryptoSignature[A])
     extends JWSJWT[A, CryptoSignature] {

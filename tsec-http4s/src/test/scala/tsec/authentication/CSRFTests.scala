@@ -1,6 +1,6 @@
 package tsec.authentication
 
-import tsec.mac.imports._
+import tsec.mac.jca._
 
 class CSRFTests extends CSRFSpec {
 

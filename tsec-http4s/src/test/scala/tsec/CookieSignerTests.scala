@@ -6,7 +6,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.cookies.CookieSigner
-import tsec.mac.imports.{JCAMacTag, _}
+import tsec.mac.jca.{JCAMacTag, _}
 
 class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
 

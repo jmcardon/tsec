@@ -11,7 +11,7 @@ import tsec.jws.JWSSerializer
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature._
-import tsec.signature.imports._
+import tsec.signature.jca._
 
 sealed abstract class JWSSigCV[F[_], A: JCASigTag](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],

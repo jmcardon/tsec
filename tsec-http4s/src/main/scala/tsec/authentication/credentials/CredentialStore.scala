@@ -3,7 +3,7 @@ package tsec.authentication.credentials
 import cats.effect.Sync
 import cats.syntax.all._
 import tsec.passwordhashers._
-import tsec.passwordhashers.imports._
+import tsec.passwordhashers.jca._
 
 /** An trait representing the common operations you would do to/with credentials, such as
   * logging in with a password, or validating an oauth token to log in

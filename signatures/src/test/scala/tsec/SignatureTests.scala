@@ -6,7 +6,7 @@ import cats.effect.IO
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
 import tsec.common._
-import tsec.signature.imports.{JCASigTag, _}
+import tsec.signature.jca.{JCASigTag, _}
 
 class SignatureTests extends TestSpec with MustMatchers {
 

@@ -12,12 +12,12 @@ import io.circe.{Decoder, Encoder}
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, Request, Response}
 import tsec.cipher.symmetric.{IvGen, _}
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.{JWTClaims, JWTPrinter}
-import tsec.mac.imports.{JCAMacTag, MacSigningKey}
+import tsec.mac.jca.{JCAMacTag, MacSigningKey}
 
 import scala.concurrent.duration.FiniteDuration
 

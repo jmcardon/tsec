@@ -4,7 +4,7 @@ object SignatureExamples {
   import cats.syntax.all._
   import tsec.common._
   import tsec.signature._
-  import tsec.signature.imports._
+  import tsec.signature.jca._
 
   val toSign: Array[Byte] = "hiThere!".utf8Bytes
 

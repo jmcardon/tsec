@@ -9,7 +9,7 @@ import org.scalatest.MustMatchers
 import tsec.jws.signature._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
-import tsec.signature.imports._
+import tsec.signature.jca._
 
 class JWTSigTests extends TestSpec with MustMatchers {
 

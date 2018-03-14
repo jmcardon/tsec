@@ -10,10 +10,10 @@ lazy val scalacOpts = scalacOptions := Seq(
   "-deprecation",
   "-encoding",
   "utf8",
-  "-Ywarn-adapted-args", // Warn if an argument list is modified to match the receiver.
-  "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
+  "-Ywarn-adapted-args",
+  "-Ywarn-inaccessible",
   "-Ywarn-unused:imports",
-  "-Ywarn-nullary-override", // Warn when non-nullary overrides nullary, e.g. def foo() over def foo.
+  "-Ywarn-nullary-override",
   "-Ypartial-unification",
   "-language:higherKinds",
   "-language:implicitConversions"

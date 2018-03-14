@@ -10,8 +10,8 @@ import io.circe.{Decoder, Encoder}
 import org.http4s._
 import tsec.common._
 import tsec.cookies._
-import tsec.hashing.imports._
-import tsec.mac.imports._
+import tsec.hashing.jca._
+import tsec.mac.jca._
 
 import scala.concurrent.duration.FiniteDuration
 

@@ -5,7 +5,7 @@ import io.circe._
 import io.circe.syntax._
 import tsec.common._
 import tsec.hashing._
-import tsec.hashing.imports._
+import tsec.hashing.jca._
 import tsec.jws._
 import tsec.jws.header.JWSHeader
 import tsec.jwt

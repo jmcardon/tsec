@@ -6,7 +6,7 @@ import javax.crypto.Cipher
 
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
-import tsec.cipher.symmetric.imports.{SecretKey, AES256GCM => JAESGCM}
+import tsec.cipher.symmetric.jca.{SecretKey, AES256GCM => JAESGCM}
 import tsec.cipher.symmetric.{AADEncryptor, IvGen, _}
 import tsec.common._
 import tsec.libsodium._

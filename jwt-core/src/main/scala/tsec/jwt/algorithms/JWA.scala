@@ -3,8 +3,8 @@ package tsec.jwt.algorithms
 import cats.MonadError
 import tsec.jwt.algorithms.JWTSigAlgo.MT
 import tsec.jwt.util.ParseEncodedKeySpec
-import tsec.mac.imports._
-import tsec.signature.imports.{JCASigTag, _}
+import tsec.mac.jca._
+import tsec.signature.jca.{JCASigTag, _}
 
 sealed trait JWA[A] {
   val jwtRepr: String

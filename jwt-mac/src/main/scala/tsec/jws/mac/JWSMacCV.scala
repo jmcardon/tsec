@@ -10,7 +10,7 @@ import tsec.common._
 import tsec.jws._
 import tsec.jwt.JWTClaims
 import tsec.mac.{MessageAuth, _}
-import tsec.mac.imports._
+import tsec.mac.jca._
 
 /** Our JWS Compressor, Signer and verifier (CV = Compressor and Verifier)
   *

@@ -6,7 +6,7 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.keygen.symmetric.SymmetricKeyGen
-import tsec.mac.imports.{JCAMacTag, _}
+import tsec.mac.jca.{JCAMacTag, _}
 
 class MacTests extends TestSpec with MustMatchers {
 

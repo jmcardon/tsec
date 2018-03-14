@@ -6,7 +6,7 @@ object JWTMacExamples {
   import cats.syntax.all._
   import tsec.jws.mac._
   import tsec.jwt._
-  import tsec.mac.imports._
+  import tsec.mac.jca._
 
   import scala.concurrent.duration._
 
