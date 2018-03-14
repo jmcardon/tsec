@@ -4,9 +4,9 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.cipher.common.padding._
-import tsec.cipher.symmetric.core._
-import tsec.cipher.symmetric.imports._
-import tsec.cipher.symmetric.imports.primitive.{JCAAEADPrimitive, JCAPrimitiveCipher}
+import tsec.cipher.symmetric.jca._
+import tsec.cipher.symmetric.jca.primitive.{JCAAEADPrimitive, JCAPrimitiveCipher}
+import tsec.cipher.symmetric.{Encryptor, IvGen, _}
 import tsec.common._
 import tsec.keygen.symmetric._
 

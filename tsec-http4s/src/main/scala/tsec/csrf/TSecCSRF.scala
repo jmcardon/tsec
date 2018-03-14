@@ -5,14 +5,12 @@ import java.time.Clock
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
-import tsec.mac.imports.JCAMessageAuth
-import tsec.common._
-import tsec.mac.imports._
 import cats.syntax.all._
-import org.http4s.{Cookie, HttpService, Request, Response, Status}
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.{Cookie, HttpService, Request, Response, Status}
 import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
-import tsec.mac.core.JCAMacTag
+import tsec.common._
+import tsec.mac.jca.{JCAMacTag, JCAMessageAuth, _}
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)

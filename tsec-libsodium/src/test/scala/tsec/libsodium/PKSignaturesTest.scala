@@ -1,9 +1,9 @@
 package tsec.libsodium
 
 import cats.effect.IO
+import tsec.cipher.asymmetric.libsodium.SodiumSignatureError
 import tsec.common._
-import tsec.libsodium.pk.SodiumSignatureError
-import tsec.libsodium.pk.signatures._
+import tsec.signature.libsodium._
 
 class PKSignaturesTest extends SodiumSpec {
   behavior of "Libsodium Signatures"

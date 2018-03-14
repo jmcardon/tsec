@@ -11,12 +11,12 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.http4s._
-import tsec.cipher.symmetric.core._
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.{IvGen, _}
+import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.cookies._
+import tsec.hashing.jca._
 import tsec.jwt.JWTPrinter
-import tsec.hashing.imports._
 
 import scala.concurrent.duration.FiniteDuration
 

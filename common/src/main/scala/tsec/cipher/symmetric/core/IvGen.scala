@@ -1,9 +1,0 @@
-package tsec.cipher.symmetric.core
-
-trait IvGen[F[_], A] {
-
-  def genIv: F[Iv[A]]
-
-  def genIvUnsafe: Iv[A]
-
-}

@@ -26,7 +26,7 @@ for libsodium)
   import cats.effect.{IO, Sync}
   import fs2._
   import tsec.common._
-  import tsec.hashing.imports._ //For this example, we will use our byteutil helpers
+  import tsec.hashing.jca._ //For this example, we will use our byteutil helpers
 
   /**For direct byte pickling, use: */
   "hiHello".utf8Bytes.hash[SHA1]

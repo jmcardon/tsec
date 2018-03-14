@@ -4,13 +4,12 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.http4s.{Header, Request}
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.keygen.symmetric.IdKeyGen
-import tsec.mac.core._
-import tsec.mac.imports._
+import tsec.mac.jca._
 
 import scala.concurrent.duration._
 

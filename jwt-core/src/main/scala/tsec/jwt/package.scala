@@ -1,7 +1,6 @@
 package tsec
 
-import io.circe.Printer
-import io.circe._
+import io.circe.{Printer, _}
 import io.circe.syntax._
 
 package object jwt {

@@ -11,7 +11,7 @@ Example message authentication: Note, will use byteutils
 
 ```tut:silent
  import tsec.common._
- import tsec.mac.imports._
+ import tsec.mac.jca._
 ```
 
 Default Pure version with usage of cats effect `Sync[F]`

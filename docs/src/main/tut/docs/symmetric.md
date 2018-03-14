@@ -50,8 +50,8 @@ These are the imports you will need for basic usage:
 
 ```tut:silent
   import tsec.common._
-  import tsec.cipher.symmetric.core._
-  import tsec.cipher.symmetric.imports._
+  import tsec.cipher.symmetric._
+  import tsec.cipher.symmetric.jca._
   import cats.effect.IO
 ```
 
@@ -120,7 +120,7 @@ Note: This is not recommended. Use at your own risk.
     *
     */
   import tsec.cipher.common.padding._
-  import tsec.cipher.symmetric.imports.primitive._
+  import tsec.cipher.symmetric.jca.primitive._
   val desStrategy = JCAIvGen.random[IO, DES]
 
   val advancedUsage: IO[String] = for {

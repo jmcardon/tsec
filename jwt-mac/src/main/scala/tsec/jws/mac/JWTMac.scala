@@ -2,15 +2,15 @@ package tsec.jws.mac
 
 import java.time.Instant
 
-import cats.effect.Sync
 import cats.Eq
+import cats.effect.Sync
+import cats.syntax.all._
 import tsec.common._
 import tsec.jws.{JWSJWT, JWSSerializer}
-import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.imports.{MacErrorM, MacSigningKey}
-import cats.syntax.all._
 import tsec.jwt.JWTClaims
-import tsec.mac.core.MAC
+import tsec.jwt.algorithms.JWTMacAlgo
+import tsec.mac._
+import tsec.mac.jca.{MacErrorM, MacSigningKey}
 
 sealed abstract case class JWTMac[A](header: JWSMacHeader[A], body: JWTClaims, signature: MAC[A])
     extends JWSJWT[A, MAC] {

@@ -1,8 +1,8 @@
 object PasswordHashingExamples {
 
   import cats.effect.IO
-  import tsec.passwordhashers.core._
-  import tsec.passwordhashers.imports._
+  import tsec.passwordhashers._
+  import tsec.passwordhashers.jca._
 
   /** For password hashers, you have three options: BCrypt, SCrypt and HardenedScrypt
     * (Which is basically scrypt but with much more secure parameters, but a lot slower).

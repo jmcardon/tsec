@@ -62,7 +62,7 @@ Thus, you can use it as such:
 ```tut
   import cats.Id
   import cats.effect.IO
-  import tsec.mac.imports._
+  import tsec.mac.jca._
   import cats.syntax.all._
   import tsec.csrf.TSecCSRF
   import org.http4s._

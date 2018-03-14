@@ -3,13 +3,13 @@ package tsec
 import java.time.Instant
 import java.util.UUID
 
-import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
-import org.http4s._
-import org.http4s.server.Middleware
-import org.http4s.headers.{Authorization, Cookie => C}
 import cats.implicits._
+import cats.{Applicative, Monad}
 import io.circe._
+import org.http4s._
+import org.http4s.headers.{Authorization, Cookie => C}
+import org.http4s.server.Middleware
 import tsec.authorization.{Authorization => TAuth}
 
 import scala.concurrent.duration.FiniteDuration

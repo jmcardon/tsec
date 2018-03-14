@@ -6,7 +6,7 @@ import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.common.SecureRandomId
 
-import concurrent.duration._
+import scala.concurrent.duration._
 
 object BearerTokenExample {
 

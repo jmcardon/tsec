@@ -1,12 +1,12 @@
 package tsec.authentication
 
 import cats.effect.IO
+import cats.implicits._
 import org.http4s.Request
 import org.scalatest.MustMatchers
 import tsec.TestSpec
 import tsec.authentication.DummyRole.{Admin, Other}
 import tsec.authorization._
-import cats.implicits._
 
 final case class AuthDummyUser(id: Int, role: DummyRole, authLevel: AuthLevel = AuthLevel.CEO)
 

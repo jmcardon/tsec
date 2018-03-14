@@ -1,10 +1,10 @@
 object SignatureExamples {
 
-  import tsec.common._
-  import tsec.signature.core._
-  import tsec.signature.imports._
   import cats.effect.Sync
   import cats.syntax.all._
+  import tsec.common._
+  import tsec.signature._
+  import tsec.signature.jca._
 
   val toSign: Array[Byte] = "hiThere!".utf8Bytes
 

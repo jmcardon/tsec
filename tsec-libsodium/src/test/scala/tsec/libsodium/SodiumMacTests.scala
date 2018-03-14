@@ -3,9 +3,8 @@ package tsec.libsodium
 import cats.effect.IO
 import tsec.common._
 import tsec.keygen.symmetric.SymmetricKeyGen
-import tsec.libsodium.authentication._
-import tsec.libsodium.authentication.internal.SodiumMacPlatform
-import tsec.mac.core.MessageAuth
+import tsec.mac.MessageAuth
+import tsec.mac.libsodium._
 
 class SodiumMacTests extends SodiumSpec {
 

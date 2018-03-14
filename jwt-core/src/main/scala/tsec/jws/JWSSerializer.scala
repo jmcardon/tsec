@@ -1,8 +1,7 @@
 package tsec.jws
 
-import org.apache.commons.codec.binary.Base64
-
 import io.circe.Error
+import org.apache.commons.codec.binary.Base64
 
 trait JWSSerializer[A] {
   def serializeToUtf8(body: A): Array[Byte]

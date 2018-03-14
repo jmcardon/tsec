@@ -2,10 +2,10 @@ package tsec.authentication
 
 import cats.MonadError
 import cats.data.{Kleisli, OptionT}
-import org.http4s._
 import cats.syntax.all._
-import tsec.authorization._
+import org.http4s._
 import org.log4s._
+import tsec.authorization._
 
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val authenticator: AuthenticatorService[F, Identity, User, Auth]

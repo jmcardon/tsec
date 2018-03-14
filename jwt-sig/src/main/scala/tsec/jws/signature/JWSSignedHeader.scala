@@ -3,14 +3,14 @@ package tsec.jws.signature
 import cats.data.NonEmptyList
 import io.circe._
 import io.circe.syntax._
-import tsec.jwt
+import tsec.common._
+import tsec.hashing._
+import tsec.hashing.jca._
 import tsec.jws._
+import tsec.jws.header.JWSHeader
+import tsec.jwt
 import tsec.jwt.algorithms._
 import tsec.jwt.header._
-import tsec.common._
-import tsec.jws.header.JWSHeader
-import tsec.hashing.core.CryptoHash
-import tsec.hashing.imports._
 
 case class JWSSignedHeader[A](
     `type`: Option[JWTtyp] = Some(JWTtyp), //Type, which will almost always default to "JWT"

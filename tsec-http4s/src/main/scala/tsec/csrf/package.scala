@@ -2,8 +2,8 @@ package tsec
 
 import cats.data.OptionT
 import org.bouncycastle.util.encoders.Hex
-import org.http4s.{Request, Response}
 import org.http4s.server.Middleware
+import org.http4s.{Request, Response}
 import tsec.common.ManagedRandom
 
 package object csrf {

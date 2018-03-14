@@ -5,12 +5,12 @@ import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.IO
-import org.http4s.{Request, Response}
-import org.http4s.headers.`Set-Cookie`
-import tsec.cipher.symmetric.imports._
-import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
-import io.circe.parser.decode
 import io.circe.generic.auto._
+import io.circe.parser.decode
+import org.http4s.headers.`Set-Cookie`
+import org.http4s.{Request, Response}
+import tsec.cipher.symmetric.jca._
+import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
 import tsec.keygen.symmetric.IdKeyGen
 
 import scala.concurrent.duration._

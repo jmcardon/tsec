@@ -3,11 +3,11 @@ package tsec.authentication
 import cats.data.OptionT
 import cats.effect.IO
 import io.circe.Json
-import org.http4s.dsl.io._
-import org.http4s.circe._
-import org.http4s._
-import io.circe.syntax._
 import io.circe.generic.auto._
+import io.circe.syntax._
+import org.http4s._
+import org.http4s.circe._
+import org.http4s.dsl.io._
 import tsec.authorization.BasicRBAC
 
 class RequestAuthenticatorSpec extends AuthenticatorSpec {

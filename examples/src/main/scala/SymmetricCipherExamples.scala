@@ -1,3 +1,5 @@
+
+
 object SymmetricCipherExamples {
 
   /** IMPORTANT NOTE: DO NOT SKIP
@@ -17,10 +19,10 @@ object SymmetricCipherExamples {
     * then use:sudo apt-get install oracle-java8-unlimited-jce-policy
     */
   /** These are the imports you will need for basic usage */
-  import tsec.common._
-  import tsec.cipher.symmetric.core._
-  import tsec.cipher.symmetric.imports._
   import cats.effect.IO
+  import tsec.cipher.symmetric._
+  import tsec.cipher.symmetric.jca._
+  import tsec.common._
 
   //Feel free to choose any of the default Cipher constructions.
   //For non-authenticated ciphers, we recommend AES-CTR
@@ -76,7 +78,7 @@ object SymmetricCipherExamples {
     *
     */
   import tsec.cipher.common.padding._
-  import tsec.cipher.symmetric.imports.primitive._
+  import tsec.cipher.symmetric.jca.primitive._
   val desStrategy = JCAIvGen.random[IO, DES]
 
   val advancedUsage: IO[String] = for {

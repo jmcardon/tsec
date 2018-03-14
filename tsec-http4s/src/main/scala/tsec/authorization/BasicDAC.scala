@@ -1,6 +1,5 @@
 package tsec.authorization
-import cats.MonadError
-import cats.Eq
+import cats.{Eq, MonadError}
 import cats.data.OptionT
 import cats.syntax.all._
 import tsec.authentication.SecuredRequest

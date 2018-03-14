@@ -1,15 +1,15 @@
 package tsec.jws.mac
 
-import tsec.common._
 import cats.data.NonEmptyList
 import io.circe._
 import io.circe.syntax._
+import tsec.common._
 import tsec.jws.JWSSerializer
-import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jws.header.JWSHeader
 import tsec.jwt
+import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.header.JWTtyp
-import tsec.mac.core.JCAMacTag
+import tsec.mac.jca.JCAMacTag
 
 /** A JWS header for JWT serialization.
   * TODO: Crit logic on verification

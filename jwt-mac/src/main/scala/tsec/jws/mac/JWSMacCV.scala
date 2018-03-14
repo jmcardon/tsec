@@ -1,17 +1,16 @@
 package tsec.jws.mac
 
 import java.security.MessageDigest
+import java.time.Instant
 
 import cats.MonadError
 import cats.effect.Sync
 import cats.implicits._
 import tsec.common._
 import tsec.jws._
-import tsec.mac.core.{JCAMacTag, MAC, MessageAuth}
-import tsec.mac.imports._
-import java.time.Instant
-
 import tsec.jwt.JWTClaims
+import tsec.mac.{MessageAuth, _}
+import tsec.mac.jca._
 
 /** Our JWS Compressor, Signer and verifier (CV = Compressor and Verifier)
   *

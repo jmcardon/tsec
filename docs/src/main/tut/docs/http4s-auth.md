@@ -40,7 +40,7 @@ import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.authorization._
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 import tsec.common.SecureRandomId
 import tsec.jws.mac.JWTMac
 

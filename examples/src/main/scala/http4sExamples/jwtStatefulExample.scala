@@ -6,7 +6,7 @@ import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.common.SecureRandomId
-import tsec.mac.imports.{HMACSHA256, MacSigningKey}
+import tsec.mac.jca.{HMACSHA256, MacSigningKey}
 
 import scala.concurrent.duration._
 

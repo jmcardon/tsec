@@ -5,15 +5,13 @@ import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.Sync
+import cats.syntax.all._
 import io.circe.{Decoder, Encoder}
 import org.http4s._
-import tsec.cookies._
-import tsec.mac.imports._
-import tsec.hashing._
-import tsec.hashing.imports._
 import tsec.common._
-import cats.syntax.all._
-import tsec.mac.core.JCAMacTag
+import tsec.cookies._
+import tsec.hashing.jca._
+import tsec.mac.jca._
 
 import scala.concurrent.duration.FiniteDuration
 

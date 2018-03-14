@@ -1,5 +1,4 @@
-import sbt.{Def, _}
-import Keys._
+import sbt._
 
 object Dependencies {
 

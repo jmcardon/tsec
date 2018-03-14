@@ -5,10 +5,10 @@ import java.time.Instant
 import cats.effect.IO
 import org.scalatest.MustMatchers
 import tsec.jws.JWSSerializer
-import tsec.mac.imports._
 import tsec.jws.mac._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
+import tsec.mac.jca._
 
 import scala.concurrent.duration._
 

@@ -1,6 +1,6 @@
 package tsec
 
-import tsec.cipher.symmetric.imports._
+import tsec.cipher.symmetric.jca._
 
 class JCASymmetricCipherTests extends SymmetricSpec {
 

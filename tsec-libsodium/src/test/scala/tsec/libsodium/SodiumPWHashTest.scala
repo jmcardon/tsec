@@ -2,9 +2,9 @@ package tsec.libsodium
 
 import cats.effect.IO
 import org.scalacheck.{Arbitrary, Gen}
-import tsec.libsodium.passwordhashers._
-import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
-import tsec.passwordhashers.core.PasswordHasher
+import tsec.passwordhashers._
+import tsec.passwordhashers.libsodium._
+import tsec.passwordhashers.libsodium.internal.SodiumPasswordHasher
 
 class SodiumPWHashTest extends SodiumSpec {
 
