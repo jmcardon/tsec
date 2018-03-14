@@ -50,7 +50,7 @@ These are the imports you will need for basic usage:
 
 ```tut:silent
   import tsec.common._
-  import tsec.cipher.symmetric.core._
+  import tsec.cipher.symmetric._
   import tsec.cipher.symmetric.jca._
   import cats.effect.IO
 ```

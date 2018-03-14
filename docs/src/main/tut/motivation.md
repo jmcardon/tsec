@@ -40,7 +40,7 @@ The same thing, in TSec, plus decryption (as a pure expression):
 ```tut
 import cats.effect.IO
 import tsec.common._
-import tsec.cipher.symmetric.core._
+import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
 
 val toEncrypt = "Hello".utf8Bytes
