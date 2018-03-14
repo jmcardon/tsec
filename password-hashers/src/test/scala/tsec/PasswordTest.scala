@@ -8,8 +8,8 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.common._
-import tsec.passwordhashers.core._
 import tsec.passwordhashers.imports._
+import tsec.passwordhashers.{PasswordHashAPI, PasswordHasher, _}
 
 class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
 

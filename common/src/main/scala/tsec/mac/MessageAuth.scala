@@ -1,4 +1,4 @@
-package tsec.mac.core
+package tsec.mac
 
 trait MessageAuth[F[_], A, K[_]] {
 

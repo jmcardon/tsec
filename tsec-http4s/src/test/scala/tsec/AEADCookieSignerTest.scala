@@ -3,10 +3,9 @@ package tsec
 import cats.effect.IO
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
-import tsec.common._
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports._
+import tsec.common._
 import tsec.cookies.AEADCookieEncryptor
 import tsec.keygen.symmetric.SymmetricKeyGen
 

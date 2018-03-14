@@ -3,8 +3,8 @@ package tsec.jwt
 import java.time.Instant
 
 import io.circe._
-import io.circe.syntax._
 import io.circe.parser._
+import io.circe.syntax._
 import tsec.TestSpec
 
 class JWTClaimsTest extends TestSpec {

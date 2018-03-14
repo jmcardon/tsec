@@ -1,17 +1,15 @@
 package tsec.mac
 
-import javax.crypto.{SecretKey => JSecretKey}
 import java.security.MessageDigest
 import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
-import javax.crypto.Mac
+import javax.crypto.{Mac, SecretKey => JSecretKey}
 
-import cats.{Monad, MonadError}
 import cats.effect.Sync
 import cats.instances.either._
 import cats.syntax.all._
+import cats.{Monad, MonadError}
 import tsec.common._
 import tsec.keygen.symmetric.{SymmetricKeyGen, SymmetricKeyGenAPI}
-import tsec.mac.core._
 
 package object imports {
 
@@ -22,6 +20,12 @@ package object imports {
   type MacSigningKey[A] = MacSigningKey.Type[A]
 
   type MacKeyGen[F[_], A] = SymmetricKeyGen[F, A, MacSigningKey]
+
+  protected[tsec] trait JCAMacTag[T] extends CryptoTag[T]
+
+  object JCAMacTag {
+    @inline def apply[T](implicit M: JCAMacTag[T]): JCAMacTag[T] = M
+  }
 
   object MacSigningKey {
     type Base$$1

@@ -3,7 +3,6 @@ package tsec.cipher.symmetric.imports
 import cats.effect.Sync
 import tsec.cipher.common.padding.PKCS7Padding
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports.primitive._
 
 sealed abstract class AESCBC[A] extends JCACipherAPI[A, CBC, PKCS7Padding] with AES[A] with JCAKeyGen[A] {

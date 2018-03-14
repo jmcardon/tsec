@@ -4,10 +4,9 @@ import java.time.Instant
 import java.util.UUID
 
 import cats.effect.IO
-import tsec.mac.imports._
 import org.http4s.Request
 import tsec.keygen.symmetric.IdKeyGen
-import tsec.mac.core.JCAMacTag
+import tsec.mac.imports.{JCAMacTag, _}
 
 import scala.concurrent.duration._
 

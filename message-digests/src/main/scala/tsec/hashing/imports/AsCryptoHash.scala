@@ -1,7 +1,7 @@
 package tsec.hashing.imports
 
 import cats.Id
-import tsec.hashing.core._
+import tsec.hashing.{CryptoHashAPI, CryptoHasher, _}
 
 protected[imports] abstract class AsCryptoHash[H](repr: String) extends JCADigestTag[H] with CryptoHashAPI[H] {
 

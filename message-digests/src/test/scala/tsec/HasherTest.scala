@@ -4,11 +4,11 @@ import java.security.MessageDigest
 
 import cats.effect.IO
 import fs2._
-import tsec.common._
-import tsec.hashing.imports._
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
-import tsec.hashing.core.{CryptoHashAPI, JCADigestTag}
+import tsec.common._
+import tsec.hashing.CryptoHashAPI
+import tsec.hashing.imports.{JCADigestTag, _}
 
 class HasherTest extends TestSpec with MustMatchers with PropertyChecks {
   val str     = "hello World"

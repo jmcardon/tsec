@@ -1,14 +1,15 @@
 package tsec.jws.signature
 
 import java.time.Instant
-import tsec.common._
+
 import cats.effect.Sync
+import cats.syntax.all._
+import tsec.common._
 import tsec.jws.{JWSJWT, JWSSerializer}
-import tsec.signature.imports._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
-import tsec.signature.core.CryptoSignature
-import cats.syntax.all._
+import tsec.signature._
+import tsec.signature.imports._
 
 case class JWTSig[A](header: JWSSignedHeader[A], body: JWTClaims, signature: CryptoSignature[A])
     extends JWSJWT[A, CryptoSignature] {

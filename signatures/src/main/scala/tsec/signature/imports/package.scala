@@ -1,14 +1,12 @@
 package tsec.signature
 
+import java.security.{PrivateKey, PublicKey}
 import java.security.cert.Certificate
-import java.security.PrivateKey
-import java.security.PublicKey
 
 import cats.Monad
 import cats.effect.Sync
 import cats.instances.either._
 import cats.syntax.all._
-import tsec.signature.core._
 
 package object imports {
   type SigErrorM[A] = Either[Throwable, A]
@@ -39,8 +37,6 @@ package object imports {
     @inline def apply[A: JCASigTag](key: PrivateKey): SigPrivateKey[A] = key.asInstanceOf[SigPrivateKey[A]]
     @inline def toJavaPrivateKey[A](key: SigPrivateKey[A]): PrivateKey  = key.asInstanceOf[PrivateKey]
   }
-
-  import tsec.signature.core.{CertificateSigner, CryptoSignature}
 
   class JCASigner[F[_]: Monad, A: JCASigTag](
       algebra: JCASigAlgebra[F, A, SigPublicKey, SigPrivateKey, SigCertificate]

@@ -2,7 +2,7 @@ package tsec.libsodium.authentication.internal
 
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication.SodiumMACKey
-import tsec.mac.core.MAC
+import tsec.mac._
 
 trait SodiumMacAlgo[A] {
   val keyLen: Int

@@ -1,15 +1,14 @@
 package tsec
 
 import cats.Eq
-import tsec.common._
 import cats.instances.string._
-import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core._
-import tsec.cipher.symmetric.imports._
-import tsec.mac.imports.MacVerificationError
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import tsec.cipher.common.padding.NoPadding
-import tsec.mac.core.{JCAMacTag, MAC}
+import tsec.cipher.symmetric._
+import tsec.cipher.symmetric.imports._
+import tsec.common._
+import tsec.mac.MAC
+import tsec.mac.imports.{JCAMacTag, MacVerificationError}
 
 package object cookies {
 

@@ -1,8 +1,8 @@
 package tsec.signature.imports
 
 import java.security.Signature
+
 import cats.effect.Sync
-import tsec.signature.core._
 
 sealed abstract class JCASigInterpreter[F[_], A](implicit M: Sync[F], signatureAlgorithm: JCASigTag[A])
     extends JCASigAlgebra[F, A, SigPublicKey, SigPrivateKey, SigCertificate] {

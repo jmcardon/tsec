@@ -1,8 +1,8 @@
 package tsec.libsodium
 
-import tsec.common._
 import cats.effect.IO
 import org.scalacheck.Gen
+import tsec.common._
 import tsec.libsodium.kdf.KeyDerivation
 
 class KeyDerivationTest extends SodiumSpec {

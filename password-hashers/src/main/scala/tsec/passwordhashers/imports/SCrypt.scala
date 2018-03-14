@@ -1,6 +1,6 @@
 package tsec.passwordhashers.imports
 
-import tsec.passwordhashers.core._
+import tsec.passwordhashers._
 
 sealed trait SCrypt
 

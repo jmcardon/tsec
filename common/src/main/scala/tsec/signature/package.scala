@@ -1,6 +1,6 @@
-package tsec.signature
+package tsec
 
-package object core {
+package object signature {
 
   type CryptoSignature[A] = CryptoSignature.Sig[A]
 
@@ -11,7 +11,7 @@ package object core {
 
     def subst[A]: PartiallyApplied[A] = new PartiallyApplied[A]
 
-    private[core] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[signature] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[CryptoSignature[A]] = value.asInstanceOf[F[CryptoSignature[A]]]
     }
 

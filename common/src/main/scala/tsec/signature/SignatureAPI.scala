@@ -1,4 +1,4 @@
-package tsec.signature.core
+package tsec.signature
 
 trait SignatureAPI[A, PubK[_], PrivK[_]] {
 

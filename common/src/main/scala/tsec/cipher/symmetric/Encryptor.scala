@@ -1,4 +1,4 @@
-package tsec.cipher.symmetric.core
+package tsec.cipher.symmetric
 
 import cats.Monad
 

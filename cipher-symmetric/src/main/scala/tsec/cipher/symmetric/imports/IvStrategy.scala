@@ -1,7 +1,8 @@
-package tsec.cipher.symmetric.core
+package tsec.cipher.symmetric.imports
 
 import cats.Applicative
 import cats.effect.Sync
+import tsec.cipher.symmetric._
 import tsec.common.ManagedRandom
 
 object JCAIvGen {

@@ -3,12 +3,12 @@ package tsec.authentication
 import cats.data.OptionT
 import cats.effect.IO
 import cats.{Eq, MonadError}
-import tsec.TestSpec
+import cats.syntax.applicativeError._
 import org.http4s._
-import cats.implicits._
 import org.scalacheck._
-import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatest.prop.PropertyChecks
+import org.scalatest.{BeforeAndAfterEach, MustMatchers}
+import tsec.TestSpec
 import tsec.authorization.{AuthGroup, AuthorizationInfo, SimpleAuthEnum}
 
 import scala.collection.mutable

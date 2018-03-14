@@ -1,11 +1,11 @@
 package tsec.libsodium
 
 import cats.effect.IO
-import tsec.cipher.symmetric.core._
-import tsec.libsodium.cipher._
-import tsec.libsodium.cipher.internal.SodiumCipherPlatform
+import tsec.cipher.symmetric.{AuthEncryptor, _}
 import tsec.common._
 import tsec.keygen.symmetric.SymmetricKeyGen
+import tsec.libsodium.cipher._
+import tsec.libsodium.cipher.internal.SodiumCipherPlatform
 
 class SodiumCipherTest extends SodiumSpec {
 

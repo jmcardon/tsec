@@ -9,7 +9,7 @@ import cats.syntax.either._
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
 import tsec.common.ErrorConstruct._
-import tsec.signature.core._
+import tsec.signature.CertSignatureAPI
 
 abstract class GeneralSignature[A](signature: String, kfAlgo: String)
     extends JCASigTag[A]

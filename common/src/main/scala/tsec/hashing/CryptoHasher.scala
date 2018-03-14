@@ -1,4 +1,4 @@
-package tsec.hashing.core
+package tsec.hashing
 
 import fs2.Pipe
 

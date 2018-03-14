@@ -1,6 +1,6 @@
-package tsec.mac
+package tsec
 
-package object core {
+package object mac {
 
   type MAC[A] = MAC.Type[A]
 
@@ -10,7 +10,7 @@ package object core {
     def apply[A](value: Array[Byte]): MAC[A] = value.asInstanceOf[MAC[A]]
     def subst[A]: PartiallyApplied[A] = new PartiallyApplied[A]
 
-    private[core] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[mac] final class PartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[MAC[A]] = value.asInstanceOf[F[MAC[A]]]
     }
 

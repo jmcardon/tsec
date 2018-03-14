@@ -1,6 +1,6 @@
 package tsec
 import cats.effect.IO
-import common._
+import tsec.common._
 class TSecOpsTest extends TestSpec {
 
   behavior of "TSec ops"

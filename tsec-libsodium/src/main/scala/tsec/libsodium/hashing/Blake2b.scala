@@ -3,7 +3,7 @@ package tsec.libsodium.hashing
 import java.security.MessageDigest
 
 import cats.effect.Sync
-import tsec.hashing.core.CryptoHash
+import tsec.hashing._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.ScalaSodium.NullPtrBytes
 import tsec.libsodium.hashing.internal.SodiumHashPlatform

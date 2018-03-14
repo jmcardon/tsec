@@ -5,7 +5,7 @@ import tsec.keygen.asymmetric.{AsymmetricKeyGen, AsymmetricKeyGenAPI}
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.ScalaSodium._
 import tsec.libsodium.pk._
-import tsec.signature.core.{CryptoSignature, SignatureAPI, Signer}
+import tsec.signature.{SignatureAPI, Signer, _}
 
 sealed trait Ed25519Sig
 

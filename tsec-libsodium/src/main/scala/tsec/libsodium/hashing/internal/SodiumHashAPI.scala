@@ -1,5 +1,5 @@
 package tsec.libsodium.hashing.internal
 
-import tsec.hashing.core.CryptoHashAPI
+import tsec.hashing.CryptoHashAPI
 
 trait SodiumHashAPI[A] extends CryptoHashAPI[A]

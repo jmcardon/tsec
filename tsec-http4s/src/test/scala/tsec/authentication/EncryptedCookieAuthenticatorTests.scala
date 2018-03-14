@@ -3,7 +3,7 @@ package tsec.authentication
 import java.time.Instant
 
 import cats.effect.IO
-import tsec.cipher.symmetric.core._
+import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.imports._
 
 class EncryptedCookieAuthenticatorTests extends EncryptedCookieAuthenticatorSpec {

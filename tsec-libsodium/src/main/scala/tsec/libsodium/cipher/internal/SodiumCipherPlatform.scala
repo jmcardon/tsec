@@ -2,11 +2,11 @@ package tsec.libsodium.cipher.internal
 
 import cats.Id
 import cats.effect.Sync
-import tsec.cipher.symmetric.core._
+import tsec.cipher.symmetric.{AuthEncryptor, IvGen, _}
 import tsec.keygen.symmetric.{IdKeyGen, SymmetricKeyGen}
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.cipher._
 import tsec.libsodium.cipher.SodiumCipherError._
+import tsec.libsodium.cipher._
 
 private[tsec] trait SodiumCipherPlatform[A]
     extends SodiumKeyGenerator[A]

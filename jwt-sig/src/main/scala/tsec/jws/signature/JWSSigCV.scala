@@ -1,16 +1,17 @@
 package tsec.jws.signature
 
+import java.time.Instant
+
+import cats.MonadError
+import cats.effect.Sync
+import cats.instances.either._
 import cats.syntax.all._
 import tsec.common._
 import tsec.jws.JWSSerializer
-import tsec.jwt.algorithms.JWTSigAlgo
-import tsec.signature.core._
-import tsec.signature.imports._
-import java.time.Instant
-import cats.instances.either._
-import cats.MonadError
-import cats.effect.Sync
 import tsec.jwt.JWTClaims
+import tsec.jwt.algorithms.JWTSigAlgo
+import tsec.signature._
+import tsec.signature.imports._
 
 sealed abstract class JWSSigCV[F[_], A: JCASigTag](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],

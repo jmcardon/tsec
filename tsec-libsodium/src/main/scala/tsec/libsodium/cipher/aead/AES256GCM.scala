@@ -1,6 +1,6 @@
 package tsec.libsodium.cipher.aead
 
-import tsec.cipher.symmetric.core._
+import tsec.cipher.symmetric._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.ScalaSodium.{NullPtrBytes, NullPtrInt}
 import tsec.libsodium.cipher._

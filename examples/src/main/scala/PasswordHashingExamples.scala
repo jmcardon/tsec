@@ -1,7 +1,7 @@
 object PasswordHashingExamples {
 
   import cats.effect.IO
-  import tsec.passwordhashers.core._
+  import tsec.passwordhashers._
   import tsec.passwordhashers.imports._
 
   /** For password hashers, you have three options: BCrypt, SCrypt and HardenedScrypt

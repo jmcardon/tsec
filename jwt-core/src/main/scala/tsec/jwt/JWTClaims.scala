@@ -8,12 +8,11 @@ import cats.effect.Sync
 import cats.instances.string._
 import io.circe.Decoder.Result
 import io.circe._
-import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import tsec.common.{ByteUtils, SecureRandomId, TSecError}
-import tsec.jws.JWSSerializer
 import tsec.internal.CirceShim
+import tsec.jws.JWSSerializer
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal

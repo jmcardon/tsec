@@ -9,7 +9,6 @@ import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.keygen.symmetric.IdKeyGen
-import tsec.mac.core._
 import tsec.mac.imports._
 
 import scala.concurrent.duration._

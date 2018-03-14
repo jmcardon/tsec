@@ -4,10 +4,9 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
-import org.apache.commons.codec.binary.{Base64 => AB64}
 import cats.effect.Sync
-import org.apache.commons.codec.binary.Hex
 import cats.evidence.Is
+import org.apache.commons.codec.binary.{Hex, Base64 => AB64}
 
 import scala.util.control.NoStackTrace
 

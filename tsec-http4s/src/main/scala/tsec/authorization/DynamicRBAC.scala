@@ -2,8 +2,8 @@ package tsec.authorization
 
 import cats.MonadError
 import cats.data.OptionT
-import tsec.authentication
 import cats.syntax.all._
+import tsec.authentication
 
 case class DynamicRBAC[F[_], Role, U, Auth](dynamic: DynamicAuthGroup[F, Role])(
     implicit authInfo: AuthorizationInfo[F, Role, U],

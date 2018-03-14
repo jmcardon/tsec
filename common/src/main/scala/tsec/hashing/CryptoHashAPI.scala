@@ -1,4 +1,4 @@
-package tsec.hashing.core
+package tsec.hashing
 
 import cats.Id
 import fs2.Pipe

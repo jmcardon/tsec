@@ -1,15 +1,15 @@
 package tsec.hashing
 
-import cats.Id
+import java.security.MessageDigest
+
 import cats.effect.IO
+import cats.{Applicative, Id}
+import fs2.{Chunk, Pipe, Stream}
+import tsec.common.CryptoTag
 
 package object imports {
 
-  import java.security.MessageDigest
-
-  import cats.Applicative
-  import fs2.{Chunk, Pipe, Stream}
-  import tsec.hashing.core._
+  trait JCADigestTag[T] extends CryptoTag[T]
 
   sealed class JHasher[F[_], A](
       implicit digestTag: JCADigestTag[A],

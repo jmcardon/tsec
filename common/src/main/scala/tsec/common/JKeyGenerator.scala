@@ -1,6 +1,7 @@
 package tsec.common
 
 import javax.crypto.KeyGenerator
+
 import cats.effect.Sync
 import cats.syntax.either._
 

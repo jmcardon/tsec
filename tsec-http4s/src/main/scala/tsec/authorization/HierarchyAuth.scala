@@ -2,8 +2,8 @@ package tsec.authorization
 
 import cats.MonadError
 import cats.data.OptionT
-import tsec.authentication
 import cats.syntax.functor._
+import tsec.authentication
 
 sealed abstract case class HierarchyAuth[F[_], R, U, Auth](authLevel: R)(
     implicit role: AuthorizationInfo[F, R, U],

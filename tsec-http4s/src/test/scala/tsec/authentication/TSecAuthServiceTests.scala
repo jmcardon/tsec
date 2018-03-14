@@ -3,7 +3,7 @@ package tsec.authentication
 import java.time.Instant
 
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.semigroupk._
 import org.http4s._
 import org.http4s.dsl.io._
 
@@ -29,7 +29,8 @@ class TSecAuthServiceTests extends AuthenticatorSpec {
         case GET -> Root asAuthed _ => Ok()
       }
 
-    val service = serviceOne <+> serviceTwo
+    val service: TSecAuthService[DummyUser, DummyAuthenticator, IO] =
+      serviceOne <+> serviceTwo
 
     val getReq  = Request[IO](method = Method.GET)
     val getSreq = SecuredRequest(getReq, DummyUser(0), DummyAuthenticator())

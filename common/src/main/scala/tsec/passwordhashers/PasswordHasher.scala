@@ -1,4 +1,4 @@
-package tsec.passwordhashers.core
+package tsec.passwordhashers
 
 import java.nio.CharBuffer
 

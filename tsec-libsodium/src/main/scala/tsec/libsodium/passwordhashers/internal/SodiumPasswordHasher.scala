@@ -3,9 +3,8 @@ package tsec.libsodium.passwordhashers.internal
 import cats.effect.Sync
 import cats.syntax.all._
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.passwordhashers.{PWStrengthParam => PS}
-import tsec.libsodium.passwordhashers._
-import tsec.passwordhashers.core.{PasswordHash, PasswordHashAPI, PasswordHasher}
+import tsec.libsodium.passwordhashers.{PWStrengthParam => PS, _}
+import tsec.passwordhashers._
 
 trait SodiumPasswordHasher[P] extends PasswordHashAPI[P] {
   val hashingAlgorithm: String

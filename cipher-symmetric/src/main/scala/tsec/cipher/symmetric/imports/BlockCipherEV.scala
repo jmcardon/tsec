@@ -6,7 +6,6 @@ import javax.crypto.{KeyGenerator => KG}
 import cats.Id
 import cats.effect.Sync
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core.BlockCipher
 import tsec.keygen.symmetric._
 
 /** A Helper type for providing implicit evidence that some type

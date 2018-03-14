@@ -2,9 +2,9 @@ package tsec.passwordhashers.imports
 
 import java.security.MessageDigest
 
+import cats.syntax.either._
 import com.lambdaworks.codec.Base64
 import com.lambdaworks.crypto.{SCrypt => JSCrypt}
-import cats.syntax.either._
 import tsec.common.ManagedRandom
 
 /** SCrypt util scala adaption for Will Glozer's (@wg on github) SCryptUtil,

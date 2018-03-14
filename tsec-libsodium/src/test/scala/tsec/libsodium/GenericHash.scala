@@ -3,10 +3,10 @@ package tsec.libsodium
 import java.security.MessageDigest
 
 import cats.effect.IO
-import tsec.common._
-import tsec.libsodium.hashing._
 import fs2._
-import tsec.hashing.core.CryptoHasher
+import tsec.common._
+import tsec.hashing.CryptoHasher
+import tsec.libsodium.hashing._
 import tsec.libsodium.hashing.internal.SodiumHashPlatform
 
 class GenericHash extends SodiumSpec {

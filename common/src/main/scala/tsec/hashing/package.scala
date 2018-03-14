@@ -1,6 +1,6 @@
-package tsec.hashing
+package tsec
 
-package object core {
+package object hashing {
 
   type CryptoHash[A] = CryptoHash.Type[A]
 

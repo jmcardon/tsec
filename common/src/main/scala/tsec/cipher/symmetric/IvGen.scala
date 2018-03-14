@@ -1,4 +1,4 @@
-package tsec.cipher.symmetric.core
+package tsec.cipher.symmetric
 
 trait IvGen[F[_], A] {
 

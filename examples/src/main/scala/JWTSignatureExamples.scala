@@ -1,11 +1,11 @@
 
 object JWTSignatureExamples {
 
-  import tsec.jwt._
-  import tsec.jws.signature._
-  import tsec.signature.imports._
   import cats.effect.Sync
   import cats.syntax.all._
+  import tsec.jws.signature._
+  import tsec.jwt._
+  import tsec.signature.imports._
 
   /** Example usage */
   val claims = JWTClaims()

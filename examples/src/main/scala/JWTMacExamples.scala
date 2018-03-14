@@ -2,12 +2,13 @@ import java.time.Instant
 
 object JWTMacExamples {
 
-  import tsec.jwt._
-  import tsec.jws.mac._
-  import tsec.mac.imports._
-  import scala.concurrent.duration._
-  import cats.syntax.all._
   import cats.effect.Sync
+  import cats.syntax.all._
+  import tsec.jws.mac._
+  import tsec.jwt._
+  import tsec.mac.imports._
+
+  import scala.concurrent.duration._
 
   /** You can interpret into any target Monad with an instance of Sync[F] using JwtMac */
   def jwtMonadic[F[_]: Sync]: F[JWTMac[HMACSHA256]] =
@@ -22,8 +23,8 @@ object JWTMacExamples {
     } yield parsed
 
   import io.circe._
-  import io.circe.syntax._
   import io.circe.generic.semiauto._
+  import io.circe.syntax._
 
   case class Doge(suchChars: String, much32Bits: Int, so64Bits: Long)
 

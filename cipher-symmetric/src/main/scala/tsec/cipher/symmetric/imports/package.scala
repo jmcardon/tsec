@@ -4,11 +4,11 @@ import javax.crypto.spec.{GCMParameterSpec, IvParameterSpec}
 import javax.crypto.{Cipher => JCipher, SecretKey => JSecretKey}
 
 import cats.effect.Sync
+import tsec.cipher.common.CipherErrors
 import tsec.cipher.common.padding._
-import tsec.cipher.symmetric.core._
 import tsec.common.ManagedRandom
 
-package object imports {
+package object imports extends CipherErrors {
 
   type SecretKey[A] = SecretKey.Type[A]
 

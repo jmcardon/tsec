@@ -7,7 +7,7 @@ import cats.MonadError
 import cats.effect.Sync
 import cats.syntax.all._
 import tsec.cipher.common.padding.SymmetricPadding
-import tsec.cipher.symmetric.core._
+import tsec.cipher.symmetric.{Encryptor, _}
 import tsec.cipher.symmetric.imports.{IvProcess, SecretKey}
 import tsec.common.CanCatch
 

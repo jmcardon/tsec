@@ -2,8 +2,8 @@ package tsec.authorization
 
 import cats.MonadError
 import cats.data.OptionT
-import tsec.authentication
 import cats.syntax.functor._
+import tsec.authentication
 
 import scala.reflect.ClassTag
 

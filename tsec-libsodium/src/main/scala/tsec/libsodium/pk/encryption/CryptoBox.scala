@@ -1,10 +1,10 @@
 package tsec.libsodium.pk.encryption
 
 import cats.effect.Sync
-import tsec.cipher.symmetric.core._
+import tsec.cipher.symmetric._
 import tsec.libsodium.ScalaSodium
-import tsec.libsodium.pk._
 import tsec.libsodium.cipher.SodiumCipherError._
+import tsec.libsodium.pk._
 
 sealed trait CryptoBox
 

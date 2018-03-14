@@ -5,9 +5,9 @@ import javax.crypto.spec.SecretKeySpec
 
 import cats.Id
 import cats.effect.Sync
-import tsec.keygen.symmetric.{IdKeyGen, SymmetricKeyGen}
-import tsec.mac.core.{JCAMacTag, MacAPI}
 import cats.syntax.either._
+import tsec.keygen.symmetric.{IdKeyGen, SymmetricKeyGen}
+import tsec.mac.MacAPI
 
 protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyLenBits: Int)
     extends JCAMacTag[A]

@@ -1,6 +1,6 @@
-package tsec.cipher.symmetric
+package tsec.cipher
 
-package object core {
+package object symmetric {
   type Iv[A] = Iv.Type[A]
 
   object Iv {
@@ -9,7 +9,7 @@ package object core {
     def apply[A](value: Array[Byte]): Iv[A] = value.asInstanceOf[Iv[A]]
     def subst[A]: IvPartiallyApplied[A]     = new IvPartiallyApplied[A]
 
-    private[core] final class IvPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[symmetric] final class IvPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[Iv[A]] =
         value.asInstanceOf[F[Iv[A]]]
     }
@@ -29,7 +29,7 @@ package object core {
     def apply[A](value: Array[Byte]): RawCipherText[A] = value.asInstanceOf[RawCipherText[A]]
     def subst[A]: RawCTPartiallyApplied[A]             = new RawCTPartiallyApplied[A]
 
-    private[core] final class RawCTPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[symmetric] final class RawCTPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[RawCipherText[A]] =
         value.asInstanceOf[F[RawCipherText[A]]]
     }
@@ -68,7 +68,7 @@ package object core {
 
     def subst[A]: AuthTagPartiallyApplied[A] = new AuthTagPartiallyApplied[A]
 
-    private[core] final class AuthTagPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
+    private[symmetric] final class AuthTagPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[Array[Byte]]): F[AuthTag[A]] =
         value.asInstanceOf[F[AuthTag[A]]]
     }

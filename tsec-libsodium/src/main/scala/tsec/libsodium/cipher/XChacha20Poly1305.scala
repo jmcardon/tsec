@@ -1,11 +1,10 @@
 package tsec.libsodium.cipher
 
 import cats.effect.Sync
-import tsec.cipher.symmetric.core._
+import fs2._
+import tsec.cipher.symmetric._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.cipher.internal.SodiumCipherPlatform
-import fs2._
-import cats.syntax.all._
 
 sealed trait XChacha20Poly1305
 

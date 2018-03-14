@@ -3,7 +3,7 @@ package tsec.libsodium.hashing.internal
 import cats.Id
 import cats.effect.Sync
 import fs2._
-import tsec.hashing.core.{CryptoHash, CryptoHasher}
+import tsec.hashing._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.hashing._
 

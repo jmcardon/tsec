@@ -2,9 +2,9 @@ package tsec.libsodium.passwordhashers
 
 import cats.effect.Sync
 import tsec.common._
-import tsec.passwordhashers.core._
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
+import tsec.passwordhashers.{PasswordHasher, _}
 
 sealed trait SodiumSCrypt
 

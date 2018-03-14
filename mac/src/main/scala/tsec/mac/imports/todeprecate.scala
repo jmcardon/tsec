@@ -1,7 +1,7 @@
 package tsec.mac.imports
 
 import cats.effect.Sync
-import tsec.mac.core.MAC
+import tsec.mac._
 
 object JCAMac {
 

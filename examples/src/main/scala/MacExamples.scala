@@ -1,4 +1,5 @@
 import cats.effect.IO
+import tsec.mac.MessageAuth
 
 object MacExamples {
 
@@ -16,8 +17,8 @@ object MacExamples {
     verified <- HMACSHA256.verify[ET](toMac, macValue, key) //Verify a byte array with a signed, typed instance
   } yield verified
 
-  import cats.syntax.all._
   import cats.effect.Sync
+  import cats.syntax.all._
 
   /** For Interpretation into any F */
   def `mac'd-pure`[F[_]: Sync]: F[Boolean] =
@@ -27,7 +28,7 @@ object MacExamples {
       verified <- HMACSHA256.verify[F](toMac, macValue, key) //Verify a byte array with a signed, typed instance
     } yield verified
 
-  /** Using the typeclass [[tsec.mac.core.MessageAuth]],
+  /** Using the typeclass [[MessageAuth]],
     * JCASigner is simply the class over java secret keys
     *
     */

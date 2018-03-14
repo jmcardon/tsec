@@ -1,4 +1,4 @@
-package tsec.signature.core
+package tsec.signature
 
 import cats.Id
 

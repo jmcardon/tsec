@@ -2,9 +2,9 @@ package tsec.libsodium.kdf
 
 import cats.effect.Sync
 import tsec.common._
-import tsec.libsodium.{ContextBytesError, KeyLengthError, ScalaSodium}
 import tsec.libsodium.cipher.SodiumKey
 import tsec.libsodium.pk.PrivateKey
+import tsec.libsodium.{ContextBytesError, KeyLengthError, ScalaSodium}
 
 sealed trait KeyDerivation
 

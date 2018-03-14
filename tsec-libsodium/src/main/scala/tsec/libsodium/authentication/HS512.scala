@@ -2,7 +2,7 @@ package tsec.libsodium.authentication
 
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication.internal.SodiumMacPlatform
-import tsec.mac.core.MAC
+import tsec.mac._
 
 sealed trait HS512
 

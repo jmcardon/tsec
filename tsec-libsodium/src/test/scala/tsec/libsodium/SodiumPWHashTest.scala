@@ -4,7 +4,7 @@ import cats.effect.IO
 import org.scalacheck.{Arbitrary, Gen}
 import tsec.libsodium.passwordhashers._
 import tsec.libsodium.passwordhashers.internal.SodiumPasswordHasher
-import tsec.passwordhashers.core.PasswordHasher
+import tsec.passwordhashers.PasswordHasher
 
 class SodiumPWHashTest extends SodiumSpec {
 

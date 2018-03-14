@@ -4,7 +4,7 @@ import cats.effect.Sync
 import tsec.keygen.symmetric.SymmetricKeyGen
 import tsec.libsodium.ScalaSodium
 import tsec.libsodium.authentication._
-import tsec.mac.core._
+import tsec.mac.{MessageAuth, _}
 
 private[tsec] trait SodiumMacPlatform[A] extends SodiumMacAlgo[A] with SodiumMacAPI[A] {
   implicit val sm: SodiumMacAlgo[A]        = this

@@ -4,7 +4,7 @@ import java.nio.CharBuffer
 
 import cats.effect.Sync
 import tsec.common._
-import tsec.passwordhashers.core._
+import tsec.passwordhashers._
 import tsec.passwordhashers.imports.internal.JBCrypt
 
 sealed trait BCrypt

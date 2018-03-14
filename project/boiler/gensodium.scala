@@ -14,13 +14,15 @@ object GenSodium extends App {
     )
   }
 
-  import com.sun.source.{tree => jtree}
-  import javax.lang.model.`type`.TypeKind
   import java.nio.charset._
+  import javax.lang.model.`type`.TypeKind
+
+  import com.sun.source.{tree => jtree}
 
   val jMethods: Seq[jtree.MethodTree] = {
     import com.sun.tools.javac._
     import tree.{JCTree => tree}
+
     import scala.io._
 
     val source = Source

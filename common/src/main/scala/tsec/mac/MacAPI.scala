@@ -1,4 +1,4 @@
-package tsec.mac.core
+package tsec.mac
 
 trait MacAPI[A, MK[_]] {
 

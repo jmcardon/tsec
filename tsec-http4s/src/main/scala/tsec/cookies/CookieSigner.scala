@@ -1,7 +1,7 @@
 package tsec.cookies
 
 import tsec.common._
-import tsec.mac.core._
+import tsec.mac.{MessageAuth, _}
 import tsec.mac.imports._
 
 object CookieSigner {

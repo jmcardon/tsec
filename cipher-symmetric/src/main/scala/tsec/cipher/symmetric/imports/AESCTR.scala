@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicLong
 import cats.effect.Sync
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric._
-import tsec.cipher.symmetric.core._
 import tsec.cipher.symmetric.imports.primitive.JCAPrimitiveCipher
 
 sealed abstract class AESCTR[A] extends JCACipherAPI[A, CTR, NoPadding] with AES[A] with JCAKeyGen[A] {
