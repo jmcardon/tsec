@@ -137,6 +137,12 @@ lazy val bouncyHash = Project(id = "tsec-hash-bouncy", base = file("hashing-boun
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(bouncyCastle)
 
+lazy val bouncyCipher = Project(id = "tsec-cipher-bouncy", base = file("cipher-bouncy"))
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .dependsOn(common % "compile->compile;test->test")
+  .dependsOn(bouncyCastle)
+
 lazy val signatures = Project(id = "tsec-signatures", base = file("signatures"))
   .settings(commonSettings)
   .settings(bouncyLib)
