@@ -61,7 +61,7 @@ lazy val passwordHasherLibs = libraryDependencies ++= Seq(
   Libraries.sCrypt
 )
 
-lazy val signatureLibs = libraryDependencies += Libraries.BC
+lazy val bouncyLib = libraryDependencies += Libraries.BC
 
 lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeCore,
@@ -99,6 +99,11 @@ lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
   .settings(publishSettings)
 
+lazy val bouncyCastle = Project(id = "bouncy", base = file("bouncycastle"))
+  .settings(commonSettings)
+  .settings(bouncyLib)
+  .settings(publishSettings)
+
 lazy val passwordHashers = Project(id = "tsec-password", base = file("password-hashers"))
   .settings(commonSettings)
   .settings(passwordHasherLibs)
@@ -126,11 +131,18 @@ lazy val messageDigests = Project(id = "tsec-md", base = file("message-digests")
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
-lazy val signatures = Project(id = "tsec-signatures", base = file("signatures"))
+lazy val bouncyHash = Project(id = "tsec-hash-bouncy", base = file("hashing-bouncy"))
   .settings(commonSettings)
-  .settings(signatureLibs)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
+  .dependsOn(bouncyCastle)
+
+lazy val signatures = Project(id = "tsec-signatures", base = file("signatures"))
+  .settings(commonSettings)
+  .settings(bouncyLib)
+  .settings(publishSettings)
+  .dependsOn(common % "compile->compile;test->test")
+  .dependsOn(bouncyCastle)
 
 lazy val jwtCore = Project(id = "tsec-jwt-core", base = file("jwt-core"))
   .settings(commonSettings)
@@ -151,12 +163,13 @@ lazy val jwtMac = Project(id = "tsec-jwt-mac", base = file("jwt-mac"))
 lazy val jwtSig = Project(id = "tsec-jwt-sig", base = file("jwt-sig"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
-  .settings(signatureLibs)
+  .settings(bouncyLib)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(jwtCore)
   .dependsOn(signatures)
   .dependsOn(messageDigests)
+  .dependsOn(bouncyCastle)
 
 lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .settings(commonSettings)
@@ -172,7 +185,7 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
 lazy val examples = Project(id = "tsec-examples", base = file("examples"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
-  .settings(signatureLibs)
+  .settings(bouncyLib)
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
   .dependsOn(
