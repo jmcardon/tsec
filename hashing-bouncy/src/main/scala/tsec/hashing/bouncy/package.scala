@@ -39,16 +39,6 @@ package object bouncy {
       }
   }
 
-  @deprecated(
-    """This (lame) abstraction is essentially serialization
-       and doesn't deservce its own type. There's very little
-       use for cryptographically hashing arbitrary objects.
-       As such, this isn't necessay
-    """.stripMargin,
-    "0.0.1-M11"
-  )
-  case class CryptoPickler[A](pickle: A => Array[Byte])
-
   implicit def genHasher[F[_]: Applicative, T: BouncyDigestTag](implicit B: Bouncy): CryptoHasher[F, T] =
     new BouncyHasher[F, T]
 
