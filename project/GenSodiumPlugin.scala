@@ -13,23 +13,12 @@ object GenSodiumPlugin extends sbt.AutoPlugin {
 
   override def buildSettings = Seq(
     /* See plugins.sbt for why this is dynamically loaded */
-    gensodium := Def.task {
-      if (canWeUseComSunTools_?) {
-        getClass.getClassLoader
-          .loadClass("tsec.build.GenSodium")
-          .getMethod("main", classOf[Array[String]])
-          .invoke(null, Array.empty[String])
-      } else {
-        sys.error("sodium \"macro\" not supported on your superior JDK, sorry")
-      }
+    gensodium := {
+      getClass.getClassLoader
+        .loadClass("tsec.build.GenSodium")
+        .getMethod("main", classOf[Array[String]])
+        .invoke(null, Array.empty[String])
     }
-  )
-
-  lazy val canWeUseComSunTools_? = ( // yes, iff ...
-       // we're not in IntelliJ
-       !sys.env.getOrElse("XPC_SERVICE_NAME", "").toLowerCase.contains("intellij")
-       // and we're on oracle JDK (sorry Mr Stallman)
-    && sys.props.get("java.vendor").exists(_.toLowerCase.contains("oracle"))
   )
 
 }
