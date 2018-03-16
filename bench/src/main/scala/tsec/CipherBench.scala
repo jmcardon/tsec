@@ -9,7 +9,7 @@ import org.openjdk.jmh.annotations._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.bouncy._
 import tsec.cipher.symmetric.jca.{SecretKey, AES256GCM => JAESGCM}
-import tsec.cipher.symmetric.libsodium.{AES256GCM, SodiumKey, XChacha20AEAD}
+import tsec.cipher.symmetric.libsodium.{AES256GCM, CryptoSecretBox, SodiumKey, XChacha20AEAD}
 import tsec.common._
 import tsec.libsodium._
 
@@ -68,6 +68,18 @@ class CipherBench {
   def testBouncyXChacha20(): CipherText[XChaCha20Poly1305] =
     XChaCha20Poly1305
       .encrypt[IO](longPlaintext, BouncySecretKey[XChaCha20Poly1305](XChaChaKey), Iv[XChaCha20Poly1305](XChaChaIv))
+      .unsafeRunSync()
+
+  @Benchmark
+  def testLibSodiumXSalsa20(): CipherText[CryptoSecretBox] =
+    CryptoSecretBox
+      .encrypt[IO](longPlaintext, SodiumKey[CryptoSecretBox](XChaChaKey), Iv[CryptoSecretBox](XChaChaIv))
+      .unsafeRunSync()
+
+  @Benchmark
+  def testBouncyXSalsa20(): CipherText[XSalsa20Poly1305] =
+    XSalsa20Poly1305
+      .encrypt[IO](longPlaintext, BouncySecretKey[XSalsa20Poly1305](XChaChaKey), Iv[XSalsa20Poly1305](XChaChaIv))
       .unsafeRunSync()
 }
 
