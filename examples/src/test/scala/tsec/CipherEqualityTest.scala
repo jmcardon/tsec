@@ -6,7 +6,7 @@ import tsec.common._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.bouncy._
 import tsec.cipher.symmetric.libsodium.{SodiumKey, CryptoSecretBox => SodiumSalsa, OriginalChacha20}
-import tsec.cipher.symmetric.libsodium.{XChacha20AEAD => SodiumXChaCha}
+import tsec.cipher.symmetric.libsodium.{XChacha20AEAD => SodiumXChaCha, IETFChacha20}
 import tsec.libsodium.ScalaSodium
 
 class CipherEqualityTest extends TestSpec with MustMatchers {
@@ -14,20 +14,17 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
   /** These are all libsodium test vectors **/
   val fixedPTRaw = "Ladies and Gentlemen of the class of '99: If I could offer you only one " +
     "tip for the future, sunscreen would be it."
-  val fixedPT  = PlainText(fixedPTRaw.utf8Bytes)
-  val fixedAAD = AAD("50515253c0c1c2c3c4c5c6c7".hexBytesUnsafe)
-  val fixedIv24  = "07000000404142434445464748494a4b0000000000000000".hexBytesUnsafe
+  val fixedPT   = PlainText(fixedPTRaw.utf8Bytes)
+  val fixedAAD  = AAD("50515253c0c1c2c3c4c5c6c7".hexBytesUnsafe)
+  val fixedIv24 = "07000000404142434445464748494a4b0000000000000000".hexBytesUnsafe
   val fixedIv8  = "0700000040414243".hexBytesUnsafe
-  val fixedKey = "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f".hexBytesUnsafe
+  val fixedIv12 = "070000004041424344454647".hexBytesUnsafe
+  val fixedKey  = "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f".hexBytesUnsafe
 
   def AuthEncryptorTest[C1, C2](testName: String)(
       implicit LSEncryptor: AuthEncryptor[IO, C1, SodiumKey],
       BCEncryptor: AuthEncryptor[IO, C2, BouncySecretKey]
   ): Unit = {
-    def coerceKey(k: SodiumKey[C1]): BouncySecretKey[C2] =
-      BouncySecretKey[C2](k)
-    def coerceIv(k: Iv[C1]): Iv[C2] =
-      Iv[C2](k)
 
     behavior of s"$testName: Libsodium and Bouncy Castle"
 
@@ -140,5 +137,8 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
 
   implicit val chachaIVGen = OriginalChacha20.defaultIvGen[IO]
   AADEncryptorTest[OriginalChacha20, ChaCha20Poly1305](OriginalChacha20.algorithm, fixedIv8)
+
+  implicit val chachaIETFIvGen = ChaCha20Poly1305IETF.defaultIvGen[IO]
+  AADEncryptorTest[IETFChacha20, ChaCha20Poly1305IETF](IETFChacha20.algorithm, fixedIv12)
 
 }
