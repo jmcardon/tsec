@@ -5,7 +5,7 @@ import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.bouncy._
-import tsec.cipher.symmetric.libsodium.{SodiumKey, CryptoSecretBox => SodiumSalsa}
+import tsec.cipher.symmetric.libsodium.{SodiumKey, CryptoSecretBox => SodiumSalsa, OriginalChacha20}
 import tsec.cipher.symmetric.libsodium.{XChacha20AEAD => SodiumXChaCha}
 import tsec.libsodium.ScalaSodium
 
@@ -16,7 +16,8 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
     "tip for the future, sunscreen would be it."
   val fixedPT  = PlainText(fixedPTRaw.utf8Bytes)
   val fixedAAD = AAD("50515253c0c1c2c3c4c5c6c7".hexBytesUnsafe)
-  val fixedIv  = "07000000404142434445464748494a4b0000000000000000".hexBytesUnsafe
+  val fixedIv24  = "07000000404142434445464748494a4b0000000000000000".hexBytesUnsafe
+  val fixedIv8  = "0700000040414243".hexBytesUnsafe
   val fixedKey = "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f".hexBytesUnsafe
 
   def AuthEncryptorTest[C1, C2](testName: String)(
@@ -32,8 +33,8 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
 
     it should "Encrypt and decrypt equally" in {
       val expr = for {
-        c1 <- LSEncryptor.encrypt(fixedPT, SodiumKey(fixedKey), Iv(fixedIv))
-        c2 <- BCEncryptor.encrypt(fixedPT, BouncySecretKey(fixedKey), Iv(fixedIv))
+        c1 <- LSEncryptor.encrypt(fixedPT, SodiumKey(fixedKey), Iv(fixedIv24))
+        c2 <- BCEncryptor.encrypt(fixedPT, BouncySecretKey(fixedKey), Iv(fixedIv24))
         d1 <- LSEncryptor.decrypt(c1, SodiumKey(fixedKey))
         d2 <- BCEncryptor.decrypt(c2, BouncySecretKey(fixedKey))
       } yield (c1, c2, d1.toUtf8String == d2.toUtf8String && d2.toUtf8String == fixedPTRaw)
@@ -46,8 +47,8 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
 
     it should "Encrypt equally detached" in {
       val expr = for {
-        c1 <- LSEncryptor.encryptDetached(fixedPT, SodiumKey(fixedKey), Iv(fixedIv))
-        c2 <- BCEncryptor.encryptDetached(fixedPT, BouncySecretKey(fixedKey), Iv(fixedIv))
+        c1 <- LSEncryptor.encryptDetached(fixedPT, SodiumKey(fixedKey), Iv(fixedIv24))
+        c2 <- BCEncryptor.encryptDetached(fixedPT, BouncySecretKey(fixedKey), Iv(fixedIv24))
         d1 <- LSEncryptor.decryptDetached(c1._1, SodiumKey(fixedKey), c1._2)
         d2 <- BCEncryptor.decryptDetached(c2._1, BouncySecretKey(fixedKey), c2._2)
       } yield (c1, c2, d1.toUtf8String == d2.toUtf8String && d1.toUtf8String == fixedPTRaw)
@@ -60,7 +61,7 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
     }
   }
 
-  def AADEncryptorTest[C1, C2](testName: String)(
+  def AADEncryptorTest[C1, C2](testName: String, fixedIv: Array[Byte])(
       implicit LSEncryptor: AADEncryptor[IO, C1, SodiumKey],
       BCEncryptor: AADEncryptor[IO, C2, BouncySecretKey]
   ): Unit = {
@@ -135,6 +136,9 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
   AuthEncryptorTest[SodiumSalsa, XSalsa20Poly1305](SodiumSalsa.algorithm)
 
   implicit val XchachaIETFIVGen = SodiumXChaCha.defaultIvGen[IO]
-  AADEncryptorTest[SodiumXChaCha, XChaCha20Poly1305](SodiumXChaCha.algorithm)
+  AADEncryptorTest[SodiumXChaCha, XChaCha20Poly1305](SodiumXChaCha.algorithm, fixedIv24)
+
+  implicit val chachaIVGen = OriginalChacha20.defaultIvGen[IO]
+  AADEncryptorTest[OriginalChacha20, ChaCha20Poly1305](OriginalChacha20.algorithm, fixedIv8)
 
 }

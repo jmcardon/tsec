@@ -11,16 +11,88 @@ import org.bouncycastle.util.Pack
 import tsec.cipher._
 import tsec.cipher.symmetric._
 import tsec.common.ManagedRandom
+import tsec.keygen.symmetric.SymmetricKeyGen
 
 trait ChaCha20Poly1305
 
 object ChaCha20Poly1305 extends AEADAPI[ChaCha20Poly1305, BouncySecretKey] {
 
-  private val SubkeyLen     = 32
+  private val KeyLen     = 32
   private val tagLen        = 16
   private val NonceLenBytes = 8
 
-  def authEncryptor[F[_]](implicit F: Sync[F]): AADEncryptor[F, ChaCha20Poly1305, BouncySecretKey] = ???
+  implicit def defaultKeyGen[F[_]](implicit F: Sync[F]): SymmetricKeyGen[F, ChaCha20Poly1305, BouncySecretKey] =
+    new SymmetricKeyGen[F, ChaCha20Poly1305, BouncySecretKey] with ManagedRandom {
+      def generateKey: F[BouncySecretKey[ChaCha20Poly1305]] = F.delay {
+        val kBytes = new Array[Byte](KeyLen) //same as key len, 32 bytes
+        nextBytes(kBytes)
+        BouncySecretKey(kBytes)
+      }
+
+      def build(rawKey: Array[Byte]): F[BouncySecretKey[ChaCha20Poly1305]] =
+        if (rawKey.length != KeyLen)
+          F.raiseError(CipherKeyBuildError("Invalid key length"))
+        else
+          F.pure(BouncySecretKey(rawKey))
+    }
+
+  implicit def authEncryptor[F[_]](implicit F: Sync[F]): AADEncryptor[F, ChaCha20Poly1305, BouncySecretKey] =
+    new AADEncryptor[F, ChaCha20Poly1305, BouncySecretKey] {
+      def encryptWithAAD(
+          plainText: PlainText,
+          key: BouncySecretKey[ChaCha20Poly1305],
+          iv: Iv[ChaCha20Poly1305],
+          aad: AAD
+      ): F[CipherText[ChaCha20Poly1305]] =
+        F.delay(impl.unsafeEncryptAAD(plainText, key, iv, aad))
+
+      def encryptWithAADDetached(
+          plainText: PlainText,
+          key: BouncySecretKey[ChaCha20Poly1305],
+          iv: Iv[ChaCha20Poly1305],
+          aad: AAD
+      ): F[(CipherText[ChaCha20Poly1305], AuthTag[ChaCha20Poly1305])] =
+        F.delay(impl.unsafeEncryptDetachedAAD(plainText, key, iv, aad))
+
+      def decryptWithAAD(
+          cipherText: CipherText[ChaCha20Poly1305],
+          key: BouncySecretKey[ChaCha20Poly1305],
+          aad: AAD
+      ): F[PlainText] =
+        F.delay(impl.unsafeDecryptAAD(cipherText, key, aad))
+
+      def decryptWithAADDetached(
+          cipherText: CipherText[ChaCha20Poly1305],
+          key: BouncySecretKey[ChaCha20Poly1305],
+          aad: AAD,
+          authTag: AuthTag[ChaCha20Poly1305]
+      ): F[PlainText] =
+        F.delay(impl.unsafeDecryptDetachedAAD(cipherText, authTag, key, aad))
+
+      def encryptDetached(
+          plainText: PlainText,
+          key: BouncySecretKey[ChaCha20Poly1305],
+          iv: Iv[ChaCha20Poly1305]
+      ): F[(CipherText[ChaCha20Poly1305], AuthTag[ChaCha20Poly1305])] =
+        F.delay(impl.unsafeEncryptDetached(plainText, key, iv))
+
+      def decryptDetached(
+          cipherText: CipherText[ChaCha20Poly1305],
+          key: BouncySecretKey[ChaCha20Poly1305],
+          authTag: AuthTag[ChaCha20Poly1305]
+      ): F[PlainText] =
+        F.delay(impl.unsafeDecryptDetached(cipherText, authTag, key))
+
+      def encrypt(
+          plainText: PlainText,
+          key: BouncySecretKey[ChaCha20Poly1305],
+          iv: Iv[ChaCha20Poly1305]
+      ): F[CipherText[ChaCha20Poly1305]] =
+        F.delay(impl.unsafeEncrypt(plainText, key, iv))
+
+      def decrypt(cipherText: CipherText[ChaCha20Poly1305], key: BouncySecretKey[ChaCha20Poly1305]): F[PlainText] =
+        F.delay(impl.unsafeDecrypt(cipherText, key))
+    }
 
   def defaultIvGen[F[_]](implicit F: Sync[F]): IvGen[F, ChaCha20Poly1305] =
     new IvGen[F, ChaCha20Poly1305] with ManagedRandom {
@@ -39,8 +111,7 @@ object ChaCha20Poly1305 extends AEADAPI[ChaCha20Poly1305, BouncySecretKey] {
     def unsafeEncrypt(
         plainText: PlainText,
         k: BouncySecretKey[ChaCha20Poly1305],
-        iv: Iv[ChaCha20Poly1305],
-        aad: AAD
+        iv: Iv[ChaCha20Poly1305]
     ): CipherText[ChaCha20Poly1305] =
       unsafeEncryptAAD(plainText, k, iv, AAD(Array.empty[Byte]))
 
@@ -59,16 +130,16 @@ object ChaCha20Poly1305 extends AEADAPI[ChaCha20Poly1305, BouncySecretKey] {
 
       chacha20.init(true, new ParametersWithIV(new KeyParameter(k), iv))
       chacha20.processBytes(firstBlock, 0, firstBlock.length, firstBlock, 0)
-      val macKey = new KeyParameter(firstBlock, 0, SubkeyLen)
+      val macKey = new KeyParameter(firstBlock, 0, KeyLen)
       util.Arrays.fill(firstBlock, 0.toByte)
 
-      chacha20.processBytes(plainText, 0, plainText.length, ctOut, tagLen)
+      chacha20.processBytes(plainText, 0, plainText.length, ctOut, 0)
       poly1305.init(macKey)
       poly1305.update(aad, 0, aad.length)
       poly1305.update(aadLen, 0, ctLen.length)
-      poly1305.update(ctOut, tagLen, plainText.length)
+      poly1305.update(ctOut, 0, plainText.length)
       poly1305.update(ctLen, 0, ctLen.length)
-      poly1305.doFinal(ctOut, 0)
+      poly1305.doFinal(ctOut, plainText.length)
       CipherText(ctOut, iv)
     }
 
@@ -83,7 +154,7 @@ object ChaCha20Poly1305 extends AEADAPI[ChaCha20Poly1305, BouncySecretKey] {
         aad: AAD
     ): PlainText = {
       val ctLen = ct.content.length - tagLen
-      if (ctLen - tagLen < 1)
+      if (ctLen  < 1)
         throw CipherTextError("Ciphertext is 0 or less bytes")
 
       val chacha20   = new ChaChaEngine(20)
@@ -95,18 +166,18 @@ object ChaCha20Poly1305 extends AEADAPI[ChaCha20Poly1305, BouncySecretKey] {
       val aadLen      = Pack.longToLittleEndian(aad.length & 0xFFFFFFFFL)
       val computedTag = new Array[Byte](tagLen)
       val oldTag      = new Array[Byte](tagLen)
-      System.arraycopy(ct, 0, oldTag, 0, tagLen)
+      System.arraycopy(ct.content, ctLen, oldTag, 0, tagLen)
 
       chacha20.init(false, new ParametersWithIV(new KeyParameter(k), ct.nonce))
       chacha20.processBytes(firstBlock, 0, firstBlock.length, firstBlock, 0)
-      val macKey = new KeyParameter(firstBlock, 0, SubkeyLen)
+      val macKey = new KeyParameter(firstBlock, 0, KeyLen)
       util.Arrays.fill(firstBlock, 0.toByte)
 
-      chacha20.processBytes(ct.content, tagLen, ctLen, out, 0)
+      chacha20.processBytes(ct.content, 0, ctLen, out, 0)
       poly1305.init(macKey)
       poly1305.update(aad, 0, aad.length)
       poly1305.update(aadLen, 0, ctLenBytes.length)
-      poly1305.update(ct.content, tagLen, ctLen)
+      poly1305.update(ct.content, 0, ctLen)
       poly1305.update(ctLenBytes, 0, ctLenBytes.length)
       poly1305.doFinal(computedTag, 0)
 
@@ -139,7 +210,7 @@ object ChaCha20Poly1305 extends AEADAPI[ChaCha20Poly1305, BouncySecretKey] {
 
       chacha20.init(true, new ParametersWithIV(new KeyParameter(k), iv))
       chacha20.processBytes(firstBlock, 0, firstBlock.length, firstBlock, 0)
-      val macKey = new KeyParameter(firstBlock, 0, SubkeyLen)
+      val macKey = new KeyParameter(firstBlock, 0, KeyLen)
       util.Arrays.fill(firstBlock, 0.toByte)
 
       chacha20.processBytes(plainText, 0, plainText.length, ctOut, 0)
@@ -177,7 +248,7 @@ object ChaCha20Poly1305 extends AEADAPI[ChaCha20Poly1305, BouncySecretKey] {
 
       chacha20.init(false, new ParametersWithIV(new KeyParameter(k), ct.nonce))
       chacha20.processBytes(firstBlock, 0, firstBlock.length, firstBlock, 0)
-      val macKey = new KeyParameter(firstBlock, 0, SubkeyLen)
+      val macKey = new KeyParameter(firstBlock, 0, KeyLen)
       util.Arrays.fill(firstBlock, 0.toByte)
 
       chacha20.processBytes(ct.content, 0, ct.content.length, out, 0)

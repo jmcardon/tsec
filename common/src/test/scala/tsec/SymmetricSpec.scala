@@ -80,7 +80,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           encrypted <- E.encrypt(testPlainText, key)
           decrypted <- E.decrypt(encrypted, key)
         } yield decrypted.toUtf8String
-        testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
       }
     }
 
@@ -107,7 +108,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           encrypted <- E.encryptDetached(testPlainText, key)
           decrypted <- E.decryptDetached(encrypted._1, key, encrypted._2)
         } yield decrypted.toUtf8String
-        testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
       }
     }
 
@@ -156,7 +158,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           encrypted <- E.encrypt(testPlainText, key)
           decrypted <- E.decrypt(encrypted, key)
         } yield decrypted.toUtf8String
-        testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
       }
     }
 
@@ -169,7 +172,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           encrypted <- E.encryptWithAAD(testPlainText, key, aad)
           decrypted <- E.decryptWithAAD(encrypted, key, aad)
         } yield decrypted.toUtf8String
-        testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
       }
     }
 
@@ -211,7 +215,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           encrypted <- E.encryptDetached(testPlainText, key)
           decrypted <- E.decryptDetached(encrypted._1, key, encrypted._2)
         } yield decrypted.toUtf8String
-        testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
       }
     }
 
@@ -224,7 +229,8 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
           encrypted <- E.encryptWithAADDetached(testPlainText, key, aad)
           decrypted <- E.decryptWithAADDetached(encrypted._1, key, aad, encrypted._2)
         } yield decrypted.toUtf8String
-        testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
+        if (!testMessage.isEmpty)
+          testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
       }
     }
 

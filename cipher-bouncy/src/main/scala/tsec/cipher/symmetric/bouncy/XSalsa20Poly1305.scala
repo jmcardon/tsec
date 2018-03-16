@@ -10,6 +10,7 @@ import tsec.Bouncy
 import tsec.cipher._
 import tsec.cipher.symmetric.{IvGen, _}
 import tsec.common.ManagedRandom
+import tsec.keygen.symmetric.SymmetricKeyGen
 
 /** https://tools.ietf.org/html/rfc7539#section-2.5
   * impl derived from:
@@ -20,10 +21,24 @@ import tsec.common.ManagedRandom
 trait XSalsa20Poly1305
 
 object XSalsa20Poly1305 extends AuthCipherAPI[XSalsa20Poly1305, BouncySecretKey] {
-  private val MacKeyLen = 32
-  private val tagLen    = 16
-  private val NonceLenBytes  = 24
+  private val KeyLen        = 32
+  private val tagLen        = 16
+  private val NonceLenBytes = 24
 
+  implicit def defaultKeyGen[F[_]](implicit F: Sync[F]): SymmetricKeyGen[F, XSalsa20Poly1305, BouncySecretKey] =
+    new SymmetricKeyGen[F, XSalsa20Poly1305, BouncySecretKey] with ManagedRandom {
+      def generateKey: F[BouncySecretKey[XSalsa20Poly1305]] = F.delay {
+        val kBytes = new Array[Byte](KeyLen) //same as key len, 32 bytes
+        nextBytes(kBytes)
+        BouncySecretKey(kBytes)
+      }
+
+      def build(rawKey: Array[Byte]): F[BouncySecretKey[XSalsa20Poly1305]] =
+        if (rawKey.length != KeyLen)
+          F.raiseError(CipherKeyBuildError("Invalid key length"))
+        else
+          F.pure(BouncySecretKey(rawKey))
+    }
 
   def defaultIvGen[F[_]](implicit F: Sync[F]): IvGen[F, XSalsa20Poly1305] =
     new IvGen[F, XSalsa20Poly1305] with ManagedRandom {
@@ -76,11 +91,11 @@ object XSalsa20Poly1305 extends AuthCipherAPI[XSalsa20Poly1305, BouncySecretKey]
     ): CipherText[XSalsa20Poly1305] = {
       val xsalsa20 = new XSalsa20Engine()
       val poly1305 = new Poly1305()
-      val MacKey   = new Array[Byte](MacKeyLen)
+      val MacKey   = new Array[Byte](KeyLen)
       val out      = RawCipherText[XSalsa20Poly1305](new Array[Byte](plainText.length + tagLen))
 
       xsalsa20.init(true, new ParametersWithIV(new KeyParameter(k), iv))
-      xsalsa20.processBytes(MacKey, 0, MacKeyLen, MacKey, 0)
+      xsalsa20.processBytes(MacKey, 0, KeyLen, MacKey, 0)
       xsalsa20.processBytes(plainText, 0, plainText.length, out, tagLen)
       poly1305.init(new KeyParameter(MacKey))
       poly1305.update(out, tagLen, plainText.length)
@@ -97,7 +112,7 @@ object XSalsa20Poly1305 extends AuthCipherAPI[XSalsa20Poly1305, BouncySecretKey]
 
       val xsalsa20 = new XSalsa20Engine()
       val poly1305 = new Poly1305()
-      val subkey   = new Array[Byte](MacKeyLen)
+      val subkey   = new Array[Byte](KeyLen)
       val out      = PlainText(new Array[Byte](ct.content.length - tagLen))
       val inTag    = new Array[Byte](tagLen)
       System.arraycopy(ct.content, 0, inTag, 0, tagLen)
@@ -105,7 +120,7 @@ object XSalsa20Poly1305 extends AuthCipherAPI[XSalsa20Poly1305, BouncySecretKey]
       val computedTag = new Array[Byte](tagLen)
 
       xsalsa20.init(false, new ParametersWithIV(new KeyParameter(k), ct.nonce))
-      xsalsa20.processBytes(subkey, 0, MacKeyLen, subkey, 0)
+      xsalsa20.processBytes(subkey, 0, KeyLen, subkey, 0)
       xsalsa20.processBytes(ct.content, tagLen, ct.content.length - tagLen, out, 0)
       poly1305.init(new KeyParameter(subkey))
       poly1305.update(ct.content, tagLen, ct.content.length - tagLen)
@@ -124,12 +139,12 @@ object XSalsa20Poly1305 extends AuthCipherAPI[XSalsa20Poly1305, BouncySecretKey]
     ): (CipherText[XSalsa20Poly1305], AuthTag[XSalsa20Poly1305]) = {
       val xsalsa20 = new XSalsa20Engine()
       val poly1305 = new Poly1305()
-      val subkey   = new Array[Byte](MacKeyLen)
+      val subkey   = new Array[Byte](KeyLen)
       val out      = RawCipherText[XSalsa20Poly1305](new Array[Byte](plainText.length))
       val tag      = AuthTag[XSalsa20Poly1305](new Array[Byte](tagLen))
 
       xsalsa20.init(true, new ParametersWithIV(new KeyParameter(k), iv))
-      xsalsa20.processBytes(subkey, 0, MacKeyLen, subkey, 0)
+      xsalsa20.processBytes(subkey, 0, KeyLen, subkey, 0)
       xsalsa20.processBytes(plainText, 0, plainText.length, out, 0)
       poly1305.init(new KeyParameter(subkey))
       poly1305.update(out, 0, plainText.length)
@@ -147,13 +162,13 @@ object XSalsa20Poly1305 extends AuthCipherAPI[XSalsa20Poly1305, BouncySecretKey]
 
       val xsalsa20 = new XSalsa20Engine()
       val poly1305 = new Poly1305()
-      val subkey   = new Array[Byte](MacKeyLen)
+      val subkey   = new Array[Byte](KeyLen)
       val out      = PlainText(new Array[Byte](ct.content.length))
 
       val computedTag = new Array[Byte](tagLen)
 
       xsalsa20.init(false, new ParametersWithIV(new KeyParameter(k), ct.nonce))
-      xsalsa20.processBytes(subkey, 0, MacKeyLen, subkey, 0)
+      xsalsa20.processBytes(subkey, 0, KeyLen, subkey, 0)
       xsalsa20.processBytes(ct.content, 0, ct.content.length, out, 0)
       poly1305.init(new KeyParameter(subkey))
       poly1305.update(ct.content, 0, ct.content.length)

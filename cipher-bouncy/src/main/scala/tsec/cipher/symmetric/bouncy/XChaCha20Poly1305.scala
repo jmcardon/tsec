@@ -12,6 +12,7 @@ import tsec.cipher._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.bouncy.internal.XChaCha20Engine
 import tsec.common.ManagedRandom
+import tsec.keygen.symmetric.SymmetricKeyGen
 
 trait XChaCha20Poly1305
 
@@ -33,6 +34,21 @@ object XChaCha20Poly1305 extends AEADAPI[XChaCha20Poly1305, BouncySecretKey] {
         nextBytes(nonce)
         Iv[XChaCha20Poly1305](nonce)
       }
+    }
+
+  implicit def defaultKeyGen[F[_]](implicit F: Sync[F]): SymmetricKeyGen[F, XChaCha20Poly1305, BouncySecretKey] =
+    new SymmetricKeyGen[F, XChaCha20Poly1305, BouncySecretKey] with ManagedRandom {
+      def generateKey: F[BouncySecretKey[XChaCha20Poly1305]] = F.delay {
+        val kBytes = new Array[Byte](MacKeyLen) //same as key len, 32 bytes
+        nextBytes(kBytes)
+        BouncySecretKey(kBytes)
+      }
+
+      def build(rawKey: Array[Byte]): F[BouncySecretKey[XChaCha20Poly1305]] =
+        if (rawKey.length != MacKeyLen)
+          F.raiseError(CipherKeyBuildError("Invalid key length"))
+        else
+          F.pure(BouncySecretKey(rawKey))
     }
 
   implicit def authEncryptor[F[_]](
