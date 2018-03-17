@@ -54,8 +54,7 @@ object XSalsa20Poly1305 extends AuthCipherAPI[XSalsa20Poly1305, BouncySecretKey]
     }
 
   implicit def authEncryptor[F[_]](
-      implicit F: Sync[F],
-      B: Bouncy
+      implicit F: Sync[F]
   ): AuthEncryptor[F, XSalsa20Poly1305, BouncySecretKey] =
     new AuthEncryptor[F, XSalsa20Poly1305, BouncySecretKey] {
       def encryptDetached(

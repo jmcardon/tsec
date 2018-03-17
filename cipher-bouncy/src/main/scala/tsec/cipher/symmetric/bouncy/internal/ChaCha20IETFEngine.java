@@ -1,6 +1,7 @@
 package tsec.cipher.symmetric.bouncy.internal;
 
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -29,7 +30,7 @@ import java.util.Arrays;
  * conform to the spec.
  *
  */
-public class ChaCha20IETFEngine {
+public class ChaCha20IETFEngine implements StreamCipher {
     public String getAlgorithmName() {
         return "ChaCha20IETF";
     }
@@ -87,6 +88,14 @@ public class ChaCha20IETFEngine {
         engineState[15] = nonceInt[2];
     }
 
+    public byte returnByte(byte in) {
+        throw new IllegalArgumentException("Not used");
+    }
+
+    @Override
+    public void reset() {
+        throw new IllegalArgumentException("Not used");
+    }
 
     /**
      * Initialise our ChaCha20 IETF cipher.
@@ -102,7 +111,7 @@ public class ChaCha20IETFEngine {
      * @throws IllegalArgumentException if the params argument is
      *                                  inappropriate.
      */
-    public void initialize(CipherParameters params) {
+    public void init(boolean unused, CipherParameters params) {
         if (!(params instanceof ParametersWithIV)) {
             throw new IllegalArgumentException(getAlgorithmName() + " Init parameters must include an IV");
         }
