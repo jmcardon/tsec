@@ -50,18 +50,6 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
   ): HttpService[F]
 
-  /** Create an Authorized service from a TSecAuthService **/
-  def liftAuthorizedService(
-      authorization: Authorization[F, User, Auth],
-      service: TSecAuthService[User, Auth, F],
-      onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-  ): HttpService[F] =
-    authorizedMiddleware(authorization, onNotAuthenticated)(service)
-      .handleErrorWith { e =>
-        SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
-        Kleisli.liftF(OptionT.pure(cachedUnauthorized))
-      }
-
 }
 
 object SecuredRequestHandler {
