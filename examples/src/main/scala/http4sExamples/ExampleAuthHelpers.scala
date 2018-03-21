@@ -2,9 +2,11 @@ package http4sExamples
 
 import cats._
 import cats.data.OptionT
-import cats.effect.Sync
+import cats.effect.{IO, Sync}
+import http4sExamples.ExampleAuthHelpers.Role.{Administrator, Customer}
 import tsec.authentication._
 import tsec.authorization._
+import tsec.mac.jca.HMACSHA256
 
 import scala.collection.mutable
 
@@ -59,6 +61,11 @@ object ExampleAuthHelpers {
     protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer, Seller)
     val orElse: Role = CorruptedData
   }
+
+  val AdminRequired: BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]] =
+    BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]](Administrator)
+  val CustomerRequired: BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]] =
+    BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]](Administrator, Customer)
 
   case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)
 
