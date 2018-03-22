@@ -174,6 +174,19 @@ package object authentication {
       }
   }
 
+  object asAware {
+
+    /** Matcher for the http4s dsl
+      * @param ar
+      * @tparam F
+      * @tparam A
+      * @tparam I
+      * @return
+      */
+    def unapply[F[_], I, A](ar: UserAwareRequest[F, I, A]): Option[(Request[F], Option[(I, A)])] =
+      Some(ar.request -> ar.maybe)
+  }
+
   /** Common cookie settings for cookie-based authenticators
     *
     * @param cookieName
