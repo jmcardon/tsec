@@ -21,8 +21,7 @@ import tsec.mac.jca.{JCAMacTag, MacSigningKey}
 
 import scala.concurrent.duration.FiniteDuration
 
-sealed abstract class JWTAuthenticator[F[_]: Sync, I, V, A]
-    extends AuthenticatorService[F, I, V, AugmentedJWT[A, I]]
+sealed abstract class JWTAuthenticator[F[_]: Sync, I, V, A] extends AuthenticatorService[F, I, V, AugmentedJWT[A, I]]
 
 sealed abstract class StatefulJWTAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
@@ -61,7 +60,7 @@ object JWTAuthenticator {
   /** Create a JWT Authenticator that will transport it as a
     * bearer token
     */
-  def withBackingStore[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
+  def withBackingStore[F[_], I, V, A: JWTMacAlgo: JCAMacTag](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
@@ -196,7 +195,7 @@ object JWTAuthenticator {
     * an arbitrary header, with a backing store.
     *
     */
-  def withBackingStoreArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
+  def withBackingStoreArbitrary[F[_], I, V, A: JWTMacAlgo: JCAMacTag](
       settings: TSecJWTSettings,
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
       identityStore: IdentityStore[F, I, V],
