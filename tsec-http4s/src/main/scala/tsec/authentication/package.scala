@@ -69,6 +69,19 @@ package object authentication {
           )
         }
       }
+
+    def withFallthrough[F[_]: Monad, Ident, Auth](
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]],
+        onNotAuthenticated: Request[F] => F[Response[F]]
+    ): TSecMiddleware[F, Ident, Auth] =
+      service => {
+        Kleisli { r: Request[F] =>
+          authedStuff
+            .run(r)
+            .flatMap(service.mapF(o => OptionT.liftF(o.getOrElse(Response[F](Status.NotFound)))).run)
+        }
+      }
+
   }
 
   // The parameter types of TSecAuthService are reversed from what
@@ -83,12 +96,12 @@ package object authentication {
       * [[org.http4s.Response.notFound]], which generates a 404, for any request
       * where `pf` is not defined.
       */
-    def apply[A, I, F[_]](
+    def apply[I, A, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
-    def apply[A, I, F[_]](
+    def apply[I, A, F[_]](
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
         andThen: (Response[F], A) => OptionT[F, Response[F]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
@@ -99,7 +112,7 @@ package object authentication {
             .flatMap(r => andThen(r, req.authenticator))
       )
 
-    def withAuthorization[A, I, F[_]](auth: TAuth[F, I, A])(
+    def withAuthorization[I, A, F[_]](auth: TAuth[F, I, A])(
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli { req: SecuredRequest[F, I, A] =>
