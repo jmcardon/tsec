@@ -66,10 +66,7 @@ object JWTAuthenticator {
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
       identityStore: IdentityStore[F, I, V],
       signingKey: MacSigningKey[A]
-  )(
-      implicit cv: JWSMacCV[F, A],
-      F: Sync[F]
-  ): StatefulJWTAuthenticator[F, I, V, A] =
+  )(implicit cv: JWSMacCV[F, A], F: Sync[F]): StatefulJWTAuthenticator[F, I, V, A] =
     new StatefulJWTAuthenticator[F, I, V, A](expiryDuration, maxIdle) {
 
       def withSettings(s: TSecJWTSettings): StatefulJWTAuthenticator[F, I, V, A] =
