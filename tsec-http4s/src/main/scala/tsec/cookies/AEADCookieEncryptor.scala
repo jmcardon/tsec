@@ -9,12 +9,13 @@ import tsec.common._
 
 object AEADCookieEncryptor {
 
-  def signAndEncrypt[F[_]: Sync, A: AES](message: String, aad: AAD, key: SecretKey[A])(
+  def signAndEncrypt[F[_], A](message: String, aad: AAD, key: SecretKey[A])(
       implicit authEncryptor: JAuthEncryptor[F, A],
-      ivStrat: IvGen[F, A]
+      ivStrat: IvGen[F, A],
+      F: Sync[F]
   ): F[AEADCookie[A]] =
     if (message.isEmpty)
-      Sync[F].raiseError(EncryptError("Cannot encrypt an empty string!"))
+      F.raiseError(EncryptError("Cannot encrypt an empty string!"))
     else {
       val messageBytes = message.utf8Bytes
       for {

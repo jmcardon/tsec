@@ -17,14 +17,14 @@ package object cookies {
   implicit object AEADCookie {
     type Cookie[A] <: String
 
-    @inline def fromEncrypted[A: AES](a: CipherText[A], aad: AAD): AEADCookie[A] =
+    @inline def fromEncrypted[A](a: CipherText[A], aad: AAD): AEADCookie[A] =
       apply[A](a.toConcatenated.toB64String + "-" + aad.toB64String)
 
-    @inline def subst[G[_], A: AES](fa: G[String]): G[AEADCookie[A]] = fa.asInstanceOf[G[AEADCookie[A]]]
+    @inline def subst[G[_], A](fa: G[String]): G[AEADCookie[A]] = fa.asInstanceOf[G[AEADCookie[A]]]
 
-    @inline def unsubst[G[_], A: AES](fa: G[AEADCookie[A]]): G[String] = fa.asInstanceOf[G[String]]
+    @inline def unsubst[G[_], A](fa: G[AEADCookie[A]]): G[String] = fa.asInstanceOf[G[String]]
 
-    @inline def apply[A: AES](raw: String): AEADCookie[A] = raw.asInstanceOf[AEADCookie[A]]
+    @inline def apply[A](raw: String): AEADCookie[A] = raw.asInstanceOf[AEADCookie[A]]
 
     def getEncryptedContent[F[_], A: AES](
         signed: AEADCookie[A]
@@ -37,11 +37,11 @@ package object cookies {
       }
     }
 
-    implicit def circeDecoder[A: AES]: Decoder[AEADCookie[A]] = new Decoder[AEADCookie[A]] {
+    implicit def circeDecoder[A]: Decoder[AEADCookie[A]] = new Decoder[AEADCookie[A]] {
       def apply(c: HCursor) = c.as[String].map(AEADCookie.apply[A])
     }
 
-    implicit def circeEncoder[A: AES]: Encoder[AEADCookie[A]] = new Encoder[AEADCookie[A]] {
+    implicit def circeEncoder[A]: Encoder[AEADCookie[A]] = new Encoder[AEADCookie[A]] {
       def apply(a: AEADCookie[A]): Json = Json.fromString(a)
     }
 

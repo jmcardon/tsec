@@ -21,29 +21,27 @@ import tsec.mac.jca.{JCAMacTag, MacSigningKey}
 
 import scala.concurrent.duration.FiniteDuration
 
-sealed abstract class JWTAuthenticator[F[_]: Sync, I, V, A](implicit jWSMacCV: JWSMacCV[F, A])
+sealed abstract class JWTAuthenticator[F[_]: Sync, I, V, A]
     extends AuthenticatorService[F, I, V, AugmentedJWT[A, I]]
 
 sealed abstract class StatefulJWTAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
-)(implicit jWSMacCV: JWSMacCV[F, A])
-    extends JWTAuthenticator[F, I, V, A] {
+) extends JWTAuthenticator[F, I, V, A] {
   def withSettings(settings: TSecJWTSettings): StatefulJWTAuthenticator[F, I, V, A]
   def withTokenStore(
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]]
   ): StatefulJWTAuthenticator[F, I, V, A]
-  def withIdentityStore(identityStore: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A]
+  def withIdentityStore(identityStore: IdentityStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A]
   def withSigningKey(signingKey: MacSigningKey[A]): StatefulJWTAuthenticator[F, I, V, A]
 }
 
 sealed abstract class StatelessJWTAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
-)(implicit jWSMacCV: JWSMacCV[F, A])
-    extends JWTAuthenticator[F, I, V, A] {
+) extends JWTAuthenticator[F, I, V, A] {
   def withSettings(settings: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A]
-  def withIdentityStore(identityStore: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A]
+  def withIdentityStore(identityStore: IdentityStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A]
   def withSigningKey(signingKey: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A]
 }
 
@@ -67,7 +65,7 @@ object JWTAuthenticator {
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
-      identityStore: BackingStore[F, I, V],
+      identityStore: IdentityStore[F, I, V],
       signingKey: MacSigningKey[A]
   )(
       implicit cv: JWSMacCV[F, A],
@@ -83,7 +81,7 @@ object JWTAuthenticator {
       ): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStore(expiryDuration, maxIdle, ts, identityStore, signingKey)
 
-      def withIdentityStore(is: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A] =
+      def withIdentityStore(is: IdentityStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStore(expiryDuration, maxIdle, tokenStore, is, signingKey)
 
       def withSigningKey(sk: MacSigningKey[A]): StatefulJWTAuthenticator[F, I, V, A] =
@@ -201,7 +199,7 @@ object JWTAuthenticator {
   def withBackingStoreArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       settings: TSecJWTSettings,
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
-      identityStore: BackingStore[F, I, V],
+      identityStore: IdentityStore[F, I, V],
       signingKey: MacSigningKey[A]
   )(implicit cv: JWSMacCV[F, A], F: Sync[F]): StatefulJWTAuthenticator[F, I, V, A] =
     new StatefulJWTAuthenticator[F, I, V, A](settings.expiryDuration, settings.maxIdle) {
@@ -214,7 +212,7 @@ object JWTAuthenticator {
       ): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStoreArbitrary(settings, ts, identityStore, signingKey)
 
-      def withIdentityStore(is: BackingStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A] =
+      def withIdentityStore(is: IdentityStore[F, I, V]): StatefulJWTAuthenticator[F, I, V, A] =
         withBackingStoreArbitrary(settings, tokenStore, is, signingKey)
 
       def withSigningKey(sk: MacSigningKey[A]): StatefulJWTAuthenticator[F, I, V, A] =
@@ -343,7 +341,7 @@ object JWTAuthenticator {
   def stateless[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
       expiry: FiniteDuration,
       maxIdle: Option[FiniteDuration],
-      identityStore: BackingStore[F, I, V],
+      identityStore: IdentityStore[F, I, V],
       signingKey: MacSigningKey[A],
   )(implicit cv: JWSMacCV[F, A], F: Sync[F]): StatelessJWTAuthenticator[F, I, V, A] =
     new StatelessJWTAuthenticator[F, I, V, A](expiry, maxIdle) {
@@ -351,7 +349,7 @@ object JWTAuthenticator {
       def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
         stateless(st.expiryDuration, st.maxIdle, identityStore, signingKey)
 
-      def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
+      def withIdentityStore(is: IdentityStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
         stateless(expiry, maxIdle, is, signingKey)
 
       def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A] =
@@ -489,7 +487,7 @@ object JWTAuthenticator {
   def statelessEncrypted[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
-      identityStore: BackingStore[F, I, V],
+      identityStore: IdentityStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
   )(
@@ -504,7 +502,7 @@ object JWTAuthenticator {
       def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
         statelessEncrypted(st.expiryDuration, st.maxIdle, identityStore, signingKey, encryptionKey)
 
-      def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
+      def withIdentityStore(is: IdentityStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
         statelessEncrypted(expiryDuration, maxIdle, is, signingKey, encryptionKey)
 
       def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A] =
@@ -656,7 +654,7 @@ object JWTAuthenticator {
     */
   def statelessEncryptedArbitrary[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag, E](
       settings: TSecJWTSettings,
-      identityStore: BackingStore[F, I, V],
+      identityStore: IdentityStore[F, I, V],
       signingKey: MacSigningKey[A],
       encryptionKey: SecretKey[E]
   )(
@@ -671,7 +669,7 @@ object JWTAuthenticator {
       def withSettings(st: TSecJWTSettings): StatelessJWTAuthenticator[F, I, V, A] =
         statelessEncryptedArbitrary(st, identityStore, signingKey, encryptionKey)
 
-      def withIdentityStore(is: BackingStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
+      def withIdentityStore(is: IdentityStore[F, I, V]): StatelessJWTAuthenticator[F, I, V, A] =
         statelessEncryptedArbitrary(settings, is, signingKey, encryptionKey)
 
       def withSigningKey(sk: MacSigningKey[A]): StatelessJWTAuthenticator[F, I, V, A] =
