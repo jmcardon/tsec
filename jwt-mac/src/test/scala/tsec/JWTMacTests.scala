@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.scalatest.MustMatchers
+import tsec.common._
 import tsec.jws.JWSSerializer
 import tsec.jws.mac._
 import tsec.jwt.JWTClaims
@@ -57,6 +58,24 @@ class JWTMacTests extends TestSpec with MustMatchers {
       } yield verified
 
       res.unsafeRunSync() mustBe true
+    }
+
+    it should "parse unverified correctly" in {
+      val res = for {
+        key    <- keyGen.generateKey
+        claims <- JWTClaims.withDuration[IO](notBefore = Some(-2.seconds), expiration = Some(10.seconds))
+        jwt <- JWTMac.build[IO, A](
+          claims,
+          key
+        )
+        str = JWTMac.toEncodedString[IO, A](jwt)
+        verified <- JWTMac.parseUnverified[IO, A](str)
+      } yield (jwt, verified)
+
+      val (l, r) = res.unsafeRunSync()
+
+      l.signature.toHexString mustBe r.signature.toHexString
+      l.header mustBe r.header
     }
 
     it should "fail verification for expired token" in {

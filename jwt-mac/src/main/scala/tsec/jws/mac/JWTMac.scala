@@ -93,6 +93,10 @@ object JWTMac {
   def toEncodedString[F[_], A: JWTMacAlgo](
       jwt: JWTMac[A]
   )(implicit s: JWSMacCV[F, A], me: Sync[F]): String = s.toEncodedString(jwt)
+
+  def parseUnverified[F[_], A: JWTMacAlgo](
+      jwt: String
+  )(implicit s: JWSMacCV[F, A], me: Sync[F]): F[JWTMac[A]] = s.parseUnverified(jwt)
 }
 
 object JWTMacImpure {
@@ -163,4 +167,8 @@ object JWTMacImpure {
   def toEncodedString[A: JWTMacAlgo](
       jwt: JWTMac[A]
   )(implicit s: JWSMacCV[MacErrorM, A]): String = s.toEncodedString(jwt)
+
+  def parseUnverified[A: JWTMacAlgo](
+      jwt: String
+  )(implicit s: JWSMacCV[MacErrorM, A]): MacErrorM[JWTMac[A]] = s.parseUnverified(jwt)
 }
