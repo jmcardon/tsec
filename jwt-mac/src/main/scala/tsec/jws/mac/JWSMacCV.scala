@@ -88,6 +88,19 @@ sealed abstract class JWSMacCV[F[_], A](
 
   def toEncodedString(jwt: JWTMac[A]): String =
     hs.toB64URL(jwt.header) + "." + JWTClaims.toB64URL(jwt.body) + "." + jwt.signature.toB64UrlString
+
+  def parseUnverified(jwt: String): F[JWTMac[A]] = {
+    val split = jwt.split("\\.", 3)
+    if (split.length != 3)
+      M.raiseError(defaultError)
+    else {
+      val signedBytes: Array[Byte] = split(2).base64UrlBytes
+      for {
+        header <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
+        claims <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
+      } yield JWTMac.buildToken[A](header, claims, MAC[A](signedBytes))
+    }
+  }
 }
 
 object JWSMacCV {
