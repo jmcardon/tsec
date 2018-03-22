@@ -1,6 +1,6 @@
 package tsec
 
-import cats.Eq
+import cats.{Eq, MonadError}
 import cats.instances.string._
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import tsec.cipher.common.padding.NoPadding
@@ -8,19 +8,21 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.mac.MAC
-import tsec.mac.jca.{JCAMacTag, MacVerificationError}
+import tsec.mac.jca.MacVerificationError
 
 package object cookies {
 
   type AEADCookie[A] = AEADCookie.Cookie[A]
 
-  implicit object AEADCookie  {
+  implicit object AEADCookie {
     type Cookie[A] <: String
 
     @inline def fromEncrypted[A: AES](a: CipherText[A], aad: AAD): AEADCookie[A] =
       apply[A](a.toConcatenated.toB64String + "-" + aad.toB64String)
 
-    @inline def subst[G[_], A: AES](fa: G[AEADCookie[A]]): G[String] = fa.asInstanceOf[G[String]]
+    @inline def subst[G[_], A: AES](fa: G[String]): G[AEADCookie[A]] = fa.asInstanceOf[G[AEADCookie[A]]]
+
+    @inline def unsubst[G[_], A: AES](fa: G[AEADCookie[A]]): G[String] = fa.asInstanceOf[G[String]]
 
     @inline def apply[A: AES](raw: String): AEADCookie[A] = raw.asInstanceOf[AEADCookie[A]]
 
@@ -50,28 +52,23 @@ package object cookies {
   implicit object SignedCookie {
     type Cookie[A] <: String
 
-    @inline def from[A: JCAMacTag](signed: MAC[A], joined: String): SignedCookie[A] =
+    @inline def from[A](signed: MAC[A], joined: String): SignedCookie[A] =
       apply[A](joined + "-" + signed.toB64String)
 
-    @inline def apply[A: JCAMacTag](raw: String): SignedCookie[A] = raw.asInstanceOf[SignedCookie[A]]
+    @inline def apply[A](raw: String): SignedCookie[A] = raw.asInstanceOf[SignedCookie[A]]
 
-    def getContent[A: JCAMacTag](signed: SignedCookie[A]): Either[MacVerificationError, String] = {
-      val split = signed.split("-")
-      if (split.length != 2)
-        Left(MacVerificationError("String encoded improperly"))
-      else {
-        fromDecodedString(split(0).base64Bytes.toUtf8String)
-      }
-    }
+    @inline def subst[G[_], A](fa: G[String]): G[SignedCookie[A]] = fa.asInstanceOf[G[SignedCookie[A]]]
 
-    def fromDecodedString(original: String): Either[MacVerificationError, String] =
+    @inline def unsubst[G[_], A](fa: G[SignedCookie[A]]): G[String] = fa.asInstanceOf[G[String]]
+
+    def fromDecodedString[F[_]](original: String)(implicit F: MonadError[F, Throwable]): F[String] =
       original.split("-") match {
         case Array(orig, nonce) =>
-          Right(orig.base64Bytes.toUtf8String)
+          F.pure(orig.base64Bytes.toUtf8String)
         case _ =>
-          Left(MacVerificationError("String encoded improperly"))
+          F.raiseError(MacVerificationError("String encoded improperly"))
       }
   }
-  implicit final def cookieEQ[A: JCAMacTag]: Eq[SignedCookie[A]] = Eq.by[SignedCookie[A], String](identity[String])
-  implicit final def ecookieEQ[A: AES]: Eq[AEADCookie[A]]        = Eq.by[AEADCookie[A], String](identity[String])
+  implicit final def cookieEQ[A]: Eq[SignedCookie[A]] = SignedCookie.subst(Eq[String])
+  implicit final def ecookieEQ[A]: Eq[AEADCookie[A]]  = Eq.by[AEADCookie[A], String](identity[String])
 }

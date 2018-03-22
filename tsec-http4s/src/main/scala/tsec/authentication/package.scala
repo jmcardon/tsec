@@ -17,10 +17,14 @@ import scala.util.control.NonFatal
 
 package object authentication {
 
-  trait BackingStore[F[_], I, V] {
-    def put(elem: V): F[V]
+  trait IdentityStore[F[_], I, V] {
 
     def get(id: I): OptionT[F, V]
+
+  }
+
+  trait BackingStore[F[_], I, V] extends IdentityStore[F, I, V] {
+    def put(elem: V): F[V]
 
     def update(v: V): F[V]
 

@@ -6,16 +6,16 @@ import java.util.UUID
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.syntax.all._
-import io.circe.{Decoder, Encoder}
 import org.http4s._
 import tsec.common._
 import tsec.cookies._
 import tsec.hashing.jca._
+import tsec.mac.MessageAuth
 import tsec.mac.jca._
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg: JCAMacTag] private[tsec] (
+abstract class SignedCookieAuthenticator[F[_]: Sync, I, V, Alg] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
 ) extends AuthenticatorService[F, I, V, AuthenticatedCookie[Alg, I]]
@@ -80,14 +80,14 @@ object AuthenticatedCookie {
 
 object SignedCookieAuthenticator {
 
-  private[tsec] def isExpired[I: Encoder: Decoder, Alg: JCAMacTag](
+  private[tsec] def isExpired[I, Alg](
       internal: AuthenticatedCookie[Alg, I],
       now: Instant,
       maxIdle: Option[FiniteDuration]
   ): Boolean =
     !internal.isExpired(now) && !maxIdle.exists(internal.isTimedOut(now, _))
 
-  private[tsec] def validateCookie[I: Encoder: Decoder, Alg: JCAMacTag](
+  private[tsec] def validateCookie[I, Alg](
       internal: AuthenticatedCookie[Alg, I],
       raw: SignedCookie[Alg],
       now: Instant,
@@ -95,47 +95,13 @@ object SignedCookieAuthenticator {
   ): Boolean =
     internal.content === raw && isExpired[I, Alg](internal, now, maxIdle)
 
-  def apply[F[_], I: Decoder: Encoder, V, Alg: JCAMacTag](
+  def apply[F[_], I, V, Alg](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
-      idStore: BackingStore[F, I, V],
+      idStore: IdentityStore[F, I, V],
       key: MacSigningKey[Alg]
-  )(implicit F: Sync[F]): SignedCookieAuthenticator[F, I, V, Alg] =
+  )(implicit F: Sync[F], S: MessageAuth[F, Alg, MacSigningKey]): SignedCookieAuthenticator[F, I, V, Alg] =
     new SignedCookieAuthenticator[F, I, V, Alg](settings.expiryDuration, settings.maxIdle) {
-
-      def withNewKey(newKey: MacSigningKey[Alg]): SignedCookieAuthenticator[F, I, V, Alg] =
-        apply[F, I, V, Alg](
-          settings: TSecCookieSettings,
-          tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
-          idStore: BackingStore[F, I, V],
-          newKey
-        )
-
-      def withTokenStore(
-          newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]]
-      ): SignedCookieAuthenticator[F, I, V, Alg] =
-        apply[F, I, V, Alg](
-          settings: TSecCookieSettings,
-          newStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
-          idStore: BackingStore[F, I, V],
-          key
-        )
-
-      def withIdStore(newStore: BackingStore[F, I, V]): SignedCookieAuthenticator[F, I, V, Alg] =
-        apply[F, I, V, Alg](
-          settings: TSecCookieSettings,
-          tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
-          newStore,
-          key
-        )
-
-      def withSettings(newSettings: TSecCookieSettings): SignedCookieAuthenticator[F, I, V, Alg] =
-        apply[F, I, V, Alg](
-          newSettings: TSecCookieSettings,
-          tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
-          idStore,
-          key
-        )
 
       /** Generate a nonce by concatenating the message to be sent with the current instant and hashing their result
         * Possibly this should be a variable argument, but for now SHA1 is enough, since the chance for collision is
@@ -164,7 +130,7 @@ object SignedCookieAuthenticator {
         (for {
           now <- OptionT.liftF(F.delay(Instant.now()))
           coerced = SignedCookie[Alg](raw)
-          contentRaw <- OptionT.liftF(F.fromEither(CookieSigner.verifyAndRetrieve[Alg](coerced, key)))
+          contentRaw <- OptionT.liftF(CookieSigner.verifyAndRetrieve(coerced, key))
           tokenId    <- uuidFromRaw[F](contentRaw)
           authed     <- tokenStore.get(tokenId)
           refreshed  <- validateAndRefresh(authed, coerced, now)
@@ -184,7 +150,7 @@ object SignedCookieAuthenticator {
           now <- F.delay(Instant.now())
           expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
           lastTouched = settings.maxIdle.map(_ => now)
-          signed <- F.fromEither(CookieSigner.sign[Alg](messageBody, generateNonce(messageBody), key))
+          signed <- CookieSigner.sign(messageBody, generateNonce(messageBody), key)
           cookie <- F.pure(
             AuthenticatedCookie.build[Alg, I](cookieId, signed, body, expiry, lastTouched, settings)
           )

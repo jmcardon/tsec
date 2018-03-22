@@ -7,6 +7,7 @@ import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.cookies.CookieSigner
 import tsec.mac.jca.{JCAMacTag, _}
+import cats.instances.either._
 
 class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
 
@@ -19,8 +20,8 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (s: String) =>
         val verified = for {
           key    <- keyGen.generateKey
-          signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          verify <- CookieSigner.verify[A](signed, key)
+          signed <- CookieSigner.sign(s, System.currentTimeMillis().toString, key)
+          verify <- CookieSigner.verify(signed, key)
         } yield verify
 
         if (s.isEmpty)
@@ -34,8 +35,8 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (s: String) =>
         val verified = for {
           key    <- keyGen.generateKey
-          signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          verify <- CookieSigner.verifyAndRetrieve[A](signed, key)
+          signed <- CookieSigner.sign(s, System.currentTimeMillis().toString, key)
+          verify <- CookieSigner.verifyAndRetrieve(signed, key)
         } yield verify
 
         if (s.isEmpty)
@@ -50,8 +51,8 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
         val verified = for {
           key    <- keyGen.generateKey
           key2   <- keyGen.generateKey
-          signed <- CookieSigner.sign[A](s, System.currentTimeMillis().toString, key)
-          verify <- CookieSigner.verify[A](signed, key2)
+          signed <- CookieSigner.sign(s, System.currentTimeMillis().toString, key)
+          verify <- CookieSigner.verify(signed, key2)
         } yield verify
 
         if (s.isEmpty)
@@ -65,8 +66,8 @@ class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
       forAll { (s: UUID) =>
         val verified = for {
           key    <- keyGen.generateKey
-          signed <- CookieSigner.sign[A](s.toString, System.currentTimeMillis().toString, key)
-          verify <- CookieSigner.verifyAndRetrieve[A](signed, key)
+          signed <- CookieSigner.sign(s.toString, System.currentTimeMillis().toString, key)
+          verify <- CookieSigner.verifyAndRetrieve(signed, key)
         } yield UUID.fromString(verify)
         verified mustBe Right(s)
       }
