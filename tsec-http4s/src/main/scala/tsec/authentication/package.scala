@@ -127,7 +127,7 @@ package object authentication {
       * @tparam A - Ignored
       * @return
       */
-    def empty[A, It, F[_]: Applicative]: TSecAuthService[I, A, F] =
+    def empty[A, I, F[_]: Applicative]: TSecAuthService[I, A, F] =
       Kleisli.liftF(OptionT.none)
   }
 
