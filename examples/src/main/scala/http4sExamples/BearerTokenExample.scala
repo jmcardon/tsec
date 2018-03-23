@@ -1,6 +1,7 @@
 package http4sExamples
 
 import cats.effect.IO
+import cats.syntax.semigroupk._
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
@@ -14,6 +15,8 @@ object BearerTokenExample {
 
   val bearerTokenStore =
     dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
+
+  type AuthService = TSecAuthService[User, TSecBearerToken[Int], IO]
 
   //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
@@ -33,16 +36,7 @@ object BearerTokenExample {
   val Auth =
     SecuredRequestHandler(bearerTokenAuth)
 
-  val authservice: TSecAuthService[User, TSecBearerToken[Int], IO] = TSecAuthService {
-    case GET -> Root asAuthed user =>
-      Ok()
-  }
-
-  /*
-  Now from here, if want want to create services, we simply use the following
-  (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
-   */
-  val service: HttpService[IO] = Auth {
+  val authService1: AuthService = TSecAuthService {
     //Where user is the case class User above
     case request @ GET -> Root / "api" asAuthed user =>
       /*
@@ -54,4 +48,12 @@ object BearerTokenExample {
       val r: SecuredRequest[IO, User, TSecBearerToken[Int]] = request
       Ok()
   }
+
+  val authedService2: AuthService = TSecAuthService {
+    case GET -> Root / "api2" asAuthed user =>
+      Ok()
+  }
+
+  val lifted: HttpService[IO] = Auth.liftService(authService1)
+  val liftedComposed: HttpService[IO] = Auth.liftService(authService1 <+> authedService2)
 }

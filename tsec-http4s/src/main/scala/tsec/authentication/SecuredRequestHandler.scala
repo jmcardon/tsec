@@ -25,6 +25,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   }
 
   /** Compose Requests **/
+  @deprecated("Use TSecAuthService + liftService", "0.0.1-M10")
   def apply(
       pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
@@ -44,7 +45,33 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
       }
   }
 
+  def liftWithFallthrough(
+      service: TSecAuthService[User, Auth, F],
+      onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
+  ): HttpService[F] = {
+    val middleware = TSecMiddleware.withFallthrough(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
+
+    middleware(service)
+      .handleErrorWith { e =>
+        SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
+        Kleisli.liftF(OptionT.pure(cachedUnauthorized))
+      }
+  }
+
+  def liftUserAware(
+    service: UserAwareService[User, Auth, F]
+  ): HttpService[F] = {
+    val middleware = UserAwareService.extract(Kleisli(authenticator.extractAndValidate))
+
+    middleware(service)
+      .handleErrorWith { e =>
+        SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
+        Kleisli.liftF(OptionT.pure(cachedUnauthorized))
+      }
+  }
+
   /** Create an Authorized Service **/
+  @deprecated("Use TSecAuthService + liftService", "0.0.1-M10")
   def authorized(authorization: Authorization[F, User, Auth])(
       pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated

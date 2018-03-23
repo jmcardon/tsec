@@ -8,8 +8,7 @@ import tsec.cipher.symmetric.libsodium._
 import tsec.keygen.symmetric.{IdKeyGen, SymmetricKeyGen}
 import tsec.libsodium.ScalaSodium
 
-
-private[tsec] trait SodiumCipherPlatform[A]
+private[tsec] abstract class SodiumCipherPlatform[A]
     extends SodiumKeyGenerator[A]
     with SodiumAuthCipher[A]
     with SodiumCipherAPI[A] {

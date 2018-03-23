@@ -40,7 +40,7 @@ package object jca extends CipherErrors {
 
   implicit final def _secretKeySyntax[A](key: SecretKey[A]) = new SecretKeySyntax[A](key)
 
-  class WithCipherMode[M](val mode: String) extends CipherMode[M] {
+  private[tsec] class WithCipherMode[M](val mode: String) extends CipherMode[M] {
     implicit val m: CipherMode[M] = this
   }
 

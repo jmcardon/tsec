@@ -31,7 +31,7 @@ sealed abstract class StatefulECAuthenticator[F[_]: Sync, I, V, A] private[tsec]
 
   def withSettings(settings: TSecCookieSettings): StatefulECAuthenticator[F, I, V, A]
 
-  def withIdentityStore(newStore: BackingStore[F, I, V]): StatefulECAuthenticator[F, I, V, A]
+  def withIdentityStore(newStore: IdentityStore[F, I, V]): StatefulECAuthenticator[F, I, V, A]
 
   def withTokenStore(
       newStore: BackingStore[F, UUID, AuthEncryptedCookie[A, I]]
@@ -46,7 +46,7 @@ sealed abstract class StatelessECAuthenticator[F[_]: Sync, I, V, A] private[tsec
 
   def withSettings(settings: TSecCookieSettings): StatelessECAuthenticator[F, I, V, A]
 
-  def withIdentityStore(newStore: BackingStore[F, I, V]): StatelessECAuthenticator[F, I, V, A]
+  def withIdentityStore(newStore: IdentityStore[F, I, V]): StatelessECAuthenticator[F, I, V, A]
 }
 
 /** An authenticated cookie implementation
@@ -135,7 +135,7 @@ object AuthEncryptedCookie {
 
 object EncryptedCookieAuthenticator {
 
-  private[tsec] def isExpired[I: Encoder: Decoder, A: AESGCM](
+  private[tsec] def isExpired[I, A](
       internal: AuthEncryptedCookie[A, I],
       now: Instant,
       maxIdle: Option[FiniteDuration]
@@ -154,10 +154,10 @@ object EncryptedCookieAuthenticator {
     * @tparam V the expected user type, V aka value
     * @return An encrypted cookie authenticator
     */
-  def withBackingStore[F[_], I: Decoder: Encoder, V, A: AESGCM](
+  def withBackingStore[F[_], I, V, A: AES](
       settings: TSecCookieSettings,
       tokenStore: BackingStore[F, UUID, AuthEncryptedCookie[A, I]],
-      identityStore: BackingStore[F, I, V],
+      identityStore: IdentityStore[F, I, V],
       key: SecretKey[A]
   )(
       implicit F: Sync[F],
@@ -185,7 +185,7 @@ object EncryptedCookieAuthenticator {
         )
 
       /** Return a new instance with a different identity store */
-      def withIdentityStore(newStore: BackingStore[F, I, V]): StatefulECAuthenticator[F, I, V, A] =
+      def withIdentityStore(newStore: IdentityStore[F, I, V]): StatefulECAuthenticator[F, I, V, A] =
         withBackingStore(
           settings,
           tokenStore,
@@ -330,9 +330,9 @@ object EncryptedCookieAuthenticator {
     * we encrypt it as part of the contents
     *
     */
-  def stateless[F[_], I: Decoder: Encoder, V, A: AESGCM](
+  def stateless[F[_], I: Decoder: Encoder, V, A: AES](
       settings: TSecCookieSettings,
-      identityStore: BackingStore[F, I, V],
+      identityStore: IdentityStore[F, I, V],
       key: SecretKey[A]
   )(
       implicit F: Sync[F],
@@ -355,7 +355,7 @@ object EncryptedCookieAuthenticator {
           key
         )
 
-      def withIdentityStore(newStore: BackingStore[F, I, V]): StatelessECAuthenticator[F, I, V, A] =
+      def withIdentityStore(newStore: IdentityStore[F, I, V]): StatelessECAuthenticator[F, I, V, A] =
         stateless[F, I, V, A](
           settings,
           newStore,

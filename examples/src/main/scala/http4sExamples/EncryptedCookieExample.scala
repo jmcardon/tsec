@@ -3,6 +3,7 @@ package http4sExamples
 import java.util.UUID
 
 import cats.effect.IO
+import cats.syntax.semigroupk._
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
@@ -13,6 +14,7 @@ import scala.concurrent.duration._
 object EncryptedCookieExample {
 
   import ExampleAuthHelpers._
+  type AuthService = TSecAuthService[User, AuthEncryptedCookie[AES128GCM, Int], IO]
 
   implicit val encryptor   = AES128GCM.genEncryptor[IO].unsafeRunSync()
   implicit val gcmstrategy = AES128GCM.defaultIvStrategy[IO]
@@ -54,7 +56,7 @@ object EncryptedCookieExample {
   Now from here, if want want to create services, we simply use the following
   (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
    */
-  val service: HttpService[IO] = Auth {
+  val rawService1: AuthService = TSecAuthService {
     //Where user is the case class User above
     case request @ GET -> Root / "api" asAuthed user =>
       /*
@@ -66,5 +68,14 @@ object EncryptedCookieExample {
       val r: SecuredRequest[IO, User, AuthEncryptedCookie[AES128GCM, Int]] = request
       Ok()
   }
+
+  val rawService2: AuthService = TSecAuthService {
+    case request @ GET -> Root / "api2" asAuthed user =>
+      val r: SecuredRequest[IO, User, AuthEncryptedCookie[AES128GCM, Int]] = request
+      Ok()
+  }
+
+  val liftedService: HttpService[IO]  = Auth.liftService(rawService1)
+  val liftedComposed: HttpService[IO] = Auth.liftService(rawService1 <+> rawService2)
 
 }

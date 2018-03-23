@@ -4,7 +4,6 @@ import cats.effect.IO
 import cats.Id
 import cats.implicits._
 import org.http4s.dsl.io._
-import org.http4s.implicits._
 import tsec.authentication._
 import tsec.common.SecureRandomId
 import tsec.mac.jca.{HMACSHA256, MacSigningKey}
