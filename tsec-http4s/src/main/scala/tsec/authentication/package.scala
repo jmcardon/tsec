@@ -55,10 +55,10 @@ package object authentication {
     Middleware[OptionT[F, ?], SecuredRequest[F, I, A], Response[F], Request[F], Response[F]]
 
   object TSecMiddleware {
-    def apply[F[_]: Monad, Ident, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]],
+    def apply[F[_]: Monad, I, Auth](
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Auth]],
         onNotAuthenticated: Request[F] => F[Response[F]]
-    ): TSecMiddleware[F, Ident, Auth] =
+    ): TSecMiddleware[F, I, Auth] =
       service => {
         Kleisli { r: Request[F] =>
           OptionT.liftF(
@@ -70,10 +70,10 @@ package object authentication {
         }
       }
 
-    def withFallthrough[F[_]: Monad, Ident, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]],
+    def withFallthrough[F[_]: Monad, I, Auth](
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Auth]],
         onNotAuthenticated: Request[F] => F[Response[F]]
-    ): TSecMiddleware[F, Ident, Auth] =
+    ): TSecMiddleware[F, I, Auth] =
       service => {
         Kleisli { r: Request[F] =>
           authedStuff
@@ -88,7 +88,7 @@ package object authentication {
   // we'd expect. This is a workaround to ensure partial unification
   // is triggered.  See https://github.com/jmcardon/tsec/issues/88 for
   // more info.
-  type TSecAuthService[Ident, A, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, Ident, A], Response[F]]
+  type TSecAuthService[I, A, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, I, A], Response[F]]
 
   object TSecAuthService {
 
@@ -123,19 +123,19 @@ package object authentication {
 
     /** The empty service (all requests fallthrough).
       * @tparam F - Ignored
-      * @tparam Ident - Ignored
+      * @tparam I - Ignored
       * @tparam A - Ignored
       * @return
       */
-    def empty[A, Ident, F[_]: Applicative]: TSecAuthService[Ident, A, F] =
+    def empty[A, It, F[_]: Applicative]: TSecAuthService[I, A, F] =
       Kleisli.liftF(OptionT.none)
   }
 
-  type UserAwareService[Ident, A, F[_]] =
-    Kleisli[OptionT[F, ?], UserAwareRequest[F, Ident, A], Response[F]]
+  type UserAwareService[I, A, F[_]] =
+    Kleisli[OptionT[F, ?], UserAwareRequest[F, I, A], Response[F]]
 
-  type UserAwareMiddleware[F[_], Ident, A] =
-    Middleware[OptionT[F, ?], UserAwareRequest[F, Ident, A], Response[F], Request[F], Response[F]]
+  type UserAwareMiddleware[F[_], I, A] =
+    Middleware[OptionT[F, ?], UserAwareRequest[F, I, A], Response[F], Request[F], Response[F]]
 
   object UserAwareService {
     def apply[I, A, F[_]](
@@ -158,9 +158,9 @@ package object authentication {
             .flatMap(r => andThen(r, req.maybe))
       )
 
-    def extract[F[_]: Monad, Ident, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
-    ): UserAwareMiddleware[F, Ident, Auth] =
+    def extract[F[_]: Monad, I, Auth](
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Auth]]
+    ): UserAwareMiddleware[F, I, Auth] =
       service => {
         Kleisli { r: Request[F] =>
           OptionT.liftF(
