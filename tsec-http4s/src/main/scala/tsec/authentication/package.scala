@@ -31,12 +31,12 @@ package object authentication {
     def delete(id: I): F[Unit]
   }
 
-  type AuthExtractorService[F[_], Ident, Auth] = Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
-
   /** Inspired from the Silhouette `SecuredRequest`
     *
     */
   final case class SecuredRequest[F[_], Identity, Auth](request: Request[F], identity: Identity, authenticator: Auth)
+
+  final case class UserAwareRequest[F[_], Identity, Auth](request: Request[F], maybe: Option[(Identity, Auth)])
 
   object asAuthed {
 
@@ -129,6 +129,62 @@ package object authentication {
       */
     def empty[A, Ident, F[_]: Applicative]: TSecAuthService[Ident, A, F] =
       Kleisli.liftF(OptionT.none)
+  }
+
+  type UserAwareService[Ident, A, F[_]] =
+    Kleisli[OptionT[F, ?], UserAwareRequest[F, Ident, A], Response[F]]
+
+  type UserAwareMiddleware[F[_], Ident, A] =
+    Middleware[OptionT[F, ?], UserAwareRequest[F, Ident, A], Response[F], Request[F], Response[F]]
+
+  object UserAwareService {
+    def apply[I, A, F[_]](
+        pf: PartialFunction[UserAwareRequest[F, I, A], F[Response[F]]]
+    )(implicit F: Monad[F]): UserAwareService[I, A, F] =
+      Kleisli(
+        req =>
+          pf.andThen(OptionT.liftF(_))
+            .applyOrElse(req, Function.const(OptionT.none[F, Response[F]]))
+      )
+
+    def apply[I, A, F[_]](
+        pf: PartialFunction[UserAwareRequest[F, I, A], F[Response[F]]],
+        andThen: (Response[F], Option[(I, A)]) => OptionT[F, Response[F]]
+    )(implicit F: Monad[F]): UserAwareService[I, A, F] =
+      Kleisli(
+        req =>
+          pf.andThen(OptionT.liftF(_))
+            .applyOrElse(req, Function.const(OptionT.none[F, Response[F]]))
+            .flatMap(r => andThen(r, req.maybe))
+      )
+
+    def extract[F[_]: Monad, Ident, Auth](
+        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, Ident, Auth]]
+    ): UserAwareMiddleware[F, Ident, Auth] =
+      service => {
+        Kleisli { r: Request[F] =>
+          OptionT.liftF(
+            authedStuff
+              .map(r => UserAwareRequest(r.request, Some((r.identity, r.authenticator))))
+              .run(r)
+              .getOrElse(UserAwareRequest(r, None))
+              .flatMap(service.mapF(o => o.getOrElse(Response[F](Status.NotFound))).run)
+          )
+        }
+      }
+  }
+
+  object asAware {
+
+    /** Matcher for the http4s dsl
+      * @param ar
+      * @tparam F
+      * @tparam A
+      * @tparam I
+      * @return
+      */
+    def unapply[F[_], I, A](ar: UserAwareRequest[F, I, A]): Option[(Request[F], Option[(I, A)])] =
+      Some(ar.request -> ar.maybe)
   }
 
   /** Common cookie settings for cookie-based authenticators

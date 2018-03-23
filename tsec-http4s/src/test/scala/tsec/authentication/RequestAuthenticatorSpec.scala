@@ -51,6 +51,19 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         Ok()
     }
 
+    val userAwareService: UserAwareService[DummyUser, A, IO] = UserAwareService {
+      case GET -> Root asAware u =>
+        u match {
+          case Some((user, auth)) =>
+            Ok()
+
+          case None =>
+            BadRequest()
+        }
+    }
+
+    val liftedUserAware: HttpService[IO] = requestAuth.liftUserAware(userAwareService)
+
     it should "TryExtractRaw properly" in {
 
       val response: OptionT[IO, Option[String]] = for {
@@ -200,6 +213,23 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         .getOrElse(Response[IO](status = Status.Forbidden))
         .map(_.status)
         .unsafeRunSync() mustBe Status.Unauthorized
+    }
+
+    it should "extract properly for a user aware service" in {
+
+      val response: OptionT[IO, (Status, Status)] = for {
+        auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob.id))
+        embedded    = authSpec.embedInRequest(Request[IO](GET), auth)
+        nonEmbedded = Request[IO](GET)
+        s1 <- liftedUserAware.run(embedded).map(_.status)
+        s2 <- liftedUserAware.run(nonEmbedded).map(_.status)
+      } yield (s1, s2)
+      val (l, r) = response
+        .getOrElse((NotFound, NotFound))
+        .unsafeRunSync()
+
+      l mustBe Ok
+      r mustBe BadRequest
     }
 
   }
