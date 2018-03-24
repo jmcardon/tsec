@@ -22,9 +22,6 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       Some(10.minutes)
     )
 
-  implicit def backingStore[A]: BackingStore[IO, SecureRandomId, JWTMac[A]] =
-    dummyBackingStore[IO, SecureRandomId, JWTMac[A]](s => SecureRandomId.coerce(s.id))
-
   implicit def backingStore2[A]: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]] =
     dummyBackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]](s => SecureRandomId.coerce(s.id))
 

@@ -113,7 +113,8 @@ object JWTAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-          retrieved <- tokenStore.get(SecureRandomId(extracted.id))
+          id        <- OptionT.fromOption[F](extracted.id)
+          retrieved <- tokenStore.get(SecureRandomId(id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed))
@@ -121,13 +122,13 @@ object JWTAuthenticator {
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
-          cookieId <- F.delay(SecureRandomId.generate)
+          cookieId <- F.delay(SecureRandomId.Interactive.generate)
           now      <- F.delay(Instant.now())
           expiry      = now.plusSeconds(expiryDuration.toSeconds)
           lastTouched = maxIdle.map(_ => now)
           claims = JWTClaims(
             issuedAt = Some(now),
-            jwtId = cookieId,
+            jwtId = Some(cookieId),
             expiration = Some(expiry)
           )
           signed  <- JWTMac.build[F, A](claims, signingKey)
@@ -244,7 +245,8 @@ object JWTAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-          retrieved <- tokenStore.get(SecureRandomId(extracted.id))
+          id        <- OptionT.fromOption[F](extracted.id)
+          retrieved <- tokenStore.get(SecureRandomId(id))
           refreshed <- verifyAndRefresh(raw, retrieved, now)
           identity  <- identityStore.get(retrieved.identity)
         } yield SecuredRequest(request, identity, refreshed))
@@ -252,12 +254,12 @@ object JWTAuthenticator {
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
-          cookieId <- F.delay(SecureRandomId.generate)
+          cookieId <- F.delay(SecureRandomId.Interactive.generate)
           now      <- F.delay(Instant.now())
           expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
           lastTouched = settings.maxIdle.map(_ => now)
           claims = JWTClaims(
-            jwtId = cookieId,
+            jwtId = Some(cookieId),
             expiration = Some(expiry)
           )
           signed  <- JWTMac.build[F, A](claims, signingKey)
@@ -374,11 +376,12 @@ object JWTAuthenticator {
         (for {
           now         <- OptionT.liftF(F.delay(Instant.now()))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
+          jwtid       <- OptionT.fromOption[F](extracted.id)
           id          <- OptionT.fromOption[F](extracted.body.subject.flatMap(decode[I](_).toOption))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           lastTouched <- verify(extracted)
           augmented = AugmentedJWT(
-            SecureRandomId.coerce(extracted.body.jwtId),
+            SecureRandomId.coerce(jwtid),
             extracted,
             id,
             expiry,
@@ -392,14 +395,14 @@ object JWTAuthenticator {
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
           now      <- F.delay(Instant.now())
-          cookieId <- F.delay(SecureRandomId.generate)
+          cookieId <- F.delay(SecureRandomId.Interactive.generate)
           expiryTime  = now.plusSeconds(expiry.toSeconds)
           lastTouched = maxIdle.map(_ => now)
           subj        = Some(body.asJson.pretty(JWTPrinter))
           claims = JWTClaims(
             issuedAt = Some(now),
             subject = subj,
-            jwtId = cookieId,
+            jwtId = Some(cookieId),
             expiration = Some(expiryTime),
           )
           out <- JWTMac.build[F, A](claims, signingKey)
@@ -554,11 +557,12 @@ object JWTAuthenticator {
           now         <- OptionT.liftF(F.delay(Instant.now))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
+          id          <- OptionT.fromOption[F](extracted.id)
           lastTouched <- checkTimeout(extracted.body.issuedAt)
           decodedBody <- OptionT.liftF(decryptIdentity(rawId))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           augmented = AugmentedJWT(
-            SecureRandomId.coerce(extracted.body.jwtId),
+            SecureRandomId.coerce(id),
             extracted,
             decodedBody,
             expiry,
@@ -571,7 +575,7 @@ object JWTAuthenticator {
 
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
-          cookieId <- F.delay(SecureRandomId.generate)
+          cookieId <- F.delay(SecureRandomId.Interactive.generate)
           now      <- F.delay(Instant.now())
           expiry      = now.plusSeconds(expiryDuration.toSeconds)
           lastTouched = maxIdle.map(_ => now)
@@ -579,7 +583,7 @@ object JWTAuthenticator {
           claims = JWTClaims(
             issuedAt = Some(now),
             subject = Some(messageBody),
-            jwtId = cookieId,
+            jwtId = Some(cookieId),
             expiration = Some(expiry),
           )
           jwt <- JWTMac.build[F, A](claims, signingKey)
@@ -593,7 +597,7 @@ object JWTAuthenticator {
         for {
           now <- F.delay(Instant.now())
           jwt <- JWTMac.build(
-            authenticator.jwt.body.withExpiry(now).withJwtID(SecureRandomId.generate),
+            authenticator.jwt.body.withExpiry(now).withJwtID("discarded"),
             signingKey
           )
         } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, now, authenticator.lastTouched)
@@ -716,11 +720,12 @@ object JWTAuthenticator {
           now         <- OptionT.liftF(F.delay(Instant.now))
           extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
           rawId       <- OptionT.fromOption[F](extracted.body.subject)
+          jwtId       <- OptionT.fromOption[F](extracted.id)
           lastTouched <- checkTimeout(extracted.body.issuedAt)
           decodedBody <- OptionT.liftF(decryptIdentity(rawId))
           expiry      <- OptionT.fromOption(extracted.body.expiration)
           augmented = AugmentedJWT(
-            SecureRandomId.coerce(extracted.body.jwtId),
+            SecureRandomId.coerce(jwtId),
             extracted,
             decodedBody,
             expiry,
@@ -734,14 +739,14 @@ object JWTAuthenticator {
       def create(body: I): F[AugmentedJWT[A, I]] =
         for {
           now      <- F.delay(Instant.now())
-          cookieId <- F.delay(SecureRandomId.generate)
+          cookieId <- F.delay(SecureRandomId.Interactive.generate)
           expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
           lastTouched = settings.maxIdle.map(_ => now)
           messageBody <- encryptIdentity(body, lastTouched)
           claims = JWTClaims(
             issuedAt = Some(now),
             subject = Some(messageBody),
-            jwtId = cookieId,
+            jwtId = Some(cookieId),
             expiration = Some(expiry),
           )
           newToken <- JWTMac.build[F, A](claims, signingKey)
@@ -757,7 +762,7 @@ object JWTAuthenticator {
         for {
           now <- F.delay(Instant.now())
           jwt <- JWTMac.build(
-            authenticator.jwt.body.withSubject("").withExpiry(now).withJwtID(SecureRandomId.generate),
+            authenticator.jwt.body.withSubject("").withExpiry(now).withJwtID("discarded"),
             signingKey
           )
         } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, now, authenticator.lastTouched)

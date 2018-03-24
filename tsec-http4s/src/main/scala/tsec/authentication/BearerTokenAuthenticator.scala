@@ -68,7 +68,7 @@ object BearerTokenAuthenticator {
         for {
           now <- F.delay(Instant.now())
           newToken = TSecBearerToken(
-            SecureRandomId.generate,
+            SecureRandomId.Strong.generate,
             body,
             now.plusSeconds(settings.expiryDuration.toSeconds),
             settings.maxIdle.map(_ => now)
