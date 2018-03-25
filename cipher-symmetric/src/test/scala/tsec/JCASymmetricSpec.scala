@@ -12,7 +12,7 @@ import tsec.keygen.symmetric._
 
 import scala.util.Random
 
-class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
+class JCASymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
   final def cipherTest[A, M, P](algebra: JCACipherAPI[A, M, P] with SymmetricKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],

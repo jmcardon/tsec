@@ -46,6 +46,7 @@ lazy val commonSettings = Seq(
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion in ThisBuild := "2.12.4",
   fork in test := true,
+  fork in run := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.5"),
   version in ThisBuild := "0.0.1-M9",
@@ -184,6 +185,8 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)
   .dependsOn(libsodium)
+  .dependsOn(bouncyCipher)
+  .dependsOn(bouncyHash)
   .dependsOn(mac)
   .settings(publish := {})
   .enablePlugins(JmhPlugin)
@@ -194,6 +197,7 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
   .settings(bouncyLib)
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
+  .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
     symmetricCipher,
     mac,
@@ -202,7 +206,10 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     jwtMac,
     jwtSig,
     passwordHashers,
-    http4s
+    http4s,
+    bouncyHash,
+    bouncyCipher,
+    libsodium
   )
   .settings(publish := {})
 
