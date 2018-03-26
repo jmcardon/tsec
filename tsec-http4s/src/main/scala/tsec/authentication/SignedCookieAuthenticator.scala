@@ -53,23 +53,25 @@ abstract class SignedCookieAuthenticator[F[_], I, V, Alg] private[tsec] (
       internal: AuthenticatedCookie[Alg, I],
       raw: SignedCookie[Alg],
       now: Instant
-  ): OptionT[F, AuthenticatedCookie[Alg, I]] =
-    if (validateCookie(internal, raw, now)) OptionT.liftF(refresh(internal)) else OptionT.none
+  ): F[AuthenticatedCookie[Alg, I]] =
+    if (validateCookie(internal, raw, now)) refresh(internal) else F.raiseError(AuthenticationFailure)
 
   def extractRawOption(request: Request[F]): Option[String] =
     unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
 
   def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
-    (for {
-      now <- OptionT.liftF(F.delay(Instant.now()))
-      coerced = SignedCookie[Alg](raw)
-      contentRaw <- OptionT.liftF(verifyAndRetrieve(coerced))
-      tokenId    <- uuidFromRaw[F](contentRaw)
-      authed     <- tokenStore.get(tokenId)
-      refreshed  <- validateAndRefresh(authed, coerced, now)
-      identity   <- idStore.get(authed.identity)
-    } yield SecuredRequest(request, identity, refreshed))
-      .handleErrorWith(_ => OptionT.none)
+    OptionT(
+      (for {
+        now <- F.delay(Instant.now())
+        coerced = SignedCookie[Alg](raw)
+        contentRaw <- verifyAndRetrieve(coerced)
+        tokenId    <- uuidFromRaw[F](contentRaw)
+        authed     <- tokenStore.get(tokenId).orAuthFailure
+        refreshed  <- validateAndRefresh(authed, coerced, now)
+        identity   <- idStore.get(authed.identity).orAuthFailure
+      } yield SecuredRequest(request, identity, refreshed).some)
+        .handleError(_ => None)
+    )
 
   /** Create an authenticator from an identifier.
     *

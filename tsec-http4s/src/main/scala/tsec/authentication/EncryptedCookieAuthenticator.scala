@@ -234,23 +234,25 @@ object EncryptedCookieAuthenticator {
           internal: AuthEncryptedCookie[A, I],
           raw: AEADCookie[A],
           now: Instant
-      ): OptionT[F, AuthEncryptedCookie[A, I]] =
-        if (validateCookie(internal, raw, now)) OptionT.liftF(refresh(internal)) else OptionT.none
+      ): F[AuthEncryptedCookie[A, I]] =
+        if (validateCookie(internal, raw, now)) refresh(internal) else F.raiseError(AuthenticationFailure)
 
       def extractRawOption(request: Request[F]): Option[String] =
         unliftedCookieFromRequest(settings.cookieName, request).map(_.content)
 
       def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthEncryptedCookie[A, I]]] =
-        (for {
-          now <- OptionT.liftF(F.delay(Instant.now()))
-          coerced = AEADCookie[A](raw)
-          contentRaw <- OptionT.liftF(AEADCookieEncryptor.retrieveFromSigned[F, A](coerced, key))
-          tokenId    <- uuidFromRaw[F](contentRaw)
-          authed     <- tokenStore.get(tokenId)
-          refreshed  <- validateAndRefresh(authed, coerced, now)
-          identity   <- identityStore.get(authed.identity)
-        } yield SecuredRequest(request, identity, refreshed))
-          .handleErrorWith(_ => OptionT.none)
+        OptionT(
+          (for {
+            now <- F.delay(Instant.now())
+            coerced = AEADCookie[A](raw)
+            contentRaw <- AEADCookieEncryptor.retrieveFromSigned[F, A](coerced, key)
+            tokenId    <- uuidFromRaw[F](contentRaw)
+            authed     <- tokenStore.get(tokenId).orAuthFailure
+            refreshed  <- validateAndRefresh(authed, coerced, now)
+            identity   <- identityStore.get(authed.identity).orAuthFailure
+          } yield SecuredRequest(request, identity, refreshed).some)
+            .handleError(_ => None)
+        )
 
       /** Create a new cookie from the id field of a particular user.
         *

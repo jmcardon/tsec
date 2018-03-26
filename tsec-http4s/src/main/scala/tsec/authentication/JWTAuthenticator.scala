@@ -25,6 +25,9 @@ import scala.concurrent.duration.FiniteDuration
   */
 abstract class JWTAuthenticator[F[_]: Sync, I, V, A] extends Authenticator[F, I, V, AugmentedJWT[A, I]]
 
+/** A JWT authenticator backed by a db copy,
+  * as well as user backed in a DB
+  */
 private[tsec] abstract class StatefulJWTAuth[F[_], I, V, A: JWTMacAlgo](
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration],
@@ -38,18 +41,20 @@ private[tsec] abstract class StatefulJWTAuth[F[_], I, V, A: JWTMacAlgo](
       raw: String,
       retrieved: AugmentedJWT[A, I],
       now: Instant
-  ): OptionT[F, AugmentedJWT[A, I]]
+  ): F[AugmentedJWT[A, I]]
 
   def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-    (for {
-      now       <- OptionT.liftF(F.delay(Instant.now()))
-      extracted <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-      id        <- OptionT.fromOption[F](extracted.id)
-      retrieved <- tokenStore.get(SecureRandomId(id))
-      refreshed <- verifyAndRefresh(raw, retrieved, now)
-      identity  <- identityStore.get(retrieved.identity)
-    } yield SecuredRequest(request, identity, refreshed))
-      .handleErrorWith(_ => OptionT.none)
+    OptionT(
+      (for {
+        now       <- F.delay(Instant.now())
+        extracted <- cv.verifyAndParse(raw, signingKey, now)
+        id        <- cataOption(extracted.id)
+        retrieved <- tokenStore.get(SecureRandomId(id)).orAuthFailure
+        refreshed <- verifyAndRefresh(raw, retrieved, now)
+        identity  <- identityStore.get(retrieved.identity).orAuthFailure
+      } yield SecuredRequest(request, identity, refreshed).some)
+        .handleError(_ => None)
+    )
 
   def create(body: I): F[AugmentedJWT[A, I]] =
     for {
@@ -86,6 +91,9 @@ private[tsec] abstract class StatefulJWTAuth[F[_], I, V, A: JWTMacAlgo](
     OptionT.pure[F](response)
 }
 
+/** A JWT authenticator backed by a db copy,
+  * as well as user backed in a DB
+  */
 private[tsec] sealed abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo](
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration],
@@ -94,27 +102,29 @@ private[tsec] sealed abstract class PartialStatelessJWTAuth[F[_], I: Decoder: En
 )(implicit F: Sync[F], cv: JWSMacCV[F, A])
     extends JWTAuthenticator[F, I, V, A] {
 
-  private[tsec] def verifyLastTouched(body: JWTMac[A]): OptionT[F, Option[Instant]]
+  private[tsec] def verifyLastTouched(body: JWTMac[A]): F[Option[Instant]]
 
   def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AugmentedJWT[A, I]]] =
-    (for {
-      now         <- OptionT.liftF(F.delay(Instant.now()))
-      extracted   <- OptionT.liftF(cv.verifyAndParse(raw, signingKey, now))
-      jwtid       <- OptionT.fromOption[F](extracted.id)
-      id          <- OptionT.fromOption[F](extracted.body.subject.flatMap(decode[I](_).toOption))
-      expiry      <- OptionT.fromOption(extracted.body.expiration)
-      lastTouched <- verifyLastTouched(extracted)
-      augmented = AugmentedJWT(
-        SecureRandomId.coerce(jwtid),
-        extracted,
-        id,
-        expiry,
-        lastTouched
-      )
-      refreshed <- OptionT.liftF(refresh(augmented))
-      identity  <- identityStore.get(id)
-    } yield SecuredRequest(request, identity, refreshed))
-      .handleErrorWith(_ => OptionT.none)
+    OptionT(
+      (for {
+        now         <- F.delay(Instant.now())
+        extracted   <- cv.verifyAndParse(raw, signingKey, now)
+        jwtid       <- cataOption(extracted.id)
+        id          <- cataOption(extracted.body.subject.flatMap(decode[I](_).toOption))
+        expiry      <- cataOption(extracted.body.expiration)
+        lastTouched <- verifyLastTouched(extracted)
+        augmented = AugmentedJWT(
+          SecureRandomId.coerce(jwtid),
+          extracted,
+          id,
+          expiry,
+          lastTouched
+        )
+        refreshed <- refresh(augmented)
+        identity  <- identityStore.get(id).orAuthFailure
+      } yield SecuredRequest(request, identity, refreshed).some)
+        .handleError(_ => None)
+    )
 
   def create(body: I): F[AugmentedJWT[A, I]] =
     for {
@@ -223,9 +233,9 @@ object JWTAuthenticator {
 
           private[tsec] def verifyAndRefresh(raw: String, retrieved: AugmentedJWT[A, I], now: Instant) =
             if (verifyWithRaw(raw, retrieved, now))
-              OptionT.liftF(refresh(retrieved))
+              refresh(retrieved)
             else
-              OptionT.none
+              F.raiseError(AuthenticationFailure)
 
           def extractRawOption(request: Request[F]): Option[String] =
             extract(request)
@@ -255,9 +265,9 @@ object JWTAuthenticator {
 
           private[tsec] def verifyAndRefresh(raw: String, retrieved: AugmentedJWT[A, I], now: Instant) =
             if (verifyWithRaw(raw, retrieved, now))
-              OptionT.pure[F](retrieved)
+              F.pure(retrieved)
             else
-              OptionT.none
+              F.raiseError(AuthenticationFailure)
 
           def extractRawOption(request: Request[F]): Option[String] =
             extract(request)
@@ -313,14 +323,14 @@ object JWTAuthenticator {
     maxIdle match {
       case Some(mIdle) =>
         new PartialStatelessJWTAuth[F, I, V, A](expiry, maxIdle, identityStore, signingKey) {
-          private[tsec] def verifyLastTouched(body: JWTMac[A]) =
+          private[tsec] def verifyLastTouched(body: JWTMac[A]): F[Option[Instant]] =
             for {
-              iat <- OptionT.liftF(F.delay(body.body.issuedAt))
-              now <- OptionT.liftF(F.delay(Instant.now()))
+              iat <- F.delay(body.body.issuedAt)
+              now <- F.delay(Instant.now())
               instant <- if (!iat.exists(_.plusSeconds(mIdle.toSeconds).isBefore(now)))
-                OptionT.pure(iat)
+                F.pure(iat)
               else
-                OptionT.none
+                F.raiseError(AuthenticationFailure)
             } yield instant
 
           def extractRawOption(request: Request[F]): Option[String] =
@@ -343,7 +353,7 @@ object JWTAuthenticator {
 
       case None =>
         new PartialStatelessJWTAuth[F, I, V, A](expiry, maxIdle, identityStore, signingKey) {
-          private[tsec] def verifyLastTouched(body: JWTMac[A]) = OptionT.pure[F](None)
+          private[tsec] def verifyLastTouched(body: JWTMac[A]): F[Option[Instant]] = F.pure(None)
 
           def extractRawOption(request: Request[F]): Option[String] =
             extractBearerToken(request)

@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 
 class BearerTokenAuthenticatorTests extends RequestAuthenticatorSpec {
 
-  def authspecTester = {
+  def timeoutAuthSpecTester: AuthSpecTester[TSecBearerToken[Int]] = {
     val tokenStore: BackingStore[IO, SecureRandomId, TSecBearerToken[Int]] =
       dummyBackingStore[IO, SecureRandomId, TSecBearerToken[Int]](s => SecureRandomId.coerce(s.id))
     val dummyStore    = dummyBackingStore[IO, Int, DummyUser](_.id)
@@ -32,7 +32,7 @@ class BearerTokenAuthenticatorTests extends RequestAuthenticatorSpec {
     }
   }
 
-  AuthenticatorTest("Bearer token authenticator", authspecTester)
-  requestAuthTests[TSecBearerToken[Int]]("Bearer token Request handler", authspecTester)
+  AuthenticatorTest("Bearer token authenticator", timeoutAuthSpecTester)
+  requestAuthTests[TSecBearerToken[Int]]("Bearer token Request handler", timeoutAuthSpecTester)
 
 }

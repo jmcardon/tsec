@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util.UUID
 
 import cats.data.{Kleisli, OptionT}
+import cats.effect.Sync
 import cats.implicits._
 import cats.{Applicative, Monad}
 import io.circe._
@@ -11,9 +12,9 @@ import org.http4s._
 import org.http4s.headers.{Authorization, Cookie => C}
 import org.http4s.server.Middleware
 import tsec.authorization.{Authorization => TAuth}
+import tsec.common.TSecError
 
 import scala.concurrent.duration.FiniteDuration
-import scala.util.control.NonFatal
 
 package object authentication {
 
@@ -252,11 +253,8 @@ package object authentication {
     def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
   }
 
-  def uuidFromRaw[F[_]: Applicative](string: String): OptionT[F, UUID] =
-    try OptionT.pure(UUID.fromString(string))
-    catch {
-      case NonFatal(e) => OptionT.none
-    }
+  private[tsec] def uuidFromRaw[F[_]: Sync](string: String): F[UUID] =
+    Sync[F].delay(UUID.fromString(string))
 
   implicit class AuthenticatorSyntax[A](val a: A) extends AnyVal {
     def isExpired(now: Instant)(implicit A: AuthToken[A]): Boolean =
@@ -268,4 +266,16 @@ package object authentication {
 
   @deprecated("AuthenticatorService has been renamed", "0.0.1-M10")
   type AuthenticatorService[F[_], I, V, A] = Authenticator[F, I, V, A]
+
+  private[tsec] object AuthenticationFailure extends TSecError {
+    def cause: String = "Authentication Failure"
+  }
+
+  private[tsec] def cataOption[F[_], A](a: Option[A])(implicit F: Sync[F]): F[A] =
+    a.fold[F[A]](F.raiseError(AuthenticationFailure))(F.pure)
+
+  private[tsec] implicit class AuthOptionTSyntax[F[_], A](val o: OptionT[F, A]) extends AnyVal {
+    def orAuthFailure(implicit F: Sync[F]): F[A] =
+      o.getOrElseF(F.raiseError(AuthenticationFailure))
+  }
 }
