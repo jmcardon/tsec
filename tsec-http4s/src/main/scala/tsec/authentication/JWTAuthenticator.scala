@@ -540,8 +540,8 @@ object JWTAuthenticator {
         settings.expiryDuration,
         settings.maxIdle,
         signingKey,
-        extractBearerToken[F],
-        embedInBearerToken[F, V, A]
+        extractFromHeader[F](settings.headerName),
+        embedInHeader[F, V, A](settings.headerName)
       )
 
     /** Create a JWT Authenticator that will transport it in

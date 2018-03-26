@@ -240,4 +240,130 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     }
   }
 
+  def StatelessAuthenticatorTest[A](title: String, authSpec: StatelessSpecTester[A]) = {
+    behavior of title
+
+    it should "Create, embed and extract properly" in {
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          auth        <- OptionT.liftF(authSpec.auth.create(dummy1))
+          fromRequest <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
+        } yield fromRequest)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe false
+        extracted.map(_.identity) mustBe Some(dummy1)
+      }
+    }
+
+    it should "Not validate for an expired token" in {
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          auth    <- OptionT.liftF(authSpec.auth.create(dummy1))
+          expired <- OptionT.liftF(authSpec.expireAuthenticator(auth))
+          updated <- OptionT.liftF(authSpec.auth.update(expired))
+          req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none) // Only delete if it fails as expected
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe true
+      }
+    }
+
+    it should "renew properly" in {
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          auth     <- OptionT.liftF(authSpec.auth.create(dummy1))
+          expired  <- OptionT.liftF(authSpec.expireAuthenticator(auth))
+          updated1 <- OptionT.liftF(authSpec.auth.update(expired))
+          renewed  <- OptionT.liftF(authSpec.auth.renew(updated1))
+          req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe false
+      }
+    }
+
+    it should "Not validate for a token with a different key/incorrect" in {
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          wrong <- OptionT.liftF(authSpec.wrongKeyAuthenticator)
+          req2  <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe true
+      }
+    }
+
+    it should "discard a token properly" in {
+      forAll { (dummy1: DummyUser) =>
+        val results = (for {
+          auth      <- OptionT.liftF(authSpec.auth.create(dummy1))
+          discarded <- OptionT.liftF(authSpec.auth.discard(auth))
+          req2      <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
+        } yield req2)
+          .handleErrorWith(_ => OptionT.none)
+          .value
+        val extracted = results.unsafeRunSync()
+        extracted.isEmpty mustBe true
+      }
+    }
+
+    if (authSpec.auth.maxIdle.isDefined) {
+
+      it should "Not validate for a token past the timeout" in {
+        forAll { (dummy1: DummyUser) =>
+          val results = (for {
+            auth    <- OptionT.liftF(authSpec.auth.create(dummy1))
+            expired <- OptionT.liftF(authSpec.timeoutAuthenticator(auth))
+            updated <- OptionT.liftF(authSpec.auth.update(expired))
+            req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
+          } yield req2)
+            .handleErrorWith(_ => OptionT.none)
+            .value
+          val extracted = results.unsafeRunSync()
+          extracted.isEmpty mustBe true
+        }
+      }
+
+      it should "refresh properly" in {
+        forAll { (dummy1: DummyUser) =>
+          val results = (for {
+            auth     <- OptionT.liftF(authSpec.auth.create(dummy1))
+            expired  <- OptionT.liftF(authSpec.timeoutAuthenticator(auth))
+            updated1 <- OptionT.liftF(authSpec.auth.update(expired))
+            renewed  <- OptionT.liftF(authSpec.auth.refresh(updated1))
+            req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
+          } yield req2)
+            .handleErrorWith(_ => OptionT.none)
+            .value
+          val extracted = results.unsafeRunSync()
+          extracted.isEmpty mustBe false
+        }
+      }
+    } else {
+      it should "no-op validate for a timed out token" in {
+        forAll { (dummy1: DummyUser) =>
+          val results = (for {
+            auth    <- OptionT.liftF(authSpec.auth.create(dummy1))
+            expired <- OptionT.liftF(authSpec.timeoutAuthenticator(auth))
+            updated <- OptionT.liftF(authSpec.auth.update(expired))
+            req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
+          } yield req2)
+            .handleErrorWith(_ => OptionT.none)
+            .value
+          val extracted = results.unsafeRunSync()
+          extracted.isDefined mustBe true
+        }
+      }
+    }
+  }
+
 }

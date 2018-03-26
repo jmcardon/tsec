@@ -302,9 +302,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
 
       val response: OptionT[IO, Option[String]] = for {
         auth <- OptionT.liftF(requestAuth.authenticator.create(dummyBob))
-        _ = println("hhi")
         embedded = authSpec.embedInRequest(Request[IO](uri = Uri.unsafeFromString("/api")), auth)
-        _ = println(embedded)
       } yield authSpec.auth.extractRawOption(embedded)
       response
         .getOrElse(None)
