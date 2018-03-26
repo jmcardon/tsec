@@ -8,90 +8,166 @@ import tsec.cipher.symmetric.jca._
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
+import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.jca.{JCAMacTag, _}
 
 class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
 
-  /** Stateful Bearer Auth **/
-  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateful Bearer Authenticator",
-    stateful[HMACSHA256]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateful Bearer Authenticator",
-    stateful[HMACSHA384]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateful Bearer Authenticator",
-    stateful[HMACSHA512]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateful Bearer Authenticator",
-    stateful[HMACSHA256]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateful Bearer Authenticator",
-    stateful[HMACSHA384]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateful Bearer Authenticator",
-    stateful[HMACSHA512]
-  )
+  case class JWTTestingGroup[A, B](authenticator: A, embedder: B, title: String)
 
-  /** End Stateful Bearer Auth **/
-  /** Stateful Arbitrary Header Auth **/
-  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateful Arbitrary Header Authenticator",
-    statefulArbitraryH[HMACSHA256]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateful Arbitrary Header Authenticator",
-    statefulArbitraryH[HMACSHA384]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateful Arbitrary Header Authenticator",
-    statefulArbitraryH[HMACSHA512]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateful Arbitrary Header Authenticator",
-    statefulArbitraryH[HMACSHA256]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateful Arbitrary Header Authenticator",
-    statefulArbitraryH[HMACSHA384]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateful Arbitrary Header Authenticator",
-    statefulArbitraryH[HMACSHA512]
-  )
+  /** backed **/
+  def runStatefulAuthenticators[A: JWTMacAlgo](
+      implicit cv: JWSMacCV[IO, A],
+      macKeyGen: IdKeyGen[A, MacSigningKey],
+      M: JCAMacTag[A]
+  ) =
+    List[JWTTestingGroup[BackedAuth[A], Embedder[A]]](
+      JWTTestingGroup(
+        JWTAuthenticator.backed.inBearerToken[IO, Int, DummyUser, A](
+          generalSettings.expiryDuration,
+          generalSettings.maxIdle,
+          _,
+          _,
+          _
+        ),
+        embedInBearerToken[Int, A],
+        s"${M.algorithm} in bearer token no rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.backed.inCookie[IO, Int, DummyUser, A](
+          generalCookieSettings,
+          _,
+          _,
+          _
+        ),
+        embedInCookie[Int, A](generalCookieSettings),
+        s"${M.algorithm} in cookie no rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.backed.inHeader[IO, Int, DummyUser, A](
+          generalSettings,
+          _,
+          _,
+          _
+        ),
+        embedInHeader[Int, A](generalSettings.headerName),
+        s"${M.algorithm} in header no rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.backed.inBearerToken[IO, Int, DummyUser, A](
+          generalNoRollSettings.expiryDuration,
+          generalNoRollSettings.maxIdle,
+          _,
+          _,
+          _
+        ),
+        embedInBearerToken[Int, A],
+        s"${M.algorithm} in bearer token rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.backed.inCookie[IO, Int, DummyUser, A](
+          generalNoRollCookieSettings,
+          _,
+          _,
+          _
+        ),
+        embedInCookie[Int, A](generalCookieSettings),
+        s"${M.algorithm} in cookie rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.backed.inHeader[IO, Int, DummyUser, A](
+          generalNoRollSettings,
+          _,
+          _,
+          _
+        ),
+        embedInHeader[Int, A](generalSettings.headerName),
+        s"${M.algorithm} in header rolling"
+      ),
+    ).foreach {
+      case t =>
+        AuthenticatorTest[AugmentedJWT[A, Int]](s"Authenticator Stateful spec: ${t.title}", stateful[A](t.authenticator, t.embedder))
+        requestAuthTests[AugmentedJWT[A, Int]](s"Request Auth Stateful spec: ${t.title}", stateful[A](t.authenticator, t.embedder))
+    }
 
-  /** End Stateful Arbitrary Header Auth **/
-  /** Basic Stateless tests **/
-  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateless Authenticator",
-    stateless[HMACSHA256]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateless Authenticator",
-    stateless[HMACSHA384]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateless Authenticator",
-    stateless[HMACSHA512]
-  )
+  /** backed **/
+  def runPartialStatelessAuthenticators[A: JWTMacAlgo](
+    implicit cv: JWSMacCV[IO, A],
+    macKeyGen: IdKeyGen[A, MacSigningKey],
+    M: JCAMacTag[A]
+  ) =
+    List[JWTTestingGroup[UnBackedAuth[A], Embedder[A]]](
+      JWTTestingGroup(
+        JWTAuthenticator.unbacked.inBearerToken[IO, Int, DummyUser, A](
+          generalSettings.expiryDuration,
+          generalSettings.maxIdle,
+          _,
+          _
+        ),
+        embedInBearerToken[Int, A],
+        s"${M.algorithm} in bearer token no rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.unbacked.inCookie[IO, Int, DummyUser, A](
+          generalCookieSettings,
+          _,
+          _
+        ),
+        embedInCookie[Int, A](generalCookieSettings),
+        s"${M.algorithm} in cookie no rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.unbacked.inHeader[IO, Int, DummyUser, A](
+          generalSettings,
+          _,
+          _
+        ),
+        embedInHeader[Int, A](generalSettings.headerName),
+        s"${M.algorithm} in header no rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.unbacked.inBearerToken[IO, Int, DummyUser, A](
+          generalNoRollSettings.expiryDuration,
+          generalNoRollSettings.maxIdle,
+          _,
+          _
+        ),
+        embedInBearerToken[Int, A],
+        s"${M.algorithm} in bearer token rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.unbacked.inCookie[IO, Int, DummyUser, A](
+          generalNoRollCookieSettings,
+          _,
+          _
+        ),
+        embedInCookie[Int, A](generalCookieSettings),
+        s"${M.algorithm} in cookie rolling"
+      ),
+      JWTTestingGroup(
+        JWTAuthenticator.unbacked.inHeader[IO, Int, DummyUser, A](
+          generalNoRollSettings,
+          _,
+          _
+        ),
+        embedInHeader[Int, A](generalSettings.headerName),
+        s"${M.algorithm} in header rolling"
+      ),
+    ).foreach {
+      case t =>
+        AuthenticatorTest[AugmentedJWT[A, Int]](s"Authenticator Partial Stateless spec: ${t.title}", partialStateless[A](t.authenticator, t.embedder))
+        requestAuthTests[AugmentedJWT[A, Int]](s"Request Auth Partial Stateless spec: ${t.title}", partialStateless[A](t.authenticator, t.embedder))
+    }
 
-  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Stateless Authenticator",
-    stateless[HMACSHA256]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Stateless Authenticator",
-    stateless[HMACSHA384]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Stateless Authenticator",
-    stateless[HMACSHA512]
-  )
+
+  runStatefulAuthenticators[HMACSHA256]
+  runStatefulAuthenticators[HMACSHA384]
+  runStatefulAuthenticators[HMACSHA512]
+
+  runPartialStatelessAuthenticators[HMACSHA256]
+  runPartialStatelessAuthenticators[HMACSHA384]
+  runPartialStatelessAuthenticators[HMACSHA512]
+
 
   /** End Stateless Encrypted Auth Bearer Header Tests **/
   def checkAuthHeader[A: JWTMacAlgo: JCAMacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGen[IO, A]) = {

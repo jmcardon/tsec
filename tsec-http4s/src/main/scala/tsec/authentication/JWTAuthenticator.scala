@@ -367,23 +367,23 @@ object JWTAuthenticator {
         }
     }
 
-  private def embedInBearerToken[F[_], I, A: JWTMacAlgo](r: Response[F], a: AugmentedJWT[A, I])(
+  private[tsec] def embedInBearerToken[F[_], I, A: JWTMacAlgo](r: Response[F], a: AugmentedJWT[A, I])(
       implicit cv: JWSMacCV[F, A],
       F: Sync[F]
   ) = r.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString(a.jwt)))
 
-  private def extractFromHeader[F[_]](headerName: String)(r: Request[F]): Option[String] =
+  private[tsec] def extractFromHeader[F[_]](headerName: String)(r: Request[F]): Option[String] =
     r.headers.get(CaseInsensitiveString(headerName)).map(_.value)
 
-  private def embedInHeader[F[_], I, A: JWTMacAlgo](headerName: String)(r: Response[F], a: AugmentedJWT[A, I])(
+  private[tsec] def embedInHeader[F[_], I, A: JWTMacAlgo](headerName: String)(r: Response[F], a: AugmentedJWT[A, I])(
       implicit cv: JWSMacCV[F, A],
       F: Sync[F]
   ): Response[F] = r.putHeaders(Header(headerName, JWTMac.toEncodedString(a.jwt)))
 
-  private def extractFromCookie[F[_]](cookieName: String)(r: Request[F]): Option[String] =
+  private[tsec] def extractFromCookie[F[_]](cookieName: String)(r: Request[F]): Option[String] =
     unliftedCookieFromRequest[F](cookieName, r).map(_.content)
 
-  private def embedInCookie[F[_], I, A: JWTMacAlgo](
+  private[tsec] def embedInCookie[F[_], I, A: JWTMacAlgo](
       settings: TSecCookieSettings
   )(r: Response[F], a: AugmentedJWT[A, I])(
       implicit cv: JWSMacCV[F, A],
