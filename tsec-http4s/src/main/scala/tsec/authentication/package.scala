@@ -257,4 +257,15 @@ package object authentication {
     catch {
       case NonFatal(e) => OptionT.none
     }
+
+  implicit class AuthenticatorSyntax[A](val a: A) extends AnyVal {
+    def isExpired(now: Instant)(implicit A: AuthToken[A]): Boolean =
+      A.isExpired(a, now)
+
+    def isTimedOut(now: Instant, timeOut: FiniteDuration)(implicit A: AuthToken[A]): Boolean =
+      A.isTimedOut(a, now, timeOut)
+  }
+
+  @deprecated("AuthenticatorService has been renamed", "0.0.1-M10")
+  type AuthenticatorService[F[_], I, V, A] = Authenticator[F, I, V, A]
 }

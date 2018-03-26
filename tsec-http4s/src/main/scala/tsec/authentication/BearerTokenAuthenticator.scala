@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 sealed abstract class BearerTokenAuthenticator[F[_]: Sync, I, V] private[tsec] (
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration]
-) extends AuthenticatorService[F, I, V, TSecBearerToken[I]] {
+) extends Authenticator[F, I, V, TSecBearerToken[I]] {
 
   def withIdentityStore(newStore: BackingStore[F, I, V]): BearerTokenAuthenticator[F, I, V]
 
@@ -28,7 +28,16 @@ final case class TSecBearerToken[I](
     identity: I,
     expiry: Instant,
     lastTouched: Option[Instant]
-) extends Authenticator[I]
+)
+
+object TSecBearerToken {
+  implicit def auth[I]: AuthToken[TSecBearerToken[I]] = new AuthToken[TSecBearerToken[I]] {
+    def expiry(a: TSecBearerToken[I]): Instant = a.expiry
+
+    def lastTouched(a: TSecBearerToken[I]): Option[Instant] =
+      a.lastTouched
+  }
+}
 
 object BearerTokenAuthenticator {
   def apply[F[_], I, V](

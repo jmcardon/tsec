@@ -21,7 +21,7 @@ import tsec.jwt.JWTPrinter
 import scala.concurrent.duration.FiniteDuration
 
 sealed abstract class EncryptedCookieAuthenticator[F[_]: Sync, I, V, A]
-    extends AuthenticatorService[F, I, V, AuthEncryptedCookie[A, I]]
+    extends Authenticator[F, I, V, AuthEncryptedCookie[A, I]]
 
 sealed abstract class StatefulECAuthenticator[F[_]: Sync, I, V, A] private[tsec] (
     val expiry: FiniteDuration,
@@ -71,7 +71,7 @@ final case class AuthEncryptedCookie[A, Id](
     domain: Option[String] = None,
     path: Option[String] = None,
     extension: Option[String] = None
-) extends Authenticator[Id] {
+) {
 
   def toCookie = Cookie(
     name,
@@ -87,6 +87,12 @@ final case class AuthEncryptedCookie[A, Id](
 }
 
 object AuthEncryptedCookie {
+
+  implicit def auth[A, Id] = new AuthToken[AuthEncryptedCookie[A, Id]] {
+    def expiry(a: AuthEncryptedCookie[A, Id]): Instant = a.expiry
+
+    def lastTouched(a: AuthEncryptedCookie[A, Id]): Option[Instant] = a.lastTouched
+  }
 
   final case class Internal[Id](id: UUID, messageId: Id, expiry: Instant, lastTouched: Option[Instant])
 

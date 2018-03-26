@@ -8,7 +8,7 @@ import org.log4s._
 import tsec.authorization._
 
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
-    val authenticator: AuthenticatorService[F, Identity, User, Auth]
+    val authenticator: Authenticator[F, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
 
   private[tsec] val cachedUnauthorized: Response[F]                       = Response[F](Status.Unauthorized)
@@ -59,7 +59,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   }
 
   def liftUserAware(
-    service: UserAwareService[User, Auth, F]
+      service: UserAwareService[User, Auth, F]
   ): HttpService[F] = {
     val middleware = UserAwareService.extract(Kleisli(authenticator.extractAndValidate))
 
@@ -84,7 +84,7 @@ object SecuredRequestHandler {
 
   /** Build our SecuredRequestHandler detecting whether it is rolling window or not **/
   def apply[F[_], Identity, User, Auth](
-      authenticator: AuthenticatorService[F, Identity, User, Auth]
+      authenticator: Authenticator[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
     if (authenticator.maxIdle.isDefined) {
       rollingWindow[F, Identity, User, Auth](authenticator)
@@ -94,7 +94,7 @@ object SecuredRequestHandler {
 
   /** Sliding/Rolling Window expiry Construction **/
   private[tsec] def rollingWindow[F[_], Identity, User, Auth](
-      authenticator: AuthenticatorService[F, Identity, User, Auth]
+      authenticator: Authenticator[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
     new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
 
@@ -126,7 +126,7 @@ object SecuredRequestHandler {
 
   /** Default Construction **/
   private[tsec] def default[F[_], Identity, User, Auth](
-      authenticator: AuthenticatorService[F, Identity, User, Auth]
+      authenticator: Authenticator[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
     new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
 

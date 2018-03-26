@@ -93,67 +93,10 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
     stateless[HMACSHA512]
   )
 
-  /**End Basic Stateless tests **/
-  /** Stateless Encrypted Arbitrary Header tests **/
-  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Encrypted Stateless Authenticator",
-    statelessEncrypted[HMACSHA256, AES128CTR]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Encrypted Stateless Authenticator",
-    statelessEncrypted[HMACSHA384, AES128CTR]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Encrypted Stateless Authenticator",
-    statelessEncrypted[HMACSHA512, AES128CTR]
-  )
-
-  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Encrypted Stateless Authenticator",
-    statelessEncrypted[HMACSHA256, AES128CTR]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Encrypted Stateless Authenticator",
-    statelessEncrypted[HMACSHA384, AES128CTR]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Encrypted Stateless Authenticator",
-    statelessEncrypted[HMACSHA512, AES128CTR]
-  )
-
-  /** End Stateless Encrypted  Arbitrary Header Tests **/
-  /** Stateless Encrypted Auth Bearer Header tests **/
-  AuthenticatorTest[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Encrypted Bearer Token Stateless Authenticator",
-    statelessBearerEncrypted[HMACSHA256, AES128CTR]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Encrypted Bearer Token Stateless Authenticator",
-    statelessBearerEncrypted[HMACSHA384, AES128CTR]
-  )
-  AuthenticatorTest[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Encrypted Bearer Token Stateless Authenticator",
-    statelessBearerEncrypted[HMACSHA512, AES128CTR]
-  )
-
-  requestAuthTests[AugmentedJWT[HMACSHA256, Int]](
-    "HMACSHA256 JWT Encrypted Bearer Token Stateless Authenticator",
-    statelessBearerEncrypted[HMACSHA256, AES128CTR]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA384, Int]](
-    "HMACSHA384 JWT Encrypted Bearer Token Stateless Authenticator",
-    statelessBearerEncrypted[HMACSHA384, AES128CTR]
-  )
-  requestAuthTests[AugmentedJWT[HMACSHA512, Int]](
-    "HMACSHA512 JWT Encrypted Bearer Token Stateless Authenticator",
-    statelessBearerEncrypted[HMACSHA512, AES128CTR]
-  )
-
   /** End Stateless Encrypted Auth Bearer Header Tests **/
   def checkAuthHeader[A: JWTMacAlgo: JCAMacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGen[IO, A]) = {
     behavior of JCAMacTag[A].algorithm + " JWT Token64 check"
-    macKeyGen
-      .generateKey
+    macKeyGen.generateKey
       .map { key =>
         it should "pass token68 check" in {
           forAll { (testSubject: String) =>

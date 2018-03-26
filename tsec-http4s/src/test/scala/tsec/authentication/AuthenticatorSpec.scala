@@ -42,7 +42,7 @@ object DummyUser {
   *
   */
 protected[authentication] abstract case class AuthSpecTester[Auth](
-    auth: AuthenticatorService[IO, Int, DummyUser, Auth],
+    auth: Authenticator[IO, Int, DummyUser, Auth],
     dummyStore: BackingStore[IO, Int, DummyUser]
 ) {
 
