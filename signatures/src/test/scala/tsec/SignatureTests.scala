@@ -1,20 +1,15 @@
 package tsec
 
-import java.security.Security
 
 import cats.effect.IO
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.scalatest.MustMatchers
 import tsec.common._
-import tsec.signature.jca.{JCASigTag, _}
+import tsec.signature.jca._
 
 class SignatureTests extends TestSpec with MustMatchers {
 
   //Todo: Property check here
   val toSign = "HItHERE!".utf8Bytes
-
-  if (Security.getProvider("BC") == null)
-    Security.addProvider(new BouncyCastleProvider())
 
   def sigIOTests[A](
       implicit algoTag: JCASigTag[A],

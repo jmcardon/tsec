@@ -56,7 +56,7 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
       nonce: Array[Byte],
       key: SodiumKey[IETFChacha20]
   )(implicit S: ScalaSodium): Int =
-    S.crypto_aead_chacha20poly1305_encrypt_detached(
+    S.crypto_aead_chacha20poly1305_ietf_encrypt_detached(
       cout,
       tagOut,
       NullPtrInt,
@@ -75,7 +75,7 @@ object IETFChacha20 extends SodiumAEADPlatform[IETFChacha20] {
       tagIn: AuthTag[IETFChacha20],
       key: SodiumKey[IETFChacha20]
   )(implicit S: ScalaSodium): Int =
-    S.crypto_aead_chacha20poly1305_decrypt_detached(
+    S.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
       origOut,
       NullPtrBytes,
       ct.content,

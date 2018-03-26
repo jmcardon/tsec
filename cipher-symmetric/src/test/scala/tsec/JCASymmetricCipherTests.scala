@@ -2,7 +2,7 @@ package tsec
 
 import tsec.cipher.symmetric.jca._
 
-class JCASymmetricCipherTests extends SymmetricSpec {
+class JCASymmetricCipherTests extends JCASymmetricSpec {
 
   authCipherTest(AES128GCM)
   cipherTest(AES128CBC)

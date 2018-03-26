@@ -8,6 +8,7 @@ import cats.effect.Sync
 import cats.syntax.either._
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
+import tsec.Bouncy
 import tsec.common.ErrorConstruct._
 import tsec.signature.CertSignatureAPI
 
@@ -22,7 +23,7 @@ abstract class GeneralSignature[A](signature: String, kfAlgo: String)
   implicit val sig: JCASigTag[A] = this
 
   implicit val kt: KFTag[A] = this
-  implicit def genSigAsymmGen[F[_]](implicit F: Sync[F]): JCASigKG[F, A] =
+  implicit def genSigAsymmGen[F[_]](implicit F: Sync[F], B: Bouncy): JCASigKG[F, A] =
     new JCASigKG[F, A] {
       def generateKeyPair: F[SigKeyPair[A]] =
         F.delay(impl.generateKeyPairUnsafe)
@@ -34,7 +35,7 @@ abstract class GeneralSignature[A](signature: String, kfAlgo: String)
         F.delay(impl.buildPublicKeyUnsafe(rawPk))
     }
 
-  implicit val SigKeyGenEither: JCASigKG[SigErrorM, A] =
+  implicit def SigKeyGenEither(implicit B: Bouncy): JCASigKG[SigErrorM, A] =
     new JCASigKG[SigErrorM, A] {
 
       def generateKeyPair: SigErrorM[SigKeyPair[A]] =
@@ -47,7 +48,7 @@ abstract class GeneralSignature[A](signature: String, kfAlgo: String)
         impl.buildPublicKey(rawPk)
     }
 
-  implicit val SigKeyGenId: JCASigKG[Id, A] = new JCASigKG[Id, A] {
+  implicit def SigKeyGenId(implicit B: Bouncy): JCASigKG[Id, A] = new JCASigKG[Id, A] {
 
     def generateKeyPair: Id[SigKeyPair[A]] = impl.generateKeyPairUnsafe
 
@@ -98,7 +99,7 @@ abstract class RSASignature[A](signature: String)
 
   private[tsec] def keyFactoryAlgo: String = impl.KeyFactoryAlgo
 
-  implicit def genSigAsymmGen[F[_]](implicit F: Sync[F]): JCARSASigKG[F, A] =
+  implicit def genSigAsymmGen[F[_]](implicit F: Sync[F], B: Bouncy): JCARSASigKG[F, A] =
     new JCARSASigKG[F, A] {
       def generateKeyPair: F[SigKeyPair[A]] =
         F.delay(impl.generateKeyPairUnsafe)
@@ -113,7 +114,7 @@ abstract class RSASignature[A](signature: String)
         F.delay(impl.generateKeyPairStrongUnsafe)
     }
 
-  implicit val SigKeyGenEither: JCARSASigKG[SigErrorM, A] =
+  implicit def SigKeyGenEither(implicit B: Bouncy): JCARSASigKG[SigErrorM, A] =
     new JCARSASigKG[SigErrorM, A] {
 
       def generateKeyPair: SigErrorM[SigKeyPair[A]] =
@@ -129,7 +130,7 @@ abstract class RSASignature[A](signature: String)
         impl.generateKeyPairStrong
     }
 
-  implicit val SigKeyGenId: JCARSASigKG[Id, A] = new JCARSASigKG[Id, A] {
+  implicit def SigKeyGenId(implicit B: Bouncy): JCARSASigKG[Id, A] = new JCARSASigKG[Id, A] {
 
     def generateKeyPair: Id[SigKeyPair[A]] = impl.generateKeyPairUnsafe
 
@@ -206,7 +207,7 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
 
   implicit val kt: ECKFTag[A] = this
 
-  implicit def genSigAsymmGen[F[_]](implicit F: Sync[F]): JCAECKG[F, A] =
+  implicit def genSigAsymmGen[F[_]](implicit F: Sync[F], B: Bouncy): JCAECKG[F, A] =
     new JCAECKG[F, A] {
       val outputLen: Int = outLen
 
@@ -226,7 +227,7 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
         F.delay(impl.buildPublicKeyUnsafeFromPoints(x, y))
     }
 
-  implicit val SigKeyGenEither: JCAECKG[SigErrorM, A] =
+  implicit def SigKeyGenEither(implicit B: Bouncy): JCAECKG[SigErrorM, A] =
     new JCAECKG[SigErrorM, A] {
 
       def generateKeyPair: SigErrorM[SigKeyPair[A]] =
@@ -247,7 +248,7 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
         impl.buildPublicKeyFromPoints(x, y)
     }
 
-  implicit val SigKeyGenId: JCAECKG[Id, A] = new JCAECKG[Id, A] {
+  implicit def SigKeyGenId(implicit B: Bouncy): JCAECKG[Id, A] = new JCAECKG[Id, A] {
 
     def generateKeyPair: Id[SigKeyPair[A]] = impl.generateKeyPairUnsafe
 

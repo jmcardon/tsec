@@ -1,4 +1,4 @@
-package tsec.cipher.common
+package tsec.cipher
 
 import tsec.common.TSecError
 
