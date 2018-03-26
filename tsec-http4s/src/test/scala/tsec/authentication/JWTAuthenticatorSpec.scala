@@ -34,7 +34,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKey
-    val authenticator = JWTAuthenticator.withBackingStore[IO, Int, DummyUser, A](
+    val authenticator = JWTAuthenticator.backed.inBearerToken[IO, Int, DummyUser, A](
       settings.expiryDuration,
       settings.maxIdle,
       store,
@@ -64,8 +64,8 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        JWTAuthenticator
-          .withBackingStore[IO, Int, DummyUser, A](
+        JWTAuthenticator.backed
+          .inBearerToken[IO, Int, DummyUser, A](
             settings.expiryDuration,
             settings.maxIdle,
             store,
@@ -86,7 +86,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKey
-    val authenticator = JWTAuthenticator.withBackingStoreArbitrary[IO, Int, DummyUser, A](
+    val authenticator = JWTAuthenticator.backed.inHeader[IO, Int, DummyUser, A](
       settings,
       store,
       dummyStore,
@@ -114,8 +114,8 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        JWTAuthenticator
-          .withBackingStoreArbitrary[IO, Int, DummyUser, A](
+        JWTAuthenticator.backed
+          .inHeader[IO, Int, DummyUser, A](
             settings,
             store,
             dummyStore,
@@ -134,7 +134,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val macKey     = macKeyGen.generateKey
-    val authenticator = JWTAuthenticator.stateless[IO, Int, DummyUser, A](
+    val authenticator = JWTAuthenticator.unbacked.inBearerToken[IO, Int, DummyUser, A](
       settings.expiryDuration,
       settings.maxIdle,
       dummyStore,
@@ -162,8 +162,8 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       }
 
       def wrongKeyAuthenticator: IO[AugmentedJWT[A, Int]] =
-        JWTAuthenticator
-          .stateless[IO, Int, DummyUser, A](
+        JWTAuthenticator.unbacked
+          .inBearerToken[IO, Int, DummyUser, A](
             settings.expiryDuration,
             settings.maxIdle,
             dummyStore,

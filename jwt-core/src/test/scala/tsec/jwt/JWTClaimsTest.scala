@@ -5,9 +5,12 @@ import java.time.Instant
 import io.circe._
 import io.circe.parser._
 import io.circe.syntax._
+import io.circe.generic.auto._
 import tsec.TestSpec
 
 class JWTClaimsTest extends TestSpec {
+
+  case class Custom(a: String, b: Int, d: Double)
 
   behavior of "JWTClaims"
 
@@ -26,10 +29,15 @@ class JWTClaimsTest extends TestSpec {
     claims1.getCustom[Long]("hi") mustBe Left(DecodingFailure("No Such key", List()))
   }
 
+  it should "embed and retrieve a top level custom object" in {
+    val customObject = Custom("hello", 2, 3.14)
+    val claims1      = JWTClaims(customFields = customObject.asJsonObject.toList)
+
+    claims1.as[Custom] mustBe Right(customObject)
+  }
+
   it should "Serialize and deserialize properly" in {
-    val claims = JWTClaims(
-      expiration = Some(Instant.now()),
-      notBefore = Some(Instant.now()))
+    val claims = JWTClaims(expiration = Some(Instant.now()), notBefore = Some(Instant.now()))
     decode[JWTClaims](claims.asJson.toString()) mustBe Right(claims)
   }
 

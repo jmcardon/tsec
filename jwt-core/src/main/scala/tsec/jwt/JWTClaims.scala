@@ -66,6 +66,11 @@ sealed abstract case class JWTClaims(
       c
     ) {}
 
+  def as[A: Decoder]: Result[A] = Json.fromJsonObject(cachedObj).as[A]
+
+  def asF[F[_], A: Decoder](implicit F: Sync[F]): F[A] =
+    F.fromEither(as[A])
+
   def getCustom[A: Decoder](key: String): Result[A] =
     cachedObj(key).map(_.as[A]).getOrElse(Left(DecodingFailure("No Such key", Nil)))
 
@@ -118,6 +123,12 @@ sealed abstract case class JWTClaims(
     copy(
       issuedAt = Some(duration),
       c = cachedObj.add(JWTClaims.IssuedAt, Json.fromLong(duration.getEpochSecond))
+    )
+
+  def withIATOption(duration: Option[Instant]): JWTClaims =
+    copy(
+      issuedAt = duration,
+      c = cachedObj.add(JWTClaims.IssuedAt, duration.fold(Json.Null)(d => Json.fromLong(d.getEpochSecond)))
     )
 
   def withNBF(duration: Instant): JWTClaims =

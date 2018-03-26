@@ -28,7 +28,7 @@ class BearerTokenAuthenticatorTests extends RequestAuthenticatorSpec {
         authenticator.update(b.copy(lastTouched = Some(Instant.now.minusSeconds(300000))))
 
       def wrongKeyAuthenticator: IO[TSecBearerToken[Int]] =
-        IO.pure(TSecBearerToken(SecureRandomId.generate, -20, Instant.now(), None))
+        IO.pure(TSecBearerToken(SecureRandomId.Interactive.generate, -20, Instant.now(), None))
     }
   }
 
