@@ -13,7 +13,7 @@ class TSecAuthServiceTests extends AuthenticatorSpec {
       expiry: Instant = Instant.MIN,
       identity: Int = 0,
       lastTouched: Option[Instant] = None
-  ) extends Authenticator[Int]
+  )
 
   behavior of "TSecAuthService"
 

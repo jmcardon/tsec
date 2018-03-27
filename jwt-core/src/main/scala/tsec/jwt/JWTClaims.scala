@@ -41,7 +41,7 @@ sealed abstract case class JWTClaims(
     expiration: Option[Instant],
     notBefore: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
     issuedAt: Option[Instant], // IEEE Std 1003.1, 2013 Edition time in seconds
-    jwtId: String, //Case sensitive, and in our implementation, secure enough using UUIDv4
+    jwtId: Option[String], //Case sensitive, and in our implementation, secure enough using UUIDv4
     private[tsec] val cachedObj: JsonObject
 ) { self =>
 
@@ -52,7 +52,7 @@ sealed abstract case class JWTClaims(
       expiration: Option[Instant] = self.expiration,
       notBefore: Option[Instant] = self.notBefore,
       issuedAt: Option[Instant] = self.issuedAt,
-      jwtId: String = self.jwtId,
+      jwtId: Option[String] = self.jwtId,
       c: JsonObject
   ): JWTClaims =
     new JWTClaims(
@@ -65,6 +65,11 @@ sealed abstract case class JWTClaims(
       jwtId,
       c
     ) {}
+
+  def as[A: Decoder]: Result[A] = Json.fromJsonObject(cachedObj).as[A]
+
+  def asF[F[_], A: Decoder](implicit F: Sync[F]): F[A] =
+    F.fromEither(as[A])
 
   def getCustom[A: Decoder](key: String): Result[A] =
     cachedObj(key).map(_.as[A]).getOrElse(Left(DecodingFailure("No Such key", Nil)))
@@ -120,6 +125,12 @@ sealed abstract case class JWTClaims(
       c = cachedObj.add(JWTClaims.IssuedAt, Json.fromLong(duration.getEpochSecond))
     )
 
+  def withIATOption(duration: Option[Instant]): JWTClaims =
+    copy(
+      issuedAt = duration,
+      c = cachedObj.add(JWTClaims.IssuedAt, duration.fold(Json.Null)(d => Json.fromLong(d.getEpochSecond)))
+    )
+
   def withNBF(duration: Instant): JWTClaims =
     copy(
       notBefore = Some(duration),
@@ -128,7 +139,7 @@ sealed abstract case class JWTClaims(
 
   def withJwtID(jwtId: String): JWTClaims =
     copy(
-      jwtId = jwtId,
+      jwtId = Some(jwtId),
       c = cachedObj.add(JWTClaims.JwtId, Json.fromString(jwtId))
     )
 
@@ -154,7 +165,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       expiration: Option[Instant] = None,
       notBefore: Option[Instant] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       issuedAt: Option[Instant] = None,
-      jwtId: String = SecureRandomId.generate,
+      jwtId: Option[String] = Some(SecureRandomId.Interactive.generate),
       customFields: Seq[(String, Json)] = Nil
   ): JWTClaims = default(
     issuer,
@@ -174,7 +185,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       expiration: Option[Instant] = None,
       notBefore: Option[Instant] = None,
       issuedAt: Option[Instant] = None,
-      jwtId: String = SecureRandomId.generate,
+      jwtId: Option[String] = Some(SecureRandomId.Interactive.generate),
       customFields: Seq[(String, Json)] = Nil
   ): JWTClaims = {
     val hashMap = new LHM[String, Json](JWTClaims.StandardClaims.length)
@@ -184,7 +195,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     hashMap.put(JWTClaims.Expiration, expiration.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.NotBefore, notBefore.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.IssuedAt, issuedAt.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.JwtId, Json.fromString(jwtId))
+    hashMap.put(JWTClaims.JwtId, jwtId.fold(Json.Null)(Json.fromString))
 
     customFields.foreach {
       case (k, v) => hashMap.putIfAbsent(k, v)
@@ -209,7 +220,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
       expiration: Option[FiniteDuration] = None,
       notBefore: Option[FiniteDuration] = None, // IEEE Std 1003.1, 2013 Edition time in seconds
       issuedAt: Option[FiniteDuration] = None,
-      jwtId: String = SecureRandomId.generate,
+      jwtId: Option[String] = Some(SecureRandomId.Interactive.generate),
       customFields: Seq[(String, Json)] = Nil
   )(implicit F: Sync[F]): F[JWTClaims] = F.map(F.delay(Instant.now().getEpochSecond)) { now =>
     val exp = expiration.map(s => Instant.ofEpochSecond(s.toSeconds + now))
@@ -223,7 +234,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
     hashMap.put(JWTClaims.Expiration, exp.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.NotBefore, nbf.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
     hashMap.put(JWTClaims.IssuedAt, iat.map(e => Json.fromLong(e.getEpochSecond)).getOrElse(Json.Null))
-    hashMap.put(JWTClaims.JwtId, Json.fromString(jwtId))
+    hashMap.put(JWTClaims.JwtId, jwtId.fold(Json.Null)(Json.fromString))
 
     customFields.foreach {
       case (k, v) => hashMap.putIfAbsent(k, v)
@@ -278,7 +289,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
           expiration <- c.downField(Expiration).as[Option[Long]].flatMap(unsafeInstant)
           nbf        <- c.downField(NotBefore).as[Option[Long]].flatMap(unsafeInstant)
           iat        <- c.downField(IssuedAt).as[Option[Long]].flatMap(unsafeInstant)
-          jwtid      <- c.downField(JwtId).as[String]
+          jwtid      <- c.downField(JwtId).as[Option[String]]
         } yield new JWTClaims(iss, sub, aud, expiration, nbf, iat, jwtid, obj) {}
 
       case None =>
