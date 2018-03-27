@@ -44,18 +44,18 @@ sealed trait Streebog512
 
 object Streebog512 extends AsBouncyCryptoHash[Streebog512]("GOST3411-2012-512")
 
-sealed trait Blake2B_160
+sealed trait Blake2B160
 
-object Blake2B_160 extends AsBouncyCryptoHash[Blake2B_160]("BLAKE2B-160")
+object Blake2B160 extends AsBouncyCryptoHash[Blake2B160]("BLAKE2B-160")
 
-sealed trait Blake2B_256
+sealed trait Blake2B256
 
-object Blake2B_256 extends AsBouncyCryptoHash[Blake2B_256]("BLAKE2B-256")
+object Blake2B256 extends AsBouncyCryptoHash[Blake2B256]("BLAKE2B-256")
 
-sealed trait Blake2B_384
+sealed trait Blake2B384
 
-object Blake2B_384 extends AsBouncyCryptoHash[Blake2B_384]("BLAKE2B-384")
+object Blake2B384 extends AsBouncyCryptoHash[Blake2B384]("BLAKE2B-384")
 
-sealed trait Blake2B_512
+sealed trait Blake2B512
 
-object Blake2B_512 extends AsBouncyCryptoHash[Blake2B_512]("BLAKE2B-512")
+object Blake2B512 extends AsBouncyCryptoHash[Blake2B512]("BLAKE2B-512")
