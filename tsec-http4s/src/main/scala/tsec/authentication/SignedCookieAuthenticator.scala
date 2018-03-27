@@ -15,12 +15,12 @@ import tsec.mac.jca._
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class SignedCookieAuthenticator[F[_], I, V, Alg] private[tsec] (
-    val tokenStore: BackingStore[F, UUID, AuthenticatedCookie[Alg, I]],
+abstract class SignedCookieAuthenticator[F[_], I, V, A] private[tsec] (
+    val tokenStore: BackingStore[F, UUID, AuthenticatedCookie[A, I]],
     val idStore: IdentityStore[F, I, V],
     val settings: TSecCookieSettings
 )(implicit F: Sync[F])
-    extends Authenticator[F, I, V, AuthenticatedCookie[Alg, I]] {
+    extends Authenticator[F, I, V, AuthenticatedCookie[A, I]] {
 
   val expiry: FiniteDuration = settings.expiryDuration
 
@@ -30,18 +30,18 @@ abstract class SignedCookieAuthenticator[F[_], I, V, Alg] private[tsec] (
     * Possibly this should be a variable argument, but for now SHA1 is enough, since the chance for collision is
     * abysmally low.
     */
-  private def generateNonce(message: String) =
-    (message + Instant.now.toEpochMilli).utf8Bytes.hash[SHA1].toB64UrlString
+  private def generateNonce(message: String, now: Instant) =
+    (message + now.toEpochMilli).utf8Bytes.hash[SHA1].toB64UrlString
 
   private[tsec] def validateCookie(
-      internal: AuthenticatedCookie[Alg, I],
-      raw: SignedCookie[Alg],
+      internal: AuthenticatedCookie[A, I],
+      raw: SignedCookie[A],
       now: Instant
   ): Boolean
 
-  private[tsec] def verifyAndRetrieve(signed: SignedCookie[Alg]): F[String]
+  private[tsec] def verifyAndRetrieve(signed: SignedCookie[A]): F[String]
 
-  private[tsec] def sign(message: String, nonce: String): F[SignedCookie[Alg]]
+  private[tsec] def sign(message: String, nonce: String): F[SignedCookie[A]]
 
   /** Validate our cookie's contents, as well as the parameters retrieved for the cookie
     * @param internal The backing store cookie information.
@@ -50,20 +50,20 @@ abstract class SignedCookieAuthenticator[F[_], I, V, Alg] private[tsec] (
     * @return
     */
   private def validateAndRefresh(
-      internal: AuthenticatedCookie[Alg, I],
-      raw: SignedCookie[Alg],
+      internal: AuthenticatedCookie[A, I],
+      raw: SignedCookie[A],
       now: Instant
-  ): F[AuthenticatedCookie[Alg, I]] =
+  ): F[AuthenticatedCookie[A, I]] =
     if (validateCookie(internal, raw, now)) refresh(internal) else F.raiseError(AuthenticationFailure)
 
   def extractRawOption(request: Request[F]): Option[String] =
     unliftedCookieFromRequest[F](settings.cookieName, request).map(_.content)
 
-  def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[Alg, I]]] =
+  def parseRaw(raw: String, request: Request[F]): OptionT[F, SecuredRequest[F, V, AuthenticatedCookie[A, I]]] =
     OptionT(
       (for {
         now <- F.delay(Instant.now())
-        coerced = SignedCookie[Alg](raw)
+        coerced = SignedCookie[A](raw)
         contentRaw <- verifyAndRetrieve(coerced)
         tokenId    <- uuidFromRaw[F](contentRaw)
         authed     <- tokenStore.get(tokenId).orAuthFailure
@@ -78,43 +78,43 @@ abstract class SignedCookieAuthenticator[F[_], I, V, Alg] private[tsec] (
     * @param body
     * @return
     */
-  def create(body: I): F[AuthenticatedCookie[Alg, I]] =
+  def create(body: I): F[AuthenticatedCookie[A, I]] =
     for {
       cookieId <- F.delay(UUID.randomUUID())
       messageBody = cookieId.toString
       now <- F.delay(Instant.now())
       newExpiry   = now.plusSeconds(settings.expiryDuration.toSeconds)
       lastTouched = touch(now)
-      signed <- sign(messageBody, generateNonce(messageBody))
+      signed <- sign(messageBody, generateNonce(messageBody, now))
       cookie <- F.pure(
-        AuthenticatedCookie.build[Alg, I](cookieId, signed, body, newExpiry, lastTouched, settings)
+        AuthenticatedCookie.build[A, I](cookieId, signed, body, newExpiry, lastTouched, settings)
       )
       _ <- tokenStore.put(cookie)
     } yield cookie
 
-  def update(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+  def update(authenticator: AuthenticatedCookie[A, I]): F[AuthenticatedCookie[A, I]] =
     tokenStore.update(authenticator)
 
-  def discard(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+  def discard(authenticator: AuthenticatedCookie[A, I]): F[AuthenticatedCookie[A, I]] =
     tokenStore
       .delete(authenticator.id)
-      .map(_ => authenticator.copy(content = SignedCookie[Alg]("invalid"), expiry = Instant.EPOCH))
+      .map(_ => authenticator.copy(content = SignedCookie[A]("invalid"), expiry = Instant.EPOCH))
 
   /** Renew an authenticator: Reset it's expiry and whatnot.
     *
     * @param authenticator
     * @return
     */
-  def renew(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+  def renew(authenticator: AuthenticatedCookie[A, I]): F[AuthenticatedCookie[A, I]] =
     F.delay(Instant.now()).flatMap { now =>
-      val updated = authenticator.copy[Alg, I](
+      val updated = authenticator.copy[A, I](
         lastTouched = touch(now),
         expiry = now.plusSeconds(settings.expiryDuration.toSeconds)
       )
       tokenStore.update(updated).map(_ => updated)
     }
 
-  def embed(response: Response[F], authenticator: AuthenticatedCookie[Alg, I]): Response[F] =
+  def embed(response: Response[F], authenticator: AuthenticatedCookie[A, I]): Response[F] =
     response.addCookie(authenticator.toCookie)
 
   /** Handles the embedding of the authenticator (if necessary) in the response,
@@ -124,7 +124,7 @@ abstract class SignedCookieAuthenticator[F[_], I, V, Alg] private[tsec] (
     * @param authenticator
     * @return
     */
-  def afterBlock(response: Response[F], authenticator: AuthenticatedCookie[Alg, I]): OptionT[F, Response[F]] =
+  def afterBlock(response: Response[F], authenticator: AuthenticatedCookie[A, I]): OptionT[F, Response[F]] =
     OptionT.pure(response)
 }
 

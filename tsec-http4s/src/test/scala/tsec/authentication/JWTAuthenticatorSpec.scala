@@ -97,7 +97,6 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
     val macKey     = macKeyGen.generateKey
     val authenticator: JWTAuthenticator[IO, Int, DummyUser, A] =
       tf(store, dummyStore, macKey)
-//      tf(settings.expiryDuration, settings.maxIdle, store, dummyStore, macKey)
 
     new AuthSpecTester[AugmentedJWT[A, Int]](authenticator, dummyStore) {
 
@@ -170,8 +169,6 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       macKeyGen: IdKeyGen[A, MacSigningKey]
   ): StatelessSpecTester[AugmentedJWT[A, DummyUser]] = {
     val macKey = macKeyGen.generateKey
-    //      settings.expiryDuration,
-    //      settings.maxIdle,
     val authenticator = tf(macKey)
 
     new StatelessSpecTester[AugmentedJWT[A, DummyUser]](authenticator) {
