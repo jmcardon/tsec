@@ -47,10 +47,10 @@ class HasherTest extends TestSpec with MustMatchers with PropertyChecks {
   hashTests(RipeMD320)
   hashTests(Streebog256)
   hashTests(Streebog512)
-  hashTests(Blake2B_160)
-  hashTests(Blake2B_256)
-  hashTests(Blake2B_384)
-  hashTests(Blake2B_512)
+  hashTests(Blake2B160)
+  hashTests(Blake2B256)
+  hashTests(Blake2B384)
+  hashTests(Blake2B512)
 
 
 }
