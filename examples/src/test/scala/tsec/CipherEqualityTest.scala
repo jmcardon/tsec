@@ -128,7 +128,7 @@ class CipherEqualityTest extends TestSpec with MustMatchers {
     }
   }
 
-  implicit val sodium = ScalaSodium.getSodiumUnsafe
+  implicit val sodium     = ScalaSodium.getSodiumUnsafe
   implicit val salsaIvGen = SodiumSalsa.defaultIvGen[IO]
   AuthEncryptorTest[SodiumSalsa, XSalsa20Poly1305](SodiumSalsa.algorithm)
 

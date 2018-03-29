@@ -16,7 +16,7 @@ class SodiumPWHashTest extends SodiumSpec {
 
   def testPasswordHash[P, S](hasher: SodiumPasswordHasher[P], stren: S)(
       implicit p: PWStrengthParam[P, S],
-    P: PasswordHasher[IO, P]
+      P: PasswordHasher[IO, P]
   ) = {
     behavior of s"${hasher.hashingAlgorithm} with strength $stren"
 

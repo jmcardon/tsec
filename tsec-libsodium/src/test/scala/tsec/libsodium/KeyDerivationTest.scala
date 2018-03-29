@@ -16,9 +16,9 @@ class KeyDerivationTest extends SodiumSpec {
 
     forAll(keyLengthGen, contextGen) { (n: Int, context: String) =>
       val program = for {
-        k1      <- KeyDerivation.deriveKey[IO](master, n, 1, context)
-        k2      <- KeyDerivation.deriveKey[IO](master, n, 2, context)
-        k3      <- KeyDerivation.deriveKey[IO](master, n, 3, context)
+        k1 <- KeyDerivation.deriveKey[IO](master, n, 1, context)
+        k2 <- KeyDerivation.deriveKey[IO](master, n, 2, context)
+        k3 <- KeyDerivation.deriveKey[IO](master, n, 3, context)
       } yield (k1, k2, k3)
 
       val result = program.unsafeRunSync()
