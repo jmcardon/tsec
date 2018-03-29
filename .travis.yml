@@ -10,10 +10,6 @@ before_install:
 - sudo make install
 - sudo ldconfig
 - cd ..
- - ./autogen.sh
- - ./configure
- - make
- - sudo make install
 - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install swig
 
 scala:
@@ -24,10 +20,6 @@ before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
 
-script:
-  - bash sodium_setup.sh
-  - sbt clean test tut
-
 cache:
   directories:
     - $HOME/.ivy2/cache
@@ -37,3 +29,12 @@ cache:
 jdk:
   - oraclejdk8
   - openjdk8
+
+script:
+  - bash sodium_setup.sh
+  - sbt ++$TRAVIS_SCALA_VERSION clean
+  - sbt ++$TRAVIS_SCALA_VERSION test
+  - sbt ++$TRAVIS_SCALA_VERSION tut
+
+after_success:
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && sbt ++$TRAVIS_SCALA_VERSION publish
