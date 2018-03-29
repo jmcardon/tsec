@@ -111,7 +111,6 @@ lazy val micrositeSettings = Seq(
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
-    Libraries.catsEffect,
     Libraries.scalaTest,
     Libraries.scalaCheck,
     Libraries.commonsCodec,
@@ -125,11 +124,6 @@ lazy val commonSettings = Seq(
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.5"),
   version in ThisBuild := "0.0.1-M9",
   scalacOpts
-)
-
-lazy val benchSettings = Seq(
-  resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-  libraryDependencies += Libraries.thyme
 )
 
 lazy val passwordHasherLibs = libraryDependencies ++= Seq(
@@ -264,7 +258,6 @@ lazy val jwtSig = Project(id = "tsec-jwt-sig", base = file("jwt-sig"))
 
 lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .settings(commonSettings)
-  .settings(benchSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)
