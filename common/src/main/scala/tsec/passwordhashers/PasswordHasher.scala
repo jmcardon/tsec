@@ -2,7 +2,7 @@ package tsec.passwordhashers
 
 import java.nio.CharBuffer
 
-import cats.Id
+import cats.{Functor, Id}
 import tsec.common._
 
 //Todo: deal with unsafe pw hashing in a more principled style
@@ -59,26 +59,47 @@ trait PasswordHasher[F[_], A] {
     out
   }
 
-  /** Check against a bcrypt hash in a pure way
+  /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
   final def checkpw(p: String, hash: PasswordHash[A]): F[Boolean] =
     checkpw(p.asciiBytes, hash)
 
-  /** Check against a bcrypt hash in a pure way
+  /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
   def checkpw(p: Array[Char], hash: PasswordHash[A]): F[Boolean]
 
-  /** Check against a bcrypt hash in a pure way
+  /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
   def checkpw(p: Array[Byte], hash: PasswordHash[A]): F[Boolean]
 
-  /** Check against a bcrypt hash in an unsafe
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  final def checkpwV(p: String, hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
+    checkpwV(p.asciiBytes, hash)
+
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpwV(p: Array[Char], hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
+    F.map(checkpw(p, hash))(c => if (c) Verified else VerificationFailed)
+
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpwV(p: Array[Byte], hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
+    F.map(checkpw(p, hash))(c => if (c) Verified else VerificationFailed)
+
+  /** Check against a password hash in an unsafe
     * manner.
     *
     * It may throw an exception for a malformed password
@@ -86,7 +107,7 @@ trait PasswordHasher[F[_], A] {
     */
   final def checkpwUnsafe(p: String, hash: PasswordHash[A]): Boolean = checkpwUnsafe(p.asciiBytes, hash)
 
-  /** Check against a bcrypt hash in an unsafe
+  /** Check against a password hash in an unsafe
     * manner.
     *
     * It may throw an exception for a malformed password
@@ -99,7 +120,7 @@ trait PasswordHasher[F[_], A] {
     out
   }
 
-  /** Check against a bcrypt hash in an unsafe
+  /** Check against a password hash in an unsafe
     * manner.
     *
     * It may throw an exception for a malformed password

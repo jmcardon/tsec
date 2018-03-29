@@ -1,7 +1,8 @@
 package tsec.hashing
 
-import cats.Id
+import cats.{Functor, Id}
 import fs2.Pipe
+import tsec.common.VerificationStatus
 
 trait CryptoHashAPI[A] {
 
@@ -32,5 +33,21 @@ trait CryptoHashAPI[A] {
     * Useful for hashes of arbitrary length.
     */
   def hashPipe[F[_]](implicit C: CryptoHasher[F, A]): Pipe[F, Byte, Byte] = C.hashPipe
+
+  /** Check against another hash
+    *
+    */
+  final def checkWithHash[F[_]: Functor](l: Array[Byte], r: CryptoHash[A])(
+      implicit C: CryptoHasher[F, A]
+  ): F[Boolean] =
+    C.checkWithHash(l, r)
+
+  /** Check against another hash
+    *
+    */
+  final def checkWithHashV[F[_]: Functor](l: Array[Byte], r: CryptoHash[A])(
+      implicit C: CryptoHasher[F, A]
+  ): F[VerificationStatus] =
+    C.checkWithHashV(l, r)
 
 }

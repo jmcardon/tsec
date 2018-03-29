@@ -5,7 +5,6 @@ import io.circe.generic.auto._
 import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials}
 import org.scalatest.prop.PropertyChecks
-import tsec.cipher.symmetric.jca._
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
@@ -234,10 +233,10 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
         s"Authenticator Stateless spec: ${t.title}",
         stateless[A](t.authenticator, t.embedder)
       )
-//      statelessReqAuthTests[AugmentedJWT[A, DummyUser]](
-//        s"Request Auth Stateless spec: ${t.title}",
-//        stateless[A](t.authenticator, t.embedder)
-//      )
+      statelessReqAuthTests[AugmentedJWT[A, DummyUser]](
+        s"Request Auth Stateless spec: ${t.title}",
+        stateless[A](t.authenticator, t.embedder)
+      )
     }
 
   /** End Stateless Encrypted Auth Bearer Header Tests **/

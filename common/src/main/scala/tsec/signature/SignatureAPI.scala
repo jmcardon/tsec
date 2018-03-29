@@ -1,5 +1,8 @@
 package tsec.signature
 
+import cats.Functor
+import tsec.common.VerificationStatus
+
 trait SignatureAPI[A, PubK[_], PrivK[_]] {
 
   def sign[F[_]](
@@ -7,6 +10,13 @@ trait SignatureAPI[A, PubK[_], PrivK[_]] {
       secretKey: PrivK[A]
   )(implicit S: Signer[F, A, PubK, PrivK]): F[CryptoSignature[A]] =
     S.sign(unsigned, secretKey)
+
+  def verifyV[F[_]: Functor](
+    raw: Array[Byte],
+    signature: CryptoSignature[A],
+    publicKey: PubK[A],
+  )(implicit S: Signer[F, A, PubK, PrivK]): F[VerificationStatus] =
+    S.verifyV(raw, signature, publicKey)
 
   def verify[F[_]](
       raw: Array[Byte],

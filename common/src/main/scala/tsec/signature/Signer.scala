@@ -1,10 +1,15 @@
 package tsec.signature
 
-import cats.Id
+import cats.{Functor, Id}
+import tsec.common.{VerificationFailed, VerificationStatus, Verified}
 
 trait Signer[F[_], A, PubK[_], PrivK[_]] {
 
   def sign(unsigned: Array[Byte], secretKey: PrivK[A]): F[CryptoSignature[A]]
+
+  final def verifyV(raw: Array[Byte], signature: CryptoSignature[A], publicKey: PubK[A])(
+      implicit F: Functor[F]
+  ): F[VerificationStatus] = F.map(verify(raw, signature, publicKey))(c => if (c) Verified else VerificationFailed)
 
   def verify(raw: Array[Byte], signature: CryptoSignature[A], publicKey: PubK[A]): F[Boolean]
 
