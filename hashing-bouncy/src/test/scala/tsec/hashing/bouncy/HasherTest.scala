@@ -52,5 +52,4 @@ class HasherTest extends TestSpec with MustMatchers with PropertyChecks {
   hashTests(Blake2B384)
   hashTests(Blake2B512)
 
-
 }

@@ -47,7 +47,12 @@ lazy val releaseSettings = Seq(
     </developers>
   },
   useGpg := false,
-    credentials += Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", "jmcardon", sys.env.getOrElse("SONATYPE_PW", ""))
+  credentials += Credentials(
+    "Sonatype Nexus Repository Manager",
+    "oss.sonatype.org",
+    "jmcardon",
+    sys.env.getOrElse("SONATYPE_PW", "")
+  )
 )
 
 lazy val scalacOpts = scalacOptions := Seq(
@@ -322,6 +327,5 @@ lazy val publishSettings = Seq(
   licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
   scmInfo := Some(ScmInfo(url("https://github.com/jmcardon/tsec"), "scm:git:git@github.com:jmcardon/tsec.git")),
   autoAPIMappings := true,
-  apiURL := None,
-//  bintrayRepository := "tsec"
+  apiURL := None
 )

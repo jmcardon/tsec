@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
 
-  private val cookieName                     = "hi"
+  private val cookieName                        = "hi"
   implicit def cookieBackingStore[A: JCAMacTag] = dummyBackingStore[IO, UUID, AuthenticatedCookie[A, Int]](_.id)
 
   def genAuthenticator[A: JCAMacTag](

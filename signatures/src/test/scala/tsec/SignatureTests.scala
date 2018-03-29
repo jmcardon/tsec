@@ -1,6 +1,5 @@
 package tsec
 
-
 import cats.effect.IO
 import org.scalatest.MustMatchers
 import tsec.common._

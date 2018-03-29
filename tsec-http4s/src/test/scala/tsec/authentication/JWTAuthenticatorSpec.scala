@@ -168,7 +168,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: IdKeyGen[A, MacSigningKey]
   ): StatelessSpecTester[AugmentedJWT[A, DummyUser]] = {
-    val macKey = macKeyGen.generateKey
+    val macKey        = macKeyGen.generateKey
     val authenticator = tf(macKey)
 
     new StatelessSpecTester[AugmentedJWT[A, DummyUser]](authenticator) {
