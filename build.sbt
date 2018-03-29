@@ -2,7 +2,7 @@ import Dependencies._
 
 name := "tsec"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.5"
 
 lazy val contributors = Seq(
   "jmcardon"             -> "Jose Cardona",
@@ -117,7 +117,7 @@ lazy val commonSettings = Seq(
     Libraries.fs2IO
   ),
   organization in ThisBuild := "io.github.jmcardon",
-  scalaVersion in ThisBuild := "2.12.4",
+  scalaVersion in ThisBuild := "2.12.5",
   fork in test := true,
   fork in run := true,
   parallelExecution in test := false,
@@ -169,7 +169,7 @@ lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(publishSettings)
   .settings(releaseSettings)
 
-lazy val bouncyCastle = Project(id = "bouncy", base = file("bouncycastle"))
+lazy val bouncyCastle = Project(id = "tsec-bouncy", base = file("bouncycastle"))
   .settings(commonSettings)
   .settings(bouncyLib)
   .settings(publishSettings)
@@ -186,7 +186,7 @@ lazy val cipherCore = Project(id = "tsec-cipher-core", base = file("cipher-core"
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
-lazy val symmetricCipher = Project(id = "tsec-symmetric-cipher", base = file("cipher-symmetric"))
+lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-symmetric"))
   .settings(commonSettings)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
@@ -199,7 +199,7 @@ lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .dependsOn(common % "compile->compile;test->test")
   .settings(releaseSettings)
 
-lazy val messageDigests = Project(id = "tsec-md", base = file("message-digests"))
+lazy val messageDigests = Project(id = "tsec-hash-jca", base = file("message-digests"))
   .settings(commonSettings)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")

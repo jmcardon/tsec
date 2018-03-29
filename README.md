@@ -13,7 +13,7 @@ ________________________________________
 [ ![Latest Version](https://api.bintray.com/packages/jmcardon/tsec/tsec-common/images/download.svg) ](https://bintray.com/jmcardon/tsec/tsec-common/_latestVersion)
 
 
-### Latest Release: 0.0.1-M9
+### Latest Release: 0.0.1-M10
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
@@ -35,7 +35,7 @@ internals shift as we find better/more performant abstractions.
 
 We will guarantee compatibility between minor versions (i.e 0.0.1 => 0.0.2) but not major versions (0.0.1 => 0.1.0)
 
-0.0.1-M9 is here for scala 2.12+ and Cats 1.0.1!
+0.0.1-M10 is here for scala 2.12+ and Cats 1.0.1!
 
 To get started, if you are on sbt 0.13.16+, add
 
@@ -54,10 +54,13 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 | -----                 | ----------                                               | -------- |
 | tsec-common           | Common crypto utilities                                  |          |
 | tsec-password         | Password hashers: BCrypt and Scrypt                      | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/PasswordHashingExamples.scala)|
-| tsec-symmetric-cipher | Symmetric encryption utilities!                          | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SymmetricCipherExamples.scala)|
+| tsec-cipher-jca       | Symmetric encryption utilities                           | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SymmetricCipherExamples.scala)|
+| tsec-cipher-bouncy    | Symmetric encryption utilities                           | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SymmetricCipherExamples.scala)|
 | tsec-mac              | Message Authentication                                   | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MacExamples.scala)|
 | tsec-signatures       | Digital signatures                                       | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SignatureExamples.scala)|
-| tsec-md               | Message Digests (Hashing)                                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala)|
+| tsec-hash-jca         | Message Digests (Hashing)                                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala)|
+| tsec-hash-bouncy      | Message Digests (Hashing)                                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala)|
+| tsec-libsodium        | Nicely-typed Libsodium JNI bridge                        | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala)|
 | tsec-jwt-mac          | JWT implementation for Message Authentication signatures | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTMacExamples.scala)|
 | tsec-jwt-sig          | JWT implementation for Digital signatures                | [here](https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/JWTSignatureExamples.scala)|
 | tsec-http4s           | Http4s Request Authentication and Authorization          | [here](https://github.com/jmcardon/tsec/tree/master/examples/src/main/scala/http4sExamples)|
@@ -65,14 +68,17 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M9"
+val tsecV = "0.0.1-M10"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
- "io.github.jmcardon" %% "tsec-symmetric-cipher" % tsecV,
+ "io.github.jmcardon" %% "tsec-cipher-jca" % tsecV,
+ "io.github.jmcardon" %% "tsec-cipher-bouncy" % tsecV,
  "io.github.jmcardon" %% "tsec-mac" % tsecV,
  "io.github.jmcardon" %% "tsec-signatures" % tsecV,
- "io.github.jmcardon" %% "tsec-md" % tsecV,
+ "io.github.jmcardon" %% "tsec-hash-jca" % tsecV,
+ "io.github.jmcardon" %% "tsec-hash-bouncy" % tsecV,
+ "io.github.jmcardon" %% "tsec-libsodium" % tsecV,
  "io.github.jmcardon" %% "tsec-jwt-mac" % tsecV,
  "io.github.jmcardon" %% "tsec-jwt-sig" % tsecV,
  "io.github.jmcardon" %% "tsec-http4s" % tsecV
