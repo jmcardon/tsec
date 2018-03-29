@@ -64,7 +64,7 @@ private[tsec] abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, 
         issuedAt = Some(now),
         subject = subj,
         jwtId = Some(cookieId),
-        expiration = Some(expiryTime),
+        expiration = Some(expiryTime)
       )
       out <- JWTMac.build[F, A](claims, signingKey)
     } yield AugmentedJWT(cookieId, out, body, expiryTime, lastTouched)

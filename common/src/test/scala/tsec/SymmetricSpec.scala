@@ -13,7 +13,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
   final def cipherTest[A, K[_]](testName: String, gen: IvGen[IO, A])(
       implicit E: Encryptor[IO, A, K],
-      S: SymmetricKeyGen[IO, A, K],
+      S: SymmetricKeyGen[IO, A, K]
   ): Unit = {
 
     val spec = s"""Cipher test: $testName"""
@@ -63,7 +63,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
   final def authCipherTest[A, K[_]](testName: String, gen: IvGen[IO, A])(
       implicit E: AuthEncryptor[IO, A, K],
-      S: SymmetricKeyGen[IO, A, K],
+      S: SymmetricKeyGen[IO, A, K]
   ): Unit = {
 
     val spec = s"""Cipher test: $testName"""
@@ -142,7 +142,7 @@ class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
 
   final def aeadCipherTest[A, K[_]](testName: String, gen: IvGen[IO, A])(
       implicit E: AADEncryptor[IO, A, K],
-      S: SymmetricKeyGen[IO, A, K],
+      S: SymmetricKeyGen[IO, A, K]
   ): Unit = {
     implicit val strat = gen
 

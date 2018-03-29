@@ -60,7 +60,7 @@ object JWTMac {
   def buildToString[F[_], A: JWTMacAlgo](
       header: JWSMacHeader[A],
       body: JWTClaims,
-      key: MacSigningKey[A],
+      key: MacSigningKey[A]
   )(implicit s: JWSMacCV[F, A], me: Sync[F]): F[String] = s.signToString(header, body, key)
 
   def buildToString[F[_], A: JWTMacAlgo](

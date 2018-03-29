@@ -5,7 +5,7 @@ import java.time.Instant
 import java.util.{LinkedHashMap => LHM}
 
 import cats.effect.Sync
-import cats.instances.string._
+import cats.implicits._
 import io.circe.Decoder.Result
 import io.circe._
 import io.circe.parser.decode

@@ -2,8 +2,6 @@ import Dependencies._
 
 name := "tsec"
 
-scalaVersion := "2.12.5"
-
 lazy val contributors = Seq(
   "jmcardon"             -> "Jose Cardona",
   "rsoeldner"            -> "Robert Soeldner",
@@ -86,7 +84,6 @@ lazy val scalacOpts = scalacOptions := Seq(
   "utf8",
   "-Ywarn-adapted-args",
   "-Ywarn-inaccessible",
-  "-Ywarn-unused:imports",
   "-Ywarn-nullary-override",
   "-Ypartial-unification",
   "-language:higherKinds",

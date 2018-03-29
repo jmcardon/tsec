@@ -2,6 +2,7 @@ package tsec
 
 import cats.{Eq, MonadError}
 import cats.instances.string._
+import cats.syntax.either._
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import tsec.cipher.common.padding.NoPadding
 import tsec.cipher.symmetric._

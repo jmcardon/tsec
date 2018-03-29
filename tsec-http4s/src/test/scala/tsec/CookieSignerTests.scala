@@ -8,6 +8,7 @@ import org.scalatest.prop.PropertyChecks
 import tsec.cookies.CookieSigner
 import tsec.mac.jca.{JCAMacTag, _}
 import cats.instances.either._
+import cats.syntax.either._
 
 class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
 

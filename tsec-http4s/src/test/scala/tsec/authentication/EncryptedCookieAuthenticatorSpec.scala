@@ -5,6 +5,7 @@ import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.IO
+import cats.syntax.either._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.http4s.headers.`Set-Cookie`

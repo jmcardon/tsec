@@ -1,6 +1,7 @@
 package tsec.jws.signature
 
 import cats.data.NonEmptyList
+import cats.syntax.either._
 import io.circe._
 import io.circe.syntax._
 import tsec.common._

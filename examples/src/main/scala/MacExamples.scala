@@ -5,6 +5,8 @@ object MacExamples {
   import tsec.common._
   import tsec.mac._
   import tsec.mac.jca._
+  //Necessary in 2.11
+  import cats.syntax.either._
 
   type ET[PhoneHome] = Either[Throwable, PhoneHome]
 

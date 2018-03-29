@@ -18,7 +18,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     modeSpec: CipherMode[M],
     paddingTag: SymmetricPadding[P],
     F: MonadError[F, Throwable],
-    private[tsec] val ivProcess: IvProcess[A, M, P],
+    private[tsec] val ivProcess: IvProcess[A, M, P]
 ) extends AADEncryptor[F, A, SecretKey]
     with CanCatch[F] {
 
