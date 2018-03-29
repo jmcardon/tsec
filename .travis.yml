@@ -37,4 +37,4 @@ script:
   - sbt ++$TRAVIS_SCALA_VERSION tut
 
 after_success:
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && sbt ++$TRAVIS_SCALA_VERSION publish
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && sbt ++$TRAVIS_SCALA_VERSION publish
