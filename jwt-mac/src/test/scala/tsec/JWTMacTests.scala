@@ -29,7 +29,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
       val res = for {
         key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims(), key)
-        verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
+        verified <- JWTMac.verifyFromInstanceBool[IO, A](jwt, key)
       } yield verified
 
       res.unsafeRunSync() mustBe true
@@ -40,7 +40,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
         key      <- keyGen.generateKey
         claims   <- JWTClaims.withDuration[IO](expiration = Some(10.seconds))
         jwt      <- JWTMac.build[IO, A](claims, key)
-        verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
+        verified <- JWTMac.verifyFromInstanceBool[IO, A](jwt, key)
       } yield verified
 
       res.unsafeRunSync() mustBe true
@@ -54,7 +54,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
           claims,
           key
         )
-        verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
+        verified <- JWTMac.verifyFromInstanceBool[IO, A](jwt, key)
       } yield verified
 
       res.unsafeRunSync() mustBe true
@@ -84,7 +84,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
       val res = for {
         key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims.default(expiration = Some(expired)), key)
-        verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
+        verified <- JWTMac.verifyFromInstanceBool[IO, A](jwt, key)
       } yield verified
       res.unsafeRunSync() mustBe false
     }
@@ -94,7 +94,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
       val res = for {
         key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims.default(notBefore = Some(nbf)), key)
-        verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
+        verified <- JWTMac.verifyFromInstanceBool[IO, A](jwt, key)
       } yield verified
       res.unsafeRunSync() mustBe false
     }
@@ -103,7 +103,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
       val res = for {
         key      <- keyGen.generateKey
         jwt      <- JWTMac.build[IO, A](JWTClaims().withIAT(Instant.now().plusSeconds(20)), key)
-        verified <- JWTMac.verifyFromInstance[IO, A](jwt, key)
+        verified <- JWTMac.verifyFromInstanceBool[IO, A](jwt, key)
       } yield verified
       res.unsafeRunSync() mustBe false
     }

@@ -22,10 +22,10 @@ object Argon2 extends SodiumPasswordHasher[Argon2] {
       def hashpw(p: Array[Byte]): F[PasswordHash[Argon2]] =
         F.delay(hashpwUnsafe(p))
 
-      def checkpw(p: Array[Char], hash: PasswordHash[Argon2]): F[Boolean] =
+      def checkpwBool(p: Array[Char], hash: PasswordHash[Argon2]): F[Boolean] =
         F.delay(checkpwUnsafe(p, hash))
 
-      def checkpw(p: Array[Byte], hash: PasswordHash[Argon2]): F[Boolean] =
+      def checkpwBool(p: Array[Byte], hash: PasswordHash[Argon2]): F[Boolean] =
         F.delay(checkpwUnsafe(p, hash))
 
       private[tsec] def hashPassUnsafe(p: Array[Byte]): String =

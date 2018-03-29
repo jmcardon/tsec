@@ -26,7 +26,7 @@ Default Pure version with usage of cats effect `Sync[F]`
     for {
       key       <- HMACSHA256.generateLift[F]                //Generate our key.
       macValue  <- HMACSHA256.sign[F](toMac, key)                   //Generate our MAC bytes
-      verified  <- HMACSHA256.verify[F](toMac, macValue, key)       //Verify a byte array with a signed, typed instance
+      verified  <- HMACSHA256.verifyBool[F](toMac, macValue, key)       //Verify a byte array with a signed, typed instance
       verified2 <- HMACSHA256.verifyArrays[F](toMac, macValue, key) //Deprecated
     } yield verified
 ```
@@ -37,7 +37,7 @@ To use the _impure_ version:
   val `mac'd`: Either[Throwable, Boolean] = for {
     key       <- HMACSHA256.generateKey[MacErrorM]                        //Generate our key.
     macValue  <- HMACSHA256.sign[MacErrorM](toMac, key)                   //Generate our MAC bytes
-    verified  <- HMACSHA256.verify[MacErrorM](toMac, macValue, key)       //Verify a byte array with a signed, typed instance
+    verified  <- HMACSHA256.verifyBool[MacErrorM](toMac, macValue, key)   //Verify a byte array with a signed, typed instance
     verified2 <- HMACSHA256.verifyArrays[MacErrorM](toMac, macValue, key) //Deprecated
   } yield verified
 ```

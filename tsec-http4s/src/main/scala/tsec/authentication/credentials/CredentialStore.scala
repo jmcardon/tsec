@@ -67,21 +67,21 @@ abstract class PasswordStore[F[_], Id, P](implicit P: PasswordHasher[F, P], F: S
     for {
       pass <- retrievePass(credentials.identity)
         .getOrElseF(F.raiseError(CredentialsError("No such user")))
-      check <- P.checkpw(credentials.rawPassword, pass)
+      check <- P.checkpwBool(credentials.rawPassword, pass)
     } yield check
 
   def isAuthenticated(id: Id, raw: Array[Byte]): F[Boolean] =
     for {
       pass <- retrievePass(id)
         .getOrElseF(F.raiseError(CredentialsError("No such user")))
-      check <- P.checkpw(raw, pass)
+      check <- P.checkpwBool(raw, pass)
     } yield check
 
   def isAuthenticated(id: Id, raw: Array[Char]): F[Boolean] =
     for {
       pass <- retrievePass(id)
         .getOrElseF(F.raiseError(CredentialsError("No such user")))
-      check <- P.checkpw(raw, pass)
+      check <- P.checkpwBool(raw, pass)
     } yield check
 }
 

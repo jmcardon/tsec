@@ -20,6 +20,6 @@ trait SodiumPasswordHasher[P] extends PasswordHashAPI[P] {
       raw: String,
       hash: PasswordHash[P]
   )(implicit F: Sync[F], S: ScalaSodium, P: PasswordHasher[F, P]): F[Unit] =
-    checkpw[F](raw, hash).flatMap(res => if (res) F.unit else F.raiseError(SodiumPasswordError("Invalid password")))
+    checkpwBool[F](raw, hash).flatMap(res => if (res) F.unit else F.raiseError(SodiumPasswordError("Invalid password")))
 
 }

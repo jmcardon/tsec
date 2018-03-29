@@ -73,7 +73,7 @@ package object jca {
         _        <- catchF(tl.add(instance))
       } yield MAC[A](fin)
 
-    def verify(toSign: Array[Byte], signed: MAC[A], key: MacSigningKey[A]): F[Boolean] =
+    def verifyBool(toSign: Array[Byte], signed: MAC[A], key: MacSigningKey[A]): F[Boolean] =
       sign(toSign, key).map(MessageDigest.isEqual(signed, _))
 
   }

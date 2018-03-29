@@ -29,10 +29,10 @@ object SodiumSCrypt extends SodiumPasswordHasher[SodiumSCrypt] {
       def hashpw(p: Array[Byte]): F[PasswordHash[SodiumSCrypt]] =
         F.delay(hashpwUnsafe(p))
 
-      def checkpw(p: Array[Char], hash: PasswordHash[SodiumSCrypt]): F[Boolean] =
+      def checkpwBool(p: Array[Char], hash: PasswordHash[SodiumSCrypt]): F[Boolean] =
         F.delay(checkpwUnsafe(p, hash))
 
-      def checkpw(p: Array[Byte], hash: PasswordHash[SodiumSCrypt]): F[Boolean] =
+      def checkpwBool(p: Array[Byte], hash: PasswordHash[SodiumSCrypt]): F[Boolean] =
         F.delay(checkpwUnsafe(p, hash))
 
       private[tsec] def hashPassUnsafe(p: Array[Byte]): String =

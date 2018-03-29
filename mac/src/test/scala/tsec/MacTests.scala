@@ -24,7 +24,7 @@ class MacTests extends TestSpec with MustMatchers {
       val res = for {
         k        <- keyGen.generateKey
         signed   <- pureinstance.sign(dataToSign, k)
-        verified <- pureinstance.verify(dataToSign, signed, k)
+        verified <- pureinstance.verifyBool(dataToSign, signed, k)
       } yield verified
 
       res.unsafeRunSync() mustBe true
@@ -48,7 +48,7 @@ class MacTests extends TestSpec with MustMatchers {
       val res = for {
         k       <- keyGen.generateKey
         signed1 <- pureinstance.sign(dataToSign, k)
-        cond    <- pureinstance.verify(incorrect, signed1, k)
+        cond    <- pureinstance.verifyBool(incorrect, signed1, k)
       } yield cond
 
       res.unsafeRunSync() mustBe false
@@ -62,7 +62,7 @@ class MacTests extends TestSpec with MustMatchers {
         k       <- keyGen.generateKey
         k2      <- keyGen.generateKey
         signed1 <- pureinstance.sign(dataToSign, k)
-        cond    <- pureinstance.verify(dataToSign, signed1, k2)
+        cond    <- pureinstance.verifyBool(dataToSign, signed1, k2)
       } yield cond
 
       res.unsafeRunSync() mustBe false

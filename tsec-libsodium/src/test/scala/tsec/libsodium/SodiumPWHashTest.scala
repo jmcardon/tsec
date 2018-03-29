@@ -24,7 +24,7 @@ class SodiumPWHashTest extends SodiumSpec {
       forAll { (s: String) =>
         val program = for {
           hashed   <- hasher.hashpwWithStrength[IO, S](s, stren)
-          verified <- hasher.checkpw[IO](s, hashed)
+          verified <- hasher.checkpwBool[IO](s, hashed)
         } yield verified
 
         if (!s.isEmpty) {
@@ -52,7 +52,7 @@ class SodiumPWHashTest extends SodiumSpec {
       forAll { (s: String, s2: String) =>
         val program = for {
           hashed   <- hasher.hashpwWithStrength[IO, S](s, stren)
-          verified <- hasher.checkpw[IO](s2, hashed)
+          verified <- hasher.checkpwBool[IO](s2, hashed)
         } yield verified
         if (!s.isEmpty)
           program.unsafeRunSync() mustBe s == s2

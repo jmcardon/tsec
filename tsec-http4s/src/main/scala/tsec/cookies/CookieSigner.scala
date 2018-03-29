@@ -25,7 +25,7 @@ object CookieSigner {
   ): F[Boolean] =
     signed.split("-") match {
       case Array(original, signed) =>
-        signer.verify(original.base64Bytes, MAC[A](signed.base64Bytes), key)
+        signer.verifyBool(original.base64Bytes, MAC[A](signed.base64Bytes), key)
       case _ =>
         F.raiseError(MacVerificationError("Invalid cookie"))
     }
@@ -40,7 +40,7 @@ object CookieSigner {
     else {
       val original = split(0).base64Bytes
       val signed   = split(1).base64Bytes
-      signer.verify(original, MAC[A](signed), key).flatMap {
+      signer.verifyBool(original, MAC[A](signed), key).flatMap {
         case true  => SignedCookie.fromDecodedString(original.toUtf8String)
         case false => F.raiseError(MacVerificationError("Invalid cookie"))
       }

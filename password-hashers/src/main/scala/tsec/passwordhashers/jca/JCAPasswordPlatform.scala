@@ -21,10 +21,10 @@ trait JCAPasswordPlatform[A] extends PasswordHashAPI[A] {
 
       def hashpw(p: Array[Byte]): F[PasswordHash[A]] = F.delay(hashpwUnsafe(p))
 
-      def checkpw(p: Array[Char], hash: PasswordHash[A]): F[Boolean] =
+      def checkpwBool(p: Array[Char], hash: PasswordHash[A]): F[Boolean] =
         F.delay(checkpwUnsafe(p, hash))
 
-      def checkpw(p: Array[Byte], hash: PasswordHash[A]): F[Boolean] =
+      def checkpwBool(p: Array[Byte], hash: PasswordHash[A]): F[Boolean] =
         F.delay(checkpwUnsafe(p, hash))
 
       private[tsec] def hashPassUnsafe(p: Array[Byte]): String = unsafeHashpw(p)

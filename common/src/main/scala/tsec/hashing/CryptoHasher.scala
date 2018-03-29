@@ -1,6 +1,10 @@
 package tsec.hashing
 
+import java.security.MessageDigest
+
+import cats.Functor
 import fs2.Pipe
+import tsec.common.{VerificationFailed, VerificationStatus, Verified}
 
 trait CryptoHasher[F[_], A] {
 
@@ -18,5 +22,17 @@ trait CryptoHasher[F[_], A] {
     * Useful for hashes of arbitrary length.
     */
   def hashPipe: Pipe[F, Byte, Byte]
+
+  /** Check against another hash
+    *
+    */
+  def checkWithHashBool(l: Array[Byte], r: CryptoHash[A])(implicit F: Functor[F]): F[Boolean] =
+    F.map(hash(l))(MessageDigest.isEqual(_, r))
+
+  /** Check against another hash
+    *
+    */
+  def checkWithHash(l: Array[Byte], r: CryptoHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
+    F.map(hash(l))(c => if (MessageDigest.isEqual(c, r)) Verified else VerificationFailed)
 
 }

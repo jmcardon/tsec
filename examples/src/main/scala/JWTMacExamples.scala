@@ -16,9 +16,9 @@ object JWTMacExamples {
       key             <- HMACSHA256.generateKey[F]
       claims          <- JWTClaims.withDuration[F](expiration = Some(10.minutes))
       jwt             <- JWTMac.build[F, HMACSHA256](claims, key) //You can sign and build a jwt object directly
-      verifiedFromObj <- JWTMac.verifyFromInstance[F, HMACSHA256](jwt, key) //Verify from an object directly
+      verifiedFromObj <- JWTMac.verifyFromInstanceBool[F, HMACSHA256](jwt, key) //Verify from an object directly
       stringjwt       <- JWTMac.buildToString[F, HMACSHA256](claims, key) //Or build it straight to string
-      isverified      <- JWTMac.verifyFromString[F, HMACSHA256](stringjwt, key) //You can verify straight from a string
+      isverified      <- JWTMac.verifyFromStringBool[F, HMACSHA256](stringjwt, key) //You can verify straight from a string
       parsed          <- JWTMac.verifyAndParse[F, HMACSHA256](stringjwt, key) //Or verify and return the actual instance
     } yield parsed
 
@@ -49,9 +49,9 @@ object JWTMacExamples {
           customFields = List(Doge.WowSuchClaim -> Doge("w00f", 8008135, 80085L).asJson)
         )
       jwt             <- JWTMac.build[F, HMACSHA256](claims, key)
-      verifiedFromObj <- JWTMac.verifyFromInstance[F, HMACSHA256](jwt, key)
+      verifiedFromObj <- JWTMac.verifyFromInstanceBool[F, HMACSHA256](jwt, key)
       stringjwt       <- JWTMac.buildToString[F, HMACSHA256](claims, key) //Or build it straight to string
-      isverified      <- JWTMac.verifyFromString[F, HMACSHA256](stringjwt, key) //You can verify straight from a string
+      isverified      <- JWTMac.verifyFromStringBool[F, HMACSHA256](stringjwt, key) //You can verify straight from a string
       parsed          <- JWTMac.verifyAndParse[F, HMACSHA256](stringjwt, key)
       doge            <- parsed.body.getCustomF[F, Doge](Doge.WowSuchClaim)
     } yield (parsed, doge)

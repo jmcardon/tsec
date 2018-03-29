@@ -53,7 +53,7 @@ sealed abstract class JWSSigCV[F[_], A: JCASigTag](
       for {
         sigExtract <- jwsSigAlgo.concatToJCA[F](providedBytes)
         header     <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        bool       <- sigDSL.verify(toSign, CryptoSignature[A](sigExtract), pubKey)
+        bool       <- sigDSL.verifyBool(toSign, CryptoSignature[A](sigExtract), pubKey)
         body <- M.ensure(M.fromEither(JWTClaims.fromB64URL(split(1))))(defaultError)(
           claims => bool && claims.isAfterNBF(now) && claims.isNotExpired(now) && claims.isValidIssued(now)
         )

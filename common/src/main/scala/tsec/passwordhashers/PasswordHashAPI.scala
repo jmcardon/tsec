@@ -1,7 +1,7 @@
 package tsec.passwordhashers
 
-import cats.Id
-import cats.effect.Sync
+import cats.{Functor, Id}
+import tsec.common.VerificationStatus
 
 trait PasswordHashAPI[A] {
 
@@ -53,24 +53,51 @@ trait PasswordHashAPI[A] {
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw[F[_]: Sync](p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
-    P.checkpw(p, hash)
+  def checkpwBool[F[_]](p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
+    P.checkpwBool(p, hash)
+
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpwBool[F[_]](p: Array[Char], hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
+    P.checkpwBool(p, hash)
+
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpwBool[F[_]](p: Array[Byte], hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
+    P.checkpwBool(p, hash)
 
   /** Check against a bcrypt hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw[F[_]](p: Array[Char], hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
+  def checkpw[F[_]: Functor](p: String, hash: PasswordHash[A])(
+      implicit P: PasswordHasher[F, A]
+  ): F[VerificationStatus] =
     P.checkpw(p, hash)
 
-  /** Check against a bcrypt hash in a pure way
+  /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw[F[_]](p: Array[Byte], hash: PasswordHash[A])(implicit F: Sync[F], P: PasswordHasher[F, A]): F[Boolean] =
+  def checkpw[F[_]: Functor](p: Array[Char], hash: PasswordHash[A])(
+      implicit P: PasswordHasher[F, A]
+  ): F[VerificationStatus] =
     P.checkpw(p, hash)
 
-  /** Check against a bcrypt hash in an unsafe
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpw[F[_]: Functor](p: Array[Byte], hash: PasswordHash[A])(
+      implicit P: PasswordHasher[F, A]
+  ): F[VerificationStatus] =
+    P.checkpw(p, hash)
+
+  /** Check against a password hash in an unsafe
     * manner.
     *
     * It may throw an exception for a malformed password
@@ -79,7 +106,7 @@ trait PasswordHashAPI[A] {
   def checkpwUnsafe(p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean =
     P.checkpwUnsafe(p, hash)
 
-  /** Check against a bcrypt hash in an unsafe
+  /** Check against a passwordhash in an unsafe
     * manner.
     *
     * It may throw an exception for a malformed password
@@ -88,7 +115,7 @@ trait PasswordHashAPI[A] {
   def checkpwUnsafe(p: Array[Byte], hash: PasswordHash[A])(implicit P: PasswordHasher[Id, A]): Boolean =
     P.checkpwUnsafe(p, hash)
 
-  /** Check against a bcrypt hash in an unsafe
+  /** Check against a passwordhash in an unsafe
     * manner.
     *
     * It may throw an exception for a malformed password

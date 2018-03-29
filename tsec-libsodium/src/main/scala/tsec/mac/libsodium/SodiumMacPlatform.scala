@@ -22,7 +22,7 @@ private[tsec] trait SodiumMacPlatform[A] extends SodiumMacAlgo[A] with SodiumMac
       def sign(in: Array[Byte], key: SodiumMACKey[A]): F[MAC[A]] =
         F.delay(impl.sign(in, key))
 
-      def verify(in: Array[Byte], hashed: MAC[A], key: SodiumMACKey[A]): F[Boolean] =
+      def verifyBool(in: Array[Byte], hashed: MAC[A], key: SodiumMACKey[A]): F[Boolean] =
         F.delay(impl.verify(in, hashed, key))
     }
 

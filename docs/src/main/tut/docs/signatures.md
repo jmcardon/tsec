@@ -30,7 +30,7 @@ The default `JCASigner` interprets into any `F[_]: Sync` from `cats-effect`.
     for {
       keyPair  <- SHA256withRSA.generateKeyPair[F]
       signed   <- SHA256withRSA.sign[F](toSign, keyPair.privateKey)
-      verified <- SHA256withRSA.verify[F](toSign, signed, keyPair.publicKey)
+      verified <- SHA256withRSA.verifyBool[F](toSign, signed, keyPair.publicKey)
     } yield (signed, verified)
 
   /*
@@ -40,6 +40,6 @@ The default `JCASigner` interprets into any `F[_]: Sync` from `cats-effect`.
     keyPair <- SHA256withECDSA.generateKeyPair[SigErrorM]
     signed  <- SHA256withECDSA.sign[SigErrorM](toSign, keyPair.privateKey)
     verified <- SHA256withECDSA
-      .verify[SigErrorM](toSign, signed, keyPair.publicKey) //Verify with the particular instance
+      .verifyBool[SigErrorM](toSign, signed, keyPair.publicKey) //Verify with the particular instance
   } yield verified
 ```

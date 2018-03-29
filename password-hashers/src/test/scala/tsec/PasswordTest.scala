@@ -43,7 +43,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
         val hash =
           for {
             pass  <- programs.hashpw[IO](s)
-            check <- programs.checkpw[IO](s, pass)
+            check <- programs.checkpwBool[IO](s, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe true
@@ -57,7 +57,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
         val hash =
           for {
             pass  <- programs.hashpw[IO](arr)
-            check <- programs.checkpw[IO](checkArr, pass)
+            check <- programs.checkpwBool[IO](checkArr, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe true
@@ -73,7 +73,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
         val hash =
           for {
             pass  <- programs.hashpw[IO](arr)
-            check <- programs.checkpw[IO](checkArr, pass)
+            check <- programs.checkpwBool[IO](checkArr, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe true
@@ -89,7 +89,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
         val hash =
           for {
             pass  <- programs.hashpw[IO](s1)
-            check <- programs.checkpw[IO](s2, pass)
+            check <- programs.checkpwBool[IO](s2, pass)
           } yield check
 
         hash.unsafeRunSync() mustBe s1 == s2
@@ -109,7 +109,7 @@ class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
     val dummy = "hihi"
     val hash = for {
       pass  <- BCrypt.hashpwWithRounds[IO](dummy, 11)
-      check <- BCrypt.checkpw[IO](dummy, pass)
+      check <- BCrypt.checkpwBool[IO](dummy, pass)
     } yield check
 
     hash.unsafeRunSync() mustBe true
