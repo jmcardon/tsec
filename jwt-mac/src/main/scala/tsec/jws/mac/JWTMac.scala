@@ -68,10 +68,15 @@ object JWTMac {
       key: MacSigningKey[A]
   )(implicit s: JWSMacCV[F, A], me: Sync[F]): F[String] = s.signToString(JWSMacHeader[A], body, key)
 
+  def verifyBool[F[_], A: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
+      implicit s: JWSMacCV[F, A],
+      F: Sync[F]
+  ): F[Boolean] = F.delay(Instant.now()).flatMap(s.verifyBool(jwt, key, _))
+
   def verify[F[_], A: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
       implicit s: JWSMacCV[F, A],
       F: Sync[F]
-  ): F[Boolean] = F.delay(Instant.now()).flatMap(s.verify(jwt, key, _))
+  ): F[VerificationStatus] = F.delay(Instant.now()).flatMap(s.verify(jwt, key, _))
 
   def verifyAndParse[F[_], A](jwt: String, key: MacSigningKey[A])(
       implicit s: JWSMacCV[F, A],
@@ -79,16 +84,27 @@ object JWTMac {
   ): F[JWTMac[A]] =
     F.delay(Instant.now()).flatMap(s.verifyAndParse(jwt, key, _))
 
+  def verifyFromStringBool[F[_], A: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
+      implicit s: JWSMacCV[F, A],
+      F: Sync[F]
+  ): F[Boolean] = F.delay(Instant.now()).flatMap(s.verifyBool(jwt, key, _))
+
+  def verifyFromInstanceBool[F[_], A: JWTMacAlgo](jwt: JWTMac[A], key: MacSigningKey[A])(
+      implicit hs: JWSSerializer[JWSMacHeader[A]],
+      cv: JWSMacCV[F, A],
+      F: Sync[F]
+  ): F[VerificationStatus] = F.delay(Instant.now()).flatMap(cv.verify(jwt.toEncodedString, key, _))
+
   def verifyFromString[F[_], A: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
       implicit s: JWSMacCV[F, A],
       F: Sync[F]
-  ): F[Boolean] = F.delay(Instant.now()).flatMap(s.verify(jwt, key, _))
+  ): F[VerificationStatus] = F.delay(Instant.now()).flatMap(s.verify(jwt, key, _))
 
   def verifyFromInstance[F[_], A: JWTMacAlgo](jwt: JWTMac[A], key: MacSigningKey[A])(
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       cv: JWSMacCV[F, A],
       F: Sync[F]
-  ): F[Boolean] = F.delay(Instant.now()).flatMap(cv.verify(jwt.toEncodedString, key, _))
+  ): F[VerificationStatus] = F.delay(Instant.now()).flatMap(cv.verify(jwt.toEncodedString, key, _))
 
   def toEncodedString[F[_], A: JWTMacAlgo](
       jwt: JWTMac[A]
@@ -154,12 +170,12 @@ object JWTMacImpure {
     */
   def verifyFromString[A: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
       implicit s: JWSMacCV[MacErrorM, A]
-  ): MacErrorM[Boolean] = s.verify(jwt, key, Instant.now)
+  ): MacErrorM[Boolean] = s.verifyBool(jwt, key, Instant.now)
 
   def verifyFromInstance[A: JWTMacAlgo](jwt: JWTMac[A], key: MacSigningKey[A])(
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       cv: JWSMacCV[MacErrorM, A]
-  ): MacErrorM[Boolean] = cv.verify(jwt.toEncodedString, key, Instant.now)
+  ): MacErrorM[Boolean] = cv.verifyBool(jwt.toEncodedString, key, Instant.now)
 
   def verifyAndParse[A](jwt: String, key: MacSigningKey[A])(implicit s: JWSMacCV[MacErrorM, A]): MacErrorM[JWTMac[A]] =
     s.verifyAndParse(jwt, key, Instant.now)

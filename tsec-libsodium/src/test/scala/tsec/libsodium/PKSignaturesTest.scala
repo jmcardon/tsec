@@ -13,7 +13,7 @@ class PKSignaturesTest extends SodiumSpec {
       val program = for {
         keyPair <- Ed25519Sig.generateKeyPair[IO]
         signed  <- Ed25519Sig.sign[IO](RawMessage(s.utf8Bytes), keyPair.privKey)
-        verify  <- Ed25519Sig.verify[IO](RawMessage(s.utf8Bytes), signed, keyPair.pubKey)
+        verify  <- Ed25519Sig.verifyBool[IO](RawMessage(s.utf8Bytes), signed, keyPair.pubKey)
       } yield verify
 
       program.unsafeRunSync() mustBe true
@@ -25,7 +25,7 @@ class PKSignaturesTest extends SodiumSpec {
       val program = for {
         keyPair <- Ed25519Sig.generateKeyPair[IO]
         signed  <- Ed25519Sig.sign[IO](RawMessage(s.utf8Bytes), keyPair.privKey)
-        verify  <- Ed25519Sig.verify[IO](RawMessage(s2.utf8Bytes), signed, keyPair.pubKey)
+        verify  <- Ed25519Sig.verifyBool[IO](RawMessage(s2.utf8Bytes), signed, keyPair.pubKey)
       } yield verify
       program.unsafeRunSync() mustBe s == s2
     }
@@ -37,7 +37,7 @@ class PKSignaturesTest extends SodiumSpec {
         keyPair  <- Ed25519Sig.generateKeyPair[IO]
         keyPair2 <- Ed25519Sig.generateKeyPair[IO]
         signed   <- Ed25519Sig.sign[IO](RawMessage(s.utf8Bytes), keyPair.privKey)
-        verify   <- Ed25519Sig.verify[IO](RawMessage(s.utf8Bytes), signed, keyPair2.pubKey)
+        verify   <- Ed25519Sig.verifyBool[IO](RawMessage(s.utf8Bytes), signed, keyPair2.pubKey)
       } yield verify
       program.unsafeRunSync() mustBe false
     }

@@ -23,7 +23,7 @@ object Ed25519Sig
       def sign(unsigned: Array[Byte], secretKey: PrivateKey[Ed25519Sig]): F[CryptoSignature[Ed25519Sig]] =
         F.delay(impl.sign(unsigned, secretKey))
 
-      def verify(
+      def verifyBool(
           raw: Array[Byte],
           signature: CryptoSignature[Ed25519Sig],
           publicKey: PublicKey[Ed25519Sig]

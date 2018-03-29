@@ -13,12 +13,12 @@ object JCAMac {
   @deprecated("Use [Algorithm].verify[F]", "0.0.1-M11")
   def verify[F[_]: Sync, A](toSign: Array[Byte], signed: MAC[A], key: MacSigningKey[A])(
       implicit jc: JCAMessageAuth[F, A]
-  ): F[Boolean] = jc.verify(toSign, signed, key)
+  ): F[Boolean] = jc.verifyBool(toSign, signed, key)
 
   @deprecated("Use [Algorithm].verify[F]", "0.0.1-M11")
   def verifyArrays[F[_]: Sync, A](toSign: Array[Byte], signed: Array[Byte], key: MacSigningKey[A])(
       implicit jc: JCAMessageAuth[F, A]
-  ): F[Boolean] = jc.verify(toSign, MAC[A](signed), key)
+  ): F[Boolean] = jc.verifyBool(toSign, MAC[A](signed), key)
 }
 
 object JCAMacImpure {
@@ -30,10 +30,10 @@ object JCAMacImpure {
   @deprecated("Use [Algorithm].verify[MacErrorM]", "0.0.1-M11")
   def verify[A](toSign: Array[Byte], signed: MAC[A], key: MacSigningKey[A])(
       implicit jc: JCAMessageAuth[MacErrorM, A]
-  ): MacErrorM[Boolean] = jc.verify(toSign, signed, key)
+  ): MacErrorM[Boolean] = jc.verifyBool(toSign, signed, key)
 
   @deprecated("Use [Algorithm].verify[MacErrorM]", "0.0.1-M11")
   def verifyArrays[A](toSign: Array[Byte], signed: Array[Byte], key: MacSigningKey[A])(
       implicit jc: JCAMessageAuth[MacErrorM, A]
-  ): MacErrorM[Boolean] = jc.verify(toSign, MAC[A](signed), key)
+  ): MacErrorM[Boolean] = jc.verifyBool(toSign, MAC[A](signed), key)
 }

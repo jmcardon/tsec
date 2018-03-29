@@ -27,7 +27,7 @@ object PasswordHashingExamples {
   /** To Validate, you can check against a hash! */
   val checkProgram: IO[Boolean] = for {
     hash  <- bcryptHash
-    check <- BCrypt.checkpw[IO]("hiThere", hash)
+    check <- BCrypt.checkpwBool[IO]("hiThere", hash)
   } yield check
 
   /** Alternatively if FP is your enemy, you can use the unsafe methods

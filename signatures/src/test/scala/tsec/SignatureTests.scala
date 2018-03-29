@@ -24,7 +24,7 @@ class SignatureTests extends TestSpec with MustMatchers {
       val expression: IO[Boolean] = for {
         keyPair <- ecKFTag.generateKeyPair
         signed  <- interp.sign(toSign, keyPair.privateKey)
-        verify  <- interp.verify(toSign, signed, keyPair.publicKey)
+        verify  <- interp.verifyBool(toSign, signed, keyPair.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe true
@@ -35,7 +35,7 @@ class SignatureTests extends TestSpec with MustMatchers {
         keyPair1 <- ecKFTag.generateKeyPair
         keyPair2 <- ecKFTag.generateKeyPair
         signed   <- interp.sign(toSign, keyPair1.privateKey)
-        verify   <- interp.verify(toSign, signed, keyPair2.publicKey)
+        verify   <- interp.verifyBool(toSign, signed, keyPair2.publicKey)
       } yield verify
 
       expression.unsafeRunSync() mustBe false

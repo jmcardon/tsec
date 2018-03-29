@@ -44,7 +44,7 @@ sealed abstract class JWSMacCV[F[_], A](
     programs.sign(toSign.asciiBytes, key).map(s => toSign + "." + s.toB64UrlString)
   }
 
-  def verify(jwt: String, key: MacSigningKey[A], now: Instant): F[Boolean] = {
+  def verifyBool(jwt: String, key: MacSigningKey[A], now: Instant): F[Boolean] = {
     val split: Array[String] = jwt.split("\\.", 3)
     if (split.length < 3)
       M.pure(false)
@@ -65,6 +65,9 @@ sealed abstract class JWSMacCV[F[_], A](
       )
     }
   }
+
+  def verify(jwt: String, key: MacSigningKey[A], now: Instant): F[VerificationStatus] =
+    verifyBool(jwt, key, now).map(c => if (c) Verified else VerificationFailed)
 
   def verifyAndParse(jwt: String, key: MacSigningKey[A], now: Instant): F[JWTMac[A]] = {
     val split = jwt.split("\\.", 3)

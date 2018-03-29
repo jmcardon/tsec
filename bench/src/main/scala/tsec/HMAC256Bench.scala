@@ -27,14 +27,14 @@ class HMAC256Bench {
   def testJCA(): Unit =
     (for {
       o     <- HMACSHA256.sign[IO](longPlaintext, key)
-      verif <- HMACSHA256.verify[IO](longPlaintext, o, key)
+      verif <- HMACSHA256.verifyBool[IO](longPlaintext, o, key)
     } yield assert(verif)).unsafeRunSync()
 
   @Benchmark
   def testLibSodium(): Unit =
     (for {
       o     <- HS256.sign[IO](longPlaintext, lsKey)
-      verif <- HS256.verify[IO](longPlaintext, o, lsKey)
+      verif <- HS256.verifyBool[IO](longPlaintext, o, lsKey)
     } yield assert(verif)).unsafeRunSync()
 
 }

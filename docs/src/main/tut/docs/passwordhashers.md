@@ -52,7 +52,7 @@ To Validate, you can check against a hash! Naturally, if it returns false, it wa
 ```tut:silent
   val checkProgram: IO[Boolean] = for {
     hash  <- bcryptHash
-    check <- BCrypt.checkpw[IO]("hiThere", hash)
+    check <- BCrypt.checkpwBool[IO]("hiThere", hash)
   } yield check
 ```
 

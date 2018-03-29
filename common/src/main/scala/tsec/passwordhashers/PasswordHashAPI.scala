@@ -53,49 +53,49 @@ trait PasswordHashAPI[A] {
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw[F[_]](p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
-    P.checkpw(p, hash)
+  def checkpwBool[F[_]](p: String, hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
+    P.checkpwBool(p, hash)
 
   /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw[F[_]](p: Array[Char], hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
-    P.checkpw(p, hash)
+  def checkpwBool[F[_]](p: Array[Char], hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
+    P.checkpwBool(p, hash)
 
   /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw[F[_]](p: Array[Byte], hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
-    P.checkpw(p, hash)
+  def checkpwBool[F[_]](p: Array[Byte], hash: PasswordHash[A])(implicit P: PasswordHasher[F, A]): F[Boolean] =
+    P.checkpwBool(p, hash)
 
   /** Check against a bcrypt hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpwV[F[_]: Functor](p: String, hash: PasswordHash[A])(
+  def checkpw[F[_]: Functor](p: String, hash: PasswordHash[A])(
       implicit P: PasswordHasher[F, A]
   ): F[VerificationStatus] =
-    P.checkpwV(p, hash)
+    P.checkpw(p, hash)
 
   /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpwV[F[_]: Functor](p: Array[Char], hash: PasswordHash[A])(
+  def checkpw[F[_]: Functor](p: Array[Char], hash: PasswordHash[A])(
       implicit P: PasswordHasher[F, A]
   ): F[VerificationStatus] =
-    P.checkpwV(p, hash)
+    P.checkpw(p, hash)
 
   /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpwV[F[_]: Functor](p: Array[Byte], hash: PasswordHash[A])(
+  def checkpw[F[_]: Functor](p: Array[Byte], hash: PasswordHash[A])(
       implicit P: PasswordHasher[F, A]
   ): F[VerificationStatus] =
-    P.checkpwV(p, hash)
+    P.checkpw(p, hash)
 
   /** Check against a password hash in an unsafe
     * manner.

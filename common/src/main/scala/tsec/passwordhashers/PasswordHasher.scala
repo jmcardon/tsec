@@ -63,41 +63,41 @@ trait PasswordHasher[F[_], A] {
     *
     * It may raise an error for a malformed hash
     */
-  final def checkpw(p: String, hash: PasswordHash[A]): F[Boolean] =
+  final def checkpwBool(p: String, hash: PasswordHash[A]): F[Boolean] =
+    checkpwBool(p.asciiBytes, hash)
+
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpwBool(p: Array[Char], hash: PasswordHash[A]): F[Boolean]
+
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  def checkpwBool(p: Array[Byte], hash: PasswordHash[A]): F[Boolean]
+
+  /** Check against a password hash in a pure way
+    *
+    * It may raise an error for a malformed hash
+    */
+  final def checkpw(p: String, hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
     checkpw(p.asciiBytes, hash)
 
   /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw(p: Array[Char], hash: PasswordHash[A]): F[Boolean]
+  def checkpw(p: Array[Char], hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
+    F.map(checkpwBool(p, hash))(c => if (c) Verified else VerificationFailed)
 
   /** Check against a password hash in a pure way
     *
     * It may raise an error for a malformed hash
     */
-  def checkpw(p: Array[Byte], hash: PasswordHash[A]): F[Boolean]
-
-  /** Check against a password hash in a pure way
-    *
-    * It may raise an error for a malformed hash
-    */
-  final def checkpwV(p: String, hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
-    checkpwV(p.asciiBytes, hash)
-
-  /** Check against a password hash in a pure way
-    *
-    * It may raise an error for a malformed hash
-    */
-  def checkpwV(p: Array[Char], hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
-    F.map(checkpw(p, hash))(c => if (c) Verified else VerificationFailed)
-
-  /** Check against a password hash in a pure way
-    *
-    * It may raise an error for a malformed hash
-    */
-  def checkpwV(p: Array[Byte], hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
-    F.map(checkpw(p, hash))(c => if (c) Verified else VerificationFailed)
+  def checkpw(p: Array[Byte], hash: PasswordHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
+    F.map(checkpwBool(p, hash))(c => if (c) Verified else VerificationFailed)
 
   /** Check against a password hash in an unsafe
     * manner.
@@ -148,7 +148,7 @@ trait IdPasswordHasher[A] extends PasswordHasher[Id, A] {
 
   def hashpw(p: Array[Byte]): Id[PasswordHash[A]] = hashpwUnsafe(p)
 
-  def checkpw(p: Array[Char], hash: PasswordHash[A]): Id[Boolean] = checkpwUnsafe(p, hash)
+  def checkpwBool(p: Array[Char], hash: PasswordHash[A]): Id[Boolean] = checkpwUnsafe(p, hash)
 
-  def checkpw(p: Array[Byte], hash: PasswordHash[A]): Id[Boolean] = checkpwUnsafe(p, hash)
+  def checkpwBool(p: Array[Byte], hash: PasswordHash[A]): Id[Boolean] = checkpwUnsafe(p, hash)
 }

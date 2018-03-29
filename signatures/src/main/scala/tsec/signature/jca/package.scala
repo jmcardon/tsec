@@ -50,7 +50,7 @@ package object jca {
         signed   <- algebra.sign(instance)
       } yield CryptoSignature[A](signed)
 
-    def verify(toSign: Array[Byte], signed: CryptoSignature[A], k: SigPublicKey[A]): F[Boolean] =
+    def verifyBool(toSign: Array[Byte], signed: CryptoSignature[A], k: SigPublicKey[A]): F[Boolean] =
       for {
         instance <- algebra.genSignatureInstance
         _        <- algebra.initVerifyK(instance, k)
@@ -79,12 +79,12 @@ package object jca {
     def verifyK[F[_]: Sync, A](toSign: Array[Byte], signed: Array[Byte], k: SigPublicKey[A])(
       implicit js: JCASigner[F, A]
     ): F[Boolean] =
-      js.verify(toSign, CryptoSignature[A](signed), k)
+      js.verifyBool(toSign, CryptoSignature[A](signed), k)
 
     @deprecated("Use [Algorithm].verify[F]", "0.0.1-M11")
     def verifyKI[F[_]: Sync, A](toSign: Array[Byte], signed: CryptoSignature[A], k: SigPublicKey[A])(
       implicit js: JCASigner[F, A]
-    ): F[Boolean] = js.verify(toSign, signed, k)
+    ): F[Boolean] = js.verifyBool(toSign, signed, k)
 
     @deprecated("Use [Algorithm].verifyCert[F]", "0.0.1-M11")
     def verifyC[F[_]: Sync, A](toSign: Array[Byte], signed: Array[Byte], c: SigCertificate[A])(
@@ -109,12 +109,12 @@ package object jca {
     def verifyK[A](toSign: Array[Byte], signed: Array[Byte], k: SigPublicKey[A])(
       implicit js: JCASigner[SigErrorM, A]
     ): SigErrorM[Boolean] =
-      js.verify(toSign, CryptoSignature[A](signed), k)
+      js.verifyBool(toSign, CryptoSignature[A](signed), k)
 
     @deprecated("Use [Algorithm].verify[SigErrorM]", "0.0.1-M11")
     def verifyKI[A](toSign: Array[Byte], signed: CryptoSignature[A], k: SigPublicKey[A])(
       implicit js: JCASigner[SigErrorM, A]
-    ): SigErrorM[Boolean] = js.verify(toSign, signed, k)
+    ): SigErrorM[Boolean] = js.verifyBool(toSign, signed, k)
 
     @deprecated("Use [Algorithm].verifyCert[SigErrorM]", "0.0.1-M11")
     def verifyC[A](toSign: Array[Byte], signed: Array[Byte], c: SigCertificate[A])(

@@ -37,17 +37,17 @@ trait CryptoHashAPI[A] {
   /** Check against another hash
     *
     */
-  final def checkWithHash[F[_]: Functor](l: Array[Byte], r: CryptoHash[A])(
+  final def checkWithHashBool[F[_]: Functor](l: Array[Byte], r: CryptoHash[A])(
       implicit C: CryptoHasher[F, A]
   ): F[Boolean] =
-    C.checkWithHash(l, r)
+    C.checkWithHashBool(l, r)
 
   /** Check against another hash
     *
     */
-  final def checkWithHashV[F[_]: Functor](l: Array[Byte], r: CryptoHash[A])(
+  final def checkWithHash[F[_]: Functor](l: Array[Byte], r: CryptoHash[A])(
       implicit C: CryptoHasher[F, A]
   ): F[VerificationStatus] =
-    C.checkWithHashV(l, r)
+    C.checkWithHash(l, r)
 
 }

@@ -26,13 +26,13 @@ trait CryptoHasher[F[_], A] {
   /** Check against another hash
     *
     */
-  def checkWithHash(l: Array[Byte], r: CryptoHash[A])(implicit F: Functor[F]): F[Boolean] =
+  def checkWithHashBool(l: Array[Byte], r: CryptoHash[A])(implicit F: Functor[F]): F[Boolean] =
     F.map(hash(l))(MessageDigest.isEqual(_, r))
 
   /** Check against another hash
     *
     */
-  def checkWithHashV(l: Array[Byte], r: CryptoHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
+  def checkWithHash(l: Array[Byte], r: CryptoHash[A])(implicit F: Functor[F]): F[VerificationStatus] =
     F.map(hash(l))(c => if (MessageDigest.isEqual(c, r)) Verified else VerificationFailed)
 
 }
