@@ -93,7 +93,7 @@ object JWTMac {
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       cv: JWSMacCV[F, A],
       F: Sync[F]
-  ): F[VerificationStatus] = F.delay(Instant.now()).flatMap(cv.verify(jwt.toEncodedString, key, _))
+  ): F[Boolean] = F.delay(Instant.now()).flatMap(cv.verifyBool(jwt.toEncodedString, key, _))
 
   def verifyFromString[F[_], A: JWTMacAlgo](jwt: String, key: MacSigningKey[A])(
       implicit s: JWSMacCV[F, A],
