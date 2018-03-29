@@ -111,7 +111,6 @@ lazy val micrositeSettings = Seq(
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
-    Libraries.catsEffect,
     Libraries.scalaTest,
     Libraries.scalaCheck,
     Libraries.commonsCodec,

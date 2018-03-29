@@ -4,15 +4,14 @@ object Dependencies {
 
   object Versions {
     val circeV        = "0.9.3"
-    val catsV         = "1.0.1"
-    val catsEffV      = "0.8"
+    val catsV         = "1.1.0"
     val bouncyCastleV = "1.58"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.4"
-    val http4sV       = "0.18.4"
+    val http4sV       = "0.18.5"
     val scalacheckV   = "1.13.5"
     val commonsCodecV = "1.11"
-    val fs2Version    = "0.10.0"
+    val fs2Version    = "0.10.3"
     val log4sV        = "1.4.0"
     val gitHub4s      = "0.18.1"
   }
@@ -21,7 +20,6 @@ object Dependencies {
     val fs2                = "co.fs2"             %% "fs2-core"             % Versions.fs2Version
     val fs2IO              = "co.fs2"             %% "fs2-io"               % Versions.fs2Version
     val cats               = "org.typelevel"      %% "cats-core"            % Versions.catsV
-    val catsEffect         = "org.typelevel"      %% "cats-effect"          % Versions.catsEffV
     val sCrypt             = "com.lambdaworks"    % "scrypt"                % Versions.sCryptV
     val scalaTest          = "org.scalatest"      %% "scalatest"            % Versions.scalaTestV % "test"
     val BC                 = "org.bouncycastle"   % "bcprov-jdk15on"        % Versions.bouncyCastleV
