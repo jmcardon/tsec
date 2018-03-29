@@ -4,6 +4,52 @@ name := "tsec"
 
 scalaVersion := "2.12.4"
 
+lazy val contributors = Seq(
+  "jmcardon"             -> "Jose Cardona",
+  "rsoeldner"            -> "Robert Soeldner",
+  "hrhino"               -> "Harrison Houghton",
+  "aeons"                -> "Bjørn Madsen",
+  "ChristopherDavenport" -> "Christopher Davenport"
+)
+
+lazy val releaseSettings = Seq(
+  releaseCrossBuild := true,
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  },
+  publishArtifact in Test := false,
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/jmcardon/tsec"),
+      "git@github.com:jmcardon/tsec.git"
+    )
+  ),
+  homepage := Some(url("https://github.com/jmcardon/tsec")),
+  licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
+  publishMavenStyle := true,
+  pomIncludeRepository := { _ =>
+    false
+  },
+  pomExtra := {
+    <developers>
+      {for ((username, name) <- contributors) yield
+      <developer>
+        <id>{username}</id>
+        <name>{name}</name>
+        <url>http://github.com/{username}</url>
+      </developer>
+      }
+    </developers>
+  },
+  useGpg := true,
+  credentials += Credentials(Path.userHome / ".sbt" / "pgp.credentials")
+)
+
 lazy val scalacOpts = scalacOptions := Seq(
   "-unchecked",
   "-feature",
@@ -99,6 +145,7 @@ lazy val root = project
 lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
   .settings(publishSettings)
+  .settings(releaseSettings)
 
 lazy val bouncyCastle = Project(id = "bouncy", base = file("bouncycastle"))
   .settings(commonSettings)
@@ -265,18 +312,5 @@ lazy val publishSettings = Seq(
   scmInfo := Some(ScmInfo(url("https://github.com/jmcardon/tsec"), "scm:git:git@github.com:jmcardon/tsec.git")),
   autoAPIMappings := true,
   apiURL := None,
-  bintrayRepository := "tsec",
-  pomExtra :=
-    <developers>
-    <developer>
-      <id>jmcardon</id>
-      <name>Jose Cardona</name>
-      <url>https://github.com/jmcardon/</url>
-    </developer>
-    <developer>
-      <id>rsoeldner</id>
-      <name>Robert Soeldner</name>
-      <url>https://github.com/rsoeldner/</url>
-    </developer>
-  </developers>
+  bintrayRepository := "tsec"
 )
