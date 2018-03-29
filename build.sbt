@@ -127,11 +127,6 @@ lazy val commonSettings = Seq(
   scalacOpts
 )
 
-lazy val benchSettings = Seq(
-  resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-  libraryDependencies += Libraries.thyme
-)
-
 lazy val passwordHasherLibs = libraryDependencies ++= Seq(
   Libraries.sCrypt
 )
@@ -264,7 +259,6 @@ lazy val jwtSig = Project(id = "tsec-jwt-sig", base = file("jwt-sig"))
 
 lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .settings(commonSettings)
-  .settings(benchSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .dependsOn(symmetricCipher)

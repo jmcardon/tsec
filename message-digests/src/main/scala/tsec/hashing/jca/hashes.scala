@@ -1,9 +1,5 @@
 package tsec.hashing.jca
 
-import cats.effect.Sync
-import fs2.Pipe
-import fs2.hash._
-
 sealed trait MD5
 
 object MD5 extends AsCryptoHash[MD5]("MD5")
