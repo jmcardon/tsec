@@ -122,7 +122,7 @@ package object jca extends CipherErrors {
 
     /** In our implementation, we will use the most secure tag size as defined
       * by: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
-      *  Iv length of 96 bits is recommended as per the spec on page 8
+      * Iv length of 96 bits is recommended as per the spec on page 8
       */
     val NISTTagLengthBits = 128
     val NISTIvLengthBytes = 12

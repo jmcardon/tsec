@@ -16,8 +16,6 @@ sealed abstract class AESGCM[A] extends JCAAEAD[A, GCM, NoPadding] with AES[A] w
   /** Our default Iv strategy for GCM mode
     * produces randomized IVs
     *
-    *
-    * @return
     */
   def defaultIvStrategy[F[_]: Sync](implicit c: AES[A]): IvGen[F, A] = GCM.randomIVStrategy[F, A]
 

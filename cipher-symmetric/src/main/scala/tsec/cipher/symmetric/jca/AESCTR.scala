@@ -16,8 +16,6 @@ sealed abstract class AESCTR[A] extends JCACipherAPI[A, CTR, NoPadding] with AES
   /** Our default Iv strategy for CTR mode
     * produces randomized IVs
     *
-    *
-    * @return
     */
   def defaultIvStrategy[F[_]: Sync](implicit c: BlockCipher[A]): IvGen[F, A] = JCAIvGen.random[F, A]
 
@@ -30,14 +28,13 @@ sealed abstract class AESCTR[A] extends JCACipherAPI[A, CTR, NoPadding] with AES
     * For a 128 bit iv, we use a 64 bit leftmost bits as a nonce,
     * and the rightmost 64 bits (zeroed out) as the counter.
     *
-    * This means, using the `incremental` strategy, you can safely generate
-    * generate 2^64 - 10^6 different nonces maximum, each of which can safely increment
-    * a maximum of 2^64 blocks.
+    * This means, using the incremental strategy, you can safely generate
+    * generate 2^^64 - 10^^6 different nonces maximum, each of which can safely increment
+    * a maximum of 2^^64 blocks.
     *
-    * 2^64 - 10^6 is a safe limit to possibly avoid overflowing the safe number of nonces you can
+    * 2^^64 - 10^^6 is a safe limit to possibly avoid overflowing the safe number of nonces you can
     * generate with one key.
     *
-    * @return
     */
   def incrementalIvStrategy[F[_]](implicit F: Sync[F]): CounterIvGen[F, A] =
     new CounterIvGen[F, A] {
