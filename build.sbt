@@ -120,7 +120,7 @@ lazy val commonSettings = Seq(
   fork in run := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.5"),
-  version in ThisBuild := "0.0.1-M10",
+  version in ThisBuild := "0.0.1-M11",
   scalacOpts
 )
 
@@ -171,6 +171,7 @@ lazy val bouncyCastle = Project(id = "tsec-bouncy", base = file("bouncycastle"))
   .settings(commonSettings)
   .settings(bouncyLib)
   .settings(publishSettings)
+  .settings(releaseSettings)
 
 lazy val passwordHashers = Project(id = "tsec-password", base = file("password-hashers"))
   .settings(commonSettings)
@@ -183,6 +184,7 @@ lazy val cipherCore = Project(id = "tsec-cipher-core", base = file("cipher-core"
   .settings(commonSettings)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
+  .settings(releaseSettings)
 
 lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-symmetric"))
   .settings(commonSettings)
@@ -190,6 +192,7 @@ lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-s
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .settings(releaseSettings)
+  .settings(sources in (Compile, doc) := Seq.empty)
 
 lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(commonSettings)
@@ -229,6 +232,7 @@ lazy val jwtCore = Project(id = "tsec-jwt-core", base = file("jwt-core"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
   .settings(publishSettings)
+  .settings(releaseSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(mac)
   .dependsOn(signatures)
