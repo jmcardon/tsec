@@ -47,7 +47,7 @@ lazy val releaseSettings = Seq(
     </developers>
   },
   useGpg := true,
-  credentials += Credentials(Path.userHome / ".sbt" / "pgp.credentials")
+  pgpReadOnly := false
 )
 
 lazy val scalacOpts = scalacOptions := Seq(
