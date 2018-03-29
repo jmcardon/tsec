@@ -1,4 +1,6 @@
 package tsec.authorization
+
+import cats.syntax.either._
 import io.circe.Decoder.Result
 import io.circe._
 import io.circe.syntax._

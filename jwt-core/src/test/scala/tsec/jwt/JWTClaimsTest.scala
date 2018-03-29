@@ -2,6 +2,7 @@ package tsec.jwt
 
 import java.time.Instant
 
+import cats.syntax.either._
 import io.circe._
 import io.circe.parser._
 import io.circe.syntax._

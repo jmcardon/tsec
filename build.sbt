@@ -2,8 +2,6 @@ import Dependencies._
 
 name := "tsec"
 
-scalaVersion := "2.12.4"
-
 lazy val contributors = Seq(
   "jmcardon"             -> "Jose Cardona",
   "rsoeldner"            -> "Robert Soeldner",
@@ -86,7 +84,6 @@ lazy val scalacOpts = scalacOptions := Seq(
   "utf8",
   "-Ywarn-adapted-args",
   "-Ywarn-inaccessible",
-  "-Ywarn-unused:imports",
   "-Ywarn-nullary-override",
   "-Ypartial-unification",
   "-language:higherKinds",
@@ -117,12 +114,13 @@ lazy val commonSettings = Seq(
     Libraries.fs2IO
   ),
   organization in ThisBuild := "io.github.jmcardon",
-  scalaVersion in ThisBuild := "2.12.4",
+  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.5"),
+  scalaVersion in ThisBuild := "2.12.5",
   fork in test := true,
   fork in run := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.5"),
-  version in ThisBuild := "0.0.1-M9",
+  version in ThisBuild := "0.0.1-M10",
   scalacOpts
 )
 
@@ -169,7 +167,7 @@ lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(publishSettings)
   .settings(releaseSettings)
 
-lazy val bouncyCastle = Project(id = "bouncy", base = file("bouncycastle"))
+lazy val bouncyCastle = Project(id = "tsec-bouncy", base = file("bouncycastle"))
   .settings(commonSettings)
   .settings(bouncyLib)
   .settings(publishSettings)
@@ -186,7 +184,7 @@ lazy val cipherCore = Project(id = "tsec-cipher-core", base = file("cipher-core"
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
 
-lazy val symmetricCipher = Project(id = "tsec-symmetric-cipher", base = file("cipher-symmetric"))
+lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-symmetric"))
   .settings(commonSettings)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
@@ -199,7 +197,7 @@ lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .dependsOn(common % "compile->compile;test->test")
   .settings(releaseSettings)
 
-lazy val messageDigests = Project(id = "tsec-md", base = file("message-digests"))
+lazy val messageDigests = Project(id = "tsec-hash-jca", base = file("message-digests"))
   .settings(commonSettings)
   .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")

@@ -15,7 +15,7 @@ sealed abstract class JCAPrimitiveCipher[F[_], C, M, P](private val queue: JQueu
     implicit algoTag: BlockCipher[C],
     modeSpec: CipherMode[M],
     paddingTag: SymmetricPadding[P],
-    private[tsec] val ivProcess: IvProcess[C, M, P],
+    private[tsec] val ivProcess: IvProcess[C, M, P]
 ) extends Encryptor[F, C, SecretKey]
     with CanCatch[F] {
 

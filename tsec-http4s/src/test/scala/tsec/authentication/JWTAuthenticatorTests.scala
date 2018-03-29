@@ -83,7 +83,7 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
         ),
         embedInHeader[Int, A](generalSettings.headerName),
         s"${M.algorithm} in header rolling"
-      ),
+      )
     ).foreach {
       case t =>
         AuthenticatorTest[AugmentedJWT[A, Int]](
@@ -158,7 +158,7 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
         ),
         embedInHeader[Int, A](generalSettings.headerName),
         s"${M.algorithm} in header rolling"
-      ),
+      )
     ).foreach {
       case t =>
         AuthenticatorTest[AugmentedJWT[A, Int]](
@@ -227,7 +227,7 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
         ),
         embedInHeader[DummyUser, A](generalSettings.headerName),
         s"${M.algorithm} in header rolling"
-      ),
+      )
     ).foreach { t =>
       StatelessAuthenticatorTest[AugmentedJWT[A, DummyUser]](
         s"Authenticator Stateless spec: ${t.title}",

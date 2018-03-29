@@ -99,7 +99,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       chunkSize: Int,
       lastChunk: Segment[Byte, Unit],
       stream: Stream[F, Byte],
-      state: CryptoStreamState,
+      state: CryptoStreamState
   )(implicit S: ScalaSodium): Pull[F, Byte, Unit] =
     stream.pull.unconsLimit(chunkSize).flatMap {
       case Some((seg, str)) =>

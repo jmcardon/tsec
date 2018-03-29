@@ -209,7 +209,7 @@ object JWTAuthenticator {
       expiry: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       identityStore: IdentityStore[F, I, V],
-      signingKey: MacSigningKey[A],
+      signingKey: MacSigningKey[A]
   )(implicit cv: JWSMacCV[F, A], F: Sync[F]): JWTAuthenticator[F, I, V, A] =
     maxIdle match {
       case Some(mIdle) =>

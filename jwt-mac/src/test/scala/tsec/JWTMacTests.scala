@@ -3,6 +3,7 @@ package tsec
 import java.time.Instant
 
 import cats.effect.IO
+import cats.syntax.either._
 import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.jws.JWSSerializer
