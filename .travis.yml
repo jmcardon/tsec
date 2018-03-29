@@ -10,10 +10,6 @@ before_install:
 - sudo make install
 - sudo ldconfig
 - cd ..
-- ./autogen.sh
-- ./configure
-- make
-- sudo make install
 - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install swig
 
 scala:
