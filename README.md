@@ -10,10 +10,10 @@ ________________________________________
 
 [![Join the chat at https://gitter.im/tsecc/Lobby](https://badges.gitter.im/tsecc/Lobby.svg)](https://gitter.im/tsecc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/jmcardon/tsec.svg?branch=master)](https://travis-ci.org/jmcardon/tsec)
-[ ![Latest Version](https://api.bintray.com/packages/jmcardon/tsec/tsec-common/images/download.svg) ](https://bintray.com/jmcardon/tsec/tsec-common/_latestVersion)
+[ ![Latest Version](https://maven-badges.herokuapp.com/maven-central/io.github.jmcardon/tsec-common_2.12/badge.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A"io.github.jmcardon"%20tsec)
 
 
-### Latest Release: 0.0.1-M10
+### Latest Release: 0.0.1-M11
 
 For the current progress, please refer to the [RoadMap](https://github.com/jmcardon/tsec/wiki)
 
@@ -35,19 +35,9 @@ internals shift as we find better/more performant abstractions.
 
 We will guarantee compatibility between minor versions (i.e 0.0.1 => 0.0.2) but not major versions (0.0.1 => 0.1.0)
 
-0.0.1-M10 is here for scala 2.12+ and Cats 1.0.1!
+0.0.1-M11 is here for scala 2.12+ and Cats 1.0.1!
 
 To get started, if you are on sbt 0.13.16+, add
-
-```scala
-resolvers += "jmcardon at bintray" at "https://dl.bintray.com/jmcardon/tsec"
-```
-
-or (with the sbt-bintray plugin)
-
-```scala
-resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
-```
 
 
 | Name                  | Description                                              | Examples |
@@ -68,7 +58,7 @@ resolvers += Resolver.bintrayRepo("jmcardon", "tsec")
 To include any of these packages in your project use:
 
 ```scala
-val tsecV = "0.0.1-M10"
+val tsecV = "0.0.1-M11"
  libraryDependencies ++= Seq(
  "io.github.jmcardon" %% "tsec-common" % tsecV,
  "io.github.jmcardon" %% "tsec-password" % tsecV,
