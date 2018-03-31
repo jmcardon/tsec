@@ -20,7 +20,7 @@ abstract class SimpleAuthEnum[T, @specialized Repr: Decoder: Encoder: ClassTag: 
 
   implicit val authEnum: SimpleAuthEnum[T, Repr] = this
 
-  val getRepr: T => Repr
+  def getRepr(t: T): Repr
 
   protected val values: AuthGroup[T]
 
@@ -35,35 +35,28 @@ abstract class SimpleAuthEnum[T, @specialized Repr: Decoder: Encoder: ClassTag: 
     n
   }
 
-  @deprecated("Use safeFromRepr or fromReprF", "0.0.1-M11")
-  def orElse: T
-
-  def unsafeFromRepr(r: Repr): T = safeFromRepr(r).fold(throw _, identity)
-
-  def safeFromRepr(r: Repr): Either[InvalidAuthorization, T] = {
-    var i: Int  = 0
-    var ix: Int = -1
-    while (i < reprValues.length && ix == -1) {
+  @inline def ixFromRepr(r: Repr): Int = {
+    var i: Int = 0
+    while (i < reprValues.length) {
       if (reprValues(i) === r)
-        ix = i
+        return i
+
       i += 1
     }
+    -1
+  }
+
+  def unsafeFromRepr(r: Repr): T = fromRepr(r).fold(throw _, identity)
+
+  def fromReprF[F[_]](r: Repr)(implicit F: MonadError[F, Throwable]): F[T] =
+    F.fromEither(fromRepr(r))
+
+  def fromRepr(r: Repr): Either[InvalidAuthorization, T] = {
+    val ix = ixFromRepr(r)
     if (ix >= 0)
       Right(values(ix))
     else
       Left(InvalidAuthorization)
-  }
-
-  def fromReprF[F[_]](r: Repr)(implicit F: MonadError[F, Throwable]): F[T] =
-    F.fromEither(safeFromRepr(r))
-
-  @deprecated("Use safeFromRepr or fromReprF", "0.0.1-M11")
-  def fromRepr(r: Repr): T = {
-    val ix: Int = reprValues.indexOf(r)
-    if (ix >= 0)
-      values(ix)
-    else
-      orElse
   }
 
   @inline def contains(elem: T): Boolean = values.contains(elem)
@@ -82,13 +75,7 @@ abstract class SimpleAuthEnum[T, @specialized Repr: Decoder: Encoder: ClassTag: 
     * using `safeFromRepr.andThen`
     */
   private def codecFromRepr(r: Repr): Either[DecodingFailure, T] = {
-    var i: Int  = 0
-    var ix: Int = -1
-    while (i < reprValues.length && ix == -1) {
-      if (reprValues(i) === r)
-        ix = i
-      i += 1
-    }
+    val ix = ixFromRepr(r)
     if (ix >= 0)
       Right(values(ix))
     else

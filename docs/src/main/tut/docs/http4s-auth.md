@@ -36,6 +36,7 @@ import java.util.UUID
 import cats._
 import cats.data.OptionT
 import cats.effect.{IO, Sync}
+import cats.implicits._
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
@@ -87,10 +88,9 @@ object ExampleAuthHelpers {
     implicit object CorruptedData extends Role("corrupted")
 
     implicit val E: Eq[Role]      = Eq.fromUniversalEquals[Role]
-    val getRepr: (Role) => String = _.roleRepr
+    def getRepr(t: Role):String = t.roleRepr
 
     protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer, Seller)
-    val orElse: Role                      = CorruptedData
   }
 
   case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)

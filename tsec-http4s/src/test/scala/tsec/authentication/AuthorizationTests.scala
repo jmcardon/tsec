@@ -28,11 +28,11 @@ object AuthLevel extends SimpleAuthEnum[AuthLevel, Int] {
   implicit object Staff         extends AuthLevel(1)
   implicit object AugmentedUser extends AuthLevel(2)
   implicit object RegularUser   extends AuthLevel(3)
-  implicit object Err           extends AuthLevel(-1)
+
+  def getRepr(t: AuthLevel): Int = t.i
 
   val getRepr: (AuthLevel) => Int            = _.i
   protected val values: AuthGroup[AuthLevel] = AuthGroup(CEO, Staff, AugmentedUser, RegularUser)
-  val orElse: AuthLevel                      = Err
 }
 
 class AuthorizationTests extends TestSpec with MustMatchers {

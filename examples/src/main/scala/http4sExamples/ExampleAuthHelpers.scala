@@ -54,13 +54,11 @@ object ExampleAuthHelpers {
 
     implicit object Seller extends Role("Seller")
 
-    implicit object CorruptedData extends Role("corrupted")
-
     implicit val E: Eq[Role]      = Eq.fromUniversalEquals[Role]
-    val getRepr: (Role) => String = _.roleRepr
+
+    def getRepr(t: Role): String = t.roleRepr
 
     protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer, Seller)
-    val orElse: Role                      = CorruptedData
   }
 
   val AdminRequired: BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]] =

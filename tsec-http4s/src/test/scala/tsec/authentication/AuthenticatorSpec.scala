@@ -21,9 +21,9 @@ object DummyRole extends SimpleAuthEnum[DummyRole, String] {
   implicit object Other extends DummyRole("Other")
   implicit object Err   extends DummyRole("Err")
 
-  val getRepr: (DummyRole) => String         = _.repr
+  def getRepr(t: DummyRole): String = t.repr
+
   protected val values: AuthGroup[DummyRole] = AuthGroup(Admin, Other)
-  val orElse: DummyRole                      = Err
   implicit val eq: Eq[DummyRole] = new Eq[DummyRole] {
     def eqv(x: DummyRole, y: DummyRole): Boolean = x == y
   }
