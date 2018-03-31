@@ -3,6 +3,7 @@ package http4sExamples
 import cats._
 import cats.data.OptionT
 import cats.effect.{IO, Sync}
+import cats.instances.string._
 import http4sExamples.ExampleAuthHelpers.Role.{Administrator, Customer}
 import tsec.authentication._
 import tsec.authorization._
@@ -35,7 +36,7 @@ object ExampleAuthHelpers {
     def delete(id: I): F[Unit] =
       storageMap.remove(id) match {
         case Some(_) => F.unit
-        case None => F.raiseError(new IllegalArgumentException)
+        case None    => F.raiseError(new IllegalArgumentException)
       }
   }
 
@@ -55,11 +56,11 @@ object ExampleAuthHelpers {
 
     implicit object CorruptedData extends Role("corrupted")
 
-    implicit val E: Eq[Role] = Eq.fromUniversalEquals[Role]
+    implicit val E: Eq[Role]      = Eq.fromUniversalEquals[Role]
     val getRepr: (Role) => String = _.roleRepr
 
     protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer, Seller)
-    val orElse: Role = CorruptedData
+    val orElse: Role                      = CorruptedData
   }
 
   val AdminRequired: BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]] =

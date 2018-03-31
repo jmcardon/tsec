@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import cats.{Eq, MonadError}
 import cats.syntax.applicativeError._
+import cats.instances.string._
 import org.http4s._
 import org.scalacheck._
 import org.scalatest.prop.PropertyChecks
