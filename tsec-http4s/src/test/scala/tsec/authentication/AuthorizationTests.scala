@@ -22,7 +22,7 @@ object AuthDummyUser {
     }
 }
 
-sealed case class AuthLevel(i: Int)
+sealed abstract case class AuthLevel(i: Int)
 object AuthLevel extends SimpleAuthEnum[AuthLevel, Int] {
   implicit object CEO           extends AuthLevel(0)
   implicit object Staff         extends AuthLevel(1)
@@ -31,7 +31,6 @@ object AuthLevel extends SimpleAuthEnum[AuthLevel, Int] {
 
   def getRepr(t: AuthLevel): Int = t.i
 
-  val getRepr: (AuthLevel) => Int            = _.i
   protected val values: AuthGroup[AuthLevel] = AuthGroup(CEO, Staff, AugmentedUser, RegularUser)
 }
 
