@@ -34,7 +34,7 @@ script:
   - bash sodium_setup.sh
   - sbt ++$TRAVIS_SCALA_VERSION clean
   - sbt ++$TRAVIS_SCALA_VERSION test
-  - test $TRAVIS_SCALA_VERSION == "2.12.4" && sbt ++$TRAVIS_SCALA_VERSION tut || true
+  - test $TRAVIS_SCALA_VERSION == "2.12.4" && sbt ++$TRAVIS_SCALA_VERSION tut || test $TRAVIS_SCALA_VERSION == "2.11.11"
 
 after_success:
 - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && sbt ++$TRAVIS_SCALA_VERSION publish
