@@ -36,6 +36,7 @@ import java.util.UUID
 import cats._
 import cats.data.OptionT
 import cats.effect.{IO, Sync}
+import cats.implicits._
 import org.http4s.HttpService
 import org.http4s.dsl.io._
 import tsec.authentication._
@@ -79,18 +80,19 @@ object ExampleAuthHelpers {
   In our example, we will demonstrate how to use SimpleAuthEnum, as well as
   Role based authorization
    */
-  sealed abstract case class Role(roleRepr: String)
-  object Role extends SimpleAuthEnum[Role, String] {
-    implicit object Administrator extends Role("Administrator")
-    implicit object Customer      extends Role("User")
-    implicit object Seller        extends Role("Seller")
-    implicit object CorruptedData extends Role("corrupted")
+  sealed case class Role(roleRepr: String)
 
-    implicit val E: Eq[Role]      = Eq.fromUniversalEquals[Role]
-    val getRepr: (Role) => String = _.roleRepr
+  object Role extends SimpleAuthEnum[Role, String] {
+
+    val Administrator: Role = Role("Administrator")
+    val Customer: Role      = Role("User")
+    val Seller: Role        = Role("Seller")
+
+    implicit val E: Eq[Role] = Eq.fromUniversalEquals[Role]
+
+    def getRepr(t: Role): String = t.roleRepr
 
     protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer, Seller)
-    val orElse: Role                      = CorruptedData
   }
 
   case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)
