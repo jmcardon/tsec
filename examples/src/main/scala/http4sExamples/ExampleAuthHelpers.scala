@@ -44,17 +44,15 @@ object ExampleAuthHelpers {
   In our example, we will demonstrate how to use SimpleAuthEnum, as well as
   Role based authorization
    */
-  sealed abstract case class Role(roleRepr: String)
+  sealed case class Role(roleRepr: String)
 
   object Role extends SimpleAuthEnum[Role, String] {
 
-    implicit object Administrator extends Role("Administrator")
+    val Administrator: Role = Role("Administrator")
+    val Customer: Role      = Role("User")
+    val Seller: Role        = Role("Seller")
 
-    implicit object Customer extends Role("User")
-
-    implicit object Seller extends Role("Seller")
-
-    implicit val E: Eq[Role]      = Eq.fromUniversalEquals[Role]
+    implicit val E: Eq[Role] = Eq.fromUniversalEquals[Role]
 
     def getRepr(t: Role): String = t.roleRepr
 

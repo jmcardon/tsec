@@ -15,7 +15,7 @@ import scala.reflect.ClassTag
   * @tparam T the abstract type to enumerate, subclass style
   * @tparam Repr the representation type (i.e., string, int, double, ...)
   */
-abstract class SimpleAuthEnum[T, @specialized(Int, Long, Byte) Repr: Decoder: Encoder: ClassTag: Eq] {
+abstract class SimpleAuthEnum[T, @specialized(Specializable.Integral) Repr: Decoder: Encoder: ClassTag: Eq] {
   import SimpleAuthEnum._
 
   implicit val authEnum: SimpleAuthEnum[T, Repr] = this

@@ -24,10 +24,10 @@ object AuthDummyUser {
 
 sealed abstract case class AuthLevel(i: Int)
 object AuthLevel extends SimpleAuthEnum[AuthLevel, Int] {
-  implicit object CEO           extends AuthLevel(0)
-  implicit object Staff         extends AuthLevel(1)
-  implicit object AugmentedUser extends AuthLevel(2)
-  implicit object RegularUser   extends AuthLevel(3)
+  val CEO: AuthLevel           = new AuthLevel(0) {}
+  val Staff: AuthLevel         = new AuthLevel(1) {}
+  val AugmentedUser: AuthLevel = new AuthLevel(2) {}
+  val RegularUser: AuthLevel   = new AuthLevel(3) {}
 
   def getRepr(t: AuthLevel): Int = t.i
 
