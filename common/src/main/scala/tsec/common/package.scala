@@ -12,7 +12,7 @@ import scala.util.control.NoStackTrace
 
 package object common {
 
-  trait TSecError extends NoStackTrace {
+  trait TSecError extends Exception with NoStackTrace {
     def cause: String
     override def getMessage: String = cause
   }
