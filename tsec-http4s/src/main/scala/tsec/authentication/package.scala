@@ -113,14 +113,21 @@ package object authentication {
             .flatMap(r => andThen(r, req.authenticator))
       )
 
+    def withAuthorizationF[I, A, F[_]](auth: F[TAuth[F, I, A]])(
+      pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      Kleisli { req: SecuredRequest[F, I, A] =>
+        OptionT.liftF(auth).flatMap { auth =>
+          auth
+            .isAuthorized(req)
+            .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+        }
+      }
+
     def withAuthorization[I, A, F[_]](auth: TAuth[F, I, A])(
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
-      Kleisli { req: SecuredRequest[F, I, A] =>
-        auth
-          .isAuthorized(req)
-          .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
-      }
+      withAuthorizationF(F.pure(auth))(pf)
 
     /** The empty service (all requests fallthrough).
       * @tparam F - Ignored
