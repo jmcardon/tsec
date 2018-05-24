@@ -159,8 +159,9 @@ lazy val root = project
     jwtMac,
     jwtSig,
     passwordHashers,
-    http4s
-  )
+    http4s,
+    microsite
+  ).settings(noPublishSettings)
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
@@ -267,7 +268,7 @@ lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .dependsOn(bouncyCipher)
   .dependsOn(bouncyHash)
   .dependsOn(mac)
-  .settings(publish := {})
+  .settings(noPublishSettings)
   .enablePlugins(JmhPlugin)
 
 lazy val examples = Project(id = "tsec-examples", base = file("examples"))
@@ -290,7 +291,7 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     bouncyCipher,
     libsodium
   )
-  .settings(publish := {})
+  .settings(noPublishSettings)
 
 lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(commonSettings)
@@ -321,7 +322,7 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
   .settings(releaseSettings)
 
 lazy val microsite = Project(id = "microsite", base = file("docs"))
-  .settings(commonSettings)
+  .settings(commonSettings, noPublishSettings)
   .settings(micrositeSettings)
   .enablePlugins(MicrositesPlugin)
   .enablePlugins(TutPlugin)
@@ -347,3 +348,13 @@ lazy val publishSettings = Seq(
   autoAPIMappings := true,
   apiURL := None
 )
+
+lazy val noPublishSettings = {
+  import com.typesafe.sbt.pgp.PgpKeys.publishSigned
+  Seq(
+    publish := {},
+    publishLocal := {},
+    publishSigned := {},
+    publishArtifact := false
+  )
+}
