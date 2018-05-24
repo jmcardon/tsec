@@ -1,27 +1,34 @@
-<html><head><title>TSec</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Jose Cardona" /><meta name="description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="og:image" content="/tsec/img/poster.png" /><meta name="og:title" content="TSec" /><meta name="og:site_name" content="TSec" /><meta name="og:url" content="https://jmcardon.github.io/tsec/" /><meta name="og:type" content="website" /><meta name="og:description" content="A Type-Safe General Cryptography Library on the JVM" /><link rel="icon" type="image/png" href="/tsec/img/favicon.png" /><meta name="twitter:title" content="TSec" /><meta name="twitter:image" content="https://jmcardon.github.io/tsec/img/poster.png" /><meta name="twitter:description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/tsec/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/tsec/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/tsec/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/tsec/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/tsec/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/tsec/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/tsec/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/tsec/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/tsec/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/tsec/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/tsec/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/tsec/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/tsec/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/tsec/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/tsec/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/tsec/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/tsec/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/tsec/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/tsec/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/tsec/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/tsec/highlight/styles/default.css" /><link rel="stylesheet" href="/tsec/css/style.css" /><link rel="stylesheet" href="/tsec/css/palette.css" /><link rel="stylesheet" href="/tsec/css/codemirror.css" /><link rel="stylesheet" href="/tsec/css/kazari-style.css" /><link rel="stylesheet" href="/tsec/css/monokai.css" /></head><body><header id="site-header"><div class="navbar-wrapper"><div class="container"><div class="row"><div class="col-xs-6"><a href="/tsec/" class="brand"><div class="icon-wrapper"><span>TSec</span></div></a></div><div class="col-xs-6"><nav class="text-right"><ul class=""><li><a href="https://github.com/jmcardon/tsec"><i class="fa fa-github"></i><span class="hidden-xs">GitHub</span></a></li><li><a href="/tsec/docs/symmetric.html"><i class="fa fa-file-text"></i><span class="hidden-xs">Documentation</span></a></li></ul></nav></div></div></div></div><div class="jumbotron"><div class="container"><h1 class="text-center">A Type-Safe General Cryptography Library on the JVM</h1><h2></h2><p class="text-center"><a href="https://github.com/jmcardon/tsec" class="btn btn-outline-inverse">View on GitHub</a></p></div></div><div><ul class="horizontalNav">                                     <li><a class="" href="/tsec/home.html">Home</a></li>  <li><a class="" href="/tsec/documentation.html">Documentation</a></li>  <li><a class="" href="/tsec/motivation.html">Motivation</a></li>  <li><a class="" href="/tsec/philosophy.html">Philosophy</a></li> </ul></div></header><main id="site-main"><section class="use"><div class="container"><div id="content"><h1 id="tsec---tagless-security">TSec - Tagless Security</h1>
+<html><head><title>TSec</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Jose Cardona" /><meta name="description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="og:image" content="/tsec/img/poster.png" /><meta name="og:title" content="TSec" /><meta name="og:site_name" content="TSec" /><meta name="og:url" content="https://jmcardon.github.io/tsec/" /><meta name="og:type" content="website" /><meta name="og:description" content="A Type-Safe General Cryptography Library on the JVM" /><link rel="icon" type="image/png" href="/tsec/img/favicon.png" /><meta name="twitter:title" content="TSec" /><meta name="twitter:image" content="https://jmcardon.github.io/tsec/img/poster.png" /><meta name="twitter:description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/tsec/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/tsec/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/tsec/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/tsec/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/tsec/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/tsec/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/tsec/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/tsec/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/tsec/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/tsec/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/tsec/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/tsec/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/tsec/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/tsec/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/tsec/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/tsec/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/tsec/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/tsec/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/tsec/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/tsec/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/tsec/highlight/styles/default.css" /><link rel="stylesheet" href="/tsec/css/style.css" /><link rel="stylesheet" href="/tsec/css/palette.css" /><link rel="stylesheet" href="/tsec/css/codemirror.css" /><link rel="stylesheet" href="/tsec/css/kazari-style.css" /><link rel="stylesheet" href="/tsec/css/monokai.css" /></head><body><header id="site-header"><div class="navbar-wrapper"><div class="container"><div class="row"><div class="col-xs-6"><a href="/tsec/" class="brand"><div class="icon-wrapper"><span>TSec</span></div></a></div><div class="col-xs-6"><nav class="text-right"><ul class=""><li><a href="https://github.com/jmcardon/tsec"><i class="fa fa-github"></i><span class="hidden-xs">GitHub</span></a></li><li><a href="/tsec/docs/symmetric.html"><i class="fa fa-file-text"></i><span class="hidden-xs">Documentation</span></a></li></ul></nav></div></div></div></div><div class="jumbotron"><div class="container"><h1 class="text-center">A Type-Safe General Cryptography Library on the JVM</h1><h2></h2><p class="text-center"><a href="https://github.com/jmcardon/tsec" class="btn btn-outline-inverse">View on GitHub</a></p></div></div><div><ul class="horizontalNav">                                   <li><a class="" href="/tsec/home.html">Home</a></li>  <li><a class="" href="/tsec/documentation.html">Documentation</a></li>  <li><a class="" href="/tsec/motivation.html">Motivation</a></li>  <li><a class="" href="/tsec/philosophy.html">Philosophy</a></li> </ul></div></header><main id="site-main"><section class="use"><div class="container"><div id="content"><h1 id="tsec---tagless-security">TSec - Tagless Security</h1>
 
 <p><strong>TSec</strong> Is a type-safe general cryptography library on the JVM.</p>
 
 <p><a href="https://gitter.im/tsecc/Lobby?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/tsecc/Lobby.svg" alt="Join the chat at https://gitter.im/tsecc/Lobby" /></a>
 <a href="https://travis-ci.org/jmcardon/tsec"><img src="https://travis-ci.org/jmcardon/tsec.svg?branch=master" alt="Build Status" /></a>
-<a href="https://bintray.com/jmcardon/tsec/tsec-common/_latestVersion"> <img src="https://api.bintray.com/packages/jmcardon/tsec/tsec-common/images/download.svg" alt="Latest Version" /> </a></p>
+<a href="https://search.maven.org/#search%7Cga%7C1%7Cg%3A&quot;io.github.jmcardon&quot;%20tsec"> <img src="https://maven-badges.herokuapp.com/maven-central/io.github.jmcardon/tsec-common_2.12/badge.svg" alt="Latest Version" /></a></p>
 
 <p>For the current progress, please refer to the <a href="https://github.com/jmcardon/tsec/wiki">RoadMap</a>.</p>
 
 <p>For version changes and additions, including breaking changes, see either <a href="https://github.com/jmcardon/tsec/releases">release notes</a>
 or the <a href="https://github.com/jmcardon/tsec/wiki/Version-Changes">Version Changes</a> page.</p>
 
-<p>0.0.1-M6 is here for scala 2.12+ and Cats 1.0.0-RC1!</p>
+<h3 id="note-on-milestones">Note on milestones:</h3>
+<p>Our Notation for versions is:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>X.X.X
+^ ^ ^____Minor
+| |______Major
+|________Complete redesign (i.e scalaz 7 vs 8)  
+</code></pre>
+</div>
+
+<p>All <code class="highlighter-rouge">x.x.x-Mx</code> releases are milestone releases. Thus, we do not guarantee binary compatibility or no api-breakage until
+a concrete version(i.e <code class="highlighter-rouge">0.0.1</code>). We aim to keep userland-apis relatively stable, but 
+internals shift as we find better/more performant abstractions.</p>
+
+<p>We will guarantee compatibility between minor versions (i.e 0.0.1 =&gt; 0.0.2) but not major versions (0.0.1 =&gt; 0.1.0)</p>
+
+<p>0.0.1-M11 is here for scala 2.12+ and Cats 1.0.1!</p>
 
 <p>To get started, if you are on sbt 0.13.16+, add</p>
-
-<div class="language-scala highlighter-rouge"><pre class="codehilite"><code><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">"jmcardon at bintray"</span> <span class="n">at</span> <span class="s">"https://dl.bintray.com/jmcardon/tsec"</span>
-</code></pre></div>
-
-<p>or with the bintray plugin:</p>
-
-<div class="language-scala highlighter-rouge"><pre class="codehilite"><code><span class="n">resolvers</span> <span class="o">+=</span> <span class="nc">Resolver</span><span class="o">.</span><span class="n">bintrayRepo</span><span class="o">(</span><span class="s">"jmcardon"</span><span class="o">,</span> <span class="s">"tsec"</span><span class="o">)</span>
-</code></pre></div>
 
 <table>
   <thead>
@@ -43,8 +50,13 @@ or the <a href="https://github.com/jmcardon/tsec/wiki/Version-Changes">Version C
       <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/PasswordHashingExamples.scala">here</a></td>
     </tr>
     <tr>
-      <td>tsec-symmetric-cipher</td>
-      <td>Symmetric encryption utilities!</td>
+      <td>tsec-cipher-jca</td>
+      <td>Symmetric encryption utilities</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SymmetricCipherExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-cipher-bouncy</td>
+      <td>Symmetric encryption utilities</td>
       <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SymmetricCipherExamples.scala">here</a></td>
     </tr>
     <tr>
@@ -58,8 +70,18 @@ or the <a href="https://github.com/jmcardon/tsec/wiki/Version-Changes">Version C
       <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/SignatureExamples.scala">here</a></td>
     </tr>
     <tr>
-      <td>tsec-messageDigests</td>
+      <td>tsec-hash-jca</td>
       <td>Message Digests (Hashing)</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-hash-bouncy</td>
+      <td>Message Digests (Hashing)</td>
+      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala">here</a></td>
+    </tr>
+    <tr>
+      <td>tsec-libsodium</td>
+      <td>Nicely-typed Libsodium JNI bridge</td>
       <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/MessageDigestExamples.scala">here</a></td>
     </tr>
     <tr>
@@ -75,26 +97,30 @@ or the <a href="https://github.com/jmcardon/tsec/wiki/Version-Changes">Version C
     <tr>
       <td>tsec-http4s</td>
       <td>Http4s Request Authentication and Authorization</td>
-      <td><a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/http4sExamples/">here</a></td>
+      <td><a href="https://github.com/jmcardon/tsec/tree/master/examples/src/main/scala/http4sExamples">here</a></td>
     </tr>
   </tbody>
 </table>
 
 <p>To include any of these packages in your project use:</p>
 
-<div class="language-scala highlighter-rouge"><pre class="codehilite"><code><span class="k">val</span> <span class="n">tsecV</span> <span class="k">=</span> <span class="s">"0.0.1-M6"</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">val</span> <span class="n">tsecV</span> <span class="k">=</span> <span class="s">"0.0.1-M11"</span>
  <span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
  <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-common"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
  <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-password"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
- <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-symmetric-cipher"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-cipher-jca"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-cipher-bouncy"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
  <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-mac"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
  <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-signatures"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
- <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-md"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-hash-jca"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-hash-bouncy"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
+ <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-libsodium"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
  <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-jwt-mac"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
  <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-jwt-sig"</span> <span class="o">%</span> <span class="n">tsecV</span><span class="o">,</span>
  <span class="s">"io.github.jmcardon"</span> <span class="o">%%</span> <span class="s">"tsec-http4s"</span> <span class="o">%</span> <span class="n">tsecV</span>
 <span class="o">)</span>
-</code></pre></div>
+</code></pre>
+</div>
 
 <h2 id="testing">Testing:</h2>
 
