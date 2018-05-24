@@ -11,6 +11,7 @@ before_install:
 - sudo ldconfig
 - cd ..
 - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install swig
+- export PATH=${PATH}:./vendor/bundle
 
 scala:
   - 2.12.4
@@ -30,11 +31,20 @@ jdk:
   - oraclejdk8
   - openjdk8
 
+install:
+- rvm use 2.2.8 --install --fuzzy
+- gem update --system
+- gem install sass
+- gem install jekyll -v 3.2.1
+
 script:
   - bash sodium_setup.sh
   - sbt ++$TRAVIS_SCALA_VERSION clean
   - sbt ++$TRAVIS_SCALA_VERSION test
   - test $TRAVIS_SCALA_VERSION == "2.12.4" && sbt ++$TRAVIS_SCALA_VERSION tut || test $TRAVIS_SCALA_VERSION == "2.11.11"
+  - test $TRAVIS_SCALA_VERSION == "2.12.4" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite || test $TRAVIS_SCALA_VERSION == "2.11.11"
+
 
 after_success:
 - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && sbt ++$TRAVIS_SCALA_VERSION publish
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && test $TRAVIS_SCALA_VERSION == "2.12.4" sbt ++$TRAVIS_SCALA_VERSION microsite/publishMicrosite
