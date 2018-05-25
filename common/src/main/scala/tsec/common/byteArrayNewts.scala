@@ -1,6 +1,6 @@
 package tsec.common
 
-abstract class ArrayNewt {
+private[tsec] abstract class ArrayNewt {
   type Type <: Array[Byte]
 
   final def apply(value: Array[Byte]): Type             = value.asInstanceOf[Type]
