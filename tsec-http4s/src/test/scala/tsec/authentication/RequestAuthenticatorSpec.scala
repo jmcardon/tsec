@@ -164,7 +164,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- adminService(embedded)
       } yield res
       response
-        .getOrElse(Response.notFound)
+        .getOrElse(Response.notFound[IO])
         .map(_.status)
         .unsafeRunSync() mustBe Status.Unauthorized
     }

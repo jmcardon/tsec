@@ -93,6 +93,9 @@ package object authentication {
 
   object TSecAuthService {
 
+    //Lol hack but this works
+    private[this] val cachedUnauthorized: Response[Any] = Response[Any](Status.Unauthorized)
+
     /** Lifts a partial function to an `TSecAuthedService`.  Responds with
       * [[org.http4s.Response.notFound]], which generates a 404, for any request
       * where `pf` is not defined.
@@ -114,20 +117,38 @@ package object authentication {
       )
 
     def withAuthorizationF[I, A, F[_]](auth: F[TAuth[F, I, A]])(
-      pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      withAuthorizationFHandler(auth)(pf, defaultOnNotAuthorized[F, I, A])
+
+    def withAuthorizationFHandler[I, A, F[_]](auth: F[TAuth[F, I, A]])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
+        onNotAuthorized: SecuredRequest[F, I, A] => OptionT[F, Response[F]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli { req: SecuredRequest[F, I, A] =>
         OptionT.liftF(auth).flatMap { auth =>
           auth
             .isAuthorized(req)
-            .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+            .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none[F, Response[F]])))
+            .orElse(onNotAuthorized(req))
         }
       }
 
     def withAuthorization[I, A, F[_]](auth: TAuth[F, I, A])(
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
-      withAuthorizationF(F.pure(auth))(pf)
+      withAuthorizationHandler(auth)(pf, defaultOnNotAuthorized[F, I, A])
+
+    def withAuthorizationHandler[I, A, F[_]](auth: TAuth[F, I, A])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
+        onNotAuthorized: SecuredRequest[F, I, A] => OptionT[F, Response[F]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      Kleisli { req: SecuredRequest[F, I, A] =>
+        auth
+          .isAuthorized(req)
+          .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none[F, Response[F]])))
+          .orElse(onNotAuthorized(req))
+      }
 
     /** The empty service (all requests fallthrough).
       * @tparam F - Ignored
@@ -137,6 +158,11 @@ package object authentication {
       */
     def empty[A, I, F[_]: Applicative]: TSecAuthService[I, A, F] =
       Kleisli.liftF(OptionT.none)
+
+    def defaultOnNotAuthorized[F[_], I, A](
+        unused: SecuredRequest[F, I, A]
+    )(implicit F: Monad[F]): OptionT[F, Response[F]] =
+      OptionT(F.pure(Some(cachedUnauthorized.asInstanceOf[Response[F]])))
   }
 
   type UserAwareService[I, A, F[_]] =
