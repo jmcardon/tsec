@@ -24,8 +24,6 @@ package object symmetric {
   object AuthTag extends ArrayHKNewt
 
   case class CipherText[A](content: RawCipherText[A], nonce: Iv[A]) {
-    @deprecated("use toConcatenated", "0.0.1-M10")
-    def toSingleArray: Array[Byte] = toConcatenated
 
     def toConcatenated: Array[Byte] = content ++ nonce
   }

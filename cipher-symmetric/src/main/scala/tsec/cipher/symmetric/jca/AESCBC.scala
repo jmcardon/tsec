@@ -13,10 +13,6 @@ sealed abstract class AESCBC[A] extends JCACipherAPI[A, CBC, PKCS7Padding] with 
 
   def defaultIvStrategy[F[_]: Sync](implicit c: BlockCipher[A]): IvGen[F, A] = JCAIvGen.random[F, A]
 
-  @deprecated("use ciphertextFromConcat", "0.0.1-M10")
-  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A]] =
-    ciphertextFromConcat(array)
-
   def ciphertextFromConcat(rawCT: Array[Byte]): Either[CipherTextError, CipherText[A]] =
     CTOPS.ciphertextFromArray[A, CBC, PKCS7Padding](rawCT)
 }

@@ -71,10 +71,6 @@ sealed abstract class AESCTR[A] extends JCACipherAPI[A, CTR, NoPadding] with AES
         }
     }
 
-  @deprecated("use ciphertextFromConcat", "0.0.1-M10")
-  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A]] =
-    ciphertextFromConcat(array)
-
   def ciphertextFromConcat(rawCT: Array[Byte]): Either[CipherTextError, CipherText[A]] =
     CTOPS.ciphertextFromArray[A, CTR, NoPadding](rawCT)
 }
