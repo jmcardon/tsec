@@ -159,7 +159,7 @@ package object authentication {
     def defaultOnNotAuthorized[F[_], I, A](
         unused: SecuredRequest[F, I, A]
     )(implicit F: Monad[F]): OptionT[F, Response[F]] =
-      OptionT(F.pure(Some(Response[F])))
+      OptionT(F.pure(Some(Response[F](Status.Unauthorized))))
   }
 
   type UserAwareService[I, A, F[_]] =
