@@ -113,3 +113,4 @@ _binding_ to your classpath. Check https://www.slf4j.org/codes.html#StaticLogger
 [Fabio Labella](https://github.com/systemfw) (For the great FP help)
 
 [Will Sargent](https://github.com/wsargent) (Security Discussions)
+

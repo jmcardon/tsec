@@ -28,9 +28,9 @@ package object jca {
   }
 
   object MacSigningKey {
-    type Base$$1
-    trait Tag$$1 extends Any
-    type Type[A] <: Base$$1 with Tag$$1
+    type Base1
+    trait Tag1 extends Any
+    type Type[A] <: Base1 with Tag1
     @inline def apply[A](key: JSecretKey): MacSigningKey[A] = key.asInstanceOf[MacSigningKey[A]]
     @inline def fromJavaKey[A: JCAMacTag](key: JSecretKey): MacSigningKey[A] = key.asInstanceOf[MacSigningKey[A]]
     @inline def toJavaKey[A: JCAMacTag](key: MacSigningKey[A]): JSecretKey   = key.asInstanceOf[JSecretKey]

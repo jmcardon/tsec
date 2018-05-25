@@ -14,9 +14,9 @@ package object jca extends CipherErrors {
 
   object SecretKey {
     type Base[A]
-    trait M$$ extends Any
+    trait M1 extends Any
 
-    type Type[A] <: Base[A] with M$$
+    type Type[A] <: Base[A] with M1
 
     def apply[A](key: JSecretKey): SecretKey[A]     = key.asInstanceOf[SecretKey[A]]
     def toJavaKey[A](key: SecretKey[A]): JSecretKey = key.asInstanceOf[JSecretKey]
