@@ -11,6 +11,7 @@ import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt._
 import tsec.jwt.algorithms.JWTMacAlgo
+import tsec.keyrotation.KeyStrategy
 import tsec.mac.jca._
 
 import scala.concurrent.duration.FiniteDuration
@@ -23,7 +24,7 @@ private[tsec] abstract class StatefulJWTAuth[F[_], I, V, A: JWTMacAlgo](
     val maxIdle: Option[FiniteDuration],
     tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
     identityStore: IdentityStore[F, I, V],
-    signingKey: MacSigningKey[A]
+    signingKey: KeyStrategy[F, MacSigningKey, A]
 )(implicit F: Sync[F], cv: JWSMacCV[F, A])
     extends JWTAuthenticator[F, I, V, A] {
 
@@ -37,7 +38,8 @@ private[tsec] abstract class StatefulJWTAuth[F[_], I, V, A: JWTMacAlgo](
     OptionT(
       (for {
         now       <- F.delay(Instant.now())
-        extracted <- cv.verifyAndParse(raw, signingKey, now)
+        key       <- signingKey.retrieveKey
+        extracted <- cv.verifyAndParse(raw, key, now)
         id        <- cataOption(extracted.id)
         retrieved <- tokenStore.get(SecureRandomId(id)).orAuthFailure
         refreshed <- verifyAndRefresh(raw, retrieved, now)
@@ -56,7 +58,8 @@ private[tsec] abstract class StatefulJWTAuth[F[_], I, V, A: JWTMacAlgo](
         jwtId = Some(cookieId),
         expiration = Some(newExpiry)
       )
-      signed  <- JWTMac.build[F, A](claims, signingKey)
+      key     <- signingKey.retrieveKey
+      signed  <- JWTMac.build[F, A](claims, key)
       created <- tokenStore.put(AugmentedJWT(cookieId, signed, body, newExpiry, touch(now)))
     } yield created
 
@@ -65,7 +68,8 @@ private[tsec] abstract class StatefulJWTAuth[F[_], I, V, A: JWTMacAlgo](
       val updatedExpiry = now.plusSeconds(expiry.toSeconds)
       val newBody       = authenticator.jwt.body.withExpiry(updatedExpiry)
       for {
-        reSigned <- JWTMac.build[F, A](newBody, signingKey)
+        key      <- signingKey.retrieveKey
+        reSigned <- JWTMac.build[F, A](newBody, key)
         updated <- tokenStore
           .update(authenticator.copy(jwt = reSigned, expiry = updatedExpiry, lastTouched = touch(now)))
       } yield updated
