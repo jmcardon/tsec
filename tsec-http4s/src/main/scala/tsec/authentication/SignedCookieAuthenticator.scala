@@ -10,6 +10,7 @@ import org.http4s._
 import tsec.common._
 import tsec.cookies._
 import tsec.hashing.jca._
+import tsec.keyrotation._
 import tsec.mac.MessageAuth
 import tsec.mac.jca._
 
@@ -216,44 +217,52 @@ object SignedCookieAuthenticator {
       idStore: IdentityStore[F, I, V],
       key: MacSigningKey[Alg]
   )(implicit F: Sync[F], S: MessageAuth[F, Alg, MacSigningKey]): SignedCookieAuthenticator[F, I, V, Alg] =
+    apply[F, I, V, Alg](settings, tokenStore, idStore, StaticKeyStrategy[F](key))
+
+  def apply[F[_], I, V, A](
+      settings: TSecCookieSettings,
+      tokenStore: BackingStore[F, UUID, AuthenticatedCookie[A, I]],
+      idStore: IdentityStore[F, I, V],
+      key: KeyStrategy[F, MacSigningKey, A]
+  )(implicit F: Sync[F], S: MessageAuth[F, A, MacSigningKey]): SignedCookieAuthenticator[F, I, V, A] =
     settings.maxIdle match {
       case Some(mIdle) =>
-        new SignedCookieAuthenticator[F, I, V, Alg](tokenStore, idStore, settings) {
+        new SignedCookieAuthenticator[F, I, V, A](tokenStore, idStore, settings) {
 
           private[tsec] def validateCookie(
-              internal: AuthenticatedCookie[Alg, I],
-              raw: SignedCookie[Alg],
+              internal: AuthenticatedCookie[A, I],
+              raw: SignedCookie[A],
               now: Instant
           ): Boolean = raw === internal.content && !internal.isExpired(now) && !internal.isTimedOut(now, mIdle)
 
-          private[tsec] def verifyAndRetrieve(signed: SignedCookie[Alg]): F[String] =
-            CookieSigner.verifyAndRetrieve[F, Alg](signed, key)
+          private[tsec] def verifyAndRetrieve(signed: SignedCookie[A]): F[String] =
+            key.retrieveKey.flatMap(CookieSigner.verifyAndRetrieve[F, A](signed, _))
 
-          private[tsec] def sign(message: String, nonce: String): F[SignedCookie[Alg]] =
-            CookieSigner.sign[F, Alg](message, nonce, key)
+          private[tsec] def sign(message: String, nonce: String): F[SignedCookie[A]] =
+            key.retrieveKey.flatMap(CookieSigner.sign[F, A](message, nonce, _))
 
-          def refresh(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+          def refresh(authenticator: AuthenticatedCookie[A, I]): F[AuthenticatedCookie[A, I]] =
             F.delay(Instant.now()).flatMap { now =>
-              val updated = authenticator.copy[Alg, I](lastTouched = Some(now))
+              val updated = authenticator.copy[A, I](lastTouched = Some(now))
               tokenStore.update(updated).map(_ => updated)
             }
         }
 
       case None =>
-        new SignedCookieAuthenticator[F, I, V, Alg](tokenStore, idStore, settings) {
+        new SignedCookieAuthenticator[F, I, V, A](tokenStore, idStore, settings) {
           private[tsec] def validateCookie(
-              internal: AuthenticatedCookie[Alg, I],
-              raw: SignedCookie[Alg],
+              internal: AuthenticatedCookie[A, I],
+              raw: SignedCookie[A],
               now: Instant
           ): Boolean = raw === internal.content && !internal.isExpired(now)
 
-          private[tsec] def verifyAndRetrieve(signed: SignedCookie[Alg]): F[String] =
-            CookieSigner.verifyAndRetrieve[F, Alg](signed, key)
+          private[tsec] def verifyAndRetrieve(signed: SignedCookie[A]): F[String] =
+            key.retrieveKey.flatMap(CookieSigner.verifyAndRetrieve[F, A](signed, _))
 
-          private[tsec] def sign(message: String, nonce: String): F[SignedCookie[Alg]] =
-            CookieSigner.sign[F, Alg](message, nonce, key)
+          private[tsec] def sign(message: String, nonce: String): F[SignedCookie[A]] =
+            key.retrieveKey.flatMap(CookieSigner.sign[F, A](message, nonce, _))
 
-          def refresh(authenticator: AuthenticatedCookie[Alg, I]): F[AuthenticatedCookie[Alg, I]] =
+          def refresh(authenticator: AuthenticatedCookie[A, I]): F[AuthenticatedCookie[A, I]] =
             F.pure(authenticator)
         }
     }

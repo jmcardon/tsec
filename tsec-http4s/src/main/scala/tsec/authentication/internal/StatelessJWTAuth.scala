@@ -13,6 +13,7 @@ import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.JWTClaims
+import tsec.keyrotation.KeyStrategy
 import tsec.mac.MAC
 import tsec.mac.jca._
 
@@ -21,7 +22,7 @@ import scala.concurrent.duration._
 private[tsec] abstract class StatelessJWTAuth[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration],
-    signingKey: MacSigningKey[A]
+    keyStrategy: KeyStrategy[F, MacSigningKey, A]
 )(implicit F: Sync[F], cv: JWSMacCV[F, A])
     extends JWTAuthenticator[F, V, V, A] {
 
@@ -31,7 +32,8 @@ private[tsec] abstract class StatelessJWTAuth[F[_], V: Decoder: ObjectEncoder, A
     OptionT(
       (for {
         now         <- F.delay(Instant.now())
-        extracted   <- cv.verifyAndParse(raw, signingKey, now)
+        key         <- keyStrategy.retrieveKey
+        extracted   <- cv.verifyAndParse(raw, key, now)
         jwtid       <- cataOption(extracted.id)
         body        <- extracted.body.asF[F, V]
         expiry      <- cataOption(extracted.body.expiration)
@@ -60,7 +62,8 @@ private[tsec] abstract class StatelessJWTAuth[F[_], V: Decoder: ObjectEncoder, A
         expiration = Some(expiryTime),
         customFields = body.asJsonObject.toList
       )
-      out <- JWTMac.build[F, A](claims, signingKey)
+      key <- keyStrategy.retrieveKey
+      out <- JWTMac.build[F, A](claims, key)
     } yield AugmentedJWT(jwtId, out, body, expiryTime, lastTouched)
 
   def update(authenticator: AugmentedJWT[A, V]): F[AugmentedJWT[A, V]] =
@@ -72,12 +75,14 @@ private[tsec] abstract class StatelessJWTAuth[F[_], V: Decoder: ObjectEncoder, A
       updatedExpiry = now.plusSeconds(expiry.toSeconds)
       authBody      = authenticator.jwt.body
       lastTouched   = touch(now)
+      key <- keyStrategy.retrieveKey
       jwt <- JWTMac.build(
         authBody.withIATOption(lastTouched).withExpiry(updatedExpiry),
-        signingKey
+        key
       )
     } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, updatedExpiry, lastTouched)
 
+  //Todo: Cache this, there's no need to recompute
   def discard(authenticator: AugmentedJWT[A, V]): F[AugmentedJWT[A, V]] =
     F.pure(authenticator.copy(jwt = JWTMac.buildToken[A](JWSMacHeader[A], JWTClaims(), MAC[A](Array.empty[Byte]))))
 

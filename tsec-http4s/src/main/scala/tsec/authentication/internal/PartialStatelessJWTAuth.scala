@@ -14,6 +14,7 @@ import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.{JWTClaims, JWTPrinter}
+import tsec.keyrotation.KeyStrategy
 import tsec.mac.jca._
 
 import scala.concurrent.duration._
@@ -25,7 +26,7 @@ private[tsec] abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, 
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration],
     identityStore: IdentityStore[F, I, V],
-    signingKey: MacSigningKey[A]
+    keyStrategy: KeyStrategy[F, MacSigningKey, A]
 )(implicit F: Sync[F], cv: JWSMacCV[F, A])
     extends JWTAuthenticator[F, I, V, A] {
 
@@ -35,7 +36,8 @@ private[tsec] abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, 
     OptionT(
       (for {
         now         <- F.delay(Instant.now())
-        extracted   <- cv.verifyAndParse(raw, signingKey, now)
+        key         <- keyStrategy.retrieveKey
+        extracted   <- cv.verifyAndParse(raw, key, now)
         jwtid       <- cataOption(extracted.id)
         id          <- cataOption(extracted.body.subject.flatMap(decode[I](_).toOption))
         expiry      <- cataOption(extracted.body.expiration)
@@ -66,7 +68,8 @@ private[tsec] abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, 
         jwtId = Some(cookieId),
         expiration = Some(expiryTime)
       )
-      out <- JWTMac.build[F, A](claims, signingKey)
+      key <- keyStrategy.retrieveKey
+      out <- JWTMac.build[F, A](claims, key)
     } yield AugmentedJWT(cookieId, out, body, expiryTime, lastTouched)
 
   def renew(authenticator: AugmentedJWT[A, I]): F[AugmentedJWT[A, I]] =
@@ -74,9 +77,10 @@ private[tsec] abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, 
       now <- F.delay(Instant.now())
       updatedExpiry = now.plusSeconds(expiry.toSeconds)
       authBody      = authenticator.jwt.body
+      key <- keyStrategy.retrieveKey
       jwt <- JWTMac.build(
         authBody.withIAT(now).withExpiry(updatedExpiry),
-        signingKey
+        key
       )
     } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, updatedExpiry, touch(now))
 
@@ -87,12 +91,14 @@ private[tsec] abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, 
   def discard(authenticator: AugmentedJWT[A, I]): F[AugmentedJWT[A, I]] =
     for {
       now <- F.delay(Instant.now)
+      //todo: cache this. There's no need to compute an invalid one.
+      key <- keyStrategy.retrieveKey
       jwt <- JWTMac
         .build[F, A](
           authenticator.jwt.body
             .withExpiry(now)
             .withJwtID(SecureRandomId.Interactive.generate),
-          signingKey
+          key
         )
     } yield AugmentedJWT(authenticator.id, jwt, authenticator.identity, now, authenticator.lastTouched)
 }
