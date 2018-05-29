@@ -294,9 +294,6 @@ package object authentication {
       A.isTimedOut(a, now, timeOut)
   }
 
-  @deprecated("AuthenticatorService has been renamed", "0.0.1-M10")
-  type AuthenticatorService[F[_], I, V, A] = Authenticator[F, I, V, A]
-
   private[tsec] object AuthenticationFailure extends TSecError {
     def cause: String = "Authentication Failure"
   }

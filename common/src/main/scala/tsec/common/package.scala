@@ -23,19 +23,6 @@ package object common {
     */
   type CatchE[A] = Either[Throwable, A]
 
-  @deprecated(
-    "methods over cats.evidence.Is have more " +
-      "cast overhead than manually written newtypes. " +
-      "For performance's sake, these types are " +
-      "deprecated and will be removed",
-    "0.0.1-M10"
-  )
-  trait StringNewt {
-    type I <: String
-
-    val is: Is[I, String]
-  }
-
   sealed trait TSecPrimitiveEncoder[T] {
     def encode(v: T): Array[Byte]
   }
