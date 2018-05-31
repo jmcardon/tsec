@@ -11,25 +11,8 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val authenticator: Authenticator[F, Identity, User, Auth]
 )(implicit F: MonadError[F, Throwable]) {
 
-  private[tsec] val cachedUnauthorized: Response[F]                       = Response[F](Status.Unauthorized)
-  private[tsec] val defaultNotAuthenticated: Request[F] => F[Response[F]] = _ => F.pure(cachedUnauthorized)
-
-  /** Create an Authorized middleware from an Authorization **/
-  private[tsec] def authorizedMiddleware(
-      authorization: Authorization[F, User, Auth],
-      onNotAuthenticated: Request[F] => F[Response[F]]
-  ): TSecMiddleware[F, User, Auth] = {
-    val authed = Kleisli(authenticator.extractAndValidate)
-      .andThen(e => authorization.isAuthorized(e))
-    TSecMiddleware(authed, onNotAuthenticated)
-  }
-
-  /** Compose Requests **/
-  @deprecated("Use TSecAuthService + liftService", "0.0.1-M10")
-  def apply(
-      pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
-      onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-  ): HttpService[F]
+  private[this] val cachedUnauthorized: Response[F]                       = Response[F](Status.Unauthorized)
+  private[this] val defaultNotAuthenticated: Request[F] => F[Response[F]] = _ => F.pure(cachedUnauthorized)
 
   /** Lift an Authenticated Service into an HttpService **/
   def liftService(
@@ -70,13 +53,6 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
       }
   }
 
-  /** Create an Authorized Service **/
-  @deprecated("Use TSecAuthService + liftService", "0.0.1-M10")
-  def authorized(authorization: Authorization[F, User, Auth])(
-      pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
-      onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-  ): HttpService[F]
-
 }
 
 object SecuredRequestHandler {
@@ -96,65 +72,12 @@ object SecuredRequestHandler {
   private[tsec] def rollingWindow[F[_], Identity, User, Auth](
       authenticator: Authenticator[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
-    new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
-
-      /** Compose Requests **/
-      def apply(
-          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
-          onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-      ): HttpService[F] = {
-        val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
-        middleware(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith { e =>
-            logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
-          }
-      }
-
-      /** Create an Authorized Service **/
-      def authorized(authorization: Authorization[F, User, Auth])(
-          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
-          onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-      ): HttpService[F] =
-        authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf, authenticator.afterBlock))
-          .handleErrorWith { e =>
-            logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
-          }
-
-    }
+    new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {}
 
   /** Default Construction **/
   private[tsec] def default[F[_], Identity, User, Auth](
       authenticator: Authenticator[F, Identity, User, Auth]
   )(implicit F: MonadError[F, Throwable]): SecuredRequestHandler[F, Identity, User, Auth] =
-    new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {
-
-      /** Compose Requests **/
-      def apply(
-          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
-          onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-      ): HttpService[F] = {
-        val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
-
-        middleware(TSecAuthService(pf))
-          .handleErrorWith { e =>
-            logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
-          }
-
-      }
-
-      /** Create an Authorized Service **/
-      def authorized(authorization: Authorization[F, User, Auth])(
-          pf: PartialFunction[SecuredRequest[F, User, Auth], F[Response[F]]],
-          onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-      ): HttpService[F] =
-        authorizedMiddleware(authorization, onNotAuthenticated)(TSecAuthService(pf))
-          .handleErrorWith { e =>
-            logger.error(e)("Caught unhandled exception in authenticated service")
-            Kleisli.liftF(OptionT.pure(cachedUnauthorized))
-          }
-    }
+    new SecuredRequestHandler[F, Identity, User, Auth](authenticator) {}
 
 }

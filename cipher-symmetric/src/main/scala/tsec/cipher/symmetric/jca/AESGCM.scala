@@ -59,10 +59,6 @@ sealed abstract class AESGCM[A] extends JCAAEAD[A, GCM, NoPadding] with AES[A] w
         }
     }
 
-  @deprecated("use ciphertextFromConcat", "0.0.1-M10")
-  def ciphertextFromArray(array: Array[Byte]): Either[CipherTextError, CipherText[A]] =
-    ciphertextFromConcat(array)
-
   def ciphertextFromConcat(rawCT: Array[Byte]): Either[CipherTextError, CipherText[A]] =
     CTOPS.ciphertextFromArray[A, GCM, NoPadding](rawCT)
 }

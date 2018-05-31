@@ -79,7 +79,7 @@ object BearerTokenExample {
   Now from here, if want want to create services, we simply use the following
   (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
    */
-  val service: HttpService[IO] = Auth {
+  val service: HttpService[IO] = Auth.liftService(TSecAuthService {
     //Where user is the case class User above
     case request@GET -> Root / "api" asAuthed user =>
       /*
@@ -90,6 +90,6 @@ object BearerTokenExample {
        */
       val r: SecuredRequest[IO, User, TSecBearerToken[Int]] = request
       Ok()
-  }
+  })
 }
 ```

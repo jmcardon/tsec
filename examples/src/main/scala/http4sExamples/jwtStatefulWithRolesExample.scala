@@ -21,10 +21,10 @@ package object jwtStatefulWithRolesExample {
   val userStore: BackingStore[IO, Int, User] = dummyBackingStore[IO, Int, User](_.id)
 
   val signingKey
-  : MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id] //Our signing key. Instantiate in a safe way using GenerateLift
+    : MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id] //Our signing key. Instantiate in a safe way using GenerateLift
 
   val jwtStatefulAuth =
-    JWTAuthenticator.withBackingStore(
+    JWTAuthenticator.backed.inBearerToken(
       expiryDuration = 10.minutes, //Absolute expiration time
       maxIdle = None,
       tokenStore = jwtStore,
@@ -38,7 +38,7 @@ package object jwtStatefulWithRolesExample {
   // could be reached only by the admin role
   private val adminRequiredService: TSecAuthService[User, AugmentedJWT[HMACSHA256, Int], IO] =
     TSecAuthService.withAuthorization(AdminRequired) {
-      case request@GET -> Root / "api" / "admin-area" asAuthed user =>
+      case request @ GET -> Root / "api" / "admin-area" asAuthed user =>
         val r: SecuredRequest[IO, User, AugmentedJWT[HMACSHA256, Int]] = request
         Ok()
     }
@@ -46,7 +46,7 @@ package object jwtStatefulWithRolesExample {
   // could be reached by the admin and the customer roles
   private val customerRequiredService: TSecAuthService[User, AugmentedJWT[HMACSHA256, Int], IO] =
     TSecAuthService.withAuthorization(CustomerRequired) {
-      case request@GET -> Root / "api" / "customer-area" asAuthed user =>
+      case request @ GET -> Root / "api" / "customer-area" asAuthed user =>
         val r: SecuredRequest[IO, User, AugmentedJWT[HMACSHA256, Int]] = request
         Ok()
     }

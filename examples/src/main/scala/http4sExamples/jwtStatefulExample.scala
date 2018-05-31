@@ -27,7 +27,7 @@ object jwtStatefulExample {
     : MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id] //Our signing key. Instantiate in a safe way using GenerateLift
 
   val jwtStatefulAuth =
-    JWTAuthenticator.withBackingStore(
+    JWTAuthenticator.backed.inBearerToken(
       expiryDuration = 10.minutes, //Absolute expiration time
       maxIdle = None,
       tokenStore = jwtStore,

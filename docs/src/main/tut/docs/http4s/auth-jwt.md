@@ -62,7 +62,7 @@ object jwtStatefulExample {
   val signingKey: MacSigningKey[HMACSHA256] = HMACSHA256.generateKey[Id] 
 
   val jwtStatefulAuth =
-    JWTAuthenticator.withBackingStore(
+    JWTAuthenticator.backed.inBearerToken(
     expiryDuration = 10.minutes, //Absolute expiration time
     maxIdle        = None,
     tokenStore     = jwtStore,
@@ -77,7 +77,7 @@ object jwtStatefulExample {
   Now from here, if want want to create services, we simply use the following
   (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
    */
-  val service: HttpService[IO] = Auth {
+  val service: HttpService[IO] = Auth.liftService(TSecAuthService {
     //Where user is the case class User above
     case request@GET -> Root / "api" asAuthed user =>
       /*
@@ -88,7 +88,7 @@ object jwtStatefulExample {
        */
       val r: SecuredRequest[IO, User, AugmentedJWT[HMACSHA256, Int]] = request
       Ok()
-  }
+  })
 
 }
 ```

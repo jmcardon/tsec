@@ -114,20 +114,38 @@ package object authentication {
       )
 
     def withAuthorizationF[I, A, F[_]](auth: F[TAuth[F, I, A]])(
-      pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      withAuthorizationFHandler(auth)(pf, defaultOnNotAuthorized[F, I, A])
+
+    def withAuthorizationFHandler[I, A, F[_]](auth: F[TAuth[F, I, A]])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
+        onNotAuthorized: SecuredRequest[F, I, A] => OptionT[F, Response[F]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
       Kleisli { req: SecuredRequest[F, I, A] =>
         OptionT.liftF(auth).flatMap { auth =>
           auth
             .isAuthorized(req)
-            .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+            .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none[F, Response[F]])))
+            .orElse(onNotAuthorized(req))
         }
       }
 
     def withAuthorization[I, A, F[_]](auth: TAuth[F, I, A])(
         pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]]
     )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
-      withAuthorizationF(F.pure(auth))(pf)
+      withAuthorizationHandler(auth)(pf, defaultOnNotAuthorized[F, I, A])
+
+    def withAuthorizationHandler[I, A, F[_]](auth: TAuth[F, I, A])(
+        pf: PartialFunction[SecuredRequest[F, I, A], F[Response[F]]],
+        onNotAuthorized: SecuredRequest[F, I, A] => OptionT[F, Response[F]]
+    )(implicit F: Monad[F]): TSecAuthService[I, A, F] =
+      Kleisli { req: SecuredRequest[F, I, A] =>
+        auth
+          .isAuthorized(req)
+          .flatMap(_ => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none[F, Response[F]])))
+          .orElse(onNotAuthorized(req))
+      }
 
     /** The empty service (all requests fallthrough).
       * @tparam F - Ignored
@@ -137,6 +155,11 @@ package object authentication {
       */
     def empty[A, I, F[_]: Applicative]: TSecAuthService[I, A, F] =
       Kleisli.liftF(OptionT.none)
+
+    def defaultOnNotAuthorized[F[_], I, A](
+        unused: SecuredRequest[F, I, A]
+    )(implicit F: Monad[F]): OptionT[F, Response[F]] =
+      OptionT(F.pure(Some(Response[F](Status.Unauthorized))))
   }
 
   type UserAwareService[I, A, F[_]] =
@@ -270,9 +293,6 @@ package object authentication {
     def isTimedOut(now: Instant, timeOut: FiniteDuration)(implicit A: AuthToken[A]): Boolean =
       A.isTimedOut(a, now, timeOut)
   }
-
-  @deprecated("AuthenticatorService has been renamed", "0.0.1-M10")
-  type AuthenticatorService[F[_], I, V, A] = Authenticator[F, I, V, A]
 
   private[tsec] object AuthenticationFailure extends TSecError {
     def cause: String = "Authentication Failure"

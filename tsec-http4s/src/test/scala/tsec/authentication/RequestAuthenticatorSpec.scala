@@ -27,25 +27,25 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     val onlyAdmins = BasicRBAC[IO, DummyRole, DummyUser, A](DummyRole.Admin)
     val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser, A]
 
-    val testService: HttpService[IO] = requestAuth {
+    val testService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
-    }
+    })
 
-    val adminService: HttpService[IO] = requestAuth.authorized(onlyAdmins) {
+    val adminService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(onlyAdmins) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
-    }
+    })
 
-    val everyoneService: HttpService[IO] = requestAuth.authorized(everyone) {
+    val everyoneService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(everyone) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
-    }
+    })
 
-    val insaneService: HttpService[IO] = requestAuth {
+    val insaneService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         IO.raiseError(new IllegalArgumentException)
-    }
+    })
 
     val customService: TSecAuthService[DummyUser, A, IO] = TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
@@ -164,7 +164,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         res <- adminService(embedded)
       } yield res
       response
-        .getOrElse(Response.notFound)
+        .getOrElse(Response.notFound[IO])
         .map(_.status)
         .unsafeRunSync() mustBe Status.Unauthorized
     }
@@ -261,25 +261,25 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     val onlyAdmins = BasicRBAC[IO, DummyRole, DummyUser, A](DummyRole.Admin)
     val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser, A]
 
-    val testService: HttpService[IO] = requestAuth {
+    val testService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
-    }
+    })
 
-    val adminService: HttpService[IO] = requestAuth.authorized(onlyAdmins) {
+    val adminService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(onlyAdmins) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
-    }
+    })
 
-    val everyoneService: HttpService[IO] = requestAuth.authorized(everyone) {
+    val everyoneService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(everyone) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
-    }
+    })
 
-    val insaneService: HttpService[IO] = requestAuth {
+    val insaneService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         IO.raiseError(new IllegalArgumentException)
-    }
+    })
 
     val customService: TSecAuthService[DummyUser, A, IO] = TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>

@@ -30,9 +30,6 @@ trait CredentialStore[F[_], C, P] {
   def updateCredentials(credentials: C, update: P => F[Unit]): F[Unit] =
     putCredentials(credentials, update)
 
-  @deprecated("Use isAuthenticated", "0.0.1-M10")
-  def authenticate(credentials: C): F[Boolean]
-
   def isAuthenticated(credentials: C): F[Boolean]
 }
 
@@ -40,10 +37,6 @@ abstract class PasswordStore[F[_], Id, P](implicit P: PasswordHasher[F, P], F: S
     extends CredentialStore[F, RawCredentials[Id], PasswordHash[P]] {
 
   def retrievePass(id: Id): OptionT[F, PasswordHash[P]]
-
-  @deprecated("Use isAuthenticated", "0.0.1-M10")
-  def authenticate(credentials: RawCredentials[Id]): F[Boolean] =
-    isAuthenticated(credentials)
 
   def putCredentials(credentials: RawCredentials[Id], put: PasswordHash[P] => F[Unit]): F[Unit] =
     for {
