@@ -1,0 +1,47 @@
+package tsec.oauth2.provider
+
+import java.util.Date
+
+import scala.concurrent.duration._
+import scala.concurrent.duration.FiniteDuration
+
+/**
+  * Provide accessing to data storage for using OAuth 2.0.
+  */
+trait DataHandler[F[_], U] extends AuthorizationHandler[F, U] with ProtectedResourceHandler[U]
+
+/**
+  * Access token
+  *
+  * @param token Access token is used to authentication.
+  * @param refreshToken Refresh token is used to re-issue access token.
+  * @param scope Inform the client of the scope of the access token issued.
+  * @param life Life of the access token since its creation.
+  * @param createdAt Access token is created date.
+  * @param params Additional parameters to add information/restriction on given Access token.
+  */
+final case class AccessToken(
+    token: String,
+    refreshToken: Option[String],
+    scope: Option[String],
+    life: Option[FiniteDuration],
+    createdAt: Date,
+    params: Map[String, String] = Map.empty[String, String]
+) {
+  def isExpired: Boolean = expiresIn.exists(_.toMillis < 0)
+
+  val expiresIn: Option[FiniteDuration] = life map { l =>
+    val expTime = createdAt.getTime + l.toMillis
+    ((expTime - System.currentTimeMillis) / 1000) milli
+  }
+}
+
+/**
+  * Authorized information
+  *
+  * @param user Authorized user which is registered on system.
+  * @param clientId Using client id which is registered on system.
+  * @param scope Inform the client of the scope of the access token issued.
+  * @param redirectUri This value is used by Authorization Code Grant.
+  */
+final case class AuthInfo[U](user: U, clientId: Option[String], scope: Option[String], redirectUri: Option[String])

@@ -14,6 +14,7 @@ object Dependencies {
     val fs2Version    = "0.10.4"
     val log4sV        = "1.4.0"
     val gitHub4s      = "0.18.1"
+    val mrvisserV ="0.0.5"
   }
 
   object Libraries {
@@ -34,6 +35,7 @@ object Dependencies {
     val commonsCodec       = "commons-codec"      % "commons-codec"         % Versions.commonsCodecV
     val log4s              = "org.log4s"          %% "log4s"                % Versions.log4sV
     val gitHub4s           = "com.47deg"          %% "github4s"             % Versions.gitHub4s
+    val mrvisser = "ca.mrvisser"    %% "sealerate"     % Versions.mrvisserV
   }
 
 }
