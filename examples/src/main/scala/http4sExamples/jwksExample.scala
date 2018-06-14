@@ -22,10 +22,11 @@ object jwksExample {
 
   val jwksAuth =
     new JWKSAuthenticator[IO, String, User, SHA256withRSA](
-      10.minutes,
-      None,
-      userStore,
-      Uri.unsafeFromString("https://dev24.eu.auth0.com/.well-known/jwks.json"))
+      expiryDuration = 10.minutes,
+      maxIdleDuration = None,
+      identityStore = userStore,
+      jwksUri = Uri.unsafeFromString("https://dev24.eu.auth0.com/.well-known/jwks.json"),
+      minFetchDelay = 10.minutes)
 
   val Auth =
     SecuredRequestHandler(jwksAuth)

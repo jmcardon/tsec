@@ -29,7 +29,7 @@ final case class JWK(kid: String, alg: String, kty: String, use: String, n: Stri
 
 final case class JWKS(keys: List[JWK])
 
-class KeyRegistry[F[_], A: JCASigTag](uri: Uri)(implicit E: Effect[F]) {
+class KeyRegistry[F[_], A: JCASigTag](uri: Uri, minFetchDelay: FiniteDuration)(implicit E: Effect[F]) {
 
   import io.circe.generic.auto._
   import org.http4s.circe._
@@ -59,7 +59,7 @@ class KeyRegistry[F[_], A: JCASigTag](uri: Uri)(implicit E: Effect[F]) {
   }
 
   private def shouldFetch() =
-    lastFetch.forall(_.isBefore(LocalDateTime.now().minusMinutes(10)))
+    lastFetch.forall(_.isBefore(LocalDateTime.now().minusSeconds(minFetchDelay.toSeconds)))
 
   private def getKey(id: String) = E.delay {
     keys.get(id)
@@ -77,10 +77,11 @@ class KeyRegistry[F[_], A: JCASigTag](uri: Uri)(implicit E: Effect[F]) {
 class JWKSAuthenticator[F[_] : Effect, I: Decoder, V, A: JCASigTag](expiryDuration: FiniteDuration,
                                                                     maxIdleDuration: Option[FiniteDuration],
                                                                     identityStore: IdentityStore[F, I, V],
-                                                                    jwksUri: Uri)
+                                                                    jwksUri: Uri,
+                                                                    minFetchDelay: FiniteDuration)
                                                                    (implicit cv: JWSSigCV[F, A]) extends Authenticator[F, I, V, AugmentedJWKS[A, I]] {
 
-  private val keyRegistry = new KeyRegistry[F, A](jwksUri)
+  private val keyRegistry = new KeyRegistry[F, A](jwksUri, minFetchDelay)
 
   override def expiry: FiniteDuration = expiryDuration
 
