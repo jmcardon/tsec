@@ -12,6 +12,6 @@ class TokenEndpoint[F[_]] {
     for {
       grantType <- EitherT.fromEither[F](request.grantType(isClientCredRequiredForPasswordGrantType))
       grantHandler = GrantHandler[F](grantType, isClientCredRequiredForPasswordGrantType)
-      r            <- grantHandler.handleRequest(request, handler)
+      r <- grantHandler.handleRequest(request, handler)
     } yield r
 }

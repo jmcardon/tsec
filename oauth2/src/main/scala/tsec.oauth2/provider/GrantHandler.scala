@@ -8,27 +8,27 @@ import tsec.oauth2.provider.GrantType._
 
 import scala.concurrent.duration.FiniteDuration
 
-sealed abstract class GrantType extends Product with Serializable{
+sealed abstract class GrantType extends Product with Serializable {
   def name: String
 }
-object GrantType{
-  case object AuthorizationCode extends GrantType{
+object GrantType {
+  case object AuthorizationCode extends GrantType {
     def name: String = "authorization_code"
   }
 
-  case object RefreshToken extends GrantType{
+  case object RefreshToken extends GrantType {
     def name: String = "refresh_token"
   }
 
-  case object ClientCrendentials extends GrantType{
+  case object ClientCrendentials extends GrantType {
     def name: String = "client_credentials"
   }
 
-  case object Password extends GrantType{
+  case object Password extends GrantType {
     def name: String = "password"
   }
 
-  case object Implicit extends GrantType{
+  case object Implicit extends GrantType {
     def name: String = "implicit"
   }
 
@@ -72,31 +72,35 @@ sealed trait GrantHandler[F[_]] {
   protected def issueAccessToken[U](
       handler: AuthorizationHandler[F, U],
       authInfo: AuthInfo[U]
-  )(implicit F: Sync[F]): F[GrantHandlerResult[U]] = for{
-    token <- handler.getStoredAccessToken(authInfo)
-    t <- token match{
-      case Some(token) =>
-        shouldRefreshAccessToken(token).flatMap{
-          shouldRefresh =>
-            if(shouldRefresh)
+  )(implicit F: Sync[F]): F[GrantHandlerResult[U]] =
+    for {
+      token <- handler.getStoredAccessToken(authInfo)
+      t <- token match {
+        case Some(token) =>
+          shouldRefreshAccessToken(token).flatMap { shouldRefresh =>
+            if (shouldRefresh)
               token.refreshToken
                 .map {
                   handler.refreshAccessToken(authInfo, _)
                 }
                 .getOrElse {
                   handler.createAccessToken(authInfo)
-                }
-            else
+                } else
               F.pure(token)
-        }
-      case None        => handler.createAccessToken(authInfo)
-    }
-    expiresIn <- t.expiresIn
-  }yield createGrantHandlerResult(authInfo, t, expiresIn)
+          }
+        case None => handler.createAccessToken(authInfo)
+      }
+      expiresIn <- t.expiresIn
+    } yield createGrantHandlerResult(authInfo, t, expiresIn)
 
-  protected def shouldRefreshAccessToken(accessToken: AccessToken)(implicit F: Sync[F]): F[Boolean] = accessToken.isExpired
+  protected def shouldRefreshAccessToken(accessToken: AccessToken)(implicit F: Sync[F]): F[Boolean] =
+    accessToken.isExpired
 
-  protected def createGrantHandlerResult[U](authInfo: AuthInfo[U], accessToken: AccessToken, expiresIn: Option[FiniteDuration]): GrantHandlerResult[U] =
+  protected def createGrantHandlerResult[U](
+      authInfo: AuthInfo[U],
+      accessToken: AccessToken,
+      expiresIn: Option[FiniteDuration]
+  ): GrantHandlerResult[U] =
     GrantHandlerResult(
       authInfo,
       "Bearer",
@@ -110,21 +114,22 @@ sealed trait GrantHandler[F[_]] {
 }
 
 object GrantHandler {
-  def apply[F[_]](grantType: GrantType, isClientCredRequiredForPasswordGrantType: Boolean): GrantHandler[F] = grantType match{
-    case AuthorizationCode =>
-      new AuthorizationCode[F]
-    case RefreshToken =>
-      new RefreshToken[F]
-    case ClientCrendentials =>
-      new ClientCredentials[F]
-    case Password =>
-      if(isClientCredRequiredForPasswordGrantType)
-        new PasswordWithClientCred[F]
-      else
-        new PasswordNoClientCred[F]
-    case Implicit =>
-      new Implicit[F]
-  }
+  def apply[F[_]](grantType: GrantType, isClientCredRequiredForPasswordGrantType: Boolean): GrantHandler[F] =
+    grantType match {
+      case AuthorizationCode =>
+        new AuthorizationCode[F]
+      case RefreshToken =>
+        new RefreshToken[F]
+      case ClientCrendentials =>
+        new ClientCredentials[F]
+      case Password =>
+        if (isClientCredRequiredForPasswordGrantType)
+          new PasswordWithClientCred[F]
+        else
+          new PasswordNoClientCred[F]
+      case Implicit =>
+        new Implicit[F]
+    }
 
   class RefreshToken[F[_]] extends GrantHandler[F] {
     def handleRequest[U](
@@ -147,7 +152,10 @@ object GrantHandler {
         _ <- EitherT.cond[F](auth.clientId.contains(credential.clientId), (), InvalidClient("invalid clientId"))
         token <- EitherT(
           handler
-            .refreshAccessToken(auth, refreshToken).attempt.map(_.leftMap(t => RefreshTokenFailed(t.getMessage): OAuthError)))
+            .refreshAccessToken(auth, refreshToken)
+            .attempt
+            .map(_.leftMap(t => RefreshTokenFailed(t.getMessage): OAuthError))
+        )
         grantResult <- EitherT(
           token.expiresIn
             .map(createGrantHandlerResult(auth, token, _))
@@ -280,12 +288,17 @@ object GrantHandler {
     /**
       * Implicit grant doesn't support refresh token
       */
-    protected override def shouldRefreshAccessToken(accessToken: AccessToken)(implicit F: Sync[F]): F[Boolean] = F.pure(false)
+    protected override def shouldRefreshAccessToken(accessToken: AccessToken)(implicit F: Sync[F]): F[Boolean] =
+      F.pure(false)
 
     /**
       * Implicit grant must not return refresh token
       */
-    protected override def createGrantHandlerResult[U](authInfo: AuthInfo[U], accessToken: AccessToken, expiresIn: Option[FiniteDuration]) =
+    protected override def createGrantHandlerResult[U](
+        authInfo: AuthInfo[U],
+        accessToken: AccessToken,
+        expiresIn: Option[FiniteDuration]
+    ) =
       super.createGrantHandlerResult(authInfo, accessToken, expiresIn).copy(refreshToken = None)
   }
 

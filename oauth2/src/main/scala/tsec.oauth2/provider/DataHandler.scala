@@ -24,20 +24,20 @@ trait DataHandler[F[_], U] extends AuthorizationHandler[F, U] with ProtectedReso
   * @param params Additional parameters to add information/restriction on given Access token.
   */
 final case class AccessToken(
-                              token: String,
-                              refreshToken: Option[String],
-                              scope: Option[String],
-                              lifeTime: Option[FiniteDuration],
-                              createdAt: Instant,
-                              params: Map[String, String] = Map.empty[String, String]
+    token: String,
+    refreshToken: Option[String],
+    scope: Option[String],
+    lifeTime: Option[FiniteDuration],
+    createdAt: Instant,
+    params: Map[String, String] = Map.empty[String, String]
 ) {
   def isExpired[F[_]](implicit F: Sync[F]): F[Boolean] = expiresIn.map(_.exists(_.toMillis < 0))
 
   def expiresIn[F[_]](implicit F: Sync[F]): F[Option[FiniteDuration]] = lifeTime traverse { l =>
     val expTime = createdAt.toEpochMilli + l.toMillis
-    for{
+    for {
       now <- F.delay(System.currentTimeMillis)
-      t <- F.pure(((expTime - now) / 1000) milli)
+      t   <- F.pure(((expTime - now) / 1000) milli)
     } yield t
   }
 }

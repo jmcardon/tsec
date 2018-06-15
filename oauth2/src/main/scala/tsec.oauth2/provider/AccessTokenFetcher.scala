@@ -1,6 +1,9 @@
 package tsec.oauth2.provider
 
+import cats.implicits._
 import java.net.URLDecoder
+
+import cats.data.NonEmptyList
 
 final case class FetchResult(token: String, params: Map[String, String])
 
@@ -24,21 +27,20 @@ object RequestParameter extends AccessTokenFetcher {
 object AuthHeader extends AccessTokenFetcher {
   val RegexpAuthorization = """^\s*(OAuth|Bearer)\s+([^\s\,]*)""".r
   val RegexpTrim          = """^\s*,\s*""".r
-  val RegexpDivComma     = """,\s*""".r
+  val RegexpDivComma      = """,\s*""".r
 
   override def matches(request: ProtectedResourceRequest): Boolean =
     request.header("Authorization").exists { header =>
       RegexpAuthorization.findFirstMatchIn(header).isDefined
     }
 
-  override def fetch(request: ProtectedResourceRequest): Either[OAuthError, FetchResult] =
+  override def fetch(request: ProtectedResourceRequest): Either[InvalidRequest, FetchResult] =
     for {
       header  <- request.header("authorization").toRight(InvalidRequest("Missing authorization header"))
       matcher <- RegexpAuthorization.findFirstMatchIn(header).toRight(InvalidRequest("invalid Authorization header"))
-    } yield {
-      val token = matcher.group(2)
-      val end   = matcher.end
-      val params = if (header.length != end) {
+      token = matcher.group(2)
+      end   = matcher.end
+      params <- if (header.length != end) {
         val trimmedHeader = RegexpTrim.replaceFirstIn(header.substring(end), "")
         val pairs = RegexpDivComma.split(trimmedHeader).map { exp =>
           val (key, value) = exp.split("=", 2) match {
@@ -46,14 +48,14 @@ object AuthHeader extends AccessTokenFetcher {
             case Array(k)    => (k, "")
           }
 
-          (key, URLDecoder.decode(value.replaceFirst("\"$", ""), "UTF-8"))
+          val v = Either.catchNonFatal(URLDecoder.decode(value.replaceFirst("\"$", ""), "UTF-8"))
+          v.map(vv => (key, vv)).leftMap(t => NonEmptyList.one(t.getMessage))
         }
 
-        Map(pairs: _*)
+        pairs.toList.parSequence.map(x => Map(x: _*)).leftMap(x => InvalidRequest(x.toList.mkString(",")))
       } else {
-        Map.empty[String, String]
+        Right(Map.empty[String, String])
       }
 
-      FetchResult(token, params)
-    }
+    } yield FetchResult(token, params)
 }

@@ -14,7 +14,8 @@ class ProtectedResource[F[_]] {
   def handleRequest[U](
       request: ProtectedResourceRequest,
       handler: ProtectedResourceHandler[F, U]
-  )(implicit F: Sync[F]): EitherT[F, OAuthError, AuthInfo[U]] =  for {
+  )(implicit F: Sync[F]): EitherT[F, OAuthError, AuthInfo[U]] =
+    for {
       result <- EitherT.fromEither[F](
         fetchers
           .find { fetcher =>
