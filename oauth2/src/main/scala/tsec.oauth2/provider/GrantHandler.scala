@@ -1,12 +1,18 @@
 package tsec.oauth2.provider
 
+import java.nio.charset.StandardCharsets
+
 import cats.implicits._
 import ca.mrvisser.sealerate
 import cats.data.EitherT
 import cats.effect.Sync
 import tsec.oauth2.provider.GrantType._
+import tsec.common._
+import tsec.oauth2.provider.ValidatedRequest._
 
+import scala.collection.immutable.TreeMap
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Try
 
 sealed abstract class GrantType extends Product with Serializable {
   def name: String
@@ -48,16 +54,15 @@ final case class GrantHandlerResult[U](
 
 sealed trait GrantHandler[F[_]] {
   def handleRequest[U](
-      request: AuthorizationRequest,
-      authorizationHandler: AuthorizationHandler[F, U]
+                        authorizationHandler: AuthorizationHandler[F, U]
   )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]]
 
   protected def getClientCredential[U](
-      request: AuthorizationRequest,
-      handler: AuthorizationHandler[F, U]
+                                        credential: ClientCredential,
+                                        request: ValidatedRequest,
+                                        handler: AuthorizationHandler[F, U]
   )(implicit F: Sync[F]): EitherT[F, OAuthError, ClientCredential] =
     for {
-      credential <- EitherT.fromEither[F](request.parseClientCredential)
       _ <- EitherT(
         handler
           .validateClient(credential, request)
@@ -96,21 +101,20 @@ sealed trait GrantHandler[F[_]] {
 }
 
 object GrantHandler {
-  def apply[F[_]](grantType: GrantType, isClientCredRequiredForPasswordGrantType: Boolean): GrantHandler[F] =
-    grantType match {
-      case AuthorizationCode =>
-        new AuthorizationCode[F]
-      case RefreshToken =>
-        new RefreshToken[F]
-      case ClientCrendentials =>
-        new ClientCredentials[F]
-      case Password =>
-        if (isClientCredRequiredForPasswordGrantType)
-          new PasswordWithClientCred[F]
-        else
-          new PasswordNoClientCred[F]
-      case Implicit =>
-        new Implicit[F]
+  def apply[F[_]](req: ValidatedRequest): GrantHandler[F] =
+    req match {
+      case r: ValidatedAuthorizationCode =>
+        new AuthorizationCode[F](r)
+      case r: ValidatedRefreshToken =>
+        new RefreshToken[F](r)
+      case r: ValidatedClientCrendentials =>
+        new ClientCredentials[F](r)
+      case r: ValidatedPasswordWithClientCred =>
+        new PasswordWithClientCred[F](r)
+      case r: ValidatedPasswordNoClientCred =>
+        new PasswordNoClientCred[F](r)
+      case r: ValidatedImplicit =>
+        new Implicit[F](r)
     }
 
   def createGrantHandlerResult[U](
@@ -128,28 +132,19 @@ object GrantHandler {
       accessToken.params
     )
 
-  class RefreshToken[F[_]] extends GrantHandler[F] {
-    def handleRequest[U](
-        request: AuthorizationRequest,
-        handler: AuthorizationHandler[F, U]
+  class RefreshToken[F[_]](req: ValidatedRefreshToken) extends GrantHandler[F] {
+    def handleRequest[U](handler: AuthorizationHandler[F, U]
     )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
       for {
-        credential <- getClientCredential(request, handler)
-        refreshToken <- EitherT.fromEither[F](
-          request.params
-            .get("refresh_token")
-            .flatMap(_.headOption)
-            .toRight(InvalidRequest("missing refresh_token param"))
-        )
         auth <- EitherT(
           handler
-            .findAuthInfoByRefreshToken(refreshToken)
+            .findAuthInfoByRefreshToken(req.refreshToken)
             .map(_.toRight(InvalidGrant("Authorized information is not found by the refresh token")))
         )
-        _ <- EitherT.cond[F](auth.clientId.contains(credential.clientId), (), InvalidClient("invalid clientId"))
+        _ <- EitherT.cond[F](auth.clientId.contains(req.clientCredential.clientId), (), InvalidClient("invalid clientId"))
         token <- EitherT(
           handler
-            .refreshAccessToken(auth, refreshToken)
+            .refreshAccessToken(auth, req.refreshToken)
             .attempt
             .map(_.leftMap(t => RefreshTokenFailed(t.getMessage): OAuthError))
         )
@@ -166,23 +161,15 @@ object GrantHandler {
     * Per the OAuth2 specification, client credentials are required for all grant types except password, where it is up
     * to the authorization provider whether to make them required or not.
     */
-  class PasswordWithClientCred[F[_]] extends GrantHandler[F] {
+  class PasswordWithClientCred[F[_]](req: ValidatedPasswordWithClientCred) extends GrantHandler[F] {
     def handleRequest[U](
-        request: AuthorizationRequest,
-        handler: AuthorizationHandler[F, U]
+                          handler: AuthorizationHandler[F, U]
     )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
       for {
-        credential <- getClientCredential(request, handler)
-        password <- EitherT.fromEither[F](
-          request.params.get("password").flatMap(_.headOption).toRight(InvalidRequest("missing password param"))
-        )
-        username <- EitherT.fromEither[F](
-          request.params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))
-        )
         user <- EitherT(
-          handler.findUser(Some(credential), request).map(_.toRight(InvalidGrant("username or password is incorrect")))
+          handler.findUser(Some(req.clientCredential), req).map(_.toRight(InvalidGrant("username or password is incorrect")))
         )
-        authInfo = AuthInfo(user, Some(credential.clientId), request.scope, None)
+        authInfo = AuthInfo(user, Some(req.clientCredential.clientId), req.scope, None)
         grantResult <- EitherT(
           issueAccessToken(handler, authInfo).attempt
             .map(_.leftMap(t => FailedToIssueAccessToken(t.getMessage): OAuthError))
@@ -190,23 +177,15 @@ object GrantHandler {
       } yield grantResult
   }
 
-  class PasswordNoClientCred[F[_]] extends GrantHandler[F] {
+  class PasswordNoClientCred[F[_]](req: ValidatedPasswordNoClientCred) extends GrantHandler[F] {
     def handleRequest[U](
-        request: AuthorizationRequest,
-        handler: AuthorizationHandler[F, U]
+                          handler: AuthorizationHandler[F, U]
     )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
       for {
-        password <- EitherT.fromEither[F](
-          request.params.get("password").flatMap(_.headOption).toRight(InvalidRequest("missing password param"))
-        )
-        username <- EitherT.fromEither[F](
-          request.params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))
-        )
         user <- EitherT(
-          handler.findUser(None, request).map(_.toRight(InvalidGrant("username or password is incorrect")))
+          handler.findUser(None, req).map(_.toRight(InvalidGrant("username or password is incorrect")))
         )
-        scope    = request.scope
-        authInfo = AuthInfo(user, None, scope, None)
+        authInfo = AuthInfo(user, None, req.scope, None)
         grantResult <- EitherT(
           issueAccessToken(handler, authInfo).attempt
             .map(_.leftMap(t => FailedToIssueAccessToken(t.getMessage): OAuthError))
@@ -214,19 +193,16 @@ object GrantHandler {
       } yield grantResult
   }
 
-  class ClientCredentials[F[_]] extends GrantHandler[F] {
-    def handleRequest[U](
-        request: AuthorizationRequest,
-        handler: AuthorizationHandler[F, U]
+  class ClientCredentials[F[_]](req: ValidatedClientCrendentials) extends GrantHandler[F] {
+    def handleRequest[U](handler: AuthorizationHandler[F, U]
     )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
       for {
-        credential <- getClientCredential(request, handler)
         user <- EitherT(
           handler
-            .findUser(Some(credential), request)
+            .findUser(Some(req.clientCredential), req)
             .map(_.toRight(InvalidGrant("client_id or client_secret or scope is incorrect")))
         )
-        authInfo = AuthInfo(user, Some(credential.clientId), request.scope, None)
+        authInfo = AuthInfo(user, Some(req.clientCredential.clientId), req.scope, None)
         grantResult <- EitherT(
           issueAccessToken(handler, authInfo).attempt
             .map(_.leftMap(t => FailedToIssueAccessToken(t.getMessage): OAuthError))
@@ -234,25 +210,19 @@ object GrantHandler {
       } yield grantResult
   }
 
-  class AuthorizationCode[F[_]] extends GrantHandler[F] {
+  class AuthorizationCode[F[_]](req: ValidatedAuthorizationCode) extends GrantHandler[F] {
     def handleRequest[U](
-        request: AuthorizationRequest,
-        handler: AuthorizationHandler[F, U]
+                          handler: AuthorizationHandler[F, U]
     )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
       for {
-        credential <- getClientCredential(request, handler)
-        code <- EitherT.fromEither[F](
-          request.params.get("code").flatMap(_.headOption).toRight(InvalidRequest("missing code param"))
-        )
         auth <- EitherT(
           handler
-            .findAuthInfoByCode(code)
+            .findAuthInfoByCode(req.code)
             .map(_.toRight(InvalidGrant("Authorized information is not found by the code")))
         )
-        _ <- EitherT.cond[F](auth.clientId.contains(credential.clientId), (), InvalidClient("invalid clientId"))
-        redirectUri = request.params.get("redirect_uri").flatMap(_.headOption)
+        _ <- EitherT.cond[F](auth.clientId.contains(req.clientCredential.clientId), (), InvalidClient("invalid clientId"))
         _ <- EitherT.cond[F](
-          auth.redirectUri.isEmpty || (auth.redirectUri.isDefined && auth.redirectUri == redirectUri),
+          auth.redirectUri.isEmpty || (auth.redirectUri.isDefined && auth.redirectUri == req.redirectUri),
           (),
           RedirectUriMismatch
         )
@@ -261,23 +231,22 @@ object GrantHandler {
             .map(_.leftMap(t => FailedToIssueAccessToken(t.getMessage): OAuthError))
         )
         _ <- EitherT(
-          handler.deleteAuthCode(code).attempt.map(_.leftMap(t => FailedToDeleteAuthCode(t.getMessage): OAuthError))
+          handler.deleteAuthCode(req.code).attempt.map(_.leftMap(t => FailedToDeleteAuthCode(t.getMessage): OAuthError))
         )
       } yield grantResult
   }
 
-  class Implicit[F[_]] extends GrantHandler[F] {
+
+  class Implicit[F[_]](req: ValidatedImplicit) extends GrantHandler[F] {
     def handleRequest[U](
-        request: AuthorizationRequest,
-        handler: AuthorizationHandler[F, U]
+                          handler: AuthorizationHandler[F, U]
     )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
       for {
-        credential <- getClientCredential(request, handler)
         user <- EitherT(
-          handler.findUser(Some(credential), request).map(_.toRight(InvalidGrant("user cannot be authenticated")))
+          handler.findUser(Some(req.clientCredential), req).map(_.toRight(InvalidGrant("user cannot be authenticated")))
         )
 
-        authInfo = AuthInfo(user, Some(credential.clientId), request.scope, None)
+        authInfo = AuthInfo(user, Some(req.clientCredential.clientId), req.scope, None)
         token = handler.getStoredAccessToken(authInfo).flatMap { token =>
           val res = token match {
             case Some(token) => F.pure(token)

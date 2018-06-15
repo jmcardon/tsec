@@ -14,7 +14,7 @@ class RefreshTokenSpec extends FlatSpec with OptionValues {
   val handler = new RefreshToken[IO]
 
   it should "handle request" in {
-    val request = new AuthorizationRequest(
+    val request = new ValidatedRequest(
       Map(),
       Map(
         "client_id"     -> Seq("clientId1"),
@@ -26,7 +26,7 @@ class RefreshTokenSpec extends FlatSpec with OptionValues {
       request,
       new MockDataHandler() {
 
-        override def validateClient(maybeClientCredential: ClientCredential, request: AuthorizationRequest): IO[Boolean] = IO.pure(true)
+        override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] = IO.pure(true)
 
         override def findAuthInfoByRefreshToken(refreshToken: String): IO[Option[AuthInfo[MockUser]]] =
           IO.pure(

@@ -8,12 +8,12 @@ import scala.concurrent.duration._
 
 class MockDataHandler extends DataHandler[IO, MockUser] {
 
-  override def validateClient(maybeClientCredential: ClientCredential, request: AuthorizationRequest): IO[Boolean] =
+  override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] =
     IO.pure(false)
 
   override def findUser(
       maybeClientCredential: Option[ClientCredential],
-      request: AuthorizationRequest
+      request: ValidatedRequest
   ): IO[Option[MockUser]] = IO.pure(None)
 
   override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =

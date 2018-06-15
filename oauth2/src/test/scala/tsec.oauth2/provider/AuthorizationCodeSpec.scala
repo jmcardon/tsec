@@ -14,7 +14,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
   val handler = new AuthorizationCode[IO]
 
   it should "handle request" in {
-    val request = new AuthorizationRequest(
+    val request = new ValidatedRequest(
       Map(),
       Map(
         "client_id"     -> Seq("clientId1"),
@@ -27,7 +27,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
     val f = handler.handleRequest(
       request,
       new MockDataHandler() {
-        override def validateClient(maybeClientCredential: ClientCredential, request: AuthorizationRequest): IO[Boolean] =
+        override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] =
           IO.pure(true)
         override def findAuthInfoByCode(code: String): IO[Option[AuthInfo[MockUser]]] =
           IO.pure(
@@ -62,7 +62,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
   }
 
   it should "handle request if redirectUrl is none" in {
-    val request = new AuthorizationRequest(
+    val request = new ValidatedRequest(
       Map(),
       Map(
         "client_id"     -> Seq("clientId1"),
@@ -73,7 +73,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
     val f = handler.handleRequest(
       request,
       new MockDataHandler() {
-        override def validateClient(maybeClientCredential: ClientCredential, request: AuthorizationRequest): IO[Boolean] =
+        override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] =
           IO.pure(true)
         override def findAuthInfoByCode(code: String): IO[Option[AuthInfo[MockUser]]] =
           IO.pure(
@@ -101,7 +101,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
   }
 
   it should "return a Failure IO" in {
-    val request = new AuthorizationRequest(
+    val request = new ValidatedRequest(
       Map(),
       Map(
         "client_id"     -> Seq("clientId1"),

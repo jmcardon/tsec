@@ -61,7 +61,7 @@ trait AuthorizationHandler[F[_], U] {
     * @param request Request sent by client.
     * @return true if request is a regular client, false if request is a illegal client.
     */
-  def validateClient(credential: ClientCredential, request: AuthorizationRequest): F[Boolean]
+  def validateClient(credential: ClientCredential, request: ValidatedRequest): F[Boolean]
 
   /**
     * Authenticate the user that issued the authorization request.
@@ -70,7 +70,7 @@ trait AuthorizationHandler[F[_], U] {
     * @param maybeCredential client credential parsed from request
     * @param request Request sent by client.
     */
-  def findUser(maybeCredential: Option[ClientCredential], request: AuthorizationRequest): F[Option[U]]
+  def findUser(maybeCredential: Option[ClientCredential], request: ValidatedRequest): F[Option[U]]
 
   /**
     * Creates a new access token by authorized information.

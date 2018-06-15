@@ -58,7 +58,6 @@ object AccessTokenFetcher {
         } else {
           Right(Map.empty[String, String])
         }
-
       } yield FetchResult(token, params)
   }
 

@@ -18,18 +18,18 @@ class ImplicitSpec extends FlatSpec with ScalaFutures with OptionValues {
   it should "not grant access with invalid user authentication" in handlesRequest("user", "wrong_pass", false)
 
   def handlesRequest(user: String, pass: String, ok: Boolean) = {
-    val request = new AuthorizationRequest(
+    val request = new ValidatedRequest(
       Map(),
       Map("client_id" -> Seq("client"), "username" -> Seq(user), "password" -> Seq(pass), "scope" -> Seq("all"))
     )
     val f = handler.handleRequest(
       request,
       new MockDataHandler() {
-        override def validateClient(maybeClientCredential: ClientCredential, request: AuthorizationRequest): IO[Boolean] = IO.pure(true)
+        override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] = IO.pure(true)
 
         override def findUser(
             maybeClientCredential: Option[ClientCredential],
-            request: AuthorizationRequest
+            request: ValidatedRequest
         ): IO[Option[MockUser]] = {
           val result = for {
             user     <- request.params.get("username") if user.head == "user"

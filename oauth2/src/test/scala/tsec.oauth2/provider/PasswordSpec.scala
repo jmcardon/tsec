@@ -25,18 +25,18 @@ class PasswordSpec extends FlatSpec with OptionValues {
   )
 
   def handlesRequest(password: GrantHandler[IO], params: Map[String, Seq[String]]) = {
-    val request = new AuthorizationRequest(
+    val request = new ValidatedRequest(
       Map(),
       params ++ Map("username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     )
     val f = password.handleRequest(
       request,
       new MockDataHandler() {
-        override def validateClient(maybeClientCredential: ClientCredential, request: AuthorizationRequest): IO[Boolean] = IO.pure(true)
+        override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] = IO.pure(true)
 
         override def findUser(
             maybeClientCredential: Option[ClientCredential],
-            request: AuthorizationRequest
+            request: ValidatedRequest
         ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =

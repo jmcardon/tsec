@@ -14,18 +14,18 @@ class ClientCredentialsSpec extends FlatSpec with OptionValues {
   val handler = new ClientCredentials[IO]
 
   it should "handle request" in {
-    val request = new AuthorizationRequest(
+    val request = new ValidatedRequest(
       Map(),
       Map("client_id" -> Seq("clientId1"), "client_secret" -> Seq("clientSecret1"), "scope" -> Seq("all"))
     )
     val f = handler.handleRequest(
       request,
       new MockDataHandler() {
-        override def validateClient(credential: ClientCredential, request: AuthorizationRequest): IO[Boolean] = IO.pure(true)
+        override def validateClient(credential: ClientCredential, request: ValidatedRequest): IO[Boolean] = IO.pure(true)
 
         override def findUser(
             maybeClientCredential: Option[ClientCredential],
-            request: AuthorizationRequest
+            request: ValidatedRequest
         ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
