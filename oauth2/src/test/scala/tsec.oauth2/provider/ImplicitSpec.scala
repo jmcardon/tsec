@@ -1,5 +1,6 @@
 package tsec.oauth2.provider
 
+import java.time.Instant
 import java.util.Date
 
 import cats.effect.IO
@@ -38,7 +39,7 @@ class ImplicitSpec extends FlatSpec with ScalaFutures with OptionValues {
         }
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-          IO.pure(AccessToken("token1", Some("refresh_token"), Some("all"), Some(3600 seconds), new Date()))
+          IO.pure(AccessToken("token1", Some("refresh_token"), Some("all"), Some(3600 seconds), Instant.now()))
 
       }
     )

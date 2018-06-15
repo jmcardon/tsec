@@ -1,5 +1,7 @@
 package tsec.oauth2.provider
 
+import java.time.Instant
+
 import org.scalatest.Matchers._
 import org.scalatest._
 
@@ -40,7 +42,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
           )
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), new java.util.Date()))
+          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds),Instant.now()))
 
         override def deleteAuthCode(code: String): IO[Unit] = {
           Thread.sleep(300)
@@ -86,7 +88,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
           )
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), new java.util.Date()))
+          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now()))
       }
     )
 
@@ -125,7 +127,7 @@ class AuthorizationCodeSpec extends FlatSpec with OptionValues {
           )
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), new java.util.Date()))
+          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now()))
 
         override def deleteAuthCode(code: String): IO[Unit] =
           IO.raiseError(new Exception())

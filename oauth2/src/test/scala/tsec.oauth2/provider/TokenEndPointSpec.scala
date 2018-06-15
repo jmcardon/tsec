@@ -1,6 +1,6 @@
 package tsec.oauth2.provider
 
-import java.util.Date
+import java.time.Instant
 
 import cats.effect.IO
 import org.scalatest.FlatSpec
@@ -22,7 +22,7 @@ class TokenEndPointSpec extends FlatSpec {
     ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
     override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-      IO.pure(AccessToken("token1", None, Some("all"), Some(3600 seconds), new Date()))
+      IO.pure(AccessToken("token1", None, Some("all"), Some(3600 seconds), Instant.now()))
 
   }
 

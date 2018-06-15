@@ -1,9 +1,12 @@
 package tsec.oauth2.provider
 
+import java.time.Instant
+
 import cats.effect.IO
 import org.scalatest.{FlatSpec, OptionValues}
 import org.scalatest.Matchers._
 import tsec.oauth2.provider.GrantHandler.RefreshToken
+
 import scala.concurrent.duration._
 
 class RefreshTokenSpec extends FlatSpec with OptionValues {
@@ -38,7 +41,7 @@ class RefreshTokenSpec extends FlatSpec with OptionValues {
           )
 
         override def refreshAccessToken(authInfo: AuthInfo[MockUser], refreshToken: String): IO[AccessToken] =
-          IO.pure(AccessToken("token1", Some(refreshToken), None, Some(3600 seconds), new java.util.Date()))
+          IO.pure(AccessToken("token1", Some(refreshToken), None, Some(3600 seconds), Instant.now()))
 
       }
     )

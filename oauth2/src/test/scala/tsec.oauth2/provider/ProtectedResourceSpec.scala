@@ -1,10 +1,11 @@
 package tsec.oauth2.provider
 
-import java.util.Date
+import java.time.Instant
 
 import cats.effect.IO
 import org.scalatest._
 import org.scalatest.Matchers._
+
 import scala.concurrent.duration._
 
 class ProtectedResourceSpec extends FlatSpec {
@@ -12,7 +13,7 @@ class ProtectedResourceSpec extends FlatSpec {
   def pureProtectedResourceHandler() = new ProtectedResourceHandler[MockUser] {
 
     override def findAccessToken(token: String): IO[Option[AccessToken]] =
-      IO.pure(Some(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), new Date())))
+      IO.pure(Some(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now())))
 
     override def findAuthInfoByAccessToken(accessToken: AccessToken): IO[Option[AuthInfo[MockUser]]] =
       IO.pure(
@@ -64,7 +65,7 @@ class ProtectedResourceSpec extends FlatSpec {
               Some("refreshToken1"),
               Some("all"),
               Some(3600 seconds),
-              new Date(new Date().getTime() - 4000 * 1000)
+              Instant.ofEpochMilli(System.currentTimeMillis() - 4000 * 1000)
             )
           )
         )
@@ -127,7 +128,7 @@ class ProtectedResourceSpec extends FlatSpec {
     val dataHandler = new ProtectedResourceHandler[MockUser] {
 
       override def findAccessToken(token: String): IO[Option[AccessToken]] =
-        IO.pure(Some(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), new Date())))
+        IO.pure(Some(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now())))
 
       override def findAuthInfoByAccessToken(accessToken: AccessToken): IO[Option[AuthInfo[MockUser]]] = IO.pure(None)
 

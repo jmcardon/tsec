@@ -1,8 +1,11 @@
 package tsec.oauth2.provider
 
+import java.time.Instant
+
 import cats.effect.IO
 import org.scalatest._
 import org.scalatest.Matchers._
+
 import scala.concurrent.duration._
 import tsec.oauth2.provider.GrantHandler.PasswordNoClientCred
 import tsec.oauth2.provider.GrantHandler.PasswordWithClientCred
@@ -37,7 +40,7 @@ class PasswordSpec extends FlatSpec with OptionValues {
         ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), new java.util.Date()))
+          IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now()))
 
       }
     )

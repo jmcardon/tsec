@@ -1,7 +1,8 @@
 package tsec.oauth2.provider
 
+import java.time.Instant
 import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
+
 import scala.concurrent.duration._
 import org.scalatest.Matchers._
 import org.scalatest._
@@ -9,7 +10,7 @@ import org.scalatest._
 class AccessTokenSpec extends FlatSpec {
 
   it should "say a token is active that is not yet expired" in {
-    val token = AccessToken("token", None, None, life = Some(15 seconds), createdAt = new Date())
+    val token = AccessToken("token", None, None, lifeTime = Some(15 seconds), createdAt = Instant.now())
     token.isExpired shouldBe false
   }
 
@@ -18,8 +19,8 @@ class AccessTokenSpec extends FlatSpec {
       "token",
       None,
       None,
-      life = Some(1798 seconds),
-      createdAt = Date.from(ZonedDateTime.now(ZoneOffset.UTC).minusSeconds(1800).toInstant)
+      lifeTime = Some(1798 seconds),
+      createdAt = ZonedDateTime.now(ZoneOffset.UTC).minusSeconds(1800).toInstant
     )
     token.isExpired shouldBe true
   }
@@ -29,8 +30,8 @@ class AccessTokenSpec extends FlatSpec {
       "token",
       None,
       None,
-      life = None,
-      createdAt = Date.from(ZonedDateTime.now(ZoneOffset.UTC).minusSeconds(1800).toInstant)
+      lifeTime = None,
+      createdAt = ZonedDateTime.now(ZoneOffset.UTC).minusSeconds(1800).toInstant
     )
     token.isExpired shouldBe false
   }

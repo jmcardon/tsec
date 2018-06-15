@@ -1,9 +1,12 @@
 package tsec.oauth2.provider
 
+import java.time.Instant
+
 import cats.effect.IO
 import org.scalatest.Matchers._
 import org.scalatest._
 import tsec.oauth2.provider.GrantHandler.ClientCredentials
+
 import scala.concurrent.duration._
 
 class ClientCredentialsSpec extends FlatSpec with OptionValues {
@@ -26,7 +29,7 @@ class ClientCredentialsSpec extends FlatSpec with OptionValues {
         ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
         override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-          IO.pure(AccessToken("token1", None, Some("all"), Some(3600 seconds), new java.util.Date()))
+          IO.pure(AccessToken("token1", None, Some("all"), Some(3600 seconds), Instant.now()))
       }
     )
     val result = f.value.unsafeRunSync().toOption.get

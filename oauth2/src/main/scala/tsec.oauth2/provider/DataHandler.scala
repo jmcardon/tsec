@@ -1,5 +1,6 @@
 package tsec.oauth2.provider
 
+import java.time.Instant
 import java.util.Date
 
 import scala.concurrent.duration._
@@ -16,22 +17,22 @@ trait DataHandler[F[_], U] extends AuthorizationHandler[F, U] with ProtectedReso
   * @param token Access token is used to authentication.
   * @param refreshToken Refresh token is used to re-issue access token.
   * @param scope Inform the client of the scope of the access token issued.
-  * @param life Life of the access token since its creation.
+  * @param lifeTime Life of the access token since its creation.
   * @param createdAt Access token is created date.
   * @param params Additional parameters to add information/restriction on given Access token.
   */
 final case class AccessToken(
-    token: String,
-    refreshToken: Option[String],
-    scope: Option[String],
-    life: Option[FiniteDuration],
-    createdAt: Date,
-    params: Map[String, String] = Map.empty[String, String]
+                              token: String,
+                              refreshToken: Option[String],
+                              scope: Option[String],
+                              lifeTime: Option[FiniteDuration],
+                              createdAt: Instant,
+                              params: Map[String, String] = Map.empty[String, String]
 ) {
   def isExpired: Boolean = expiresIn.exists(_.toMillis < 0)
 
-  val expiresIn: Option[FiniteDuration] = life map { l =>
-    val expTime = createdAt.getTime + l.toMillis
+  val expiresIn: Option[FiniteDuration] = lifeTime map { l =>
+    val expTime = createdAt.toEpochMilli + l.toMillis
     ((expTime - System.currentTimeMillis) / 1000) milli
   }
 }
