@@ -2,6 +2,7 @@ package tsec.oauth2.provider
 
 import org.scalatest._
 import org.scalatest.Matchers._
+import tsec.oauth2.provider.AccessTokenFetcher.AuthHeader
 
 class AuthHeaderSpec extends FlatSpec {
 

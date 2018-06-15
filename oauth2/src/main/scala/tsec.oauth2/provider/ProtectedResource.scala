@@ -9,7 +9,7 @@ object ProtectedResource {
 }
 
 class ProtectedResource[F[_]] {
-  val fetchers = List(AuthHeader, RequestParameter)
+  val fetchers = AccessTokenFetcher.all
 
   def handleRequest[U](
       request: ProtectedResourceRequest,

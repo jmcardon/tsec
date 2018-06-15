@@ -1,7 +1,9 @@
 package tsec.oauth2.provider
 
+import java.nio.charset.StandardCharsets
+
 import cats.implicits._
-import java.util.Base64
+import tsec.common._
 
 import scala.collection.immutable.TreeMap
 import scala.util.Try
@@ -11,11 +13,11 @@ case class ClientCredential(clientId: String, clientSecret: Option[String])
 case class AuthorizationRequest(headers: Map[String, Seq[String]], params: Map[String, Seq[String]]) {
   private val orderedHeaders = new TreeMap[String, Seq[String]]()(Ordering.by(_.toLowerCase)) ++ headers
 
-  def scope: Option[String] = params.get(SCOPE).flatMap(_.headOption)
+  def scope: Option[String] = params.get(Scope).flatMap(_.headOption)
 
   def grantType(isClientCredRequiredForPasswordGrantType: Boolean): Either[OAuthError, GrantType] =
     for {
-      header <- params.get(GRANT_TYPE).flatMap(_.headOption).toRight(InvalidRequest("Missing grant type"))
+      header <- params.get(GrantType.header).flatMap(_.headOption).toRight(InvalidRequest("Missing grant type"))
       res <- GrantType.strToGrantType
         .get(header.toLowerCase)
         .toRight(UnsupportedGrantType(s"unsupported grant type: $header"))
@@ -46,7 +48,7 @@ case class AuthorizationRequest(headers: Map[String, Seq[String]], params: Map[S
   }
 
   private def clientCredentialByAuthorization(s: String): Either[InvalidClient, ClientCredential] =
-    Try(new String(Base64.getDecoder.decode(s), "UTF-8"))
+    Try(new String(s.base64Bytes, StandardCharsets.UTF_8))
       .map(_.split(":", 2))
       .getOrElse(Array.empty) match {
       case Array(clientId, clientSecret) =>
@@ -57,6 +59,6 @@ case class AuthorizationRequest(headers: Map[String, Seq[String]], params: Map[S
 
   private def clientCredentialByParam: Option[ClientCredential] =
     for {
-      clientId <- params.get(CLIENT_ID).flatMap(_.headOption)
-    } yield ClientCredential(clientId, params.get(CLIENT_SECRET).flatMap(_.headOption))
+      clientId <- params.get(ClientId).flatMap(_.headOption)
+    } yield ClientCredential(clientId, params.get(ClientSecret).flatMap(_.headOption))
 }
