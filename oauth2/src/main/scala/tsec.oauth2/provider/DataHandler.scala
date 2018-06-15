@@ -1,7 +1,9 @@
 package tsec.oauth2.provider
 
 import java.time.Instant
-import java.util.Date
+
+import cats.implicits._
+import cats.effect.Sync
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
@@ -9,7 +11,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
   * Provide accessing to data storage for using OAuth 2.0.
   */
-trait DataHandler[F[_], U] extends AuthorizationHandler[F, U] with ProtectedResourceHandler[U]
+trait DataHandler[F[_], U] extends AuthorizationHandler[F, U] with ProtectedResourceHandler[F, U]
 
 /**
   * Access token
@@ -29,11 +31,14 @@ final case class AccessToken(
                               createdAt: Instant,
                               params: Map[String, String] = Map.empty[String, String]
 ) {
-  def isExpired: Boolean = expiresIn.exists(_.toMillis < 0)
+  def isExpired[F[_]](implicit F: Sync[F]): F[Boolean] = expiresIn.map(_.exists(_.toMillis < 0))
 
-  val expiresIn: Option[FiniteDuration] = lifeTime map { l =>
+  def expiresIn[F[_]](implicit F: Sync[F]): F[Option[FiniteDuration]] = lifeTime traverse { l =>
     val expTime = createdAt.toEpochMilli + l.toMillis
-    ((expTime - System.currentTimeMillis) / 1000) milli
+    for{
+      now <- F.delay(System.currentTimeMillis)
+      t <- F.pure(((expTime - now) / 1000) milli)
+    } yield t
   }
 }
 

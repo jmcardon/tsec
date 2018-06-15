@@ -1,8 +1,9 @@
 package tsec.oauth2.provider
 
-import java.util.Date
+import java.time.Instant
 
 import cats.effect.IO
+
 import scala.concurrent.duration._
 
 class MockDataHandler extends DataHandler[IO, MockUser] {
@@ -16,7 +17,7 @@ class MockDataHandler extends DataHandler[IO, MockUser] {
   ): IO[Option[MockUser]] = IO.pure(None)
 
   override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
-    IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), new Date()))
+    IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), Instant.now()))
 
   override def findAuthInfoByCode(code: String): IO[Option[AuthInfo[MockUser]]] = IO.pure(None)
 
@@ -29,7 +30,7 @@ class MockDataHandler extends DataHandler[IO, MockUser] {
   override def getStoredAccessToken(authInfo: AuthInfo[MockUser]): IO[Option[AccessToken]] = IO.pure(None)
 
   override def refreshAccessToken(authInfo: AuthInfo[MockUser], refreshToken: String): IO[AccessToken] =
-    IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), new Date()))
+    IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), Instant.now()))
 
   override def deleteAuthCode(code: String): IO[Unit] = IO.pure(Unit)
 }
