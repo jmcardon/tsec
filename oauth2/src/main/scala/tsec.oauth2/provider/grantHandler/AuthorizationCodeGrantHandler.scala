@@ -1,56 +1,45 @@
 package tsec.oauth2.provider
+package grantHandler
 
-/**
-  * Provide <b>Authorization</b> phases support for using OAuth 2.0.
-  *
-  * <h3>[Authorization phases]</h3>
-  *
-  * <h4>Authorization Code Grant</h4>
-  * <ul>
-  *   <li>validateClient(request)</li>
-  *   <li>findAuthInfoByCode(code)</li>
-  *   <li>deleteAuthCode(code)</li>
-  *   <li>getStoredAccessToken(authInfo)</li>
-  *   <li>refreshAccessToken(authInfo, token)</li>
-  *   <li>createAccessToken(authInfo)</li>
-  * </ul>
-  *
-  * <h4>Refresh Token Grant</h4>
-  * <ul>
-  *   <li>validateClient(clientCredential, grantType)</li>
-  *   <li>findAuthInfoByRefreshToken(refreshToken)</li>
-  *   <li>refreshAccessToken(authInfo, refreshToken)</li>
-  * </ul>
-  *
-  * <h4>Resource Owner Password Credentials Grant</h4>
-  * <ul>
-  *   <li>validateClient(request)</li>
-  *   <li>findUser(request)</li>
-  *   <li>getStoredAccessToken(authInfo)</li>
-  *   <li>refreshAccessToken(authInfo, token)</li>
-  *   <li>createAccessToken(authInfo)</li>
-  * </ul>
-  *
-  * <h4>Client Credentials Grant</h4>
-  * <ul>
-  *   <li>validateClient(request)</li>
-  *   <li>findUser(request)</li>
-  *   <li>getStoredAccessToken(authInfo)</li>
-  *   <li>refreshAccessToken(authInfo, token)</li>
-  *   <li>createAccessToken(authInfo)</li>
-  * </ul>
-  *
-  * <h4>Implicit Grant</h4>
-  * <ul>
-  *   <li>validateClient(request)</li>
-  *   <li>findUser(request)</li>
-  *   <li>getStoredAccessToken(authInfo)</li>
-  *   <li>createAccessToken(authInfo)</li>
-  * </ul>
-  *
-  */
-trait AuthorizationHandler[F[_], U] {
+import cats.data.EitherT
+import cats.effect.Sync
+import cats.implicits._
+import tsec.oauth2.provider.ValidatedRequest._
 
+class AuthorizationCodeGrantHandler[F[_], U](handler: AuthorizationCodeHandler[F, U]) extends GrantHandler[F, U] {
+  type A = ValidatedAuthorizationCode
+  def handleRequest(req: ValidatedAuthorizationCode)(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
+    for {
+      _ <- EitherT(
+        handler
+          .validateClient(req.clientCredential, req)
+          .map(
+            isValid => Either.cond(isValid, (), InvalidClient("Invalid client or client is not authorized"): OAuthError)
+          )
+      )
+      auth <- EitherT(
+        handler
+          .findAuthInfoByCode(req.code)
+          .map(_.toRight(InvalidGrant("Authorized information is not found by the code")))
+      )
+      _ <- EitherT
+        .cond[F](auth.clientId.contains(req.clientCredential.clientId), (), InvalidClient("invalid clientId"))
+      _ <- EitherT.cond[F](
+        auth.redirectUri.isEmpty || (auth.redirectUri.isDefined && auth.redirectUri == req.redirectUri),
+        (),
+        RedirectUriMismatch
+      )
+      grantResult <- EitherT(
+        issueAccessToken(handler, auth).attempt
+          .map(_.leftMap(t => FailedToIssueAccessToken(t.getMessage): OAuthError))
+      )
+      _ <- EitherT(
+        handler.deleteAuthCode(req.code).attempt.map(_.leftMap(t => FailedToDeleteAuthCode(t.getMessage): OAuthError))
+      )
+    } yield grantResult
+}
+
+trait AuthorizationCodeHandler[F[_], U] extends IssueAccessToken[F, U]{
   /**
     * Verify proper client with parameters for issue an access token.
     * Note that per the OAuth Specification, a Client may be valid if it only contains a client ID but no client
@@ -62,15 +51,6 @@ trait AuthorizationHandler[F[_], U] {
     * @return true if request is a regular client, false if request is a illegal client.
     */
   def validateClient(credential: ClientCredential, request: ValidatedRequest): F[Boolean]
-
-  /**
-    * Authenticate the user that issued the authorization request.
-    * Client credential, Password and Implicit Grant call this method.
-    *
-    * @param maybeCredential client credential parsed from request
-    * @param request Request sent by client.
-    */
-  def findUser(maybeCredential: Option[ClientCredential], request: ValidatedRequest): F[Option[U]]
 
   /**
     * Creates a new access token by authorized information.
@@ -119,15 +99,4 @@ trait AuthorizationHandler[F[_], U] {
     * @param code Client-sent authorization code
     */
   def deleteAuthCode(code: String): F[Unit]
-
-  /**
-    * Find authorized information by refresh token.
-    *
-    * If you don't support Refresh Token Grant then doesn't need implementing.
-    *
-    * @param refreshToken Client sends refresh token which is created by system.
-    * @return Return authorized information that matched the refresh token.
-    */
-  def findAuthInfoByRefreshToken(refreshToken: String): F[Option[AuthInfo[U]]]
-
 }

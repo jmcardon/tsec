@@ -4,115 +4,124 @@ import java.nio.charset.StandardCharsets
 
 import cats.implicits._
 import tsec.common._
-import tsec.oauth2.provider.GrantType.ClientCrendentials
-import tsec.oauth2.provider.GrantType.Password
+import tsec.oauth2.provider.grantHandler.GrantType
 
 import scala.collection.immutable.TreeMap
 import scala.util.Try
 
 case class ClientCredential(clientId: String, clientSecret: Option[String])
 
-
-
-sealed abstract class ValidatedRequest extends Product with Serializable{
-  def scope: Option[String]
+sealed abstract class ValidatedRequest extends Product with Serializable {
+  type A
   def grantType: GrantType
+  def scope: Option[String]
 }
-object ValidatedRequest{
-  def create(grantType: GrantType, isClientCredRequiredForPasswordGrantType: Boolean, headers: Map[String, Seq[String]], params: Map[String, Seq[String]]): Either[OAuthError, ValidatedRequest] = grantType match {
-    case GrantType.AuthorizationCode =>
-      ValidatedAuthorizationCode.create(headers, params)
-    case GrantType.RefreshToken =>
-      ValidatedRefreshToken.create(headers, params)
-    case ClientCrendentials =>
-      ValidatedClientCrendentials.create(headers, params)
-    case Password =>
-      if (isClientCredRequiredForPasswordGrantType)
-        ValidatedPasswordWithClientCred.create(headers, params)
-      else
-        ValidatedPasswordNoClientCred.create(params)
-    case GrantType.Implicit =>
-      ValidatedImplicit.create(headers, params)
+object ValidatedRequest {
+  case class ValidatedAuthorizationCode(
+                                         clientCredential: ClientCredential,
+                                         code: String,
+                                         scope: Option[String],
+                                         redirectUri: Option[String]
+                                       ) extends ValidatedRequest{
+    type A = this.type
+    def grantType: GrantType = GrantType.AuthorizationCode
   }
 
-  case class ValidatedAuthorizationCode(clientCredential: ClientCredential, code: String, scope: Option[String], redirectUri: Option[String]) extends ValidatedRequest {
-    def grantType: GrantType = GrantType.AuthorizationCode
+  case class ValidatedRefreshToken(clientCredential: ClientCredential, refreshToken: String, scope: Option[String])
+    extends ValidatedRequest {
+    type A = this.type
+    def name: String         = "refresh_token"
+    def grantType: GrantType = GrantType.RefreshToken
+  }
+
+  case class ValidatedClientCredentials(clientCredential: ClientCredential, scope: Option[String])
+    extends ValidatedRequest {
+    type A = this.type
+    def grantType: GrantType = GrantType.ClientCrendentials
+  }
+
+  case class ValidatedImplicit(clientCredential: ClientCredential, scope: Option[String]) extends ValidatedRequest {
+    type A = this.type
+    def name: String         = "implicit"
+    def grantType: GrantType = GrantType.Implicit
+  }
+
+  case class ValidatedPasswordNoClientCred(password: String, username: String, scope: Option[String])
+    extends ValidatedRequest {
+    type A = this.type
+    def grantType: GrantType = GrantType.Password
+  }
+
+  case class ValidatedPasswordWithClientCred(
+                                              clientCredential: ClientCredential,
+                                              password: String,
+                                              username: String,
+                                              scope: Option[String]
+                                            ) extends ValidatedRequest {
+    type A = this.type
+    def grantType: GrantType = GrantType.Password
   }
 
   def getScope(params: Map[String, Seq[String]]): Option[String] = params.get(Scope).flatMap(_.headOption)
 
-  object ValidatedAuthorizationCode{
-    def create[F[_]](headers: Map[String, Seq[String]], params: Map[String, Seq[String]]): Either[OAuthError, ValidatedAuthorizationCode] = for{
+  def createValidatedAuthorizationCode(
+      headers: Map[String, Seq[String]],
+      params: Map[String, Seq[String]]
+  ): Either[OAuthError, ValidatedAuthorizationCode] =
+    for {
       credential <- parseClientCredential(headers, params)
-      code <- params.get("code").flatMap(_.headOption).toRight(InvalidRequest("missing code param"))
-    }yield ValidatedAuthorizationCode(credential, code, getScope(params), params.get("redirect_uri").flatMap(_.headOption))
-  }
+      code       <- params.get("code").flatMap(_.headOption).toRight(InvalidRequest("missing code param"))
+    } yield
+      ValidatedAuthorizationCode(credential, code, getScope(params), params.get("redirect_uri").flatMap(_.headOption))
 
-  object ValidatedRefreshToken{
-    def create[F[_]](headers: Map[String, Seq[String]], params: Map[String, Seq[String]]): Either[OAuthError, ValidatedRefreshToken] = for{
+  def createValidatedRefreshToken(
+      headers: Map[String, Seq[String]],
+      params: Map[String, Seq[String]]
+  ): Either[OAuthError, ValidatedRefreshToken] =
+    for {
       credential <- parseClientCredential(headers, params)
       res <- params
         .get("refresh_token")
         .flatMap(_.headOption)
         .toRight(InvalidRequest("missing refresh_token param"))
-    }yield new ValidatedRefreshToken(credential, res, getScope(params))
-  }
+    } yield new ValidatedRefreshToken(credential, res, getScope(params))
 
-  case class ValidatedRefreshToken(clientCredential: ClientCredential, refreshToken: String, scope: Option[String]) extends ValidatedRequest {
-    def name: String = "refresh_token"
-    def grantType: GrantType = GrantType.RefreshToken
-  }
-
-  case class ValidatedClientCrendentials(clientCredential: ClientCredential, scope: Option[String]) extends ValidatedRequest {
-    def grantType: GrantType = GrantType.ClientCrendentials
-  }
-
-  object ValidatedClientCrendentials{
-    def create(headers: Map[String, Seq[String]], params: Map[String, Seq[String]]): Either[OAuthError, ValidatedClientCrendentials] = for{
+  def createValidatedClientCredentials(
+      headers: Map[String, Seq[String]],
+      params: Map[String, Seq[String]]
+  ): Either[OAuthError, ValidatedClientCredentials] =
+    for {
       credential <- parseClientCredential(headers, params)
-    }yield ValidatedClientCrendentials(credential, getScope(params))
-  }
+    } yield ValidatedClientCredentials(credential, getScope(params))
 
-  case class ValidatedPasswordWithClientCred(clientCredential: ClientCredential, password: String, username: String, scope: Option[String]) extends ValidatedRequest {
-    def grantType: GrantType = GrantType.Password
-  }
-
-  object ValidatedPasswordWithClientCred{
-    def create(headers: Map[String, Seq[String]], params: Map[String, Seq[String]]): Either[OAuthError, ValidatedPasswordWithClientCred] = for{
+  def createValidatedPasswordWithClientCred(
+      headers: Map[String, Seq[String]],
+      params: Map[String, Seq[String]]
+  ): Either[OAuthError, ValidatedPasswordWithClientCred] =
+    for {
       credential <- parseClientCredential(headers, params)
-      password <-
-        params.get("password").flatMap(_.headOption).toRight(InvalidRequest("missing password param"))
-      username <-
-        params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))
-    }yield ValidatedPasswordWithClientCred(credential, password, username, getScope(params))
-  }
+      password   <- params.get("password").flatMap(_.headOption).toRight(InvalidRequest("missing password param"))
+      username   <- params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))
+    } yield ValidatedPasswordWithClientCred(credential, password, username, getScope(params))
 
-  case class ValidatedPasswordNoClientCred(password: String, username: String, scope: Option[String]) extends ValidatedRequest {
-    def grantType: GrantType = GrantType.Password
-  }
+  def createValidatedPasswordNoClientCred(params: Map[String, Seq[String]]): Either[OAuthError, ValidatedPasswordNoClientCred] =
+    for {
+      password <- params.get("password").flatMap(_.headOption).toRight(InvalidRequest("missing password param"))
+      username <- params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))
+    } yield ValidatedPasswordNoClientCred(password, username, getScope(params))
 
-  object ValidatedPasswordNoClientCred{
-    def create(params: Map[String, Seq[String]]): Either[InvalidRequest, ValidatedPasswordNoClientCred] = for{
-      password <-
-        params.get("password").flatMap(_.headOption).toRight(InvalidRequest("missing password param"))
-      username <-
-        params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))
-    }yield ValidatedPasswordNoClientCred(password, username, getScope(params))
-  }
-
-  case class ValidatedImplicit(clientCredential: ClientCredential, scope: Option[String]) extends ValidatedRequest {
-    def name: String = "implicit"
-    def grantType: GrantType = GrantType.Implicit
-  }
-
-
-  object ValidatedImplicit{
-    def create(headers: Map[String, Seq[String]], params: Map[String, Seq[String]]): Either[OAuthError, ValidatedImplicit] = for{
+  def createValidatedImplicit(
+      headers: Map[String, Seq[String]],
+      params: Map[String, Seq[String]]
+  ): Either[OAuthError, ValidatedImplicit] =
+    for {
       credential <- parseClientCredential(headers, params)
-    }yield ValidatedImplicit(credential, getScope(params))
-  }
+    } yield ValidatedImplicit(credential, getScope(params))
 
-  private def parseClientCredential(headers: Map[String, Seq[String]], params: Map[String, Seq[String]]): Either[OAuthError, ClientCredential] = {
+  private[oauth2] def parseClientCredential(
+      headers: Map[String, Seq[String]],
+      params: Map[String, Seq[String]]
+  ): Either[OAuthError, ClientCredential] = {
     val orderedHeaders = new TreeMap[String, Seq[String]]()(Ordering.by(_.toLowerCase)) ++ headers
     val authHeader = for {
       h <- orderedHeaders
@@ -123,7 +132,8 @@ object ValidatedRequest{
       cred = matcher.group(1)
       r <- clientCredentialByAuthorization(cred)
     } yield r
-    authHeader.fold[Either[OAuthError, ClientCredential]](
+
+    val res = authHeader.fold[Either[OAuthError, ClientCredential]](
       e => {
         e match {
           case InvalidAuthorizationHeader => InvalidAuthorizationHeader.asLeft[ClientCredential]
@@ -135,6 +145,7 @@ object ValidatedRequest{
       },
       Right(_)
     )
+    res
   }
 
   private def clientCredentialByAuthorization(s: String): Either[InvalidClient, ClientCredential] =

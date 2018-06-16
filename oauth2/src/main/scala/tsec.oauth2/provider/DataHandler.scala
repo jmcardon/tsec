@@ -11,7 +11,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
   * Provide accessing to data storage for using OAuth 2.0.
   */
-trait DataHandler[F[_], U] extends AuthorizationHandler[F, U] with ProtectedResourceHandler[F, U]
+//trait DataHandler[F[_], U] extends ProtectedResourceHandler[F, U]
 
 /**
   * Access token
