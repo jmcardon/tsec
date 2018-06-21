@@ -15,13 +15,13 @@ object jwksExample {
 
   case class User(id: String, name: String)
 
-  type AuthService = TSecAuthService[User, AugmentedJWKS[SHA256withRSA, String], IO]
+  type AuthService = TSecAuthService[User, AugmentedJWK[SHA256withRSA, String], IO]
 
   //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, String, User] = dummyBackingStore[IO, String, User](_.id.toString)
 
   val jwksAuth =
-    new JWKSAuthenticator[IO, String, User, SHA256withRSA](
+    new JWKPublicKeyRSAAuthenticator[IO, String, User, SHA256withRSA](
       expiryDuration = 10.minutes,
       maxIdleDuration = None,
       identityStore = userStore,
@@ -44,13 +44,13 @@ object jwksExample {
       2. The Authenticator (i.e token)
       3. The identity (i.e in this case, User)
        */
-      val r: SecuredRequest[IO, User, AugmentedJWKS[SHA256withRSA, String]] = request
+      val r: SecuredRequest[IO, User, AugmentedJWK[SHA256withRSA, String]] = request
       Ok()
   }
 
   val service2: AuthService = TSecAuthService {
     case request @ GET -> Root / "api2" asAuthed user =>
-      val r: SecuredRequest[IO, User, AugmentedJWKS[SHA256withRSA, String]] = request
+      val r: SecuredRequest[IO, User, AugmentedJWK[SHA256withRSA, String]] = request
       Ok()
   }
 
