@@ -3,6 +3,7 @@ package tsec.authentication
 import java.security.KeyFactory
 import java.security.spec.RSAPublicKeySpec
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
 
 import cats.data.OptionT
 import cats.effect.{Effect, Sync}
@@ -42,8 +43,8 @@ class KeyRegistry[F[_], A: JCASigTag](uri: Uri, minFetchDelay: FiniteDuration)(i
   implicit val modulusDecoder: Decoder[Modulus]    = Decoder.decodeString.map(s => Modulus(BigInt(1, s.base64UrlBytes)))
   implicit val exponentDecoder: Decoder[Exponent]  = Decoder.decodeString.map(s => Exponent(BigInt(1, s.base64UrlBytes)))
 
-  private var keys      = Map[String, SigPublicKey[A]]()
-  private var lastFetch = none[Instant]
+  private var keys      = new AtomicReference(Map[String, SigPublicKey[A]]())
+  private var lastFetch = new AtomicReference(none[Instant])
 
   def getPublicKey(id: String): F[Option[SigPublicKey[A]]] = {
     getKey(id).map {
@@ -51,13 +52,11 @@ class KeyRegistry[F[_], A: JCASigTag](uri: Uri, minFetchDelay: FiniteDuration)(i
         for {
           jwks      <- fetchJwks(uri)
           k         <- E.delay(jwks.keys.map(jwk => (jwk.kid, convert(jwk))).toMap)
-          keys      <- Ref(keys)
-          lastFetch <- Ref(lastFetch)
-          _         <- keys.setAsync(k)
-          _         <- lastFetch.setAsync(Instant.now().some)
+          _         <- E.delay(keys.set(k))
+          _         <- E.delay(lastFetch.set(Instant.now().some))
           key       <- E.delay(k.get(id))
         } yield key
-      case _ => E.delay(keys.get(id))
+      case _ => E.delay(keys.get().get(id))
     }.flatten
   }
 
@@ -73,10 +72,10 @@ class KeyRegistry[F[_], A: JCASigTag](uri: Uri, minFetchDelay: FiniteDuration)(i
   }
 
   private def shouldFetch() =
-    lastFetch.forall(_.isBefore(Instant.now().minusSeconds(minFetchDelay.toSeconds)))
+    lastFetch.get().forall(_.isBefore(Instant.now().minusSeconds(minFetchDelay.toSeconds)))
 
   private def getKey(id: String) = E.delay {
-    keys.get(id)
+    keys.get().get(id)
   }
 
   private def convert(jwk: JWK): SigPublicKey[A] = {
