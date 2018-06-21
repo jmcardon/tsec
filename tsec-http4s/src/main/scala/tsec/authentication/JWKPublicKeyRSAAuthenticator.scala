@@ -43,8 +43,8 @@ class KeyRegistry[F[_], A: JCASigTag](uri: Uri, minFetchDelay: FiniteDuration)(i
   implicit val modulusDecoder: Decoder[Modulus]    = Decoder.decodeString.map(s => Modulus(BigInt(1, s.base64UrlBytes)))
   implicit val exponentDecoder: Decoder[Exponent]  = Decoder.decodeString.map(s => Exponent(BigInt(1, s.base64UrlBytes)))
 
-  private var keys      = new AtomicReference(Map[String, SigPublicKey[A]]())
-  private var lastFetch = new AtomicReference(none[Instant])
+  private val keys      = new AtomicReference(Map[String, SigPublicKey[A]]())
+  private val lastFetch = new AtomicReference(none[Instant])
 
   def getPublicKey(id: String): F[Option[SigPublicKey[A]]] = {
     getKey(id).map {
