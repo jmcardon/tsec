@@ -1,11 +1,15 @@
 package http4sExamples
 
+import java.time.Instant
+
 import cats.effect.IO
 import cats.syntax.semigroupk._
+import fs2.async.Ref
+import org.http4s.client.blaze.Http1Client
 import org.http4s.dsl.io._
 import org.http4s.{HttpService, Uri}
 import tsec.authentication._
-import tsec.signature.jca.SHA256withRSA
+import tsec.signature.jca.{SHA256withRSA, SigPublicKey}
 
 import scala.concurrent.duration._
 
@@ -20,16 +24,8 @@ object jwksExample {
   //We create a way to store our users. You can attach this to say, your doobie accessor
   val userStore: BackingStore[IO, String, User] = dummyBackingStore[IO, String, User](_.id.toString)
 
-  val jwksAuth =
-    new JWKPublicKeyRSAAuthenticator[IO, String, User, SHA256withRSA](
-      expiryDuration = 10.minutes,
-      maxIdleDuration = None,
-      identityStore = userStore,
-      jwksUri = Uri.unsafeFromString("https://dev24.eu.auth0.com/.well-known/jwks.json"),
-      minFetchDelay = 10.minutes)
-
-  val Auth =
-    SecuredRequestHandler(jwksAuth)
+  val keysRef = Ref[IO, Map[String, SigPublicKey[SHA256withRSA]]](Map[String, SigPublicKey[SHA256withRSA]]())
+  val lastFetchRef = Ref[IO, Instant](Instant.ofEpochMilli(0))
 
   /*
   Now from here, if want want to create services, we simply use the following
@@ -54,7 +50,25 @@ object jwksExample {
       Ok()
   }
 
-  val liftedService1: HttpService[IO] = Auth.liftService(service1)
-  val liftedComposed: HttpService[IO] = Auth.liftService(service1 <+> service2)
+  val liftedComposed: IO[HttpService[IO]] = for {
+    keys      <- keysRef
+    lastFetch <- lastFetchRef
+    client    <- Http1Client[IO]()
+  } yield {
+    val keyRegistry = new KeyRegistry[IO, SHA256withRSA](
+      uri = Uri.unsafeFromString("https://dev24.eu.auth0.com/.well-known/jwks.json"),
+      minFetchDelay = 10.minutes,
+      keys,
+      lastFetch,
+      client)
+
+    val jwksAuth = new JWKPublicKeyRSAAuthenticator[IO, String, User, SHA256withRSA](
+      expiryDuration = 10.minutes,
+      maxIdleDuration = None,
+      identityStore = userStore,
+      keyRegistry)
+
+    SecuredRequestHandler(jwksAuth).liftService(service1 <+> service2)
+  }
 
 }

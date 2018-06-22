@@ -3,23 +3,21 @@ package tsec.authentication
 import java.security.KeyFactory
 import java.security.spec.RSAPublicKeySpec
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicReference
 
 import cats.data.OptionT
 import cats.effect.{Effect, Sync}
 import cats.syntax.all._
-import fs2.Stream
 import fs2.async.Ref
 import io.circe.Decoder
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.http4s.circe._
-import org.http4s.client.blaze._
+import org.http4s.client.Client
 import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, EntityDecoder, Request, Response, Uri}
 import tsec.common.{SecureRandomId, _}
 import tsec.jws.signature.{JWSSigCV, JWTSig}
-import tsec.signature.jca.{JCASigTag, SigPublicKey}
+import tsec.signature.jca.{JCASigTag, RSAKFTag, SigPublicKey}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -37,46 +35,41 @@ final case class JWK(kid: String, kty: String, use: String, n: Modulus, e: Expon
 
 final case class JWKS(keys: List[JWK])
 
-class KeyRegistry[F[_], A: JCASigTag](uri: Uri, minFetchDelay: FiniteDuration)(implicit E: Effect[F]) {
+class KeyRegistry[F[_], A: JCASigTag: RSAKFTag](
+   uri: Uri,
+   minFetchDelay: FiniteDuration,
+   keys: Ref[F, Map[String, SigPublicKey[A]]],
+   lastFetch: Ref[F, Instant],
+   client: Client[F]
+)(implicit E: Effect[F]) {
 
   implicit val jwksDecoder: EntityDecoder[F, JWKS] = jsonOf[F, JWKS]
   implicit val modulusDecoder: Decoder[Modulus]    = Decoder.decodeString.map(s => Modulus(BigInt(1, s.base64UrlBytes)))
   implicit val exponentDecoder: Decoder[Exponent]  = Decoder.decodeString.map(s => Exponent(BigInt(1, s.base64UrlBytes)))
 
-  private val keys      = new AtomicReference(Map[String, SigPublicKey[A]]())
-  private val lastFetch = new AtomicReference(none[Instant])
-
-  def getPublicKey(id: String): F[Option[SigPublicKey[A]]] = {
-    getKey(id).map {
-      case None if shouldFetch() =>
-        for {
-          jwks      <- fetchJwks(uri)
-          k         <- E.delay(jwks.keys.map(jwk => (jwk.kid, convert(jwk))).toMap)
-          _         <- E.delay(keys.set(k))
-          _         <- E.delay(lastFetch.set(Instant.now().some))
-          key       <- E.delay(k.get(id))
-        } yield key
-      case _ => E.delay(keys.get().get(id))
-    }.flatten
-  }
-
-  private def fetchJwks(uri:Uri) = {
-    val s = for {
-      client <- Http1Client.stream[F]()
-      jwks <- Stream.eval(client.expect[JWKS](uri))
-    } yield jwks
-    s.compile.last.flatMap {
-      case Some(jwks) => jwks.pure
-      case None => E.raiseError[JWKS](new Exception("Error fetching JWKS"))
+  def getPublicKey(id: String): F[Option[SigPublicKey[A]]] =
+    getKey(id).flatMap {
+      case None => shouldFetch().flatMap {
+        case true =>
+          for {
+            jwks <- client.expect[JWKS](uri)
+            k    <- E.delay(jwks.keys.map(jwk => (jwk.kid, convert(jwk))).toMap)
+            _    <- keys.setSync(k)
+            _    <- lastFetch.setSync(Instant.now())
+            key  <- E.delay(k.get(id))
+          } yield key
+        case false => none[SigPublicKey[A]].pure[F]
+      }
+      case r => r.pure
     }
-  }
 
-  private def shouldFetch() =
-    lastFetch.get().forall(_.isBefore(Instant.now().minusSeconds(minFetchDelay.toSeconds)))
+  private def shouldFetch() = for {
+    lf  <- lastFetch.get
+    now <- E.delay(Instant.now())
+    b   <- lf.isBefore(now.minusSeconds(minFetchDelay.toSeconds)).pure
+  } yield b
 
-  private def getKey(id: String) = E.delay {
-    keys.get().get(id)
-  }
+  private def getKey(id: String) = keys.get.map(_.get(id))
 
   private def convert(jwk: JWK): SigPublicKey[A] = {
     val pubKey = KeyFactory.getInstance(jwk.kty).generatePublic(new RSAPublicKeySpec(jwk.n.value.bigInteger, jwk.e.value.bigInteger))
@@ -85,15 +78,12 @@ class KeyRegistry[F[_], A: JCASigTag](uri: Uri, minFetchDelay: FiniteDuration)(i
 
 }
 
-class JWKPublicKeyRSAAuthenticator[F[_] : Effect, I: Decoder, V, A: JCASigTag](
+class JWKPublicKeyRSAAuthenticator[F[_] : Effect, I: Decoder, V, A: JCASigTag: RSAKFTag](
    expiryDuration: FiniteDuration,
    maxIdleDuration: Option[FiniteDuration],
    identityStore: IdentityStore[F, I, V],
-   jwksUri: Uri,
-   minFetchDelay: FiniteDuration
+   keyRegistry: KeyRegistry[F, A]
 )(implicit cv: JWSSigCV[F, A]) extends Authenticator[F, I, V, AugmentedJWK[A, I]] {
-
-  private val keyRegistry = new KeyRegistry[F, A](jwksUri, minFetchDelay)
 
   override def expiry: FiniteDuration = expiryDuration
 
