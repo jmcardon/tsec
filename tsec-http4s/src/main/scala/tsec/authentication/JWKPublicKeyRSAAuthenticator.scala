@@ -55,7 +55,8 @@ class KeyRegistry[F[_], A: JCASigTag: RSAKFTag](
             jwks <- client.expect[JWKS](uri)
             k    <- E.delay(jwks.keys.map(jwk => (jwk.kid, convert(jwk))).toMap)
             _    <- keys.setSync(k)
-            _    <- lastFetch.setSync(Instant.now())
+            now  <- E.delay(Instant.now())
+            _    <- lastFetch.setSync(now)
             key  <- E.delay(k.get(id))
           } yield key
         case false => none[SigPublicKey[A]].pure[F]
@@ -116,7 +117,7 @@ class JWKPublicKeyRSAAuthenticator[F[_] : Effect, I: Decoder, V, A: JCASigTag: R
         publicKey    <- keyRegistry.getPublicKey(extractedRaw.header.kid.get)
         extracted    <- cv.verify(raw, publicKey.get, now)
         jwtid        <- cataOption(extracted.body.subject)
-        id           <- cataOption(extracted.body.subject.flatMap(s => decode[I](s""""$s"""").toOption))
+        id           <- cataOption(extracted.body.subject.flatMap(decode[I](_).toOption))
         expiry       <- cataOption(extracted.body.expiration)
         augmented = AugmentedJWK(
           SecureRandomId.coerce(jwtid),
