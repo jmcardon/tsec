@@ -1,7 +1,7 @@
 package tsec.authentication
 
-import java.security.KeyFactory
-import java.security.spec.RSAPublicKeySpec
+import java.io.ByteArrayInputStream
+import java.security.cert.CertificateFactory
 import java.time.Instant
 
 import cats.data.OptionT
@@ -31,9 +31,9 @@ final case class AugmentedJWK[A, I](
 
 final case class Modulus(value: BigInt) extends AnyVal
 final case class Exponent(value: BigInt) extends AnyVal
-final case class JWK(kid: String, kty: String, use: String, n: Modulus, e: Exponent)
+final case class JWK[A](kid: String, kty: String, use: String, x5c: List[SigPublicKey[A]], n: Modulus, e: Exponent)
 
-final case class JWKS(keys: List[JWK])
+final case class JWKS[A](keys: List[JWK[A]])
 
 class KeyRegistry[F[_], A: JCASigTag: RSAKFTag](
    uri: Uri,
@@ -43,17 +43,22 @@ class KeyRegistry[F[_], A: JCASigTag: RSAKFTag](
    client: Client[F]
 )(implicit E: Effect[F]) {
 
-  implicit val jwksDecoder: EntityDecoder[F, JWKS] = jsonOf[F, JWKS]
-  implicit val modulusDecoder: Decoder[Modulus]    = Decoder.decodeString.map(s => Modulus(BigInt(1, s.base64UrlBytes)))
-  implicit val exponentDecoder: Decoder[Exponent]  = Decoder.decodeString.map(s => Exponent(BigInt(1, s.base64UrlBytes)))
+  implicit val jwksDecoder: EntityDecoder[F, JWKS[A]] = jsonOf[F, JWKS[A]]
+  implicit val modulusDecoder: Decoder[Modulus]       = Decoder.decodeString.map(s => Modulus(BigInt(1, s.base64UrlBytes)))
+  implicit val exponentDecoder: Decoder[Exponent]     = Decoder.decodeString.map(s => Exponent(BigInt(1, s.base64UrlBytes)))
+  implicit val x5cDecoder: Decoder[SigPublicKey[A]]   = Decoder.decodeString.map(s => {
+    val cf = CertificateFactory.getInstance("X.509")
+    val cert = cf.generateCertificate(new ByteArrayInputStream(s.base64Bytes))
+    SigPublicKey[A](cert.getPublicKey)
+  })
 
   def getPublicKey(id: String): F[Option[SigPublicKey[A]]] =
     getKey(id).flatMap {
       case None => shouldFetch().flatMap {
         case true =>
           for {
-            jwks <- client.expect[JWKS](uri)
-            k    <- E.delay(jwks.keys.map(jwk => (jwk.kid, convert(jwk))).toMap)
+            jwks <- client.expect[JWKS[A]](uri).onError{case e => E.delay(e.printStackTrace())}
+            k    <- E.delay(jwks.keys.map(jwk => (jwk.kid, jwk.x5c.head)).toMap)
             _    <- keys.setSync(k)
             now  <- E.delay(Instant.now())
             _    <- lastFetch.setSync(now)
@@ -71,11 +76,6 @@ class KeyRegistry[F[_], A: JCASigTag: RSAKFTag](
   } yield b
 
   private def getKey(id: String) = keys.get.map(_.get(id))
-
-  private def convert(jwk: JWK): SigPublicKey[A] = {
-    val pubKey = KeyFactory.getInstance(jwk.kty).generatePublic(new RSAPublicKeySpec(jwk.n.value.bigInteger, jwk.e.value.bigInteger))
-    SigPublicKey[A](pubKey)
-  }
 
 }
 
