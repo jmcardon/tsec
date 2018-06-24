@@ -57,7 +57,7 @@ class KeyRegistry[F[_], A: JCASigTag: RSAKFTag](
       case None => shouldFetch().flatMap {
         case true =>
           for {
-            jwks <- client.expect[JWKS[A]](uri).onError{case e => E.delay(e.printStackTrace())}
+            jwks <- client.expect[JWKS[A]](uri)
             k    <- E.delay(jwks.keys.map(jwk => (jwk.kid, jwk.x5c.head)).toMap)
             _    <- keys.setSync(k)
             now  <- E.delay(Instant.now())
