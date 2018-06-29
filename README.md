@@ -75,6 +75,10 @@ val tsecV = "0.0.1-M11"
 )
 ```
 
+## Note about using windows with tsec
+
+Don't. Use a better OS.
+
 ## IMPORTANT NOTE: About higher than 128-bit encryption key sizes on the JCA!
 ## This applies to you if you are using any AES algorithms with higher than 128-bit key sizes
 For 256-bit key sizes, you will have to install the Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy
