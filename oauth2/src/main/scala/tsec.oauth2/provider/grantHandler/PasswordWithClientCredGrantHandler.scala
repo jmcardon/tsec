@@ -19,14 +19,14 @@ class PasswordWithClientCredGrantHandler[F[_], U](handler: PasswordWithClientCre
     for {
       _ <- EitherT(
         handler
-          .validateClient(req.clientCredential, req)
+          .validateClient(req)
           .map(
             isValid => Either.cond(isValid, (), InvalidClient("Invalid client or client is not authorized"): OAuthError)
           )
       )
       user <- EitherT(
         handler
-          .findUser(Some(req.clientCredential), req)
+          .findUser(req)
           .map(_.toRight(InvalidGrant("username or password is incorrect")))
       )
       authInfo = AuthInfo(user, Some(req.clientCredential.clientId), req.scope, None)
@@ -43,10 +43,9 @@ trait PasswordWithClientCredHandler[F[_], U] extends IssueAccessToken[F, U] {
     * Authenticate the user that issued the authorization request.
     * Client credential, Password and Implicit Grant call this method.
     *
-    * @param maybeCredential client credential parsed from request
     * @param request Request sent by client.
     */
-  def findUser(maybeCredential: Option[ClientCredential], request: ValidatedPasswordWithClientCred): F[Option[U]]
+  def findUser(request: ValidatedPasswordWithClientCred): F[Option[U]]
 
   /**
     * Verify proper client with parameters for issue an access token.
@@ -54,9 +53,8 @@ trait PasswordWithClientCredHandler[F[_], U] extends IssueAccessToken[F, U] {
     * secret (common with Public Clients). However, if the registered client has a client secret value the specification
     * requires that a client secret must always be provided and verified for that client ID.
     *
-    * @param credential client credential parsed from request
     * @param request Request sent by client.
     * @return true if request is a regular client, false if request is a illegal client.
     */
-  def validateClient(credential: ClientCredential, request: ValidatedPasswordWithClientCred): F[Boolean]
+  def validateClient(request: ValidatedPasswordWithClientCred): F[Boolean]
 }

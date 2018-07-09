@@ -19,24 +19,12 @@ class ImplicitSpec extends FlatSpec with ScalaFutures with OptionValues {
 
   def handlesRequest(user: String, pass: String, ok: Boolean) = {
     val dataHandler = new ImplicitHandler[IO, MockUser]{
-      override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] = IO.pure(true)
-
-      //        override def findUser(
-      //            maybeClientCredential: Option[ClientCredential],
-      //            request: ValidatedRequest
-      //        ): IO[Option[MockUser]] = {
-      ////          val result = for {
-      ////            user     <- request.params.get("username") if user.head == "user"
-      ////            password <- request.params.get("password") if password.head == "pass"
-      ////          } yield MockUser(10000, "username")
-      //          //TODO: figure out what exactly findUser need
-      //          if(ok) IO.pure(Some(MockUser(10000, "username"))) else IO.pure(None)
-      //        }
+      override def validateClient(request: ValidatedImplicit): IO[Boolean] = IO.pure(true)
 
       override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
         IO.pure(AccessToken("token1", Some("refresh_token"), Some("all"), Some(3600 seconds), Instant.now()))
 
-      override def findUser(maybeCredential: Option[ClientCredential], request: ValidatedImplicit): IO[Option[MockUser]] = if(ok) IO.pure(Some(MockUser(10000, "username"))) else IO.pure(None)
+      override def findUser(request: ValidatedImplicit): IO[Option[MockUser]] = if(ok) IO.pure(Some(MockUser(10000, "username"))) else IO.pure(None)
 
       /**
         * Returns stored access token by authorized information.

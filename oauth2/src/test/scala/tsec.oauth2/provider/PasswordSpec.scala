@@ -28,10 +28,9 @@ class PasswordSpec extends FlatSpec with OptionValues {
 
   def handlesRequestPasswordWithClientCredReq(req: ValidatedPasswordWithClientCred) = {
     val dataHandler = new PasswordWithClientCredHandler[IO, MockUser] {
-      override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedPasswordWithClientCred): IO[Boolean] = IO.pure(true)
+      override def validateClient(request: ValidatedPasswordWithClientCred): IO[Boolean] = IO.pure(true)
 
       override def findUser(
-                             maybeClientCredential: Option[ClientCredential],
                              request: ValidatedPasswordWithClientCred
                            ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 

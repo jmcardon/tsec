@@ -5,7 +5,8 @@ import cats.data.EitherT
 import cats.effect.Sync
 
 object ProtectedResource {
-  def apply[F[_], U](handler: ProtectedResourceHandler[F, U]): ProtectedResource[F, U] = new ProtectedResource[F, U](handler)
+  def apply[F[_], U](handler: ProtectedResourceHandler[F, U]): ProtectedResource[F, U] =
+    new ProtectedResource[F, U](handler)
 }
 
 class ProtectedResource[F[_], U](handler: ProtectedResourceHandler[F, U]) {

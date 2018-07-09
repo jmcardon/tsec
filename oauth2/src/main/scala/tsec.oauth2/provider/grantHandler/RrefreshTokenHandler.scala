@@ -12,7 +12,7 @@ class RefreshTokenGrantHandler[F[_], U](handler: RefreshTokenHandler[F, U]) exte
     for {
       _ <- EitherT(
         handler
-          .validateClient(req.clientCredential, req)
+          .validateClient(req)
           .map(
             isValid => Either.cond(isValid, (), InvalidClient("Invalid client or client is not authorized"): OAuthError)
           )
@@ -47,11 +47,10 @@ trait RefreshTokenHandler[F[_], U] {
     * secret (common with Public Clients). However, if the registered client has a client secret value the specification
     * requires that a client secret must always be provided and verified for that client ID.
     *
-    * @param credential client credential parsed from request
     * @param request Request sent by client.
     * @return true if request is a regular client, false if request is a illegal client.
     */
-  def validateClient(credential: ClientCredential, request: ValidatedRequest): F[Boolean]
+  def validateClient(request: ValidatedRefreshToken): F[Boolean]
 
   /**
     * Creates a new access token by authorized information.

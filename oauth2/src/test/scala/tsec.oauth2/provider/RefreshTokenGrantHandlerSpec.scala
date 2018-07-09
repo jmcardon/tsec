@@ -16,7 +16,7 @@ class RefreshTokenGrantHandlerSpec extends FlatSpec with OptionValues {
   it should "handle request" in {
     val dataHandler = new RefreshTokenHandler[IO, MockUser] {
 
-      override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedRequest): IO[Boolean] = IO.pure(true)
+      override def validateClient(request: ValidatedRefreshToken): IO[Boolean] = IO.pure(true)
 
       override def findAuthInfoByRefreshToken(refreshToken: String): IO[Option[AuthInfo[MockUser]]] =
         IO.pure(

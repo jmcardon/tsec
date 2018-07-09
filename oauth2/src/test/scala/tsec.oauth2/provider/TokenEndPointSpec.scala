@@ -14,11 +14,10 @@ import scala.concurrent.duration._
 class TokenEndPointSpec extends FlatSpec {
   val dataHandler = new PasswordWithClientCredHandler[IO, MockUser]{
 
-    override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedPasswordWithClientCred): IO[Boolean] =
+    override def validateClient(request: ValidatedPasswordWithClientCred): IO[Boolean] =
       IO.pure(true)
 
     override def findUser(
-        maybeClientCredential: Option[ClientCredential],
         request: ValidatedPasswordWithClientCred
     ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
@@ -74,11 +73,10 @@ class TokenEndPointSpec extends FlatSpec {
     val headers                  = Map("Authorization" -> Seq("Basic Y2xpZW50X2lkX3ZhbHVlOmNsaWVudF9zZWNyZXRfdmFsdWU="))
     val params = Map("grant_type"    -> Seq("password"), "username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     val dataHandler = new PasswordWithClientCredHandler[IO, MockUser]{
-      override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedPasswordWithClientCred): IO[Boolean] =
+      override def validateClient(request: ValidatedPasswordWithClientCred): IO[Boolean] =
         IO.pure(false)
 
       override def findUser(
-                             maybeClientCredential: Option[ClientCredential],
                              request: ValidatedPasswordWithClientCred
                            ): IO[Option[MockUser]] = ???
 
@@ -94,11 +92,10 @@ class TokenEndPointSpec extends FlatSpec {
   it should "be Failure when DataHandler throws Exception" in {
     val dataHandler = new PasswordWithClientCredHandler[IO, MockUser]{
 
-      override def validateClient(maybeClientCredential: ClientCredential, request: ValidatedPasswordWithClientCred): IO[Boolean] =
+      override def validateClient(request: ValidatedPasswordWithClientCred): IO[Boolean] =
         IO.pure(true)
 
       override def findUser(
-                             maybeClientCredential: Option[ClientCredential],
                              request: ValidatedPasswordWithClientCred
                            ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 

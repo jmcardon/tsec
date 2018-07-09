@@ -14,13 +14,13 @@ class ImplicitGrantHandler[F[_], U](handler: ImplicitHandler[F, U]) extends Gran
     for {
       _ <- EitherT(
         handler
-          .validateClient(req.clientCredential, req)
+          .validateClient(req)
           .map(
             isValid => Either.cond(isValid, (), InvalidClient("Invalid client or client is not authorized"): OAuthError)
           )
       )
       user <- EitherT(
-        handler.findUser(Some(req.clientCredential), req).map(_.toRight(InvalidGrant("user cannot be authenticated")))
+        handler.findUser(req).map(_.toRight(InvalidGrant("user cannot be authenticated")))
       )
 
       authInfo = AuthInfo(user, Some(req.clientCredential.clientId), req.scope, None)
@@ -56,10 +56,9 @@ trait ImplicitHandler[F[_], U] {
     * Authenticate the user that issued the authorization request.
     * Client credential, Password and Implicit Grant call this method.
     *
-    * @param maybeCredential client credential parsed from request
     * @param request Request sent by client.
     */
-  def findUser(maybeCredential: Option[ClientCredential], request: ValidatedImplicit): F[Option[U]]
+  def findUser(request: ValidatedImplicit): F[Option[U]]
 
   /**
     * Verify proper client with parameters for issue an access token.
@@ -67,11 +66,10 @@ trait ImplicitHandler[F[_], U] {
     * secret (common with Public Clients). However, if the registered client has a client secret value the specification
     * requires that a client secret must always be provided and verified for that client ID.
     *
-    * @param credential client credential parsed from request
     * @param request Request sent by client.
     * @return true if request is a regular client, false if request is a illegal client.
     */
-  def validateClient(credential: ClientCredential, request: ValidatedRequest): F[Boolean]
+  def validateClient(request: ValidatedImplicit): F[Boolean]
 
   /**
     * Creates a new access token by authorized information.

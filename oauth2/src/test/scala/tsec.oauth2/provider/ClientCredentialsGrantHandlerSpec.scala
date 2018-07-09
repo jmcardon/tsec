@@ -15,11 +15,10 @@ class ClientCredentialsGrantHandlerSpec extends FlatSpec with OptionValues {
 
   it should "handle request" in {
     val dataHandler = new ClientCredentialsHandler[IO, MockUser] {
-      override def validateClient(credential: ClientCredential, request: ValidatedRequest): IO[Boolean] = IO.pure(true)
+      override def validateClient(request: ValidatedClientCredentials): IO[Boolean] = IO.pure(true)
 
       override def findUser(
-                             maybeClientCredential: Option[ClientCredential],
-                             request: ValidatedRequest
+                             request: ValidatedClientCredentials
                            ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
       override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
