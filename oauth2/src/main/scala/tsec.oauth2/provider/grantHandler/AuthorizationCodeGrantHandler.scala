@@ -56,32 +56,6 @@ trait AuthorizationCodeHandler[F[_], U] extends IssueAccessToken[F, U] {
   def validateClient(credential: ClientCredential, request: ValidatedRequest): F[Boolean]
 
   /**
-    * Creates a new access token by authorized information.
-    *
-    * @param authInfo This value is already authorized by system.
-    * @return Access token returns to client.
-    */
-  def createAccessToken(authInfo: AuthInfo[U]): F[AccessToken]
-
-  /**
-    * Returns stored access token by authorized information.
-    *
-    * If want to create new access token then have to return None
-    *
-    * @param authInfo This value is already authorized by system.
-    * @return Access token returns to client.
-    */
-  def getStoredAccessToken(authInfo: AuthInfo[U]): F[Option[AccessToken]]
-
-  /**
-    * Creates a new access token by refreshToken.
-    *
-    * @param authInfo This value is already authorized by system.
-    * @return Access token returns to client.
-    */
-  def refreshAccessToken(authInfo: AuthInfo[U], refreshToken: String): F[AccessToken]
-
-  /**
     * Find authorized information by authorization code.
     *
     * If you don't support Authorization Code Grant then doesn't need implementing.

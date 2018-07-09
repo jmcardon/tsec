@@ -5,15 +5,14 @@ import cats.data.EitherT
 import cats.effect.Sync
 
 object ProtectedResource {
-  def apply[F[_]]: ProtectedResource[F] = new ProtectedResource[F]
+  def apply[F[_], U](handler: ProtectedResourceHandler[F, U]): ProtectedResource[F, U] = new ProtectedResource[F, U](handler)
 }
 
-class ProtectedResource[F[_]] {
+class ProtectedResource[F[_], U](handler: ProtectedResourceHandler[F, U]) {
   val fetchers = AccessTokenFetcher.all
 
-  def handleRequest[U](
-      request: ProtectedResourceRequest,
-      handler: ProtectedResourceHandler[F, U]
+  def authorize(
+      request: ProtectedResourceRequest
   )(implicit F: Sync[F]): EitherT[F, OAuthError, AuthInfo[U]] =
     for {
       result <- EitherT.fromEither[F](

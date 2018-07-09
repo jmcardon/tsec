@@ -90,11 +90,6 @@ class TokenEndpoint[F[_], U](dataHandler: DataHandlers[F, U]) {
           } yield r
       }
     } yield res
-//
-//  def authorize[A](req: A)(
-//    implicit F: Sync[F],
-//    x: GrantHandler.Aux[F, U, A]
-//  ): EitherT[F, OAuthError, GrantHandlerResult[U]] = x.handleRequest(req)
 }
 
 final case class DataHandlers[F[_], U](

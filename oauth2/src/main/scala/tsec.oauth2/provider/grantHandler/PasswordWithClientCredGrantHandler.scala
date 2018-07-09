@@ -59,30 +59,4 @@ trait PasswordWithClientCredHandler[F[_], U] extends IssueAccessToken[F, U] {
     * @return true if request is a regular client, false if request is a illegal client.
     */
   def validateClient(credential: ClientCredential, request: ValidatedPasswordWithClientCred): F[Boolean]
-
-  /**
-    * Creates a new access token by authorized information.
-    *
-    * @param authInfo This value is already authorized by system.
-    * @return Access token returns to client.
-    */
-  def createAccessToken(authInfo: AuthInfo[U]): F[AccessToken]
-
-  /**
-    * Returns stored access token by authorized information.
-    *
-    * If want to create new access token then have to return None
-    *
-    * @param authInfo This value is already authorized by system.
-    * @return Access token returns to client.
-    */
-  def getStoredAccessToken(authInfo: AuthInfo[U]): F[Option[AccessToken]]
-
-  /**
-    * Creates a new access token by refreshToken.
-    *
-    * @param authInfo This value is already authorized by system.
-    * @return Access token returns to client.
-    */
-  def refreshAccessToken(authInfo: AuthInfo[U], refreshToken: String): F[AccessToken]
 }

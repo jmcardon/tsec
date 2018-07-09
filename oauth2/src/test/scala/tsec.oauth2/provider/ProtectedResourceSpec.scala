@@ -9,9 +9,7 @@ import org.scalatest.Matchers._
 import scala.concurrent.duration._
 
 class ProtectedResourceSpec extends FlatSpec {
-  val handler = ProtectedResource.apply[IO]
-
-  def pureProtectedResourceHandler() = new ProtectedResourceHandler[IO, MockUser] {
+  val pureProtectedResourceHandler = new ProtectedResourceHandler[IO, MockUser] {
 
     override def findAccessToken(token: String): IO[Option[AccessToken]] =
       IO.pure(Some(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now())))
@@ -30,14 +28,15 @@ class ProtectedResourceSpec extends FlatSpec {
 
   }
 
+  val handler = ProtectedResource.apply[IO, MockUser](pureProtectedResourceHandler)
+
   it should "be handled request with token into header" in {
     val request = new ProtectedResourceRequest(
       Map("Authorization" -> Seq("OAuth token1")),
       Map("username"      -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     )
 
-    val dataHandler = pureProtectedResourceHandler()
-    handler.handleRequest(request, dataHandler).map(_ should be('right))
+    handler.authorize(request).map(_ should be('right))
   }
 
   it should "be handled request with token into body" in {
@@ -46,8 +45,7 @@ class ProtectedResourceSpec extends FlatSpec {
       Map("access_token" -> Seq("token1"), "username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     )
 
-    val dataHandler = pureProtectedResourceHandler()
-    handler.handleRequest(request, dataHandler).map(_ should be('right))
+    handler.authorize(request).map(_ should be('right))
   }
 
   it should "be lost expired" in {
@@ -85,7 +83,8 @@ class ProtectedResourceSpec extends FlatSpec {
 
     }
 
-    val f = handler.handleRequest(request, dataHandler).value.unsafeRunSync()
+    val localHandler = ProtectedResource.apply[IO, MockUser](dataHandler)
+    val f = localHandler.authorize(request).value.unsafeRunSync()
 
     f shouldBe Left(ExpiredToken)
   }
@@ -96,8 +95,7 @@ class ProtectedResourceSpec extends FlatSpec {
       Map("username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     )
 
-    val dataHandler = pureProtectedResourceHandler()
-    val f           = handler.handleRequest(request, dataHandler).value.unsafeRunSync()
+    val f           = handler.authorize(request).value.unsafeRunSync()
 
     f shouldBe Left(InvalidRequest("Access token is not found"))
   }
@@ -115,8 +113,8 @@ class ProtectedResourceSpec extends FlatSpec {
       override def findAuthInfoByAccessToken(accessToken: AccessToken): IO[Option[AuthInfo[MockUser]]] = IO.pure(None)
 
     }
-
-    val f = handler.handleRequest(request, dataHandler).value.unsafeRunSync()
+    val localHandler = ProtectedResource.apply[IO, MockUser](dataHandler)
+    val f = localHandler.authorize(request).value.unsafeRunSync()
     f shouldBe Left(InvalidToken("The access token is not found"))
   }
 
@@ -134,8 +132,8 @@ class ProtectedResourceSpec extends FlatSpec {
       override def findAuthInfoByAccessToken(accessToken: AccessToken): IO[Option[AuthInfo[MockUser]]] = IO.pure(None)
 
     }
-
-    val f = handler.handleRequest(request, dataHandler).value.unsafeRunSync()
+    val localHandler = ProtectedResource.apply[IO, MockUser](dataHandler)
+    val f = localHandler.authorize(request).value.unsafeRunSync()
     f shouldBe Left(InvalidToken("The access token is invalid"))
   }
 }
