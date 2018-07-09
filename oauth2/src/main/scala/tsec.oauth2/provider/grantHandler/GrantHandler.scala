@@ -35,7 +35,7 @@ object GrantType {
     def name: String = "implicit"
   }
 
-  val all = sealerate.values[GrantType]
+  val all            = sealerate.values[GrantType]
   val strToGrantType = all.map(g => g.name -> g).toMap
 }
 
@@ -49,7 +49,7 @@ final case class GrantHandlerResult[U](
     params: Map[String, String]
 )
 
-trait GrantHandler[F[_], U]{
+trait GrantHandler[F[_], U] {
   type A
   def handleRequest(req: A)(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]]
 
@@ -82,7 +82,7 @@ trait GrantHandler[F[_], U]{
 }
 
 object GrantHandler {
-  type Aux[F[_], U, A0] = GrantHandler[F, U]{
+  type Aux[F[_], U, A0] = GrantHandler[F, U] {
     type A = A0
   }
 
@@ -103,6 +103,7 @@ object GrantHandler {
 }
 
 trait IssueAccessToken[F[_], U] {
+
   /**
     * Creates a new access token by authorized information.
     *

@@ -8,7 +8,9 @@ import tsec.oauth2.provider.ValidatedRequest._
 
 class AuthorizationCodeGrantHandler[F[_], U](handler: AuthorizationCodeHandler[F, U]) extends GrantHandler[F, U] {
   type A = ValidatedAuthorizationCode
-  def handleRequest(req: ValidatedAuthorizationCode)(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
+  def handleRequest(
+      req: ValidatedAuthorizationCode
+  )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
       _ <- EitherT(
         handler
@@ -39,7 +41,8 @@ class AuthorizationCodeGrantHandler[F[_], U](handler: AuthorizationCodeHandler[F
     } yield grantResult
 }
 
-trait AuthorizationCodeHandler[F[_], U] extends IssueAccessToken[F, U]{
+trait AuthorizationCodeHandler[F[_], U] extends IssueAccessToken[F, U] {
+
   /**
     * Verify proper client with parameters for issue an access token.
     * Note that per the OAuth Specification, a Client may be valid if it only contains a client ID but no client

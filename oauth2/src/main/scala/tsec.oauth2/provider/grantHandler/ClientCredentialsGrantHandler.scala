@@ -6,12 +6,11 @@ import cats.effect.Sync
 import cats.implicits._
 import tsec.oauth2.provider.ValidatedRequest._
 
-
 class ClientCredentialsGrantHandler[F[_], U](handler: ClientCredentialsHandler[F, U]) extends GrantHandler[F, U] {
   type A = ValidatedClientCredentials
   def handleRequest(
-                        req: ValidatedClientCredentials
-                      )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
+      req: ValidatedClientCredentials
+  )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
       _ <- EitherT(
         handler
@@ -33,8 +32,8 @@ class ClientCredentialsGrantHandler[F[_], U](handler: ClientCredentialsHandler[F
     } yield grantResult
 }
 
+trait ClientCredentialsHandler[F[_], U] extends IssueAccessToken[F, U] {
 
-trait ClientCredentialsHandler[F[_], U] extends IssueAccessToken[F, U]{
   /**
     * Verify proper client with parameters for issue an access token.
     * Note that per the OAuth Specification, a Client may be valid if it only contains a client ID but no client

@@ -9,8 +9,8 @@ import tsec.oauth2.provider.ValidatedRequest._
 class PasswordNoClientCredGrantHandler[F[_], U](handler: PasswordNoClientCredHandler[F, U]) extends GrantHandler[F, U] {
   type A = ValidatedPasswordNoClientCred
   def handleRequest(
-                        req: ValidatedPasswordNoClientCred
-                      )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
+      req: ValidatedPasswordNoClientCred
+  )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
       user <- EitherT(
         handler.findUser(None, req).map(_.toRight(InvalidGrant("username or password is incorrect")))
@@ -23,8 +23,8 @@ class PasswordNoClientCredGrantHandler[F[_], U](handler: PasswordNoClientCredHan
     } yield grantResult
 }
 
+trait PasswordNoClientCredHandler[F[_], U] extends IssueAccessToken[F, U] {
 
-trait PasswordNoClientCredHandler[F[_], U] extends IssueAccessToken[F, U]{
   /**
     * Authenticate the user that issued the authorization request.
     * Client credential, Password and Implicit Grant call this method.

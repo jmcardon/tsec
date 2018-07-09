@@ -10,11 +10,12 @@ import tsec.oauth2.provider.ValidatedRequest.ValidatedPasswordWithClientCred
   * Per the OAuth2 specification, client credentials are required for all grant types except password, where it is up
   * to the authorization provider whether to make them required or not.
   */
-class PasswordWithClientCredGrantHandler[F[_], U](handler: PasswordWithClientCredHandler[F, U]) extends GrantHandler[F, U] {
+class PasswordWithClientCredGrantHandler[F[_], U](handler: PasswordWithClientCredHandler[F, U])
+    extends GrantHandler[F, U] {
   type A = ValidatedPasswordWithClientCred
-  def handleRequest(req: ValidatedPasswordWithClientCred
-
-                      )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
+  def handleRequest(
+      req: ValidatedPasswordWithClientCred
+  )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
       _ <- EitherT(
         handler
@@ -36,8 +37,8 @@ class PasswordWithClientCredGrantHandler[F[_], U](handler: PasswordWithClientCre
     } yield grantResult
 }
 
+trait PasswordWithClientCredHandler[F[_], U] extends IssueAccessToken[F, U] {
 
-trait PasswordWithClientCredHandler[F[_], U] extends IssueAccessToken[F, U]{
   /**
     * Authenticate the user that issued the authorization request.
     * Client credential, Password and Implicit Grant call this method.

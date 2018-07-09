@@ -9,8 +9,8 @@ import tsec.oauth2.provider.ValidatedRequest._
 class ImplicitGrantHandler[F[_], U](handler: ImplicitHandler[F, U]) extends GrantHandler[F, U] {
   type A = ValidatedImplicit
   def handleRequest(
-                     req: ValidatedImplicit
-                      )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
+      req: ValidatedImplicit
+  )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
       _ <- EitherT(
         handler
@@ -50,8 +50,8 @@ class ImplicitGrantHandler[F[_], U](handler: ImplicitHandler[F, U]) extends Gran
     } yield grantResult
 }
 
+trait ImplicitHandler[F[_], U] {
 
-trait ImplicitHandler[F[_], U]{
   /**
     * Authenticate the user that issued the authorization request.
     * Client credential, Password and Implicit Grant call this method.

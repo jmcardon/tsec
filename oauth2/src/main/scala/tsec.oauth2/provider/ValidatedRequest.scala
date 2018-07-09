@@ -18,24 +18,24 @@ sealed abstract class ValidatedRequest extends Product with Serializable {
 }
 object ValidatedRequest {
   case class ValidatedAuthorizationCode(
-                                         clientCredential: ClientCredential,
-                                         code: String,
-                                         scope: Option[String],
-                                         redirectUri: Option[String]
-                                       ) extends ValidatedRequest{
+      clientCredential: ClientCredential,
+      code: String,
+      scope: Option[String],
+      redirectUri: Option[String]
+  ) extends ValidatedRequest {
     type A = this.type
     def grantType: GrantType = GrantType.AuthorizationCode
   }
 
   case class ValidatedRefreshToken(clientCredential: ClientCredential, refreshToken: String, scope: Option[String])
-    extends ValidatedRequest {
+      extends ValidatedRequest {
     type A = this.type
     def name: String         = "refresh_token"
     def grantType: GrantType = GrantType.RefreshToken
   }
 
   case class ValidatedClientCredentials(clientCredential: ClientCredential, scope: Option[String])
-    extends ValidatedRequest {
+      extends ValidatedRequest {
     type A = this.type
     def grantType: GrantType = GrantType.ClientCrendentials
   }
@@ -47,17 +47,17 @@ object ValidatedRequest {
   }
 
   case class ValidatedPasswordNoClientCred(password: String, username: String, scope: Option[String])
-    extends ValidatedRequest {
+      extends ValidatedRequest {
     type A = this.type
     def grantType: GrantType = GrantType.Password
   }
 
   case class ValidatedPasswordWithClientCred(
-                                              clientCredential: ClientCredential,
-                                              password: String,
-                                              username: String,
-                                              scope: Option[String]
-                                            ) extends ValidatedRequest {
+      clientCredential: ClientCredential,
+      password: String,
+      username: String,
+      scope: Option[String]
+  ) extends ValidatedRequest {
     type A = this.type
     def grantType: GrantType = GrantType.Password
   }
@@ -104,7 +104,9 @@ object ValidatedRequest {
       username   <- params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))
     } yield ValidatedPasswordWithClientCred(credential, password, username, getScope(params))
 
-  def createValidatedPasswordNoClientCred(params: Map[String, Seq[String]]): Either[OAuthError, ValidatedPasswordNoClientCred] =
+  def createValidatedPasswordNoClientCred(
+      params: Map[String, Seq[String]]
+  ): Either[OAuthError, ValidatedPasswordNoClientCred] =
     for {
       password <- params.get("password").flatMap(_.headOption).toRight(InvalidRequest("missing password param"))
       username <- params.get("username").flatMap(_.headOption).toRight(InvalidRequest("missing username param"))

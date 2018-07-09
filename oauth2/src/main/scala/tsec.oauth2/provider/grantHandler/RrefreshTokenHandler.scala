@@ -39,8 +39,8 @@ class RefreshTokenGrantHandler[F[_], U](handler: RefreshTokenHandler[F, U]) exte
     } yield grantResult
 }
 
+trait RefreshTokenHandler[F[_], U] {
 
-trait RefreshTokenHandler[F[_], U]{
   /**
     * Verify proper client with parameters for issue an access token.
     * Note that per the OAuth Specification, a Client may be valid if it only contains a client ID but no client
