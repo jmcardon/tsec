@@ -12,14 +12,14 @@ class ClientCredentialsGrantHandler[F[_], U](handler: ClientCredentialsHandler[F
       req: ValidatedClientCredentials
   )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
-      _ <- EitherT(
+      _ <- EitherT[F, OAuthError, Unit](
         handler
           .validateClient(req)
           .map(
             isValid => Either.cond(isValid, (), InvalidClient("Invalid client or client is not authorized"): OAuthError)
           )
       )
-      user <- EitherT(
+      user <- EitherT[F, OAuthError, U](
         handler
           .findUser(req)
           .map(_.toRight(InvalidGrant("client_id or client_secret or scope is incorrect")))

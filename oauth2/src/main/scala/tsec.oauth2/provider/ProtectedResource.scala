@@ -3,6 +3,7 @@ package tsec.oauth2.provider
 import cats.implicits._
 import cats.data.EitherT
 import cats.effect.Sync
+import tsec.oauth2.provider.AccessTokenFetcher._
 
 object ProtectedResource {
   def apply[F[_], U](handler: ProtectedResourceHandler[F, U]): ProtectedResource[F, U] =
@@ -10,7 +11,7 @@ object ProtectedResource {
 }
 
 class ProtectedResource[F[_], U](handler: ProtectedResourceHandler[F, U]) {
-  val fetchers = AccessTokenFetcher.all
+  val fetchers = Set(RequestParameter, AuthHeader)
 
   def authorize(
       request: ProtectedResourceRequest
@@ -24,11 +25,11 @@ class ProtectedResource[F[_], U](handler: ProtectedResourceHandler[F, U]) {
           .toRight(InvalidRequest("Access token is not found"))
           .flatMap(x => x.fetch(request))
       )
-      token <- EitherT(
+      token <- EitherT[F, OAuthError, AccessToken](
         handler.findAccessToken(result.token).map(_.toRight[OAuthError](InvalidToken("The access token is not found")))
       )
       _ <- EitherT(token.isExpired.map(expired => Either.cond(!expired, (), ExpiredToken)))
-      authInfo <- EitherT(
+      authInfo <- EitherT[F, OAuthError, AuthInfo[U]](
         handler.findAuthInfoByAccessToken(token).map(_.toRight[OAuthError](InvalidToken("The access token is invalid")))
       )
     } yield authInfo

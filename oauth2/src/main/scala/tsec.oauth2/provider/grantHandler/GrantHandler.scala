@@ -1,7 +1,6 @@
 package tsec.oauth2.provider
 package grantHandler
 
-import ca.mrvisser.sealerate
 import cats.data.EitherT
 import cats.effect.Sync
 import cats.implicits._
@@ -35,8 +34,13 @@ object GrantType {
     def name: String = "implicit"
   }
 
-  val all            = sealerate.values[GrantType]
-  val strToGrantType = all.map(g => g.name -> g).toMap
+  val strToGrantType = Map(
+    AuthorizationCode.name  -> AuthorizationCode,
+    RefreshToken.name       -> RefreshToken,
+    ClientCrendentials.name -> ClientCrendentials,
+    Password.name           -> Password,
+    Implicit.name           -> Implicit
+  )
 }
 
 final case class GrantHandlerResult[U](

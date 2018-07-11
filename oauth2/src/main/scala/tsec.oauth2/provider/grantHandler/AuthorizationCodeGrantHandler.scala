@@ -19,7 +19,7 @@ class AuthorizationCodeGrantHandler[F[_], U](handler: AuthorizationCodeHandler[F
             isValid => Either.cond(isValid, (), InvalidClient("Invalid client or client is not authorized"): OAuthError)
           )
       )
-      auth <- EitherT(
+      auth <- EitherT[F, OAuthError, AuthInfo[U]](
         handler
           .findAuthInfoByCode(req.code)
           .map(_.toRight(InvalidGrant("Authorized information is not found by the code")))

@@ -10,14 +10,14 @@ class RefreshTokenGrantHandler[F[_], U](handler: RefreshTokenHandler[F, U]) exte
   type A = ValidatedRefreshToken
   def handleRequest(req: ValidatedRefreshToken)(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
-      _ <- EitherT(
+      _ <- EitherT[F, OAuthError, Unit](
         handler
           .validateClient(req)
           .map(
             isValid => Either.cond(isValid, (), InvalidClient("Invalid client or client is not authorized"): OAuthError)
           )
       )
-      auth <- EitherT(
+      auth <- EitherT[F, OAuthError, AuthInfo[U]](
         handler
           .findAuthInfoByRefreshToken(req.refreshToken)
           .map(_.toRight(InvalidGrant("Authorized information is not found by the refresh token")))

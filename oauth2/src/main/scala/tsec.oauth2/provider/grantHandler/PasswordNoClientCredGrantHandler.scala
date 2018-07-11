@@ -12,7 +12,7 @@ class PasswordNoClientCredGrantHandler[F[_], U](handler: PasswordNoClientCredHan
       req: ValidatedPasswordNoClientCred
   )(implicit F: Sync[F]): EitherT[F, OAuthError, GrantHandlerResult[U]] =
     for {
-      user <- EitherT(
+      user <- EitherT[F, OAuthError, U](
         handler.findUser(None, req).map(_.toRight(InvalidGrant("username or password is incorrect")))
       )
       authInfo = AuthInfo(user, None, req.scope, None)

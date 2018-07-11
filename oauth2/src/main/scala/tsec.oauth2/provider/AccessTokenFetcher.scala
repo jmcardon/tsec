@@ -2,7 +2,6 @@ package tsec.oauth2.provider
 
 import cats.implicits._
 import java.net.URLDecoder
-import ca.mrvisser.sealerate
 import cats.data.NonEmptyList
 
 final case class FetchResult(token: String, params: Map[String, String])
@@ -60,6 +59,4 @@ object AccessTokenFetcher {
         }
       } yield FetchResult(token, params)
   }
-
-  val all = sealerate.values[AccessTokenFetcher]
 }

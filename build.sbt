@@ -149,10 +149,6 @@ lazy val loggingLibs = libraryDependencies ++= Seq(
   Libraries.log4s
 )
 
-lazy val oauth2Libs = libraryDependencies ++= Seq(
-  Libraries.mrvisser
-)
-
 lazy val root = project
   .aggregate(
     common,
@@ -302,7 +298,6 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
 
 lazy val oauth2 = Project(id = "tsec-oauth2", base = file("oauth2"))
   .settings(commonSettings)
-  .settings(oauth2Libs)
   .dependsOn(common % "compile->compile;test->test")
   .settings(noPublishSettings)
 

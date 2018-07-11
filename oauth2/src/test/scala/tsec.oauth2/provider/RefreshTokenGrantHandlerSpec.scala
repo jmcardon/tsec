@@ -3,6 +3,7 @@ package tsec.oauth2.provider
 import java.time.Instant
 
 import cats.effect.IO
+import cats.syntax.either._
 import org.scalatest.{FlatSpec, OptionValues}
 import org.scalatest.Matchers._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedRefreshToken
