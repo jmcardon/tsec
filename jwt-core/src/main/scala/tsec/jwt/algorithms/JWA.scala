@@ -6,7 +6,7 @@ import tsec.jwt.util.ParseEncodedKeySpec
 import tsec.mac.jca._
 import tsec.signature.jca.{JCASigTag, _}
 
-sealed trait JWA[A] {
+abstract class JWA[A] {
   val jwtRepr: String
 }
 
