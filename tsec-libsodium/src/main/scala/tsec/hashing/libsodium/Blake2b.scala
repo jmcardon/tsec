@@ -10,15 +10,13 @@ import tsec.libsodium.ScalaSodium.NullPtrBytes
 
 sealed trait Blake2b
 
-object Blake2b extends SodiumHashPlatform[Blake2b] {
+object Blake2b extends SodiumHashPlatform[Blake2b]("Blake2b") {
   val MinKeyLen     = ScalaSodium.crypto_generichash_blake2b_KEYBYTES_MIN
   val DefaultKeyLen = ScalaSodium.crypto_generichash_blake2b_KEYBYTES
   val MaxKeyLen     = ScalaSodium.crypto_generichash_blake2b_KEYBYTES_MAX
 
   val MinHashLen = ScalaSodium.crypto_generichash_blake2b_BYTES_MIN
   val MaxHashLen = ScalaSodium.crypto_generichash_blake2b_BYTES_MAX
-
-  val algorithm: String = "Blake2b"
 
   /** Duplicate of values **/
   val hashLen: Int = ScalaSodium.crypto_generichash_blake2b_BYTES

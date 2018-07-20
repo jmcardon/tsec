@@ -7,7 +7,7 @@ import tsec.hashing.libsodium._
 import tsec.libsodium.ScalaSodium
 import tsec.hashing._
 
-abstract class SodiumHashPlatform[A](algorithm: String) extends SodiumHash[A] with SodiumHashAPI[A] { self =>
+abstract class SodiumHashPlatform[A](val algorithm: String) extends SodiumHash[A] with SodiumHashAPI[A] { self =>
   implicit val sodiumHash: SodiumHash[A]           = this
   implicit val sodiumHashAlgebra: SodiumHashAPI[A] = this
 
