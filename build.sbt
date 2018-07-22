@@ -87,7 +87,8 @@ lazy val scalacOpts = scalacOptions := Seq(
   "-Ywarn-nullary-override",
   "-Ypartial-unification",
   "-language:higherKinds",
-  "-language:implicitConversions"
+  "-language:implicitConversions",
+  "-language:postfixOps"
 )
 
 lazy val micrositeSettings = Seq(
@@ -161,7 +162,8 @@ lazy val root = project
     jwtSig,
     passwordHashers,
     http4s,
-    microsite
+    microsite,
+    oauth2
   ).settings(noPublishSettings)
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
@@ -292,6 +294,11 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     bouncyCipher,
     libsodium
   )
+  .settings(noPublishSettings)
+
+lazy val oauth2 = Project(id = "tsec-oauth2", base = file("oauth2"))
+  .settings(commonSettings)
+  .dependsOn(common % "compile->compile;test->test")
   .settings(noPublishSettings)
 
 lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
