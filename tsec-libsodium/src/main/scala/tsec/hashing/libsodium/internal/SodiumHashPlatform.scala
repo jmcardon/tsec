@@ -7,12 +7,14 @@ import tsec.hashing.libsodium._
 import tsec.libsodium.ScalaSodium
 import tsec.hashing._
 
-trait SodiumHashPlatform[A] extends SodiumHash[A] with SodiumHashAPI[A] {
+abstract class SodiumHashPlatform[A](val algorithm: String) extends SodiumHash[A] with SodiumHashAPI[A] { self =>
   implicit val sodiumHash: SodiumHash[A]           = this
   implicit val sodiumHashAlgebra: SodiumHashAPI[A] = this
 
   implicit def hasher[F[_]](implicit F: Sync[F], S: ScalaSodium): CryptoHasher[F, A] =
     new CryptoHasher[F, A] {
+      def algorithm: String = self.algorithm
+
       def hash(bytes: Array[Byte]): F[CryptoHash[A]] = F.delay(impl.unsafeHash(bytes))
 
       def hashPipe: Pipe[F, Byte, Byte] = impl.hashPipe[F]
@@ -20,6 +22,9 @@ trait SodiumHashPlatform[A] extends SodiumHash[A] with SodiumHashAPI[A] {
 
   implicit def idHasher(implicit S: ScalaSodium): CryptoHasher[Id, A] =
     new CryptoHasher[Id, A] {
+
+      def algorithm: String = self.algorithm
+
       def hash(bytes: Array[Byte]): Id[CryptoHash[A]] = impl.unsafeHash(bytes)
 
       /** I hope to god no one

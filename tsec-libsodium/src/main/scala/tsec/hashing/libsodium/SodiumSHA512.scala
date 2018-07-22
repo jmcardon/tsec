@@ -5,10 +5,8 @@ import tsec.libsodium.ScalaSodium
 
 sealed trait SodiumSHA512
 
-object SodiumSHA512 extends SodiumHashPlatform[SodiumSHA512] {
+object SodiumSHA512 extends SodiumHashPlatform[SodiumSHA512]("SHA512") {
   val hashLen: Int = 64
-
-  val algorithm: String = "SHA512"
 
   def stateSize(implicit S: ScalaSodium): Int = S.crypto_hash_sha512_statebytes
 

@@ -1,15 +1,13 @@
 package tsec.hashing.jca
 
-import cats.Id
+import cats.{Applicative, Id}
 import tsec.hashing.{CryptoHashAPI, CryptoHasher, _}
 
-protected[jca] abstract class AsCryptoHash[H](repr: String) extends JCADigestTag[H] with CryptoHashAPI[H] {
+protected[jca] abstract class AsCryptoHash[H](repr: String) extends CryptoHashAPI[H] {
 
   /** Get our instance of jca crypto hash **/
   def hashPure(s: Array[Byte])(implicit C: CryptoHasher[Id, H]): CryptoHash[H] = C.hash(s)
 
-  def algorithm: String = repr
-
-  implicit val tag: JCADigestTag[H] = this
-
+  implicit def jhasher[F[_]: Applicative]: JHasher[F, H] =
+    new JHasher[F, H](repr)
 }

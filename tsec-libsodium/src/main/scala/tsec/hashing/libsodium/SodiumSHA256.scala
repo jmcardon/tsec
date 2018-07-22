@@ -5,10 +5,8 @@ import tsec.libsodium.ScalaSodium
 
 sealed trait SodiumSHA256
 
-object SodiumSHA256 extends SodiumHashPlatform[SodiumSHA256] {
+object SodiumSHA256 extends SodiumHashPlatform[SodiumSHA256]("SHA256") {
   val hashLen: Int = 32
-
-  val algorithm: String = "SHA256"
 
   def stateSize(implicit S: ScalaSodium): Int = S.crypto_hash_sha256_statebytes
 

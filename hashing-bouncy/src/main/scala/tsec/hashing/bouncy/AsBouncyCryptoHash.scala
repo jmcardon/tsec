@@ -1,16 +1,15 @@
 package tsec.hashing.bouncy
 
-import cats.Id
+import cats.{Applicative, Id}
 import tsec.Bouncy
 import tsec.hashing._
 
-protected[bouncy] abstract class AsBouncyCryptoHash[H](repr: String) extends BouncyDigestTag[H] with CryptoHashAPI[H] {
+protected[bouncy] abstract class AsBouncyCryptoHash[H](repr: String) extends CryptoHashAPI[H] {
 
   /** Get our instance of jca crypto hash **/
-  def hashPure(s: Array[Byte])(implicit C: CryptoHasher[Id, H], B: Bouncy): CryptoHash[H] = C.hash(s)
+  def hashPure(s: Array[Byte])(implicit C: CryptoHasher[Id, H]): CryptoHash[H] = C.hash(s)
 
-  def algorithm: String = repr
-
-  implicit val tag: BouncyDigestTag[H] = this
+  implicit def genHasher[F[_]: Applicative, A](implicit B: Bouncy): CryptoHasher[F, A] =
+    new BouncyHasher[F, A](repr)
 
 }

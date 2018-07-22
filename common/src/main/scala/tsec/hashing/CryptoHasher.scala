@@ -8,6 +8,8 @@ import tsec.common.{VerificationFailed, VerificationStatus, Verified}
 
 trait CryptoHasher[F[_], A] {
 
+  def algorithm: String
+
   /** Lift a the cryptographic hash function into an
     * F[_]
     *
