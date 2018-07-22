@@ -1,14 +1,6 @@
 package tsec.mac
 
-import java.security.MessageDigest
-import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
-import javax.crypto.{Mac, SecretKey => JSecretKey}
-
-import cats.effect.Sync
-import cats.instances.either._
-import cats.syntax.all._
-import cats.{Monad, MonadError}
-import tsec.common._
+import javax.crypto.{SecretKey => JSecretKey}
 import tsec.keygen.symmetric.{SymmetricKeyGen, SymmetricKeyGenAPI}
 
 package object jca {
@@ -25,10 +17,10 @@ package object jca {
     type Base1
     trait Tag1 extends Any
     type Type[A] <: Base1 with Tag1
-    @inline def apply[A](key: JSecretKey): MacSigningKey[A] = key.asInstanceOf[MacSigningKey[A]]
+    @inline def apply[A](key: JSecretKey): MacSigningKey[A]       = key.asInstanceOf[MacSigningKey[A]]
     @inline def fromJavaKey[A](key: JSecretKey): MacSigningKey[A] = key.asInstanceOf[MacSigningKey[A]]
     @inline def toJavaKey[A](key: MacSigningKey[A]): JSecretKey   = key.asInstanceOf[JSecretKey]
-    def subst[A]: SKPartiallyApplied[A]                                      = new SKPartiallyApplied[A]()
+    def subst[A]: SKPartiallyApplied[A]                           = new SKPartiallyApplied[A]()
 
     private[tsec] class SKPartiallyApplied[A](val dummy: Boolean = true) extends AnyVal {
       def apply[F[_]](value: F[JSecretKey]): F[MacSigningKey[A]] = value.asInstanceOf[F[MacSigningKey[A]]]

@@ -1,6 +1,5 @@
 package tsec.cipher.symmetric.jca.primitive
 
-import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 import javax.crypto.{Cipher => JCipher}
 
 import cats.MonadError
@@ -45,18 +44,6 @@ object JCAPrimitiveCipher {
       modeSpec: CipherMode[M],
       paddingTag: SymmetricPadding[P]
   ): JCipher = JCipher.getInstance(s"${algoTag.cipherName}/${modeSpec.mode}/${paddingTag.algorithm}")
-
-  private[tsec] def genQueueUnsafe[A: BlockCipher, M: CipherMode, P: SymmetricPadding](
-      queueLen: Int
-  ): JQueue[JCipher] = {
-    val q = new JQueue[JCipher]()
-    Array
-      .range(0, queueLen)
-      .foreach(
-        _ => q.add(getJCipherUnsafe)
-      )
-    q
-  }
 
   def sync[F[_], A: BlockCipher, M: CipherMode, P: SymmetricPadding](
       implicit F: Sync[F],

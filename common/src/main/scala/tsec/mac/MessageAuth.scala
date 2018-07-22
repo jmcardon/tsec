@@ -1,7 +1,7 @@
 package tsec.mac
 
 import cats.Functor
-import tsec.common.{VerificationFailed, VerificationStatus, Verified}
+import tsec.common.{CryptoTag, VerificationFailed, VerificationStatus, Verified}
 
 trait MessageAuth[F[_], A, K[_]] {
 

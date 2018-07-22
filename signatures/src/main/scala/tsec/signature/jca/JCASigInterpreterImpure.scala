@@ -5,12 +5,12 @@ import java.security.Signature
 import cats.syntax.either._
 import tsec.common.ErrorConstruct._
 
-sealed abstract class JCASigInterpreterImpure[A](implicit signatureAlgorithm: JCASigTag[A])
+abstract class JCASigInterpreterImpure[A](algorithm: String)
     extends JCASigAlgebra[SigErrorM, A, SigPublicKey, SigPrivateKey, SigCertificate] {
 
   def genSignatureInstance: SigErrorM[Signature] =
     Either
-      .catchNonFatal(Signature.getInstance(signatureAlgorithm.algorithm))
+      .catchNonFatal(Signature.getInstance(algorithm))
       .mapError(SignatureInitError.apply)
 
   def initSign(instance: Signature, p: SigPrivateKey[A]): SigErrorM[Unit] =
@@ -32,10 +32,4 @@ sealed abstract class JCASigInterpreterImpure[A](implicit signatureAlgorithm: JC
 
   def verify(sig: Array[Byte], instance: Signature): SigErrorM[Boolean] =
     Either.catchNonFatal(instance.verify(sig)).mapError(SignatureVerificationError.apply)
-}
-
-object JCASigInterpreterImpure {
-
-  implicit def genSig[A: JCASigTag]: JCASigInterpreterImpure[A] = new JCASigInterpreterImpure[A]() {}
-
 }

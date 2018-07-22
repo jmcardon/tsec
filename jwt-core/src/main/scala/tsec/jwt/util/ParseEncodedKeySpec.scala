@@ -8,7 +8,7 @@ import tsec.signature.jca._
 
 object ParseEncodedKeySpec {
 
-  def pubKeyFromBytes[F[_], A: JCASigTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
+  def pubKeyFromBytes[F[_], A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPublicKey[A] = {
     val spec = new X509EncodedKeySpec(keyBytes)
     SigPublicKey[A](
       KeyFactory
@@ -17,7 +17,7 @@ object ParseEncodedKeySpec {
     )
   }
 
-  def privKeyFromBytes[F[_], A: JCASigTag](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
+  def privKeyFromBytes[F[_], A](keyBytes: Array[Byte])(implicit kt: KFTag[A]): SigPrivateKey[A] = {
     val spec = new PKCS8EncodedKeySpec(keyBytes)
     SigPrivateKey[A](
       KeyFactory

@@ -13,7 +13,7 @@ import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature._
 import tsec.signature.jca._
 
-sealed abstract class JWSSigCV[F[_], A: JCASigTag](
+sealed abstract class JWSSigCV[F[_], A](
     implicit hs: JWSSerializer[JWSSignedHeader[A]],
     jwsSigAlgo: JWTSigAlgo[A],
     sigDSL: JCASigner[F, A],
@@ -85,13 +85,15 @@ sealed abstract class JWSSigCV[F[_], A: JCASigTag](
 }
 
 object JWSSigCV {
-  implicit def genCVPure[F[_]: Sync, A: JCASigTag](
+  implicit def genCVPure[F[_]: Sync, A](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
+      signer: JCASigner[F, A],
       jwsSigAlgo: JWTSigAlgo[A]
   ): JWSSigCV[F, A] = new JWSSigCV[F, A]() {}
 
-  implicit def genCVImpure[A: JCASigTag](
+  implicit def genCVImpure[A](
       implicit hs: JWSSerializer[JWSSignedHeader[A]],
+      signer: JCASigner[SigErrorM, A],
       jwsSigAlgo: JWTSigAlgo[A]
   ): JWSSigCV[SigErrorM, A] = new JWSSigCV[SigErrorM, A]() {}
 }

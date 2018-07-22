@@ -20,6 +20,9 @@ object Ed25519Sig
 
   implicit def genSigner[F[_]](implicit F: Sync[F], S: ScalaSodium): Signer[F, Ed25519Sig, PublicKey, PrivateKey] =
     new Signer[F, Ed25519Sig, PublicKey, PrivateKey] {
+
+      lazy val algorithm: String =  "Ed25519"
+
       def sign(unsigned: Array[Byte], secretKey: PrivateKey[Ed25519Sig]): F[CryptoSignature[Ed25519Sig]] =
         F.delay(impl.sign(unsigned, secretKey))
 
