@@ -68,43 +68,39 @@ or use it to generate a nonce of the right size:
   val toEncrypt = "hi hello welcome to tsec".utf8Bytes
 
   implicit val ctrStrategy: IvGen[IO, AES128CTR] = AES128CTR.defaultIvStrategy[IO]
+  implicit val cachedInstance                    = AES128CTR.genEncryptor[IO] //Cache the implicit
 
-  val onlyEncrypt: IO[String] = AES128CTR.genEncryptor[IO].flatMap(
-      implicit instance =>
-        for {
-          key       <- AES128CTR.generateKey[IO] //Generate our key
-          encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
-          decrypted <- AES128CTR.decrypt[IO](encrypted, key)
-        } yield decrypted.toUtf8String
-    ) // "hi hello welcome to tsec!"
+  val onlyEncrypt: IO[String] =
+    for {
+      key       <- AES128CTR.generateKey[IO] //Generate our key
+      encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
+      decrypted <- AES128CTR.decrypt[IO](encrypted, key)
+    } yield decrypted.toUtf8String // "hi hello welcome to tsec!"
 
   /** You can also turn it into a singular array with the IV concatenated at the end */
-  val onlyEncrypt2: IO[String] = AES128CTR.genEncryptor[IO].flatMap(
-      implicit instance =>
-        for {
-          key       <- AES128CTR.generateKey[IO]                        //Generate our key
-          encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
-          array = encrypted.toConcatenated
-          from      <- IO.fromEither(AES128CTR.ciphertextFromConcat(array))
-          decrypted <- AES128CTR.decrypt[IO](from, key)
-        } yield decrypted.toUtf8String
-    ) // "hi hello welcome to tsec!"
+  val onlyEncrypt2: IO[String] =
+    for {
+      key       <- AES128CTR.generateKey[IO]                        //Generate our key
+      encrypted <- AES128CTR.encrypt[IO](PlainText(toEncrypt), key) //Encrypt our message
+      array = encrypted.toConcatenated
+      from      <- IO.fromEither(AES128CTR.ciphertextFromConcat(array))
+      decrypted <- AES128CTR.decrypt[IO](from, key)
+    } yield decrypted.toUtf8String // "hi hello welcome to tsec!"
 ```
 
 For authenticated encryption and decryption
 
 ```tut
-  implicit val gcmstrategy = AES128GCM.defaultIvStrategy[IO]
+  implicit val gcmstrategy        = AES128GCM.defaultIvStrategy[IO]
+  implicit val cachedAADEncryptor = AES128GCM.genEncryptor[IO]
 
   val aad = AAD("myAdditionalAuthenticationData".utf8Bytes)
-  val encryptAAD: IO[String] = AES128GCM.genEncryptor[IO].flatMap(
-      implicit instance =>
-        for {
-          key       <- AES128GCM.generateKey[IO]                                    //Generate our key
-          encrypted <- AES128GCM.encryptWithAAD[IO](PlainText(toEncrypt), key, aad) //Encrypt
-          decrypted <- AES128GCM.decryptWithAAD[IO](encrypted, key, aad)            //Decrypt
-        } yield decrypted.toUtf8String
-    ) // "hi hello welcome to tsec!"
+  val encryptAAD: IO[String] =
+    for {
+      key       <- AES128GCM.generateKey[IO]                                    //Generate our key
+      encrypted <- AES128GCM.encryptWithAAD[IO](PlainText(toEncrypt), key, aad) //Encrypt
+      decrypted <- AES128GCM.decryptWithAAD[IO](encrypted, key, aad)            //Decrypt
+    } yield decrypted.toUtf8String // "hi hello welcome to tsec!"
 ```
 
 Finally, For more advanced usage, i.e you know which cipher you want specifically, you must import 
@@ -122,9 +118,9 @@ Note: This is not recommended. Use at your own risk.
   import tsec.cipher.common.padding._
   import tsec.cipher.symmetric.jca.primitive._
   val desStrategy = JCAIvGen.random[IO, DES]
+  implicit val instance = JCAPrimitiveCipher.sync[IO, DES, CBC, PKCS7Padding]
 
   val advancedUsage: IO[String] = for {
-    instance  <- JCAPrimitiveCipher.sync[IO, DES, CBC, PKCS7Padding]()
     key       <- DES.generateKey[IO]
     iv        <- desStrategy.genIv
     encrypted <- instance.encrypt(PlainText(toEncrypt), key, iv) //Encrypt our message, with our auth data
