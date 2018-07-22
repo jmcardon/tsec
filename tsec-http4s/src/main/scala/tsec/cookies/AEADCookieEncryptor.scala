@@ -33,9 +33,12 @@ object AEADCookieEncryptor {
     if (split.length != 2)
       F.raiseError(DecryptError("Could not decode cookie"))
     else {
-      val aad = AAD(split(1).base64Bytes)
       for {
-        cipherText <- F.fromEither(CTOPS.ciphertextFromArray[A, GCM, NoPadding](split(0).base64Bytes))
+        aad <- split(1).b64Bytes
+          .fold[F[AAD]](F.raiseError(DecryptError("Could not decode cookie")))(arr => F.pure(AAD(arr)))
+        rawCTBytes <- split(0).b64Bytes
+          .fold[F[Array[Byte]]](F.raiseError(DecryptError("Could not decode cookie")))(F.pure)
+        cipherText <- F.fromEither(CTOPS.ciphertextFromArray[A, GCM, NoPadding](rawCTBytes))
         decrypted  <- authEncryptor.decryptWithAAD(cipherText, key, aad)
       } yield decrypted.toUtf8String
     }

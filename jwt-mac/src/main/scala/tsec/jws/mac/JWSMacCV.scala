@@ -27,7 +27,19 @@ sealed abstract class JWSMacCV[F[_], A](
 ) {
 
   /**  Generic Error. Any mishandling of the errors could leak information to an attacker. */
-  private def defaultError: MacError = MacVerificationError("Could not verify signature")
+  private[this] def defaultError: MacError = MacVerificationError("Could not verify signature")
+
+  private[this] def base64Safe(s: String): Either[Throwable, Array[Byte]] =
+    s.b64UrlBytes match {
+      case Some(b) => Right(b)
+      case None    => Left(defaultError)
+    }
+
+  private[this] def base64SafeF(s: String): F[Array[Byte]] =
+    s.b64UrlBytes match {
+      case Some(b) => M.pure(b)
+      case None    => M.raiseError(defaultError)
+    }
 
   def sign(header: JWSMacHeader[A], body: JWTClaims, key: MacSigningKey[A]): F[MAC[A]] = {
     val toSign: String = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
@@ -49,20 +61,26 @@ sealed abstract class JWSMacCV[F[_], A](
     if (split.length < 3)
       M.pure(false)
     else {
-      val providedBytes: Array[Byte] = split(2).base64UrlBytes
-      (for {
-        _      <- hs.fromUtf8Bytes(split(0).base64UrlBytes)
-        claims <- JWTClaims.fromUtf8Bytes(split(1).base64UrlBytes)
-      } yield claims).fold(
-        _ => M.pure(false),
-        claims =>
-          programs
-            .sign((split(0) + "." + split(1)).asciiBytes, key)
-            .map {
-              MessageDigest.isEqual(_, providedBytes) && claims.isNotExpired(now) && claims
-                .isAfterNBF(now) && claims.isValidIssued(now)
-          }
-      )
+      split(2).b64UrlBytes match {
+        case Some(providedBytes) =>
+          (for {
+            bytes  <- base64Safe(split(0))
+            _      <- hs.fromUtf8Bytes(bytes)
+            cBytes <- base64Safe(split(1))
+            claims <- JWTClaims.fromUtf8Bytes(cBytes)
+          } yield claims).fold(
+            _ => M.pure(false),
+            claims =>
+              programs
+                .sign((split(0) + "." + split(1)).asciiBytes, key)
+                .map {
+                  MessageDigest.isEqual(_, providedBytes) && claims.isNotExpired(now) && claims
+                    .isAfterNBF(now) && claims.isValidIssued(now)
+              }
+          )
+        case None =>
+          M.pure(false)
+      }
     }
   }
 
@@ -74,18 +92,22 @@ sealed abstract class JWSMacCV[F[_], A](
     if (split.length != 3)
       M.raiseError(defaultError)
     else {
-      val signedBytes: Array[Byte] = split(2).base64UrlBytes
-      for {
-        header <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        claims <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
-        bytes <- M.ensure(programs.sign((split(0) + "." + split(1)).asciiBytes, key))(defaultError)(
-          signed =>
-            MessageDigest.isEqual(signed, signedBytes)
-              && claims.isNotExpired(now)
-              && claims.isAfterNBF(now)
-              && claims.isValidIssued(now)
-        )
-      } yield JWTMac.buildToken[A](header, claims, bytes)
+      split(2).b64UrlBytes match {
+        case Some(signedBytes) =>
+          for {
+            hBytes <- base64SafeF(split(0))
+            header <- M.fromEither(hs.fromUtf8Bytes(hBytes).left.map(_ => defaultError))
+            claims <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
+            bytes <- M.ensure(programs.sign((split(0) + "." + split(1)).asciiBytes, key))(defaultError)(
+              signed =>
+                MessageDigest.isEqual(signed, signedBytes)
+                  && claims.isNotExpired(now)
+                  && claims.isAfterNBF(now)
+                  && claims.isValidIssued(now)
+            )
+          } yield JWTMac.buildToken[A](header, claims, bytes)
+        case None => M.raiseError(defaultError)
+      }
     }
   }
 
@@ -97,10 +119,11 @@ sealed abstract class JWSMacCV[F[_], A](
     if (split.length != 3)
       M.raiseError(defaultError)
     else {
-      val signedBytes: Array[Byte] = split(2).base64UrlBytes
       for {
-        header <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
-        claims <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
+        signedBytes <- base64SafeF(split(2))
+        hBytes      <- base64SafeF(split(0))
+        header      <- M.fromEither(hs.fromUtf8Bytes(hBytes).left.map(_ => defaultError))
+        claims      <- M.fromEither(JWTClaims.fromB64URL(split(1)).left.map(_ => defaultError))
       } yield JWTMac.buildToken[A](header, claims, MAC[A](signedBytes))
     }
   }
@@ -110,13 +133,13 @@ object JWSMacCV {
 
   implicit def genSigner[F[_]: Sync, A](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
-    messageAuth: MessageAuth[F, A, MacSigningKey]
+      messageAuth: MessageAuth[F, A, MacSigningKey]
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
   implicit def eitherSigner[A](
       implicit hs: JWSSerializer[JWSMacHeader[A]],
-    messageAuth: MessageAuth[MacErrorM, A, MacSigningKey]
+      messageAuth: MessageAuth[MacErrorM, A, MacSigningKey]
   ): JWSMacCV[MacErrorM, A] =
     new JWSMacCV[Either[Throwable, ?], A]() {}
 

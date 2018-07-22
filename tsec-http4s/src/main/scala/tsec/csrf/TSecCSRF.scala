@@ -73,7 +73,10 @@ final class TSecCSRF[F[_], A] private[tsec] (
           mac
             .sign((raw + "-" + nonce).utf8Bytes, key)
             .map(
-              f => if (MessageDigest.isEqual(f, signed.base64Bytes)) Some(raw) else None
+              f =>
+                signed.b64UrlBytes.flatMap { bytes =>
+                  if (MessageDigest.isEqual(f, bytes)) Some(raw) else None
+              }
             )
         )
       case _ =>
