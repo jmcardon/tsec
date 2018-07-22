@@ -5,6 +5,8 @@ import tsec.common.{VerificationFailed, VerificationStatus, Verified}
 
 trait Signer[F[_], A, PubK[_], PrivK[_]] {
 
+  def algorithm: String
+
   def sign(unsigned: Array[Byte], secretKey: PrivK[A]): F[CryptoSignature[A]]
 
   final def verify(raw: Array[Byte], signature: CryptoSignature[A], publicKey: PubK[A])(

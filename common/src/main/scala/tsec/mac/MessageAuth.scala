@@ -1,9 +1,11 @@
 package tsec.mac
 
 import cats.Functor
-import tsec.common.{VerificationFailed, VerificationStatus, Verified}
+import tsec.common.{CryptoTag, VerificationFailed, VerificationStatus, Verified}
 
 trait MessageAuth[F[_], A, K[_]] {
+
+  def algorithm: String
 
   def sign(in: Array[Byte], key: K[A]): F[MAC[A]]
 

@@ -10,8 +10,8 @@ import tsec.cipher.symmetric.jca.primitive.JCAAEADPrimitive
 sealed abstract class AESGCM[A] extends JCAAEAD[A, GCM, NoPadding] with AES[A] with JCAKeyGen[A] {
   implicit val ae: AESGCM[A] = this
 
-  def genEncryptor[F[_]: Sync](implicit c: AES[A]): F[AADEncryptor[F, A, SecretKey]] =
-    JCAAEADPrimitive.sync[F, A, GCM, NoPadding]()
+  implicit def genEncryptor[F[_]: Sync](implicit c: AES[A]): AADEncryptor[F, A, SecretKey] =
+    JCAAEADPrimitive.sync[F, A, GCM, NoPadding]
 
   /** Our default Iv strategy for GCM mode
     * produces randomized IVs

@@ -10,7 +10,6 @@ import tsec.jws.header.JWSHeader
 import tsec.jwt
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.jwt.header.JWTtyp
-import tsec.mac.jca.JCAMacTag
 
 /** A JWS header for JWT serialization.
   * TODO: Crit logic on verification
@@ -53,7 +52,7 @@ object JWSMacHeader {
     *
     * @see [[https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/]]
     */
-  implicit def decoder[A: JCAMacTag: JWTMacAlgo]: Decoder[JWSMacHeader[A]] = new Decoder[JWSMacHeader[A]] {
+  implicit def decoder[A: JWTMacAlgo]: Decoder[JWSMacHeader[A]] = new Decoder[JWSMacHeader[A]] {
     def apply(c: HCursor): Either[DecodingFailure, JWSMacHeader[A]] =
       c.downField("alg")
         .as[String]

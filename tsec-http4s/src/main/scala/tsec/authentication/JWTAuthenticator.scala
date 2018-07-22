@@ -13,7 +13,7 @@ import tsec.authentication.internal._
 import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.jca.{JCAMacTag, MacSigningKey}
+import tsec.mac.jca.{MacSigningKey}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -61,7 +61,7 @@ object JWTAuthenticator {
   /** Create a JWT Authenticator that will transport it as a
     * bearer token
     */
-  private[tsec] def backingStore[F[_], I, V, A: JWTMacAlgo: JCAMacTag](
+  private[tsec] def backingStore[F[_], I, V, A: JWTMacAlgo](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
@@ -127,7 +127,7 @@ object JWTAuthenticator {
         }
     }
 
-  private[tsec] def partialStateless[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
+  private[tsec] def partialStateless[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo](
       expiry: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       identityStore: IdentityStore[F, I, V],
@@ -184,7 +184,7 @@ object JWTAuthenticator {
         }
     }
 
-  private[tsec] def embedded[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo: JCAMacTag](
+  private[tsec] def embedded[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       signingKey: MacSigningKey[A],
@@ -260,7 +260,7 @@ object JWTAuthenticator {
     /** Create a JWT Authenticator that will transport it as a
       * bearer token
       */
-    def inBearerToken[F[_], I, V, A: JWTMacAlgo: JCAMacTag](
+    def inBearerToken[F[_], I, V, A: JWTMacAlgo](
         expiryDuration: FiniteDuration,
         maxIdle: Option[FiniteDuration],
         tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
@@ -281,7 +281,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inHeader[F[_], I, V, A: JWTMacAlgo: JCAMacTag](
+    def inHeader[F[_], I, V, A: JWTMacAlgo](
         settings: TSecJWTSettings,
         tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
         identityStore: IdentityStore[F, I, V],
@@ -301,7 +301,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inCookie[F[_], I, V, A: JWTMacAlgo: JCAMacTag](
+    def inCookie[F[_], I, V, A: JWTMacAlgo](
         settings: TSecCookieSettings,
         tokenStore: BackingStore[F, SecureRandomId, AugmentedJWT[A, I]],
         identityStore: IdentityStore[F, I, V],
@@ -323,7 +323,7 @@ object JWTAuthenticator {
     /** Create a JWT Authenticator that will transport it as a
       * bearer token
       */
-    def inBearerToken[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
+    def inBearerToken[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo](
         expiryDuration: FiniteDuration,
         maxIdle: Option[FiniteDuration],
         identityStore: IdentityStore[F, I, V],
@@ -342,7 +342,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inHeader[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
+    def inHeader[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo](
         settings: TSecJWTSettings,
         identityStore: IdentityStore[F, I, V],
         signingKey: MacSigningKey[A]
@@ -360,7 +360,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inCookie[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo: JCAMacTag](
+    def inCookie[F[_], I: Decoder: Encoder, V, A: JWTMacAlgo](
         settings: TSecCookieSettings,
         identityStore: IdentityStore[F, I, V],
         signingKey: MacSigningKey[A]
@@ -380,7 +380,7 @@ object JWTAuthenticator {
     /** Create a JWT Authenticator that will transport it as a
       * bearer token
       */
-    def inBearerToken[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo: JCAMacTag](
+    def inBearerToken[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
         expiryDuration: FiniteDuration,
         maxIdle: Option[FiniteDuration],
         signingKey: MacSigningKey[A]
@@ -397,7 +397,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inHeader[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo: JCAMacTag](
+    def inHeader[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
         settings: TSecJWTSettings,
         signingKey: MacSigningKey[A]
     )(implicit cv: JWSMacCV[F, A], F: Sync[F]): JWTAuthenticator[F, V, V, A] =
@@ -413,7 +413,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inCookie[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo: JCAMacTag](
+    def inCookie[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
         settings: TSecCookieSettings,
         signingKey: MacSigningKey[A]
     )(implicit cv: JWSMacCV[F, A], F: Sync[F]): JWTAuthenticator[F, V, V, A] =

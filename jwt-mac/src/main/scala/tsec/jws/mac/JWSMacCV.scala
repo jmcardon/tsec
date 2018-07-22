@@ -108,14 +108,16 @@ sealed abstract class JWSMacCV[F[_], A](
 
 object JWSMacCV {
 
-  implicit def genSigner[F[_]: Sync, A: JCAMacTag](
-      implicit hs: JWSSerializer[JWSMacHeader[A]]
+  implicit def genSigner[F[_]: Sync, A](
+      implicit hs: JWSSerializer[JWSMacHeader[A]],
+    messageAuth: MessageAuth[F, A, MacSigningKey]
   ): JWSMacCV[F, A] =
     new JWSMacCV[F, A]() {}
 
-  implicit def eitherSigner[A: JCAMacTag](
-      implicit hs: JWSSerializer[JWSMacHeader[A]]
-  ): JWSMacCV[Either[Throwable, ?], A] =
+  implicit def eitherSigner[A](
+      implicit hs: JWSSerializer[JWSMacHeader[A]],
+    messageAuth: MessageAuth[MacErrorM, A, MacSigningKey]
+  ): JWSMacCV[MacErrorM, A] =
     new JWSMacCV[Either[Throwable, ?], A]() {}
 
 }

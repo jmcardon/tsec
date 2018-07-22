@@ -11,12 +11,11 @@ class SignatureTests extends TestSpec with MustMatchers {
   val toSign = "HItHERE!".utf8Bytes
 
   def sigIOTests[A](
-      implicit algoTag: JCASigTag[A],
-      interp: JCASigner[IO, A],
+      implicit interp: JCASigner[IO, A],
       ecKFTag: JCASigKG[IO, A]
   ): Unit = {
 
-    behavior of s"${algoTag.algorithm}"
+    behavior of s"${interp.algorithm}"
 
     it should "sign and verify properly for correct keypair" in {
 

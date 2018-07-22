@@ -5,6 +5,7 @@ import java.security.{KeyFactory, KeyPairGenerator}
 
 import cats.Id
 import cats.effect.Sync
+import cats.instances.either._
 import cats.syntax.either._
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
@@ -12,17 +13,24 @@ import tsec.Bouncy
 import tsec.common.ErrorConstruct._
 import tsec.signature.CertSignatureAPI
 
-abstract class GeneralSignature[A](signature: String, kfAlgo: String)
-    extends JCASigTag[A]
-    with KFTag[A]
+abstract class GeneralSignature[A](sigAlgo: String, kfAlgo: String)
+    extends KFTag[A]
     with CertSignatureAPI[A, SigPublicKey, SigPrivateKey, SigCertificate] {
+
+  implicit def sigInstanceSync[F[_]: Sync]: JCASigner[F, A] =
+    new JCASigner[F, A](new JCASigInterpreter[F, A](sigAlgo) {}) {
+      def algorithm: String = sigAlgo
+    }
+
+  implicit val sigInstanceEither: JCASigner[SigErrorM, A] =
+    new JCASigner[SigErrorM, A](new JCASigInterpreterImpure[A](sigAlgo) {}) {
+      def algorithm: String = sigAlgo
+    }
 
   private[tsec] def keyFactoryAlgo: String = kfAlgo
 
-  val algorithm: String          = signature
-  implicit val sig: JCASigTag[A] = this
-
   implicit val kt: KFTag[A] = this
+
   implicit def genSigAsymmGen[F[_]](implicit F: Sync[F], B: Bouncy): JCASigKG[F, A] =
     new JCASigKG[F, A] {
       def generateKeyPair: F[SigKeyPair[A]] =
@@ -83,19 +91,24 @@ abstract class GeneralSignature[A](signature: String, kfAlgo: String)
   }
 }
 
-abstract class RSASignature[A](signature: String)
+abstract class RSASignature[A](sigAlgo: String)
     extends RSAKFTag[A]
-    with JCASigTag[A]
     with CertSignatureAPI[A, SigPublicKey, SigPrivateKey, SigCertificate] {
-
-  override lazy val algorithm: String = signature
 
   private val defaultKeySize = 2048
   private val strongKeySize  = 4096
 
-  implicit val sig: JCASigTag[A] = this
-
   implicit val kt: RSAKFTag[A] = this
+
+  implicit def sigInstanceSync[F[_]: Sync]: JCASigner[F, A] =
+    new JCASigner[F, A](new JCASigInterpreter[F, A](sigAlgo) {}) {
+      def algorithm: String = sigAlgo
+    }
+
+  implicit val sigInstanceEither: JCASigner[SigErrorM, A] =
+    new JCASigner[SigErrorM, A](new JCASigInterpreterImpure[A](sigAlgo) {}) {
+      def algorithm: String = sigAlgo
+    }
 
   private[tsec] def keyFactoryAlgo: String = impl.KeyFactoryAlgo
 
@@ -187,13 +200,10 @@ abstract class RSASignature[A](signature: String)
   }
 }
 
-abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
-    extends JCASigTag[A]
-    with ECCurve[A]
+abstract class ECDSASignature[A](sigAlgo: String, dCurve: String, outLen: Int)
+    extends ECCurve[A]
     with ECKFTag[A]
     with CertSignatureAPI[A, SigPublicKey, SigPrivateKey, SigCertificate] {
-
-  override lazy val algorithm: String = signature
 
   protected val defaultCurve: String = dCurve
 
@@ -201,11 +211,19 @@ abstract class ECDSASignature[A](signature: String, dCurve: String, outLen: Int)
 
   val outputLen: Int = outLen
 
-  implicit val sig: JCASigTag[A] = this
-
   implicit val curve: ECCurve[A] = this
 
   implicit val kt: ECKFTag[A] = this
+
+  implicit def sigInstanceSync[F[_]: Sync]: JCASigner[F, A] =
+    new JCASigner[F, A](new JCASigInterpreter[F, A](sigAlgo) {}) {
+      def algorithm: String = sigAlgo
+    }
+
+  implicit val sigInstanceEither: JCASigner[SigErrorM, A] =
+    new JCASigner[SigErrorM, A](new JCASigInterpreterImpure[A](sigAlgo) {}) {
+      def algorithm: String = sigAlgo
+    }
 
   implicit def genSigAsymmGen[F[_]](implicit F: Sync[F], B: Bouncy): JCAECKG[F, A] =
     new JCAECKG[F, A] {

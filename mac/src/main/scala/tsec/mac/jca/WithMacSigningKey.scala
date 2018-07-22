@@ -1,22 +1,44 @@
 package tsec.mac.jca
 
-import javax.crypto.KeyGenerator
+import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import javax.crypto.spec.SecretKeySpec
-
 import cats.Id
 import cats.effect.Sync
+import cats.instances.either._
 import cats.syntax.either._
 import tsec.keygen.symmetric.{IdKeyGen, SymmetricKeyGen}
-import tsec.mac.MacAPI
+import tsec.mac.{MAC, MacAPI}
 
 protected[tsec] abstract class WithMacSigningKey[A](algo: String, keyLenBits: Int)
-    extends JCAMacTag[A]
-    with MacKeyGenerator[A]
+    extends MacKeyGenerator[A]
     with MacAPI[A, MacSigningKey] {
 
-  implicit val macTag: JCAMacTag[A] = this
+  implicit def syncMac[F[_]](implicit F: Sync[F]): JCAMessageAuth[F, A] =
+    new JCAMessageAuth[F, A]() {
 
-  override val algorithm: String = algo
+      def algorithm: String = algo
+
+      protected[tsec] def genInstance: F[Mac] = F.delay(Mac.getInstance(algo))
+
+      protected[tsec] def signInternal(m: Mac, k: SecretKey, content: Array[Byte]): F[MAC[A]] = F.delay {
+        m.init(k)
+        MAC[A](m.doFinal(content))
+      }
+    }
+
+  implicit val macInstanceEither: JCAMessageAuth[MacErrorM, A] =
+    new JCAMessageAuth[MacErrorM, A]() {
+
+      def algorithm: String = algo
+
+      protected[tsec] def genInstance: MacErrorM[Mac] = Either.catchNonFatal(Mac.getInstance(algo))
+
+      protected[tsec] def signInternal(m: Mac, k: SecretKey, content: Array[Byte]): MacErrorM[MAC[A]] =
+        Either.catchNonFatal {
+          m.init(k)
+          MAC[A](m.doFinal(content))
+        }
+    }
 
   implicit def genKeyMac[F[_]](implicit F: Sync[F]): MacKeyGen[F, A] =
     new SymmetricKeyGen[F, A, MacSigningKey] {

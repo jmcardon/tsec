@@ -48,12 +48,10 @@ val toEncrypt = "Hello".utf8Bytes
 /** An authenticated encryption and decryption */
 implicit val gcmstrategy = AES128GCM.defaultIvStrategy[IO]
 
-val encryptAAD: IO[String] = AES128GCM.genEncryptor[IO].flatMap(
-  implicit instance =>
-    for {
-      key       <- AES128GCM.generateKey[IO]  //Generate our key
-      encrypted <- AES128GCM.encrypt[IO](PlainText(toEncrypt), key) //Encrypt
-      decrypted <- AES128GCM.decrypt[IO](encrypted, key)            //Decrypt
-    } yield decrypted.toUtf8String // "Hello!"
-) 
+val encryptAAD: IO[String] =
+  for {
+    key       <- AES128GCM.generateKey[IO]  //Generate our key
+    encrypted <- AES128GCM.encrypt[IO](PlainText(toEncrypt), key) //Encrypt
+    decrypted <- AES128GCM.decrypt[IO](encrypted, key)            //Decrypt
+  } yield decrypted.toUtf8String // "Hello!" 
 ```

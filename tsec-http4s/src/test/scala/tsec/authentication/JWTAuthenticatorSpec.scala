@@ -88,7 +88,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Stateful tests using Authorization: Header
     *
     */
-  def stateful[A: JWTMacAlgo: JCAMacTag](tf: BackedAuth[A], embedder: Embedder[A])(
+  def stateful[A: JWTMacAlgo](tf: BackedAuth[A], embedder: Embedder[A])(
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: IdKeyGen[A, MacSigningKey],
       store: BackingStore[IO, SecureRandomId, AugmentedJWT[A, Int]]
@@ -127,7 +127,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Unencrypted stateless in bearer tests
     *
     */
-  def partialStateless[A: JWTMacAlgo: JCAMacTag](tf: UnBackedAuth[A], embedder: Embedder[A])(
+  def partialStateless[A: JWTMacAlgo](tf: UnBackedAuth[A], embedder: Embedder[A])(
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: IdKeyGen[A, MacSigningKey]
   ): AuthSpecTester[AugmentedJWT[A, Int]] = {
@@ -164,7 +164,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
   /** Unencrypted stateless in bearer tests
     *
     */
-  def stateless[A: JWTMacAlgo: JCAMacTag](tf: StatelessAuth[A], embedder: StatelessEmbedder[A])(
+  def stateless[A: JWTMacAlgo](tf: StatelessAuth[A], embedder: StatelessEmbedder[A])(
       implicit cv: JWSMacCV[IO, A],
       macKeyGen: IdKeyGen[A, MacSigningKey]
   ): StatelessSpecTester[AugmentedJWT[A, DummyUser]] = {

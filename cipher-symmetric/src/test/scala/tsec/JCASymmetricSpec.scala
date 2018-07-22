@@ -4,9 +4,8 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import org.scalatest.prop.PropertyChecks
 import tsec.cipher.common.padding._
+import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
-import tsec.cipher.symmetric.jca.primitive.{JCAAEADPrimitive, JCAPrimitiveCipher}
-import tsec.cipher.symmetric.{Encryptor, IvGen, _}
 import tsec.common._
 import tsec.keygen.symmetric._
 
@@ -19,14 +18,13 @@ class JCASymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       mode: CipherMode[M],
       p: SymmetricPadding[P],
       ivProcess: IvProcess[A, M, P],
-      S: SymmetricKeyGen[IO, A, SecretKey]
+      S: SymmetricKeyGen[IO, A, SecretKey],
+      E: Encryptor[IO, A, SecretKey]
   ): Unit = {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""
 
     behavior of spec
-
-    implicit val instance: Encryptor[IO, A, SecretKey] = JCAPrimitiveCipher.sync[IO, A, M, P]().unsafeRunSync()
 
     implicit val defaultStrat: IvGen[IO, A] = JCAIvGen.random[IO, A]
 
@@ -88,12 +86,11 @@ class JCASymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
       mode: CipherMode[M],
       p: SymmetricPadding[P],
       ivProcess: IvProcess[A, M, P],
-      S: SymmetricKeyGen[IO, A, SecretKey]
+      S: SymmetricKeyGen[IO, A, SecretKey],
+      E: AADEncryptor[IO, A, SecretKey]
   ): Unit = {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""
-
-    implicit val instance = JCAAEADPrimitive.sync[IO, A, M, P]().unsafeRunSync()
 
     implicit val defaultStrat = JCAIvGen.random[IO, A]
 

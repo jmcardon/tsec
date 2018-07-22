@@ -27,7 +27,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       idKeyGen: IdKeyGen[A, SecretKey],
       store: BackingStore[IO, UUID, AuthEncryptedCookie[A, Int]]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
-    implicit val instance = cipherAPI.genEncryptor[IO].unsafeRunSync()
+    implicit val instance = cipherAPI.genEncryptor[IO]
     implicit val stategy  = cipherAPI.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
@@ -70,7 +70,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       implicit cipherAPI: AESGCM[A],
       idKeyGen: IdKeyGen[A, SecretKey]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
-    implicit val instance = cipherAPI.genEncryptor[IO].unsafeRunSync()
+    implicit val instance = cipherAPI.genEncryptor[IO]
     implicit val stategy  = cipherAPI.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)

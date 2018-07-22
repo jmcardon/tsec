@@ -10,8 +10,8 @@ import tsec.cipher.symmetric.jca.primitive.JCAPrimitiveCipher
 sealed abstract class AESCTR[A] extends JCACipherAPI[A, CTR, NoPadding] with AES[A] with JCAKeyGen[A] {
   implicit val ae: AESCTR[A] = this
 
-  def genEncryptor[F[_]: Sync](implicit c: BlockCipher[A]): F[Encryptor[F, A, SecretKey]] =
-    JCAPrimitiveCipher.sync[F, A, CTR, NoPadding]()
+  implicit def genEncryptor[F[_]: Sync](implicit c: BlockCipher[A]): JCAPrimitiveCipher[F, A, CTR, NoPadding] =
+    JCAPrimitiveCipher.sync[F, A, CTR, NoPadding]
 
   /** Our default Iv strategy for CTR mode
     * produces randomized IVs

@@ -6,16 +6,15 @@ import cats.effect.IO
 import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.keygen.symmetric.SymmetricKeyGen
-import tsec.mac.jca.{JCAMacTag, _}
+import tsec.mac.jca._
 
 class MacTests extends TestSpec with MustMatchers {
 
   def macTest[A](
-      implicit tag: JCAMacTag[A],
-      keyGen: SymmetricKeyGen[IO, A, MacSigningKey],
+      implicit keyGen: SymmetricKeyGen[IO, A, MacSigningKey],
       pureinstance: JCAMessageAuth[IO, A]
   ): Unit = {
-    behavior of tag.algorithm
+    behavior of pureinstance.algorithm
 
     //Todo: Should be with scalacheck
     it should "Sign then verify the same encrypted data properly" in {

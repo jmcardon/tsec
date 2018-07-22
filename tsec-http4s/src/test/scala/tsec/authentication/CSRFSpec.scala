@@ -8,7 +8,7 @@ import org.scalatest.MustMatchers
 import tsec.TestSpec
 import tsec.csrf.{CSRFToken, TSecCSRF}
 import tsec.keygen.symmetric.IdKeyGen
-import tsec.mac.jca.{JCAMacTag, _}
+import tsec.mac.jca._
 
 class CSRFSpec extends TestSpec with MustMatchers {
 
@@ -25,8 +25,8 @@ class CSRFSpec extends TestSpec with MustMatchers {
   val passThroughRequest: Request[IO] = Request[IO]()
   val orElse: Response[IO]            = Response[IO](Status.Unauthorized)
 
-  def testCSRFWithMac[A: JCAMacTag](implicit keygen: IdKeyGen[A, MacSigningKey]) = {
-    behavior of s"CSRF signing using " + JCAMacTag[A].algorithm
+  def testCSRFWithMac[A](implicit mac: JCAMessageAuth[IO, A], keygen: IdKeyGen[A, MacSigningKey]) = {
+    behavior of s"CSRF signing using " + mac.algorithm
 
     val newKey   = keygen.generateKey
     val tsecCSRF = TSecCSRF[IO, A](newKey)
@@ -46,7 +46,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
       } yield eq).getOrElse(false).unsafeRunSync() mustBe false
     }
 
-    behavior of s"CSRF middleware using " + JCAMacTag[A].algorithm
+    behavior of s"CSRF middleware using " + mac.algorithm
 
     it should "pass through and embed for a fresh request in a safe method" in {
 

@@ -9,7 +9,8 @@ import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.keygen.symmetric.IdKeyGen
-import tsec.mac.jca.{JCAMacTag, _}
+import tsec.mac.MessageAuth
+import tsec.mac.jca._
 
 class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
 
@@ -17,9 +18,9 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
 
   /** backed **/
   def runStatefulAuthenticators[A: JWTMacAlgo](
-      implicit cv: JWSMacCV[IO, A],
-      macKeyGen: IdKeyGen[A, MacSigningKey],
-      M: JCAMacTag[A]
+      implicit M: MessageAuth[IO, A, MacSigningKey],
+      cv: JWSMacCV[IO, A],
+      macKeyGen: IdKeyGen[A, MacSigningKey]
   ) =
     List[JWTTestingGroup[BackedAuth[A], Embedder[A]]](
       JWTTestingGroup(
@@ -98,9 +99,9 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
 
   /** backed **/
   def runPartialStatelessAuthenticators[A: JWTMacAlgo](
-      implicit cv: JWSMacCV[IO, A],
-      macKeyGen: IdKeyGen[A, MacSigningKey],
-      M: JCAMacTag[A]
+      implicit M: MessageAuth[IO, A, MacSigningKey],
+      cv: JWSMacCV[IO, A],
+      macKeyGen: IdKeyGen[A, MacSigningKey]
   ) =
     List[JWTTestingGroup[UnBackedAuth[A], Embedder[A]]](
       JWTTestingGroup(
@@ -173,9 +174,9 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
 
   /** backed **/
   def runStatelessAuthenticators[A: JWTMacAlgo](
-      implicit cv: JWSMacCV[IO, A],
-      macKeyGen: IdKeyGen[A, MacSigningKey],
-      M: JCAMacTag[A]
+      implicit M: MessageAuth[IO, A, MacSigningKey],
+      cv: JWSMacCV[IO, A],
+      macKeyGen: IdKeyGen[A, MacSigningKey]
   ) =
     List[JWTTestingGroup[StatelessAuth[A], StatelessEmbedder[A]]](
       JWTTestingGroup(
@@ -240,8 +241,12 @@ class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
     }
 
   /** End Stateless Encrypted Auth Bearer Header Tests **/
-  def checkAuthHeader[A: JWTMacAlgo: JCAMacTag](implicit cv: JWSMacCV[IO, A], macKeyGen: MacKeyGen[IO, A]) = {
-    behavior of JCAMacTag[A].algorithm + " JWT Token64 check"
+  def checkAuthHeader[A: JWTMacAlgo](
+      implicit M: MessageAuth[IO, A, MacSigningKey],
+      cv: JWSMacCV[IO, A],
+      macKeyGen: MacKeyGen[IO, A]
+  ) = {
+    behavior of M.algorithm + " JWT Token64 check"
     macKeyGen.generateKey
       .map { key =>
         it should "pass token68 check" in {

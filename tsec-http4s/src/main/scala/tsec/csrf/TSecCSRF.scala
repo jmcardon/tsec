@@ -10,7 +10,7 @@ import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Cookie, HttpService, Request, Response, Status}
 import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
 import tsec.common._
-import tsec.mac.jca.{JCAMacTag, JCAMessageAuth, _}
+import tsec.mac.jca.{JCAMessageAuth, _}
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
@@ -42,7 +42,7 @@ import tsec.mac.jca.{JCAMacTag, JCAMessageAuth, _}
   * @param key the CSRF signing key
   * @param clock clock used as a nonce
   */
-final class TSecCSRF[F[_], A: JCAMacTag] private[tsec] (
+final class TSecCSRF[F[_], A] private[tsec] (
     key: MacSigningKey[A],
     val headerName: String,
     val cookieName: String,
@@ -132,12 +132,12 @@ final class TSecCSRF[F[_], A: JCAMacTag] private[tsec] (
 }
 
 object TSecCSRF {
-  def apply[F[_]: Sync, A: JCAMacTag](
+  def apply[F[_]: Sync, A](
       key: MacSigningKey[A],
       headerName: String = "X-TSec-Csrf",
       cookieName: String = "tsec-csrf",
       tokenLength: Int = 32,
       clock: Clock = Clock.systemUTC()
-  ): TSecCSRF[F, A] =
+  )(implicit M: JCAMessageAuth[F, A]): TSecCSRF[F, A] =
     new TSecCSRF[F, A](key, headerName, cookieName, tokenLength, clock)
 }
