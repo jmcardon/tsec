@@ -64,10 +64,10 @@ package object common {
         Some(AB64.decodeBase64(s))
       } catch { case t: Throwable if NonFatal(t) => None }
 
-    @deprecated("use the b64 functions. This is unsafe", "0.0.1-M12")
+    @deprecated("use .b64Bytes functions. This is unsafe", "0.0.1-M12")
     def base64Bytes: Array[Byte] = Base64.getDecoder.decode(s)
 
-    @deprecated("use the b64 functions. This is unsafe", "0.0.1-M12")
+    @deprecated("use .b64UrlBytes functions. This is unsafe", "0.0.1-M12")
     def base64UrlBytes: Array[Byte] = AB64.decodeBase64(s)
 
     def hexBytes[F[_]](implicit F: Sync[F]): F[Array[Byte]] = F.delay(Hex.decodeHex(s))
