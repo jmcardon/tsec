@@ -34,7 +34,10 @@ package object cookies {
       if (split.length != 2)
         Left(CipherTextError("String encoded improperly"))
       else {
-        CTOPS.ciphertextFromArray[A, GCM, NoPadding](split(0).base64Bytes)
+        split(0).b64Bytes match {
+          case Some(e) => CTOPS.ciphertextFromArray[A, GCM, NoPadding](e)
+          case None    => Left(CipherTextError("String encoded improperly"))
+        }
       }
     }
 
@@ -65,7 +68,10 @@ package object cookies {
     def fromDecodedString[F[_]](original: String)(implicit F: MonadError[F, Throwable]): F[String] =
       original.split("-") match {
         case Array(orig, nonce) =>
-          F.pure(orig.base64Bytes.toUtf8String)
+          orig.b64Bytes match {
+            case Some(o) => F.pure(o.toUtf8String)
+            case None    => F.raiseError(MacVerificationError("String encoded improperly"))
+          }
         case _ =>
           F.raiseError(MacVerificationError("String encoded improperly"))
       }

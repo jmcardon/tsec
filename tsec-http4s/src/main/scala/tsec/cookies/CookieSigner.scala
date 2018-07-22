@@ -25,7 +25,17 @@ object CookieSigner {
   ): F[Boolean] =
     signed.split("-") match {
       case Array(original, signed) =>
-        signer.verifyBool(original.base64Bytes, MAC[A](signed.base64Bytes), key)
+        (for {
+          o <- original.b64Bytes
+          s <- signed.b64Bytes
+        } yield (o, s)).map {
+          case (o2, s2) =>
+            signer.verifyBool(o2, MAC[A](s2), key)
+        } match {
+          case Some(r) => r
+          case None    => F.pure(false)
+        }
+
       case _ =>
         F.raiseError(MacVerificationError("Invalid cookie"))
     }
@@ -38,11 +48,18 @@ object CookieSigner {
     if (split.length != 2)
       F.raiseError(MacVerificationError("Invalid cookie"))
     else {
-      val original = split(0).base64Bytes
-      val signed   = split(1).base64Bytes
-      signer.verifyBool(original, MAC[A](signed), key).flatMap {
-        case true  => SignedCookie.fromDecodedString(original.toUtf8String)
-        case false => F.raiseError(MacVerificationError("Invalid cookie"))
+      (for {
+        o <- split(0).b64Bytes
+        s <- split(1).b64Bytes
+      } yield (o, s)).map {
+        case (original, decoded) =>
+          signer.verifyBool(original, MAC[A](decoded), key).flatMap[String] {
+            case true  => SignedCookie.fromDecodedString(original.toUtf8String)
+            case false => F.raiseError(MacVerificationError("Invalid cookie"))
+          }
+      } match { //Micro opti. could be .fold
+        case Some(a) => a
+        case None    => F.raiseError(MacVerificationError("Invalid cookie"))
       }
     }
   }

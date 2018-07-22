@@ -49,12 +49,30 @@ package object common {
   }
 
   final class JerryStringer(val s: String) extends AnyVal {
-    def utf8Bytes: Array[Byte]                              = s.getBytes(StandardCharsets.UTF_8)
-    def asciiBytes: Array[Byte]                             = s.getBytes(StandardCharsets.US_ASCII)
-    def base64Bytes: Array[Byte]                            = Base64.getDecoder.decode(s)
-    def base64UrlBytes: Array[Byte]                         = AB64.decodeBase64(s)
+
+    def utf8Bytes: Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
+
+    def asciiBytes: Array[Byte] = s.getBytes(StandardCharsets.US_ASCII)
+
+    def b64Bytes: Option[Array[Byte]] =
+      try {
+        Some(Base64.getDecoder.decode(s))
+      } catch { case t: Throwable if NonFatal(t) => None }
+
+    def b64UrlBytes: Option[Array[Byte]] =
+      try {
+        Some(AB64.decodeBase64(s))
+      } catch { case t: Throwable if NonFatal(t) => None }
+
+    @deprecated("use .b64Bytes functions. This is unsafe", "0.0.1-M12")
+    def base64Bytes: Array[Byte] = Base64.getDecoder.decode(s)
+
+    @deprecated("use .b64UrlBytes functions. This is unsafe", "0.0.1-M12")
+    def base64UrlBytes: Array[Byte] = AB64.decodeBase64(s)
+
     def hexBytes[F[_]](implicit F: Sync[F]): F[Array[Byte]] = F.delay(Hex.decodeHex(s))
-    def hexBytesUnsafe: Array[Byte]                         = Hex.decodeHex(s)
+
+    def hexBytesUnsafe: Array[Byte] = Hex.decodeHex(s)
   }
 
   final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {
