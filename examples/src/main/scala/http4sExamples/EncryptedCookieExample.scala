@@ -16,7 +16,7 @@ object EncryptedCookieExample {
   import ExampleAuthHelpers._
   type AuthService = TSecAuthService[User, AuthEncryptedCookie[AES128GCM, Int], IO]
 
-  implicit val encryptor   = AES128GCM.genEncryptor[IO].unsafeRunSync()
+  implicit val encryptor   = AES128GCM.genEncryptor[IO]
   implicit val gcmstrategy = AES128GCM.defaultIvStrategy[IO]
 
   val cookieBackingStore: BackingStore[IO, UUID, AuthEncryptedCookie[AES128GCM, Int]] =

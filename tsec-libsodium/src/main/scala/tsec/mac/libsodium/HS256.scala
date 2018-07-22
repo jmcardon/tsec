@@ -5,7 +5,7 @@ import tsec.mac._
 
 sealed trait HS256
 
-object HS256 extends SodiumMacPlatform[HS256] {
+object HS256 extends SodiumMacPlatform[HS256]("HS256") {
   val keyLen: Int       = ScalaSodium.crypto_auth_hmacsha256_KEYBYTES
   val macLen: Int       = ScalaSodium.crypto_auth_hmacsha256_BYTES
   val algorithm: String = "HMACSHA256"

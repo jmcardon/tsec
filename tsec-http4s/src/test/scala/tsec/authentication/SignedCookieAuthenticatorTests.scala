@@ -6,18 +6,20 @@ import java.util.UUID
 import cats.effect.IO
 import org.http4s.Request
 import tsec.keygen.symmetric.IdKeyGen
-import tsec.mac.jca.{JCAMacTag, _}
+import tsec.mac.MessageAuth
+import tsec.mac.jca._
 
 import scala.concurrent.duration._
 
 class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
 
-  private val cookieName                        = "hi"
-  implicit def cookieBackingStore[A: JCAMacTag] = dummyBackingStore[IO, UUID, AuthenticatedCookie[A, Int]](_.id)
+  private val cookieName             = "hi"
+  implicit def cookieBackingStore[A] = dummyBackingStore[IO, UUID, AuthenticatedCookie[A, Int]](_.id)
 
-  def genAuthenticator[A: JCAMacTag](
+  def genAuthenticator[A](
       implicit keyGenerator: IdKeyGen[A, MacSigningKey],
-      store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]]
+      store: BackingStore[IO, UUID, AuthenticatedCookie[A, Int]],
+      M: MessageAuth[IO, A, MacSigningKey]
   ): AuthSpecTester[AuthenticatedCookie[A, Int]] = {
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val authenticator = SignedCookieAuthenticator[IO, Int, DummyUser, A](
@@ -53,10 +55,10 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
     }
   }
 
-  def CookieAuthTest[A: JCAMacTag](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
+  def CookieAuthTest[A](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
     AuthenticatorTest[AuthenticatedCookie[A, Int]](string, auth)
 
-  def CookieReqTest[A: JCAMacTag](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
+  def CookieReqTest[A](string: String, auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) =
     requestAuthTests[AuthenticatedCookie[A, Int]](string, auth)
 
   CookieAuthTest[HMACSHA1]("HMACSHA1 Authenticator", genAuthenticator[HMACSHA1])
@@ -69,9 +71,11 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
   CookieReqTest[HMACSHA384]("HMACSHA384 Authenticator", genAuthenticator[HMACSHA384])
   CookieReqTest[HMACSHA512]("HMACSHA512 Authenticator", genAuthenticator[HMACSHA512])
 
-  def signedCookieTests[A: JCAMacTag](auth: AuthSpecTester[AuthenticatedCookie[A, Int]]) = {
+  def signedCookieTests[A](
+      auth: AuthSpecTester[AuthenticatedCookie[A, Int]]
+  )(implicit M: MessageAuth[IO, A, MacSigningKey]) = {
 
-    behavior of "Signed Cookie Authenticator " + JCAMacTag[A].algorithm
+    behavior of "Signed Cookie Authenticator " + M.algorithm
 
     it should "expire tokens on discard" in {
 

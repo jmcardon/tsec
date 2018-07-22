@@ -1,6 +1,5 @@
 package tsec.cipher.symmetric.jca.primitive
 
-import java.util.concurrent.{ConcurrentLinkedQueue => JQueue}
 import java.util.{Arrays => JaRule}
 import javax.crypto.{Cipher => JCipher}
 
@@ -10,32 +9,26 @@ import cats.syntax.all._
 import tsec.cipher.common.padding.SymmetricPadding
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
-import tsec.common.CanCatch
 
-sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[JCipher])(
+sealed abstract class JCAAEADPrimitive[F[_], A, M, P](
     implicit algoTag: BlockCipher[A],
     aead: AEADCipher[A],
     modeSpec: CipherMode[M],
     paddingTag: SymmetricPadding[P],
     F: MonadError[F, Throwable],
     private[tsec] val ivProcess: IvProcess[A, M, P]
-) extends AADEncryptor[F, A, SecretKey]
-    with CanCatch[F] {
+) extends AADEncryptor[F, A, SecretKey] {
 
-  private def getInstance: JCipher = {
-    val instance = queue.poll()
-    if (instance != null)
-      instance
-    else
-      JCAPrimitiveCipher.getJCipherUnsafe[A, M, P]
-  }
+  private def getInstance: JCipher =
+    JCAPrimitiveCipher.getJCipherUnsafe[A, M, P]
+
+  private[tsec] def catchF[Y](a: => Y): F[Y]
 
   def encrypt(plainText: PlainText, key: SecretKey[A], iv: Iv[A]): F[CipherText[A]] =
     catchF {
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key.toJavaKey)
       val encrypted = instance.doFinal(plainText)
-      queue.add(instance)
       CipherText[A](RawCipherText(encrypted), iv)
     }
 
@@ -44,7 +37,6 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
       val instance = getInstance
       ivProcess.decryptInit(instance, cipherText.nonce, key.toJavaKey)
       val out = instance.doFinal(cipherText.content)
-      queue.add(instance)
       PlainText(out)
     }
 
@@ -54,7 +46,6 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
       ivProcess.encryptInit(instance, iv, key.toJavaKey)
       instance.updateAAD(aad)
       val encrypted = RawCipherText[A](instance.doFinal(plainText))
-      queue.add(instance)
       CipherText[A](encrypted, iv)
     }
 
@@ -64,7 +55,6 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
       ivProcess.decryptInit(instance, cipherText.nonce, key.toJavaKey)
       instance.updateAAD(aad)
       val out = instance.doFinal(cipherText.content)
-      queue.add(instance)
       PlainText(out)
     }
 
@@ -72,8 +62,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
     catchF {
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key.toJavaKey)
-      val encrypted = instance.doFinal(plainText)
-      queue.add(instance)
+      val encrypted  = instance.doFinal(plainText)
       val cipherText = RawCipherText[A](JaRule.copyOfRange(encrypted, 0, encrypted.length - aead.tagSizeBytes))
       val tag        = JaRule.copyOfRange(encrypted, encrypted.length - aead.tagSizeBytes, encrypted.length)
       (CipherText[A](cipherText, iv), AuthTag[A](tag))
@@ -92,7 +81,6 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
         System.arraycopy(tag, 0, combined, cipherText.content.length, tag.length)
 
         val out = instance.doFinal(combined)
-        queue.add(instance)
         PlainText(out)
       }
 
@@ -106,8 +94,7 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
       val instance = getInstance
       ivProcess.encryptInit(instance, iv, key.toJavaKey)
       instance.updateAAD(aad)
-      val encrypted = instance.doFinal(plainText)
-      queue.add(instance)
+      val encrypted  = instance.doFinal(plainText)
       val cipherText = RawCipherText[A](JaRule.copyOfRange(encrypted, 0, encrypted.length - aead.tagSizeBytes))
       val tag        = JaRule.copyOfRange(encrypted, encrypted.length - aead.tagSizeBytes, encrypted.length)
       (CipherText[A](cipherText, iv), AuthTag[A](tag))
@@ -128,7 +115,6 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
 
         instance.updateAAD(aad)
         val out = instance.doFinal(combined)
-        queue.add(instance)
         PlainText(out)
       }
 
@@ -137,22 +123,19 @@ sealed abstract class JCAAEADPrimitive[F[_], A, M, P](private val queue: JQueue[
 object JCAAEADPrimitive {
 
   private[tsec] def sync[F[_], A: BlockCipher: AEADCipher, M: CipherMode, P: SymmetricPadding](
-      queueSize: Int = 15
-  )(implicit F: Sync[F], ivProcess: IvProcess[A, M, P]): F[AADEncryptor[F, A, SecretKey]] =
-    F.delay(JCAPrimitiveCipher.genQueueUnsafe[A, M, P](queueSize))
-      .map(new JCAAEADPrimitive[F, A, M, P](_) {
-        def catchF[C](thunk: => C): F[C] = F.delay(thunk)
-      })
+      implicit F: Sync[F],
+      ivProcess: IvProcess[A, M, P]
+  ): AADEncryptor[F, A, SecretKey] =
+    new JCAAEADPrimitive[F, A, M, P] {
+      private[tsec] def catchF[C](thunk: => C): F[C] = F.delay(thunk)
+    }
 
   private[tsec] def monadError[F[_], A: BlockCipher: AEADCipher, M: CipherMode, P: SymmetricPadding](
-      queueSize: Int = 15
-  )(implicit F: MonadError[F, Throwable], ivProcess: IvProcess[A, M, P]): F[AADEncryptor[F, A, SecretKey]] =
-    F.catchNonFatal(JCAPrimitiveCipher.genQueueUnsafe[A, M, P](queueSize))
-      .map(
-        q =>
-          new JCAAEADPrimitive[F, A, M, P](q) {
-            def catchF[C](thunk: => C): F[C] =
-              F.catchNonFatal(thunk)
-        }
-      )
+      implicit F: MonadError[F, Throwable],
+      ivProcess: IvProcess[A, M, P]
+  ): JCAAEADPrimitive[F, A, M, P] =
+    new JCAAEADPrimitive[F, A, M, P] {
+      private[tsec] def catchF[C](thunk: => C): F[C] =
+        F.catchNonFatal(thunk)
+    }
 }

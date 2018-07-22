@@ -66,6 +66,10 @@ package object symmetric {
     def tagSizeBytes: Int
   }
 
+  object AEADCipher{
+    def apply[A](implicit A: AEADCipher[A]): AEADCipher[A] = A
+  }
+
   /** In our implementation, we will use the most secure tag size as defined
     * by: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
     *  Iv length of 96 bits is recommended as per the spec on page 8

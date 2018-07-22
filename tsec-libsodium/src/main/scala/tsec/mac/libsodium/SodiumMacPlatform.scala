@@ -5,7 +5,7 @@ import tsec.keygen.symmetric.SymmetricKeyGen
 import tsec.libsodium.ScalaSodium
 import tsec.mac.{MessageAuth, _}
 
-private[tsec] trait SodiumMacPlatform[A] extends SodiumMacAlgo[A] with SodiumMacAPI[A] {
+private[tsec] abstract class SodiumMacPlatform[A](algo: String) extends SodiumMacAlgo[A] with SodiumMacAPI[A] {
   implicit val sm: SodiumMacAlgo[A]        = this
   implicit val macAlgebra: SodiumMacAPI[A] = this
 
@@ -19,6 +19,9 @@ private[tsec] trait SodiumMacPlatform[A] extends SodiumMacAlgo[A] with SodiumMac
 
   implicit def authenticator[F[_]](implicit F: Sync[F], S: ScalaSodium): MessageAuth[F, A, SodiumMACKey] =
     new MessageAuth[F, A, SodiumMACKey] {
+
+      def algorithm: String = algo
+
       def sign(in: Array[Byte], key: SodiumMACKey[A]): F[MAC[A]] =
         F.delay(impl.sign(in, key))
 

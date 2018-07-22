@@ -5,6 +5,8 @@ import tsec.common.{VerificationFailed, VerificationStatus, Verified}
 
 trait MessageAuth[F[_], A, K[_]] {
 
+  def algorithm: String
+
   def sign(in: Array[Byte], key: K[A]): F[MAC[A]]
 
   def verifyBool(in: Array[Byte], hashed: MAC[A], key: K[A]): F[Boolean]

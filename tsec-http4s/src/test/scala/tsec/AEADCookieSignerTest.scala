@@ -14,7 +14,7 @@ class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyCheck
   def aeadCookieTest[A](implicit api: AESGCM[A], keyGen: SymmetricKeyGen[IO, A, SecretKey]): Unit = {
     implicit val strategy = api.defaultIvStrategy[IO]
 
-    implicit val instance = api.genEncryptor[IO].unsafeRunSync()
+    implicit val instance: AADEncryptor[IO, A, SecretKey] = api.genEncryptor[IO]
 
     behavior of s"AEAD Cookie encrypting with ${api.cipherName}${api.keySizeBytes * 8}"
 
