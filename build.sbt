@@ -86,6 +86,7 @@ lazy val scalacOpts = scalacOptions := Seq(
   "-Ywarn-inaccessible",
   "-Ywarn-nullary-override",
   "-Ypartial-unification",
+  "-Xcheckinit",
   "-language:higherKinds",
   "-language:implicitConversions",
   "-language:postfixOps"
