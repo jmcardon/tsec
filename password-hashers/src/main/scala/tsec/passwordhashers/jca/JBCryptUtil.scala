@@ -9,10 +9,7 @@ private[tsec] object JBCryptUtil extends ManagedRandom {
     * but make sure we increment the adder
     * to reseed eventually if necessary
     */
-  def genSalt(logRounds: Int): String = {
-    val salt = JBCrypt.gensalt(logRounds, cachedRand)
-    forceIncrement
-    salt
-  }
+  def genSalt(logRounds: Int): String =
+    JBCrypt.gensalt(logRounds, cachedRand)
 
 }
