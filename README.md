@@ -75,9 +75,9 @@ val tsecV = "0.0.1-M11"
 )
 ```
 
-## Note about using Windows with tsec
+## Note about using Windows￼™® with tsec
 
-Windows is not supported.
+Windows™® is not supported.
 
 ## IMPORTANT NOTE: About higher than 128-bit encryption key sizes on the JCA!
 ## This applies to you if you are using any AES algorithms with higher than 128-bit key sizes
