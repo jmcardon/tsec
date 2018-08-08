@@ -1,0 +1,213 @@
+<html><head><title>TSec: Overview</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Jose Cardona" /><meta name="description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="og:image" content="/tsec/img/poster.png" /><meta name="og:title" content="TSec: Overview" /><meta name="og:site_name" content="TSec" /><meta name="og:url" content="https://jmcardon.github.io/tsec/" /><meta name="og:type" content="website" /><meta name="og:description" content="A Type-Safe General Cryptography Library on the JVM" /><link rel="icon" type="image/png" href="/tsec/img/favicon.png" /><meta name="twitter:title" content="TSec: Overview" /><meta name="twitter:image" content="https://jmcardon.github.io/tsec/img/poster.png" /><meta name="twitter:description" content="A Type-Safe General Cryptography Library on the JVM" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/tsec/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/tsec/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/tsec/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/tsec/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/tsec/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/tsec/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/tsec/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/tsec/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/tsec/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/tsec/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/tsec/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/tsec/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/tsec/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/tsec/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/tsec/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/tsec/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/tsec/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/tsec/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/tsec/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/tsec/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/tsec/highlight/styles/default.css" /><link rel="stylesheet" href="/tsec/css/style.css" /><link rel="stylesheet" href="/tsec/css/palette.css" /><link rel="stylesheet" href="/tsec/css/codemirror.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/tsec/" class="brand"><div class="brand-wrapper"><span>TSec</span></div></a></li> <li><a href="/tsec/docs/symmetric.html" class="">Symmetric Ciphers</a></li> <li><a href="/tsec/docs/messagedigests.html" class="">Message Digests</a></li> <li><a href="/tsec/docs/passwordhashers.html" class="">Password Hashers</a></li> <li><a href="/tsec/docs/mac.html" class="">Message Authentication</a></li> <li><a href="/tsec/docs/signatures.html" class="">Digital Signatures</a></li> <li><a href="/tsec/docs/jwt-mac.html" class="">JWT</a></li> <li><a href="/tsec/docs/http4s-auth.html" class="">Http4s-Auth</a> <ul class="sub_section"> <li><a href="/tsec/docs/http4s-auth.html" class=" active ">Overview</a></li> <li><a href="/tsec/docs/http4s/auth-scookie.html" class="">Signed Cookies</a></li> <li><a href="/tsec/docs/http4s/auth-ecookie.html" class="">Encrypted Cookies</a></li> <li><a href="/tsec/docs/http4s/auth-jwt.html" class="">JWT</a></li> <li><a href="/tsec/docs/http4s/auth-bearer.html" class="">Bearer Token</a></li> <li><a href="/tsec/docs/http4s/authorization.html" class="">Authorization</a></li> <li><a href="/tsec/docs/http4s/csrf.html" class="">CSRF</a></li></ul></li> <li><a href="/tsec/docs/common.html" class="">Common Utils</a></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/jmcardon/tsec"><i class="fa fa-eye"></i><span>WATCH<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/jmcardon/tsec"><i class="fa fa-star-o"></i><span>STARS<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('TSec A Type-Safe General Cryptography Library on the JVM');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('TSec A Type-Safe General Cryptography Library on the JVM');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="jmcardon" data-github-repo="tsec"><div class="content-wrapper"><section><h1 id="http4s-authentication-and-authorization">Http4s Authentication and Authorization</h1>
+
+<p>For Http4s Authentication, we provide token-based authentication which is either 
+Stateless (No need for a  backing store) or Stateful(Requires backing store), through the following options:</p>
+
+<ol>
+  <li>Signed Cookie Authentication (Stateful)</li>
+  <li>Encrypted and Signed Cookie Authentication (Stateless and Stateful)</li>
+  <li>JWT using HS256, HS384 and HS512 (Stateless and Stateful, unencrypted and encrypted user IDs)</li>
+  <li>Bearer Tokens using <code class="highlighter-rouge">SecureRandomId</code></li>
+</ol>
+
+<p>In general, to use an authenticator, you need:</p>
+
+<ol>
+  <li>A instance of <code class="highlighter-rouge">BackingStore[F[_], I, U]</code> for your User type, where I is the id type of your user type, 
+and <code class="highlighter-rouge">U</code> is the user class.</li>
+  <li>An instance of either <code class="highlighter-rouge">TSecCookieSettings</code> or <code class="highlighter-rouge">TSecJWTSettings</code> based on the type of authenticator</li>
+  <li>Either a Signing Key or an Encryption Key, based on the kind of Authenticator</li>
+  <li>For Stateful Authenticators, you will require a <code class="highlighter-rouge">BackingStore[F, Id, Token]</code> where <code class="highlighter-rouge">Token</code> is the
+Token type, and <code class="highlighter-rouge">Id</code> is the authenticator Id type, which may vary</li>
+</ol>
+
+<p>Also please, for your sanity and ours <strong>use TLS in prod</strong>.</p>
+
+<h2 id="examples-setup">Examples Setup</h2>
+
+<p>Note: This class is the setup to our authentication and authorization examples</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.UUID</span>
+
+<span class="k">import</span> <span class="nn">cats._</span>
+<span class="k">import</span> <span class="nn">cats.data.OptionT</span>
+<span class="k">import</span> <span class="nn">cats.effect.</span><span class="o">{</span><span class="nc">IO</span><span class="o">,</span> <span class="nc">Sync</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">cats.implicits._</span>
+<span class="k">import</span> <span class="nn">org.http4s.HttpService</span>
+<span class="k">import</span> <span class="nn">org.http4s.dsl.io._</span>
+<span class="k">import</span> <span class="nn">tsec.authentication._</span>
+<span class="k">import</span> <span class="nn">tsec.authorization._</span>
+<span class="k">import</span> <span class="nn">tsec.cipher.symmetric.jca._</span>
+<span class="k">import</span> <span class="nn">tsec.common.SecureRandomId</span>
+<span class="k">import</span> <span class="nn">tsec.jws.mac.JWTMac</span>
+
+<span class="k">import</span> <span class="nn">scala.collection.mutable</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+
+
+<span class="k">object</span> <span class="nc">ExampleAuthHelpers</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">dummyBackingStore</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]</span>, <span class="kt">I</span>, <span class="kt">V</span><span class="o">](</span><span class="n">getId</span><span class="k">:</span> <span class="kt">V</span> <span class="o">=&gt;</span> <span class="n">I</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">F</span><span class="k">:</span> <span class="kt">Sync</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">BackingStore</span><span class="o">[</span><span class="kt">F</span>, <span class="kt">I</span>, <span class="kt">V</span><span class="o">]</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">val</span> <span class="n">storageMap</span> <span class="k">=</span> <span class="n">mutable</span><span class="o">.</span><span class="nc">HashMap</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">I</span>, <span class="kt">V</span><span class="o">]</span>
+
+    <span class="k">def</span> <span class="n">put</span><span class="o">(</span><span class="n">elem</span><span class="k">:</span> <span class="kt">V</span><span class="o">)</span><span class="k">:</span> <span class="kt">F</span><span class="o">[</span><span class="kt">V</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">val</span> <span class="n">map</span> <span class="k">=</span> <span class="n">storageMap</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="n">getId</span><span class="o">(</span><span class="n">elem</span><span class="o">),</span> <span class="n">elem</span><span class="o">)</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">map</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
+        <span class="n">F</span><span class="o">.</span><span class="n">pure</span><span class="o">(</span><span class="n">elem</span><span class="o">)</span>
+      <span class="k">else</span>
+        <span class="n">F</span><span class="o">.</span><span class="n">raiseError</span><span class="o">(</span><span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">)</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">get</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">I</span><span class="o">)</span><span class="k">:</span> <span class="kt">OptionT</span><span class="o">[</span><span class="kt">F</span>, <span class="kt">V</span><span class="o">]</span> <span class="k">=</span>
+      <span class="nc">OptionT</span><span class="o">.</span><span class="n">fromOption</span><span class="o">[</span><span class="kt">F</span><span class="o">](</span><span class="n">storageMap</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">id</span><span class="o">))</span>
+
+    <span class="k">def</span> <span class="n">update</span><span class="o">(</span><span class="n">v</span><span class="k">:</span> <span class="kt">V</span><span class="o">)</span><span class="k">:</span> <span class="kt">F</span><span class="o">[</span><span class="kt">V</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="n">storageMap</span><span class="o">.</span><span class="n">update</span><span class="o">(</span><span class="n">getId</span><span class="o">(</span><span class="n">v</span><span class="o">),</span> <span class="n">v</span><span class="o">)</span>
+      <span class="n">F</span><span class="o">.</span><span class="n">pure</span><span class="o">(</span><span class="n">v</span><span class="o">)</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">delete</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">I</span><span class="o">)</span><span class="k">:</span> <span class="kt">F</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span>
+      <span class="n">storageMap</span><span class="o">.</span><span class="n">remove</span><span class="o">(</span><span class="n">id</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">F</span><span class="o">.</span><span class="n">unit</span>
+        <span class="k">case</span> <span class="nc">None</span>    <span class="k">=&gt;</span> <span class="n">F</span><span class="o">.</span><span class="n">raiseError</span><span class="o">(</span><span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">)</span>
+      <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="cm">/*
+  In our example, we will demonstrate how to use SimpleAuthEnum, as well as
+  Role based authorization
+   */</span>
+  <span class="k">sealed</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">Role</span><span class="o">(</span><span class="n">roleRepr</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+
+  <span class="k">object</span> <span class="nc">Role</span> <span class="k">extends</span> <span class="nc">SimpleAuthEnum</span><span class="o">[</span><span class="kt">Role</span>, <span class="kt">String</span><span class="o">]</span> <span class="o">{</span>
+
+    <span class="k">val</span> <span class="nc">Administrator</span><span class="k">:</span> <span class="kt">Role</span> <span class="o">=</span> <span class="nc">Role</span><span class="o">(</span><span class="s">"Administrator"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="nc">Customer</span><span class="k">:</span> <span class="kt">Role</span>      <span class="o">=</span> <span class="nc">Role</span><span class="o">(</span><span class="s">"User"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="nc">Seller</span><span class="k">:</span> <span class="kt">Role</span>        <span class="o">=</span> <span class="nc">Role</span><span class="o">(</span><span class="s">"Seller"</span><span class="o">)</span>
+
+    <span class="k">implicit</span> <span class="k">val</span> <span class="n">E</span><span class="k">:</span> <span class="kt">Eq</span><span class="o">[</span><span class="kt">Role</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Eq</span><span class="o">.</span><span class="n">fromUniversalEquals</span><span class="o">[</span><span class="kt">Role</span><span class="o">]</span>
+
+    <span class="k">def</span> <span class="n">getRepr</span><span class="o">(</span><span class="n">t</span><span class="k">:</span> <span class="kt">Role</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">roleRepr</span>
+
+    <span class="k">protected</span> <span class="k">val</span> <span class="n">values</span><span class="k">:</span> <span class="kt">AuthGroup</span><span class="o">[</span><span class="kt">Role</span><span class="o">]</span> <span class="k">=</span> <span class="nc">AuthGroup</span><span class="o">(</span><span class="nc">Administrator</span><span class="o">,</span> <span class="nc">Customer</span><span class="o">,</span> <span class="nc">Seller</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">User</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">age</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">role</span><span class="k">:</span> <span class="kt">Role</span> <span class="o">=</span> <span class="nc">Role</span><span class="o">.</span><span class="nc">Customer</span><span class="o">)</span>
+
+  <span class="k">object</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="k">implicit</span> <span class="k">def</span> <span class="n">authRole</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]](</span><span class="k">implicit</span> <span class="n">F</span><span class="k">:</span> <span class="kt">MonadError</span><span class="o">[</span><span class="kt">F</span>, <span class="kt">Throwable</span><span class="o">])</span><span class="k">:</span> <span class="kt">AuthorizationInfo</span><span class="o">[</span><span class="kt">F</span>, <span class="kt">Role</span>, <span class="kt">User</span><span class="o">]</span> <span class="k">=</span>
+      <span class="k">new</span> <span class="nc">AuthorizationInfo</span><span class="o">[</span><span class="kt">F</span>, <span class="kt">Role</span>, <span class="kt">User</span><span class="o">]</span> <span class="o">{</span>
+        <span class="k">def</span> <span class="n">fetchInfo</span><span class="o">(</span><span class="n">u</span><span class="k">:</span> <span class="kt">User</span><span class="o">)</span><span class="k">:</span> <span class="kt">F</span><span class="o">[</span><span class="kt">Role</span><span class="o">]</span> <span class="k">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pure</span><span class="o">(</span><span class="n">u</span><span class="o">.</span><span class="n">role</span><span class="o">)</span>
+      <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+<h2 id="authenticating-services">Authenticating Services</h2>
+
+<p>A service with some token-based Authentication, be it cookie, jwt, bearer token, etc
+requires two things: A Identity, for example our <code class="highlighter-rouge">User</code> type, and the type of AuthenticatorService you are using. We need a way to
+both extract and validate the Authenticator, as well as extract the identity type. Here is where <code class="highlighter-rouge">TSec</code> authenticators 
+shine, as this is their exact function.</p>
+
+<p>Let’s make an example with <a href="https://github.com/jmcardon/tsec/blob/master/examples/src/main/scala/http4sExamples/BearerTokenExample.scala">BearerTokenAuthenticator</a> from scratch:</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>
+ <span class="k">import</span> <span class="nn">ExampleAuthHelpers._</span> <span class="c1">// import dummyBackingStore factory
+</span> 
+  <span class="k">val</span> <span class="n">bearerTokenStore</span> <span class="k">=</span>
+      <span class="n">dummyBackingStore</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">SecureRandomId</span>, <span class="kt">TSecBearerToken</span><span class="o">[</span><span class="kt">Int</span><span class="o">]](</span><span class="n">s</span> <span class="k">=&gt;</span> <span class="nc">SecureRandomId</span><span class="o">.</span><span class="n">coerce</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="o">))</span>
+
+  <span class="c1">//We create a way to store our users. You can attach this to say, your doobie accessor
+</span>    <span class="k">val</span> <span class="n">userStore</span><span class="k">:</span> <span class="kt">BackingStore</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">Int</span>, <span class="kt">User</span><span class="o">]</span> <span class="k">=</span> <span class="n">dummyBackingStore</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">Int</span>, <span class="kt">User</span><span class="o">](</span><span class="k">_</span><span class="o">.</span><span class="n">id</span><span class="o">)</span>
+  
+    <span class="k">val</span> <span class="n">settings</span><span class="k">:</span> <span class="kt">TSecTokenSettings</span> <span class="o">=</span> <span class="nc">TSecTokenSettings</span><span class="o">(</span>
+      <span class="n">expiryDuration</span> <span class="k">=</span> <span class="mf">10.</span><span class="n">minutes</span><span class="o">,</span> <span class="c1">//Absolute expiration time
+</span>      <span class="n">maxIdle</span> <span class="k">=</span> <span class="nc">None</span>
+    <span class="o">)</span>
+    
+    <span class="k">val</span> <span class="n">bearerTokenAuth</span> <span class="k">=</span>
+        <span class="nc">BearerTokenAuthenticator</span><span class="o">(</span>
+          <span class="n">bearerTokenStore</span><span class="o">,</span>
+          <span class="n">userStore</span><span class="o">,</span>
+          <span class="n">settings</span>
+    <span class="o">)</span>
+</code></pre>
+</div>
+
+<p>From here, we can create a <code class="highlighter-rouge">SecureRequestHandler</code>, which detecting whether it is
+rolling window or not.</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span>   <span class="k">val</span> <span class="nc">Auth</span> <span class="k">=</span>
+     <span class="o">|</span>     <span class="nc">SecuredRequestHandler</span><span class="o">(</span><span class="n">bearerTokenAuth</span><span class="o">)</span>
+<span class="nc">Auth</span><span class="k">:</span> <span class="kt">tsec.authentication.SecuredRequestHandler</span><span class="o">[</span><span class="kt">cats.effect.IO</span>,<span class="kt">Int</span>,<span class="kt">ExampleAuthHelpers.User</span>,<span class="kt">tsec.authentication.TSecBearerToken</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="n">tsec</span><span class="o">.</span><span class="n">authentication</span><span class="o">.</span><span class="nc">SecuredRequestHandler$$anon$2</span><span class="k">@</span><span class="mi">10</span><span class="n">e75ec7</span>
+</code></pre>
+</div>
+
+<p>Then, we can use our <code class="highlighter-rouge">TSecAuthService</code>:</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code> <span class="k">val</span> <span class="n">authservice</span><span class="k">:</span> <span class="kt">TSecAuthService</span><span class="o">[</span><span class="kt">TSecBearerToken</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>, <span class="kt">User</span>, <span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="nc">TSecAuthService</span> <span class="o">{</span>
+     <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="n">asAuthed</span> <span class="n">user</span> <span class="k">=&gt;</span>
+       <span class="nc">Ok</span><span class="o">()</span>
+   <span class="o">}</span>
+ 
+   <span class="cm">/*
+   Now from here, if want want to create services, we simply use the following
+   (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
+    */</span>
+   <span class="k">val</span> <span class="n">service</span><span class="k">:</span> <span class="kt">HttpService</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Auth</span><span class="o">.</span><span class="n">liftService</span><span class="o">(</span><span class="nc">TSecAuthService</span> <span class="o">{</span>
+     <span class="c1">//Where user is the case class User above
+</span>     <span class="k">case</span> <span class="n">request</span><span class="nd">@GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"api"</span> <span class="n">asAuthed</span> <span class="n">user</span> <span class="k">=&gt;</span>
+       <span class="cm">/*
+       Note: The request is of type: SecuredRequest, which carries:
+       1. The request
+       2. The Authenticator (i.e token)
+       3. The identity (i.e in this case, User)
+        */</span>
+       <span class="k">val</span> <span class="n">r</span><span class="k">:</span> <span class="kt">SecuredRequest</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">User</span>, <span class="kt">TSecBearerToken</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="n">request</span>
+       <span class="nc">Ok</span><span class="o">()</span>
+   <span class="o">})</span>
+</code></pre>
+</div>
+
+<p>In essence, this is captured by <code class="highlighter-rouge">SecuredRequestHandler</code>, which wraps the process of having to create the service
+and the middleware for you in a simple <code class="highlighter-rouge">apply</code> method, so you only have to worry about creating the route. See the examples
+on specific authenticators for more.</p>
+
+<h2 id="stateful-vs-stateless">Stateful vs Stateless</h2>
+
+<p><strong>Stateful:</strong></p>
+
+<p>Pros:</p>
+<ul>
+  <li>Better Security on top of the security the cryptographic primitives give you. Stateful tokens are cross-checked with 
+what is in your backing store.</li>
+  <li>Easy to invalidate: Simply remove one from your backing store! it will not pass the authentication check if it is not there.</li>
+</ul>
+
+<p>Cons:</p>
+<ul>
+  <li>Requires a backing store that can deal with concurrent updates. Thus, it must be synchronized.</li>
+  <li>Will have possibly higher network throughput, if your token store is outside of application memory.</li>
+</ul>
+
+<p><strong>Stateless</strong></p>
+
+<p>Pros:</p>
+<ul>
+  <li>Less network throughput. No need to use a backing store.</li>
+  <li>Great for applications where security is not a deathly priority and long-lived sessions are desirable.</li>
+</ul>
+
+<p>Cons:</p>
+<ul>
+  <li>Your security is as strong as the underlying crypto primitive. There’s no extra safety: You cannot cross check without
+any record of the tokens you have.</li>
+  <li>You can only invalidate using an explicit blacklist, which you would have to roll out as a middleware. If you need this
+dynamically updated, it will increase the network throughput.</li>
+</ul>
+</section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/tsec/highlight/highlight.pack.js"></script><script>hljs.configure({
+languages:['scala','java','bash']
+});
+hljs.initHighlighting();
+             </script><script src="/tsec/js/main.js"></script></body></html>
