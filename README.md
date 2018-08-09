@@ -20,6 +20,13 @@ For the current progress, please refer to the [RoadMap](https://github.com/jmcar
 For version changes and additions, including breaking changes, see either [release notes](https://github.com/jmcardon/tsec/releases)
 or the [Version Changes](https://github.com/jmcardon/tsec/wiki/Version-Changes) page.
 
+## Note about using Windows￼™® with tsec
+
+Windows™® is not supported.
+
+Feel free to fork the project and add your own windows support.
+
+
 ### Note on milestones:
 Our Notation for versions is:
 ```
@@ -75,9 +82,9 @@ val tsecV = "0.0.1-M11"
 )
 ```
 
-## Note about using Windows￼™® with tsec
+## Note on contributing
 
-Windows™® is not supported.
+See CONTRIBUTING.md
 
 ## IMPORTANT NOTE: About higher than 128-bit encryption key sizes on the JCA!
 ## This applies to you if you are using any AES algorithms with higher than 128-bit key sizes
