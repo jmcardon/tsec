@@ -1,8 +1,8 @@
 environment:
   global:
     COMPILE: compile
-    TEST_COMPILE: test:compile
-    TEST_SUITE: test
+    TEST_COMPILE: windowz/test:compile
+    TEST_SUITE: windowz/test
   matrix:
     - SCALA_VERSION: 2.11.12
     - SCALA_VERSION: 2.12.6
