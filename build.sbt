@@ -166,6 +166,24 @@ lazy val root = project
     oauth2
   ).settings(noPublishSettings)
 
+//Note: will be different than root later on, once libsodium makes it to root
+lazy val windowz = project
+  .aggregate(
+    common,
+    messageDigests,
+    cipherCore,
+    jwtCore,
+    symmetricCipher,
+    mac,
+    signatures,
+    jwtMac,
+    jwtSig,
+    passwordHashers,
+    http4s,
+    microsite,
+    oauth2
+  ).settings(noPublishSettings)
+
 lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
   .settings(publishSettings)
