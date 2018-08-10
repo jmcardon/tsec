@@ -18,6 +18,16 @@ trait RSAKFTag[A] extends KFTag[A] {
 
   def unsafegenerateKeyPairStrong(implicit S: JCARSASigKG[Id, A]): SigKeyPair[A] =
     S.generateKeyPairStrong
+
+  def buildPublicKeyFromParameters[F[_]](modulus: BigInt, publicExponent: BigInt)(
+      implicit S: JCARSASigKG[F, A]
+  ): F[SigPublicKey[A]] =
+    S.buildPublicKeyFromParameters(modulus, publicExponent)
+
+  def unsafeBuildPublicKeyFromParameters(modulus: BigInt, publicExponent: BigInt)(
+      implicit S: JCARSASigKG[Id, A]
+  ): SigPublicKey[A] =
+    S.buildPublicKeyFromParameters(modulus, publicExponent)
 }
 
 /** KFTag, but for elliptic curves
@@ -46,6 +56,8 @@ abstract class JCASigKG[F[_], A] extends AsymmetricKeyGen[F, A, SigPublicKey, Si
 
 abstract class JCARSASigKG[F[_], A] extends JCASigKG[F, A] {
   def generateKeyPairStrong: F[SigKeyPair[A]]
+
+  def buildPublicKeyFromParameters(modulus: BigInt, publicExponent: BigInt): F[SigPublicKey[A]]
 }
 
 abstract class JCAECKG[F[_], A] extends JCASigKG[F, A] {
