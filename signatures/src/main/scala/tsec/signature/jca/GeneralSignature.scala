@@ -125,6 +125,12 @@ abstract class RSASignature[A](sigAlgo: String)
 
       def generateKeyPairStrong: F[SigKeyPair[A]] =
         F.delay(impl.generateKeyPairStrongUnsafe)
+
+      def buildPublicKeyFromParameters(
+          modulus: BigInt,
+          publicExponent: BigInt
+      ): F[SigPublicKey[A]] =
+        F.delay(impl.buildPublicKeyFromParametersUnsafe(modulus, publicExponent))
     }
 
   implicit def SigKeyGenEither(implicit B: Bouncy): JCARSASigKG[SigErrorM, A] =
@@ -141,6 +147,12 @@ abstract class RSASignature[A](sigAlgo: String)
 
       def generateKeyPairStrong: SigErrorM[SigKeyPair[A]] =
         impl.generateKeyPairStrong
+
+      def buildPublicKeyFromParameters(
+          modulus: BigInt,
+          publicExponent: BigInt
+      ): SigErrorM[SigPublicKey[A]] =
+        impl.buildPublicKeyFromParameters(modulus, publicExponent)
     }
 
   implicit def SigKeyGenId(implicit B: Bouncy): JCARSASigKG[Id, A] = new JCARSASigKG[Id, A] {
@@ -155,6 +167,12 @@ abstract class RSASignature[A](sigAlgo: String)
 
     def generateKeyPairStrong: Id[SigKeyPair[A]] =
       impl.generateKeyPairStrongUnsafe
+
+    def buildPublicKeyFromParameters(
+        modulus: BigInt,
+        publicExponent: BigInt
+    ): Id[SigPublicKey[A]] =
+      impl.buildPublicKeyFromParametersUnsafe(modulus, publicExponent)
   }
 
   object impl {
@@ -196,6 +214,21 @@ abstract class RSASignature[A](sigAlgo: String)
         KeyFactory
           .getInstance(KeyFactoryAlgo)
           .generatePublic(new X509EncodedKeySpec(keyBytes))
+      )
+
+    def buildPublicKeyFromParameters(
+        modulus: BigInt,
+        publicExponent: BigInt
+    ): Either[SignatureKeyError, SigPublicKey[A]] =
+      Either
+        .catchNonFatal(buildPublicKeyFromParametersUnsafe(modulus, publicExponent))
+        .mapError(SignatureKeyError.apply)
+
+    def buildPublicKeyFromParametersUnsafe(modulus: BigInt, publicExponent: BigInt): SigPublicKey[A] =
+      SigPublicKey[A](
+        KeyFactory
+          .getInstance(KeyFactoryAlgo)
+          .generatePublic(new RSAPublicKeySpec(modulus.bigInteger, publicExponent.bigInteger))
       )
   }
 }

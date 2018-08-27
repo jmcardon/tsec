@@ -1,5 +1,7 @@
 package tsec
 
+import java.security.interfaces.{ECPublicKey, RSAPublicKey}
+
 import cats.effect.IO
 import org.scalatest.MustMatchers
 import tsec.common._
@@ -38,8 +40,51 @@ class SignatureTests extends TestSpec with MustMatchers {
 
       expression.unsafeRunSync() mustBe false
     }
-
   }
+
+  def sigRSAIOTests[A](
+      implicit interp: JCASigner[IO, A],
+      ecKFTag: JCARSASigKG[IO, A]
+  ): Unit = {
+    behavior of s"${interp.algorithm}"
+
+    it should "verify with RSA key generated from modulus and public exponent" in {
+      val expression: IO[Boolean] = for {
+        keyPair <- ecKFTag.generateKeyPair
+        publicKey1 = keyPair.publicKey
+        modulus = publicKey1.asInstanceOf[RSAPublicKey].getModulus
+        publicExponent = publicKey1.asInstanceOf[RSAPublicKey].getPublicExponent
+        publicKey2 <- ecKFTag.buildPublicKeyFromParameters(modulus, publicExponent)
+        signed   <- interp.sign(toSign, keyPair.privateKey)
+        verified1 <- interp.verifyBool(toSign, signed, publicKey1)
+        verified2 <- interp.verifyBool(toSign, signed, publicKey2)
+      } yield verified1 && verified2
+
+      expression.unsafeRunSync() mustBe true
+    }
+  }
+
+  def sigECIOTests[A](
+      implicit interp: JCASigner[IO, A],
+      ecKFTag: JCAECKG[IO, A]
+  ): Unit = {
+    behavior of s"${interp.algorithm}"
+
+    it should "verify with EC key generated from public point" in {
+      val expression: IO[Boolean] = for {
+        keyPair <- ecKFTag.generateKeyPair
+        publicKey1 = keyPair.publicKey
+        publicPoint = publicKey1.asInstanceOf[ECPublicKey].getW
+        publicKey2 <- ecKFTag.buildPublicKeyFromPoints(publicPoint.getAffineX, publicPoint.getAffineY)
+        signed   <- interp.sign(toSign, keyPair.privateKey)
+        verified1 <- interp.verifyBool(toSign, signed, publicKey1)
+        verified2 <- interp.verifyBool(toSign, signed, publicKey2)
+      } yield verified1 && verified2
+
+      expression.unsafeRunSync() mustBe true
+    }
+  }
+
 
   sigIOTests[SHA1withDSA]
   sigIOTests[SHA224withDSA]
@@ -57,4 +102,11 @@ class SignatureTests extends TestSpec with MustMatchers {
   sigIOTests[SHA512withECDSA]
   sigIOTests[NONEwithECDSA]
 
+  sigRSAIOTests[SHA256withRSA]
+  sigRSAIOTests[SHA384withRSA]
+  sigRSAIOTests[SHA512withRSA]
+
+  sigECIOTests[SHA256withECDSA]
+  sigECIOTests[SHA384withECDSA]
+  sigECIOTests[SHA512withECDSA]
 }
