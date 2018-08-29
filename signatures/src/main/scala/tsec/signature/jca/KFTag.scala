@@ -16,7 +16,7 @@ trait RSAKFTag[A] extends KFTag[A] {
   def generateKeyPairStrong[F[_]](implicit S: JCARSASigKG[F, A]): F[SigKeyPair[A]] =
     S.generateKeyPairStrong
 
-  def unsafegenerateKeyPairStrong(implicit S: JCARSASigKG[Id, A]): SigKeyPair[A] =
+  def unsafeGenerateKeyPairStrong(implicit S: JCARSASigKG[Id, A]): SigKeyPair[A] =
     S.generateKeyPairStrong
 
   def buildPublicKeyFromParameters[F[_]](modulus: BigInt, publicExponent: BigInt)(
@@ -40,7 +40,7 @@ trait ECKFTag[A] extends KFTag[A] {
   def buildPrivateFromPoint[F[_]](bi: BigInt)(implicit J: JCAECKG[F, A]): F[SigPrivateKey[A]] =
     J.buildPrivateKeyFromPoint(bi)
 
-  def unsafebuildPrivateKeyFromPoint(S: BigInt)(implicit J: JCAECKG[Id, A]): SigPrivateKey[A] =
+  def unsafeBuildPrivateKeyFromPoint(S: BigInt)(implicit J: JCAECKG[Id, A]): SigPrivateKey[A] =
     J.buildPrivateKeyFromPoint(S)
 
   def buildPublicKey[F[_]](x: BigInt, y: BigInt)(
