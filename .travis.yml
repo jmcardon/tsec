@@ -41,8 +41,8 @@ script:
   - bash sodium_setup.sh
   - sbt ++$TRAVIS_SCALA_VERSION clean
   - sbt ++$TRAVIS_SCALA_VERSION test
-  - test $TRAVIS_SCALA_VERSION == "2.12.6" && sbt ++$TRAVIS_SCALA_VERSION tut || test $TRAVIS_SCALA_VERSION == "2.11.12"
-  - test $TRAVIS_SCALA_VERSION == "2.12.6" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite || test $TRAVIS_SCALA_VERSION == "2.11.12"
+  - test $TRAVIS_SCALA_VERSION == "2.12.7" && sbt ++$TRAVIS_SCALA_VERSION tut || test $TRAVIS_SCALA_VERSION == "2.11.12"
+  - test $TRAVIS_SCALA_VERSION == "2.12.7" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite || test $TRAVIS_SCALA_VERSION == "2.11.12"
 
 
 after_success:
