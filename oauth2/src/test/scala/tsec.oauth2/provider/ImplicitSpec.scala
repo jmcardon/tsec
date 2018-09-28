@@ -19,13 +19,14 @@ class ImplicitSpec extends FlatSpec with ScalaFutures with OptionValues {
   it should "not grant access with invalid user authentication" in handlesRequest("user", "wrong_pass", false)
 
   def handlesRequest(user: String, pass: String, ok: Boolean) = {
-    val dataHandler = new ImplicitHandler[IO, MockUser]{
+    val dataHandler = new ImplicitHandler[IO, MockUser] {
       override def validateClient(request: ValidatedImplicit): IO[Boolean] = IO.pure(true)
 
       override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
         IO.pure(AccessToken("token1", Some("refresh_token"), Some("all"), Some(3600 seconds), Instant.now()))
 
-      override def findUser(request: ValidatedImplicit): IO[Option[MockUser]] = if(ok) IO.pure(Some(MockUser(10000, "username"))) else IO.pure(None)
+      override def findUser(request: ValidatedImplicit): IO[Option[MockUser]] =
+        if (ok) IO.pure(Some(MockUser(10000, "username"))) else IO.pure(None)
 
       /**
         * Returns stored access token by authorized information.

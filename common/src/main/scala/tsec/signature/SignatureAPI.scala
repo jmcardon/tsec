@@ -12,9 +12,9 @@ trait SignatureAPI[A, PubK[_], PrivK[_]] {
     S.sign(unsigned, secretKey)
 
   def verify[F[_]: Functor](
-    raw: Array[Byte],
-    signature: CryptoSignature[A],
-    publicKey: PubK[A]
+      raw: Array[Byte],
+      signature: CryptoSignature[A],
+      publicKey: PubK[A]
   )(implicit S: Signer[F, A, PubK, PrivK]): F[VerificationStatus] =
     S.verify(raw, signature, publicKey)
 

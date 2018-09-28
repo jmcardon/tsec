@@ -13,7 +13,6 @@ package object libsodium {
 
   final class PWStrengthParam[PTyp, Str](val opLimit: Int, val memLimit: Int)
 
-
   object PasswordStrength {
     object MinStrength
     object InteractiveStrength

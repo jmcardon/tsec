@@ -13,8 +13,8 @@ object MacExamples {
   val toMac: Array[Byte] = "hi!".utf8Bytes
 
   val `mac'd`: Either[Throwable, Boolean] = for {
-    key      <- HMACSHA256.generateKey[MacErrorM]   //Generate our key.
-    macValue <- HMACSHA256.sign[ET](toMac, key)             //Generate our MAC bytes
+    key      <- HMACSHA256.generateKey[MacErrorM]               //Generate our key.
+    macValue <- HMACSHA256.sign[ET](toMac, key)                 //Generate our MAC bytes
     verified <- HMACSHA256.verifyBool[ET](toMac, macValue, key) //Verify a byte array with a signed, typed instance
   } yield verified
 
@@ -24,8 +24,8 @@ object MacExamples {
   /** For Interpretation into any F */
   def `mac'd-pure`[F[_]: Sync]: F[Boolean] =
     for {
-      key      <- HMACSHA256.generateKey[F]                 //Generate our key.
-      macValue <- HMACSHA256.sign[F](toMac, key)             //Generate our MAC bytes
+      key      <- HMACSHA256.generateKey[F]                      //Generate our key.
+      macValue <- HMACSHA256.sign[F](toMac, key)                 //Generate our MAC bytes
       verified <- HMACSHA256.verifyBool[F](toMac, macValue, key) //Verify a byte array with a signed, typed instance
     } yield verified
 

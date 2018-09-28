@@ -51,13 +51,13 @@ class SignatureTests extends TestSpec with MustMatchers {
     it should "verify with RSA key generated from modulus and public exponent" in {
       val expression: IO[Boolean] = for {
         keyPair <- ecKFTag.generateKeyPair
-        publicKey1 = keyPair.publicKey
-        modulus = publicKey1.asInstanceOf[RSAPublicKey].getModulus
+        publicKey1     = keyPair.publicKey
+        modulus        = publicKey1.asInstanceOf[RSAPublicKey].getModulus
         publicExponent = publicKey1.asInstanceOf[RSAPublicKey].getPublicExponent
         publicKey2 <- ecKFTag.buildPublicKeyFromParameters(modulus, publicExponent)
-        signed   <- interp.sign(toSign, keyPair.privateKey)
-        verified1 <- interp.verifyBool(toSign, signed, publicKey1)
-        verified2 <- interp.verifyBool(toSign, signed, publicKey2)
+        signed     <- interp.sign(toSign, keyPair.privateKey)
+        verified1  <- interp.verifyBool(toSign, signed, publicKey1)
+        verified2  <- interp.verifyBool(toSign, signed, publicKey2)
       } yield verified1 && verified2
 
       expression.unsafeRunSync() mustBe true
@@ -73,18 +73,17 @@ class SignatureTests extends TestSpec with MustMatchers {
     it should "verify with EC key generated from public point" in {
       val expression: IO[Boolean] = for {
         keyPair <- ecKFTag.generateKeyPair
-        publicKey1 = keyPair.publicKey
+        publicKey1  = keyPair.publicKey
         publicPoint = publicKey1.asInstanceOf[ECPublicKey].getW
         publicKey2 <- ecKFTag.buildPublicKeyFromPoints(publicPoint.getAffineX, publicPoint.getAffineY)
-        signed   <- interp.sign(toSign, keyPair.privateKey)
-        verified1 <- interp.verifyBool(toSign, signed, publicKey1)
-        verified2 <- interp.verifyBool(toSign, signed, publicKey2)
+        signed     <- interp.sign(toSign, keyPair.privateKey)
+        verified1  <- interp.verifyBool(toSign, signed, publicKey1)
+        verified2  <- interp.verifyBool(toSign, signed, publicKey2)
       } yield verified1 && verified2
 
       expression.unsafeRunSync() mustBe true
     }
   }
-
 
   sigIOTests[SHA1withDSA]
   sigIOTests[SHA224withDSA]

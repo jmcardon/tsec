@@ -8,7 +8,7 @@ import tsec.keygen.asymmetric.{AsymmetricKeyGen, AsymmetricKeyGenAPI}
   *
   * @tparam A the signature type
   */
-trait KFTag[A] extends AsymmetricKeyGenAPI[A, SigPublicKey, SigPrivateKey, SigKeyPair]{
+trait KFTag[A] extends AsymmetricKeyGenAPI[A, SigPublicKey, SigPrivateKey, SigKeyPair] {
   private[tsec] def keyFactoryAlgo: String
 }
 

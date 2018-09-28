@@ -49,7 +49,8 @@ class AuthHeaderSpec extends FlatSpec {
           )
         )
       )
-      .toOption.get
+      .toOption
+      .get
     result.token should be("access_token_value")
     result.params("algorithm") should be("hmac-sha256")
     result.params("nonce") should be("s8djwd")
@@ -66,7 +67,8 @@ class AuthHeaderSpec extends FlatSpec {
           )
         )
       )
-      .toOption.get
+      .toOption
+      .get
     result.token should be("access_token_value")
     result.params("algorithm") should be("hmac-sha256")
     result.params("nonce") should be("s8djwd")
@@ -75,12 +77,13 @@ class AuthHeaderSpec extends FlatSpec {
   }
 
   it should "fetch illegal parameter then throws exception" in {
-    AuthHeader.fetch(createRequest(None)) shouldBe(Left(InvalidRequest("Missing authorization header")))
-    AuthHeader.fetch(createRequest(Some("evil"))) shouldBe(Left(InvalidRequest("invalid Authorization header")))
+    AuthHeader.fetch(createRequest(None)) shouldBe (Left(InvalidRequest("Missing authorization header")))
+    AuthHeader.fetch(createRequest(Some("evil"))) shouldBe (Left(InvalidRequest("invalid Authorization header")))
   }
 
   it should "fetch by case insensitive" in {
-    val result = AuthHeader.fetch(new ProtectedResourceRequest(Map("authorization" -> Seq("OAuth token1")), Map())).toOption.get
+    val result =
+      AuthHeader.fetch(new ProtectedResourceRequest(Map("authorization" -> Seq("OAuth token1")), Map())).toOption.get
     result.token should be("token1")
   }
 
