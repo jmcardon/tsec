@@ -7,7 +7,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import cats.syntax.all._
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{Cookie, HttpService, Request, Response, Status}
+import org.http4s.{HttpRoutes, Request, Response, ResponseCookie, Status}
 import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
 import tsec.common._
 import tsec.mac.jca.{JCAMessageAuth, _}
@@ -83,7 +83,7 @@ final class TSecCSRF[F[_], A] private[tsec] (
         OptionT.none
     }
 
-  private[tsec] def validateOrEmbed(request: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
+  private[tsec] def validateOrEmbed(request: Request[F], service: HttpRoutes[F]): OptionT[F, Response[F]] =
     unliftedCookieFromRequest[F](cookieName, request) match {
       case Some(c) =>
         OptionT.liftF(
@@ -91,14 +91,14 @@ final class TSecCSRF[F[_], A] private[tsec] (
             raw      <- extractRaw(CSRFToken(c.content))
             response <- service(request)
             newToken <- OptionT.liftF(signToken(raw))
-          } yield response.addCookie(Cookie(name = cookieName, content = newToken)))
+          } yield response.addCookie(ResponseCookie(name = cookieName, content = newToken)))
             .getOrElse(Response[F](Status.Unauthorized))
         )
       case None =>
         service(request).semiflatMap(embedNew)
     }
 
-  private[tsec] def checkCSRF(r: Request[F], service: HttpService[F]): F[Response[F]] =
+  private[tsec] def checkCSRF(r: Request[F], service: HttpRoutes[F]): F[Response[F]] =
     (for {
       c1       <- cookieFromRequest[F](cookieName, r)
       c2       <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)).map(_.value))
@@ -106,10 +106,10 @@ final class TSecCSRF[F[_], A] private[tsec] (
       raw2     <- extractRaw(CSRFToken(c2))
       res      <- if (isEqual(raw1, raw2)) service(r) else OptionT.none
       newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-    } yield res.addCookie(Cookie(name = cookieName, content = newToken)))
+    } yield res.addCookie(ResponseCookie(name = cookieName, content = newToken)))
       .getOrElse(Response[F](Status.Unauthorized))
 
-  def filter(predicate: Request[F] => Boolean, request: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
+  def filter(predicate: Request[F] => Boolean, request: Request[F], service: HttpRoutes[F]): OptionT[F, Response[F]] =
     if (predicate(request))
       validateOrEmbed(request, service)
     else
@@ -130,7 +130,7 @@ final class TSecCSRF[F[_], A] private[tsec] (
   def withNewToken: CSRFMiddleware[F] = _.andThen(r => OptionT.liftF(embedNew(r)))
 
   def embedNew(response: Response[F]): F[Response[F]] =
-    generateToken.map(t => response.addCookie(Cookie(name = cookieName, content = t)))
+    generateToken.map(t => response.addCookie(ResponseCookie(name = cookieName, content = t)))
 
 }
 

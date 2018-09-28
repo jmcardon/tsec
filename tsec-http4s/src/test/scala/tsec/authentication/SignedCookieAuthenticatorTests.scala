@@ -4,7 +4,7 @@ import java.time.Instant
 import java.util.UUID
 
 import cats.effect.IO
-import org.http4s.Request
+import org.http4s.{Request, RequestCookie}
 import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.MessageAuth
 import tsec.mac.jca._
@@ -30,8 +30,10 @@ class SignedCookieAuthenticatorTests extends RequestAuthenticatorSpec {
     )
     new AuthSpecTester[AuthenticatedCookie[A, Int]](authenticator, dummyStore) {
 
-      def embedInRequest(request: Request[IO], authenticator: AuthenticatedCookie[A, Int]): Request[IO] =
-        request.addCookie(authenticator.toCookie)
+      def embedInRequest(request: Request[IO], authenticator: AuthenticatedCookie[A, Int]): Request[IO] = {
+        val cookie = authenticator.toCookie
+        request.addCookie(RequestCookie(cookie.name, cookie.content))
+      }
 
       def expireAuthenticator(b: AuthenticatedCookie[A, Int]): IO[AuthenticatedCookie[A, Int]] = {
         val now     = Instant.now()

@@ -1,5 +1,6 @@
 package tsec.authentication
 
+import cats.ApplicativeError
 import cats.data.OptionT
 import cats.effect.IO
 import cats.{Eq, MonadError}
@@ -102,7 +103,9 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     def dAll(): Unit = storageMap.clear()
   }
 
-  def AuthenticatorTest[A](title: String, authSpec: AuthSpecTester[A]) = {
+  def AuthenticatorTest[A](title: String, authSpec: AuthSpecTester[A])(
+      implicit AE: ApplicativeError[OptionT[IO, ?], Throwable]
+  ) = {
     behavior of title
 
     it should "Create, embed and extract properly" in {
@@ -113,7 +116,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           fromRequest <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
           _           <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield fromRequest)
-          .handleErrorWith(_ => OptionT.none)
+          .handleErrorWith((_: Throwable) => OptionT.none)
           .value
 
         val extracted = results.unsafeRunSync()

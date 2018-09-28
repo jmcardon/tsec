@@ -73,7 +73,7 @@ final case class AuthEncryptedCookie[A, Id](
     extension: Option[String] = None
 ) {
 
-  def toCookie = Cookie(
+  def toCookie = ResponseCookie(
     name,
     content,
     Some(HttpDate.unsafeFromInstant(expiry)),
@@ -121,7 +121,7 @@ object AuthEncryptedCookie {
   def build[A, Id](
       internal: Internal[Id],
       content: AEADCookie[A],
-      c: Cookie
+      c: ResponseCookie
   ): AuthEncryptedCookie[A, Id] =
     AuthEncryptedCookie[A, Id](
       internal.id,
@@ -391,10 +391,11 @@ object EncryptedCookieAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          coerced = AEADCookie[A](rawCookie.content)
+          response = ResponseCookie(rawCookie.name, rawCookie.content)
+          coerced  = AEADCookie[A](response.content)
           contentRaw <- OptionT.liftF(AEADCookieEncryptor.retrieveFromSigned[F, A](coerced, key))
           internal   <- OptionT.liftF(F.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
-          authed = AuthEncryptedCookie.build[A, I](internal, coerced, rawCookie)
+          authed = AuthEncryptedCookie.build[A, I](internal, coerced, response)
           refreshed <- validateAndRefresh(authed, now)
           identity  <- identityStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed))

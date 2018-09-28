@@ -249,10 +249,10 @@ package object authentication {
       maxIdle: Option[FiniteDuration]
   )
 
-  def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, Cookie] =
+  def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, RequestCookie] =
     OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))
 
-  def unliftedCookieFromRequest[F[_]](name: String, request: Request[F]): Option[Cookie] =
+  def unliftedCookieFromRequest[F[_]](name: String, request: Request[F]): Option[RequestCookie] =
     C.from(request.headers).flatMap(_.values.find(_.name === name))
 
   def extractBearerToken[F[_]: Monad](request: Request[F]): Option[String] =

@@ -12,12 +12,12 @@ object csrfExample {
   val newKey   = HMACSHA256.generateKey[Id]
   val tsecCSRF = TSecCSRF[IO, HMACSHA256](newKey)
 
-  val dummyService: HttpService[IO] = tsecCSRF.withNewToken(HttpService[IO] {
+  val dummyService: HttpRoutes[IO] = tsecCSRF.withNewToken(HttpRoutes.of[IO] {
     case GET -> Root =>
       Ok()
   }) // This endpoint now provides a user with a new csrf token.
 
-  val dummyService2: HttpService[IO] = tsecCSRF.validate()(HttpService[IO] {
+  val dummyService2: HttpRoutes[IO] = tsecCSRF.validate()(HttpRoutes.of[IO] {
     case GET -> Root / "hi" =>
       Ok()
   }) //This endpoint is csrf checked

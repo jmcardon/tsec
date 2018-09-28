@@ -1,5 +1,6 @@
 package tsec.authentication
 
+import cats.ApplicativeError
 import cats.MonadError
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
@@ -9,20 +10,20 @@ import tsec.authorization._
 
 sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
     val authenticator: Authenticator[F, Identity, User, Auth]
-)(implicit F: MonadError[F, Throwable]) {
+)(implicit F: MonadError[F, Throwable], AE: ApplicativeError[Kleisli[OptionT[F, ?], Request[F], ?], Throwable]) {
 
   private[this] val cachedUnauthorized: Response[F]                       = Response[F](Status.Unauthorized)
   private[this] val defaultNotAuthenticated: Request[F] => F[Response[F]] = _ => F.pure(cachedUnauthorized)
 
-  /** Lift an Authenticated Service into an HttpService **/
+  /** Lift an Authenticated Service into an HttpRoutes **/
   def liftService(
       service: TSecAuthService[User, Auth, F],
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-  ): HttpService[F] = {
-    val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
+  ): HttpRoutes[F] = {
+    val middleware = TSecMiddleware[F, User, Auth](Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
 
     middleware(service)
-      .handleErrorWith { e =>
+      .handleErrorWith { e: Throwable =>
         SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
         Kleisli.liftF(OptionT.pure(cachedUnauthorized))
       }
@@ -31,11 +32,11 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
   def liftWithFallthrough(
       service: TSecAuthService[User, Auth, F],
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
-  ): HttpService[F] = {
+  ): HttpRoutes[F] = {
     val middleware = TSecMiddleware.withFallthrough(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
 
     middleware(service)
-      .handleErrorWith { e =>
+      .handleErrorWith { e: Throwable =>
         SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
         Kleisli.liftF(OptionT.pure(cachedUnauthorized))
       }
@@ -43,11 +44,11 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
 
   def liftUserAware(
       service: UserAwareService[User, Auth, F]
-  ): HttpService[F] = {
+  ): HttpRoutes[F] = {
     val middleware = UserAwareService.extract(Kleisli(authenticator.extractAndValidate))
 
     middleware(service)
-      .handleErrorWith { e =>
+      .handleErrorWith { e: Throwable =>
         SecuredRequestHandler.logger.error(e)("Caught unhandled exception in authenticated service")
         Kleisli.liftF(OptionT.pure(cachedUnauthorized))
       }

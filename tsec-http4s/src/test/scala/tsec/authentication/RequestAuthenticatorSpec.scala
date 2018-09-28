@@ -27,22 +27,22 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     val onlyAdmins = BasicRBAC[IO, DummyRole, DummyUser, A](DummyRole.Admin)
     val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser, A]
 
-    val testService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
+    val testService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     })
 
-    val adminService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(onlyAdmins) {
+    val adminService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(onlyAdmins) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     })
 
-    val everyoneService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(everyone) {
+    val everyoneService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(everyone) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     })
 
-    val insaneService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
+    val insaneService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         IO.raiseError(new IllegalArgumentException)
     })
@@ -63,7 +63,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         }
     }
 
-    val liftedUserAware: HttpService[IO] = requestAuth.liftUserAware(userAwareService)
+    val liftedUserAware: HttpRoutes[IO] = requestAuth.liftUserAware(userAwareService)
 
     it should "TryExtractRaw properly" in {
 
@@ -261,22 +261,22 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
     val onlyAdmins = BasicRBAC[IO, DummyRole, DummyUser, A](DummyRole.Admin)
     val everyone   = BasicRBAC.all[IO, DummyRole, DummyUser, A]
 
-    val testService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
+    val testService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     })
 
-    val adminService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(onlyAdmins) {
+    val adminService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(onlyAdmins) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     })
 
-    val everyoneService: HttpService[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(everyone) {
+    val everyoneService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService.withAuthorization(everyone) {
       case request @ GET -> Root / "api" asAuthed hi =>
         Ok(hi.asJson)
     })
 
-    val insaneService: HttpService[IO] = requestAuth.liftService(TSecAuthService {
+    val insaneService: HttpRoutes[IO] = requestAuth.liftService(TSecAuthService {
       case request @ GET -> Root / "api" asAuthed hi =>
         IO.raiseError(new IllegalArgumentException)
     })
@@ -297,7 +297,7 @@ class RequestAuthenticatorSpec extends AuthenticatorSpec {
         }
     }
 
-    val liftedUserAware: HttpService[IO] = requestAuth.liftUserAware(userAwareService)
+    val liftedUserAware: HttpRoutes[IO] = requestAuth.liftUserAware(userAwareService)
 
     it should "TryExtractRaw properly" in {
 
