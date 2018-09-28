@@ -122,7 +122,7 @@ lazy val commonSettings = Seq(
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7"),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
-  version in ThisBuild := "0.0.1-M11",
+  version in ThisBuild := "0.1.0",
   scalacOpts
 )
 
