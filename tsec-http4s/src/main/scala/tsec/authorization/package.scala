@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 package object authorization {
 
   type AuthGroup[G] = AuthGroup.Type[G]
-  
+
   object AuthGroup {
     type Type[A] <: Array[A]
 
@@ -23,7 +23,7 @@ package object authorization {
     }
     def fromSeq[G: ClassTag](seq: Seq[G]): AuthGroup[G]       = unsafeApply[G](seq.distinct.toArray)
     def unsafeFromSeq[G: ClassTag](seq: Seq[G]): AuthGroup[G] = unsafeApply(seq.toArray)
-    def empty[G: ClassTag]: AuthGroup[G]           = unsafeApply[G](Array.empty[G])
+    def empty[G: ClassTag]: AuthGroup[G]                      = unsafeApply[G](Array.empty[G])
   }
 
   /** A simple typeclass that allows us to propagate information that is required for authorization */

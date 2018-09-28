@@ -4,7 +4,7 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.libsodium._
 import tsec.libsodium.ScalaSodium
 
-trait SodiumAuthCipher[A]  {
+trait SodiumAuthCipher[A] {
   val nonceLen: Int
   val macLen: Int
 
@@ -22,7 +22,7 @@ trait SodiumAuthCipher[A]  {
     * @return 0 if successful, any other number means unsuccessful
     */
   private[tsec] def sodiumEncrypt(cout: Array[Byte], pt: PlainText, nonce: Array[Byte], key: SodiumKey[A])(
-    implicit S: ScalaSodium
+      implicit S: ScalaSodium
   ): Int
 
   /** Decrypt the ciphertext, in an api-compatible way with libsodium authenticated encryption
@@ -33,7 +33,7 @@ trait SodiumAuthCipher[A]  {
     * @return 0 if successful, any other number indicates unsuccessful
     */
   private[tsec] def sodiumDecrypt(origOut: Array[Byte], ct: CipherText[A], key: SodiumKey[A])(
-    implicit S: ScalaSodium
+      implicit S: ScalaSodium
   ): Int
 
   /** Encrypt the plaintext using the nonce (in other words initialization vector)
@@ -48,11 +48,11 @@ trait SodiumAuthCipher[A]  {
     * @return 0 if successful, any other number means unsuccessful
     */
   private[tsec] def sodiumEncryptDetached(
-    cout: Array[Byte],
-    tagOut: Array[Byte],
-    pt: PlainText,
-    nonce: Array[Byte],
-    key: SodiumKey[A]
+      cout: Array[Byte],
+      tagOut: Array[Byte],
+      pt: PlainText,
+      nonce: Array[Byte],
+      key: SodiumKey[A]
   )(implicit S: ScalaSodium): Int
 
   /** Decrypt the ciphertext, in an api-compatible way with libsodium authenticated encryption
@@ -63,10 +63,10 @@ trait SodiumAuthCipher[A]  {
     * @return 0 if successful, any other number indicates unsuccessful
     */
   private[tsec] def sodiumDecryptDetached(
-    origOut: Array[Byte],
-    ct: CipherText[A],
-    tagIn: AuthTag[A],
-    key: SodiumKey[A]
+      origOut: Array[Byte],
+      ct: CipherText[A],
+      tagIn: AuthTag[A],
+      key: SodiumKey[A]
   )(implicit S: ScalaSodium): Int
 
 }

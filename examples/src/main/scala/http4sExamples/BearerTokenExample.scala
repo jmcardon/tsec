@@ -54,6 +54,6 @@ object BearerTokenExample {
       Ok()
   }
 
-  val lifted: HttpService[IO] = Auth.liftService(authService1)
+  val lifted: HttpService[IO]         = Auth.liftService(authService1)
   val liftedComposed: HttpService[IO] = Auth.liftService(authService1 <+> authedService2)
 }

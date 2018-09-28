@@ -33,7 +33,7 @@ class RefreshTokenGrantHandlerSpec extends FlatSpec with OptionValues {
 
       override def refreshAccessToken(authInfo: AuthInfo[MockUser], refreshToken: String): IO[AccessToken] =
         IO.pure(AccessToken("token1", Some(refreshToken), None, Some(3600 seconds), Instant.now()))
-      override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] = ???
+      override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken]            = ???
       override def getStoredAccessToken(authInfo: AuthInfo[MockUser]): IO[Option[AccessToken]] = ???
     }
     val handler = new RefreshTokenGrantHandler[IO, MockUser](dataHandler)

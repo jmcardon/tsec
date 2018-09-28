@@ -45,6 +45,6 @@ class RequestParameterSpec extends FlatSpec {
   }
 
   it should "fetch illegal parameter then throws exception" in {
-    RequestParameter.fetch(createRequest(None, None)) shouldBe(Left(InvalidRequest("missing access token")))
+    RequestParameter.fetch(createRequest(None, None)) shouldBe (Left(InvalidRequest("missing access token")))
   }
 }

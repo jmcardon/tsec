@@ -6,8 +6,8 @@ import cats.Applicative
 import fs2.{Chunk, Pipe, Stream}
 import tsec.hashing.{CryptoHash, CryptoHasher}
 
-final class BouncyHasher[F[_], A] private[bouncy](val algorithm: String)(
-  implicit F: Applicative[F]
+final class BouncyHasher[F[_], A] private[bouncy] (val algorithm: String)(
+    implicit F: Applicative[F]
 ) extends CryptoHasher[F, A] {
 
   private def genInstance = MessageDigest.getInstance(algorithm, "BC")
@@ -30,6 +30,5 @@ final class BouncyHasher[F[_], A] private[bouncy](val algorithm: String)(
           .flatMap { d =>
             Stream.chunk(Chunk.bytes(d.digest()))
           }
-      }
+    }
 }
-

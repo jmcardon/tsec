@@ -5,15 +5,15 @@
 package tsec.jni
 abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_aead_aes256gcm_decrypt(
-    m: Array[Byte],
-    mlen_p: Array[Int],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_aes256gcm_decrypt(
       m,
@@ -27,15 +27,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_aes256gcm_decrypt_detached(
-    m: Array[Byte],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    mac: Array[Byte],
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      mac: Array[Byte],
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_aes256gcm_decrypt_detached(
       m,
@@ -49,15 +49,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_aes256gcm_encrypt(
-    c: Array[Byte],
-    clen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_aes256gcm_encrypt(
       c,
@@ -71,16 +71,16 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_aes256gcm_encrypt_detached(
-    c: Array[Byte],
-    mac: Array[Byte],
-    maclen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      mac: Array[Byte],
+      maclen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_aes256gcm_encrypt_detached(
       c,
@@ -95,15 +95,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_decrypt(
-    m: Array[Byte],
-    mlen_p: Array[Int],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_decrypt(
       m,
@@ -117,15 +117,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_decrypt_detached(
-    m: Array[Byte],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    mac: Array[Byte],
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      mac: Array[Byte],
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_decrypt_detached(
       m,
@@ -139,15 +139,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_encrypt(
-    c: Array[Byte],
-    clen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_encrypt(
       c,
@@ -161,16 +161,16 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_encrypt_detached(
-    c: Array[Byte],
-    mac: Array[Byte],
-    maclen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      mac: Array[Byte],
+      maclen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_encrypt_detached(
       c,
@@ -185,15 +185,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_ietf_decrypt(
-    m: Array[Byte],
-    mlen_p: Array[Int],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_ietf_decrypt(
       m,
@@ -207,15 +207,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_ietf_decrypt_detached(
-    m: Array[Byte],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    mac: Array[Byte],
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      mac: Array[Byte],
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
       m,
@@ -229,15 +229,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_ietf_encrypt(
-    c: Array[Byte],
-    clen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_ietf_encrypt(
       c,
@@ -251,16 +251,16 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_chacha20poly1305_ietf_encrypt_detached(
-    c: Array[Byte],
-    mac: Array[Byte],
-    maclen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      mac: Array[Byte],
+      maclen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_chacha20poly1305_ietf_encrypt_detached(
       c,
@@ -275,15 +275,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_xchacha20poly1305_ietf_decrypt(
-    m: Array[Byte],
-    mlen_p: Array[Int],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_xchacha20poly1305_ietf_decrypt(
       m,
@@ -297,15 +297,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
-    m: Array[Byte],
-    nsec: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    mac: Array[Byte],
-    ad: Array[Byte],
-    adlen: Int,
-    npub: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      nsec: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      mac: Array[Byte],
+      ad: Array[Byte],
+      adlen: Int,
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
       m,
@@ -319,15 +319,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_xchacha20poly1305_ietf_encrypt(
-    c: Array[Byte],
-    clen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_xchacha20poly1305_ietf_encrypt(
       c,
@@ -341,16 +341,16 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
-    c: Array[Byte],
-    mac: Array[Byte],
-    maclen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    nsec: Array[Byte],
-    npub: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      mac: Array[Byte],
+      maclen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      nsec: Array[Byte],
+      npub: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
       c,
@@ -365,124 +365,124 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_auth(
-    dst_mac: Array[Byte],
-    src_input: Array[Byte],
-    input_len: Int,
-    src_key: Array[Byte]
-  ): Int = SodiumJNI.crypto_auth(dst_mac, src_input, input_len, src_key)
+      dst_mac: Array[Byte],
+      src_input: Array[Byte],
+      input_len: Int,
+      src_key: Array[Byte]
+  ): Int                             = SodiumJNI.crypto_auth(dst_mac, src_input, input_len, src_key)
   final def crypto_auth_bytes(): Int = SodiumJNI.crypto_auth_bytes()
   final def crypto_auth_hmacsha256(
-    out: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha256(out, in, inlen, k)
   final def crypto_auth_hmacsha256_bytes(): Int =
     SodiumJNI.crypto_auth_hmacsha256_bytes()
   final def crypto_auth_hmacsha256_final(
-    state: Array[Byte],
-    out: Array[Byte]
+      state: Array[Byte],
+      out: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha256_final(state, out)
   final def crypto_auth_hmacsha256_init(
-    state: Array[Byte],
-    key: Array[Byte],
-    keylen: Int
+      state: Array[Byte],
+      key: Array[Byte],
+      keylen: Int
   ): Int = SodiumJNI.crypto_auth_hmacsha256_init(state, key, keylen)
   final def crypto_auth_hmacsha256_keybytes(): Int =
     SodiumJNI.crypto_auth_hmacsha256_keybytes()
   final def crypto_auth_hmacsha256_statebytes(): Int =
     SodiumJNI.crypto_auth_hmacsha256_statebytes()
   final def crypto_auth_hmacsha256_update(
-    state: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      state: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_auth_hmacsha256_update(state, in, inlen)
   final def crypto_auth_hmacsha256_verify(
-    h: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      h: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha256_verify(h, in, inlen, k)
   final def crypto_auth_hmacsha512(
-    out: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha512(out, in, inlen, k)
   final def crypto_auth_hmacsha512256(
-    out: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha512256(out, in, inlen, k)
   final def crypto_auth_hmacsha512256_bytes(): Int =
     SodiumJNI.crypto_auth_hmacsha512256_bytes()
   final def crypto_auth_hmacsha512256_final(
-    state: Array[Byte],
-    out: Array[Byte]
+      state: Array[Byte],
+      out: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha512256_final(state, out)
   final def crypto_auth_hmacsha512256_init(
-    state: Array[Byte],
-    key: Array[Byte],
-    keylen: Int
+      state: Array[Byte],
+      key: Array[Byte],
+      keylen: Int
   ): Int = SodiumJNI.crypto_auth_hmacsha512256_init(state, key, keylen)
   final def crypto_auth_hmacsha512256_keybytes(): Int =
     SodiumJNI.crypto_auth_hmacsha512256_keybytes()
   final def crypto_auth_hmacsha512256_statebytes(): Int =
     SodiumJNI.crypto_auth_hmacsha512256_statebytes()
   final def crypto_auth_hmacsha512256_update(
-    state: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      state: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_auth_hmacsha512256_update(state, in, inlen)
   final def crypto_auth_hmacsha512256_verify(
-    h: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      h: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha512256_verify(h, in, inlen, k)
   final def crypto_auth_hmacsha512_bytes(): Int =
     SodiumJNI.crypto_auth_hmacsha512_bytes()
   final def crypto_auth_hmacsha512_final(
-    state: Array[Byte],
-    out: Array[Byte]
+      state: Array[Byte],
+      out: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_hmacsha512_final(state, out)
   final def crypto_auth_hmacsha512_init(
-    state: Array[Byte],
-    key: Array[Byte],
-    keylen: Int
+      state: Array[Byte],
+      key: Array[Byte],
+      keylen: Int
   ): Int = SodiumJNI.crypto_auth_hmacsha512_init(state, key, keylen)
   final def crypto_auth_hmacsha512_keybytes(): Int =
     SodiumJNI.crypto_auth_hmacsha512_keybytes()
   final def crypto_auth_hmacsha512_statebytes(): Int =
     SodiumJNI.crypto_auth_hmacsha512_statebytes()
   final def crypto_auth_hmacsha512_update(
-    state: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      state: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_auth_hmacsha512_update(state, in, inlen)
   final def crypto_auth_hmacsha512_verify(
-    h: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
-  ): Int = SodiumJNI.crypto_auth_hmacsha512_verify(h, in, inlen, k)
+      h: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
+  ): Int                                = SodiumJNI.crypto_auth_hmacsha512_verify(h, in, inlen, k)
   final def crypto_auth_keybytes(): Int = SodiumJNI.crypto_auth_keybytes()
   final def crypto_auth_primitive(): Array[Byte] =
     SodiumJNI.crypto_auth_primitive()
   final def crypto_auth_verify(
-    src_mac: Array[Byte],
-    src_input: Array[Byte],
-    input_len: Int,
-    src_key: Array[Byte]
+      src_mac: Array[Byte],
+      src_input: Array[Byte],
+      input_len: Int,
+      src_key: Array[Byte]
   ): Int = SodiumJNI.crypto_auth_verify(src_mac, src_input, input_len, src_key)
   final def crypto_box(
-    dst_cipher: Array[Byte],
-    src_msg: Array[Byte],
-    msg_len: Int,
-    src_nonce: Array[Byte],
-    src_pub: Array[Byte],
-    src_secret: Array[Byte]
+      dst_cipher: Array[Byte],
+      src_msg: Array[Byte],
+      msg_len: Int,
+      src_nonce: Array[Byte],
+      src_pub: Array[Byte],
+      src_secret: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box(
       dst_cipher,
@@ -493,11 +493,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       src_secret
     )
   final def crypto_box_afternm(
-    dst_cipher: Array[Byte],
-    src_msg: Array[Byte],
-    msg_len: Int,
-    src_nonce: Array[Byte],
-    src_key: Array[Byte]
+      dst_cipher: Array[Byte],
+      src_msg: Array[Byte],
+      msg_len: Int,
+      src_nonce: Array[Byte],
+      src_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_afternm(
       dst_cipher,
@@ -507,9 +507,9 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       src_key
     )
   final def crypto_box_beforenm(
-    dst_shared_key: Array[Byte],
-    remote_public_key: Array[Byte],
-    local_private_key: Array[Byte]
+      dst_shared_key: Array[Byte],
+      remote_public_key: Array[Byte],
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_beforenm(
       dst_shared_key,
@@ -520,54 +520,54 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
     SodiumJNI.crypto_box_beforenmbytes()
   final def crypto_box_boxzerobytes(): Int = SodiumJNI.crypto_box_boxzerobytes()
   final def crypto_box_curve25519xsalsa20poly1305(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    pk: Array[Byte],
-    sk: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      pk: Array[Byte],
+      sk: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305(c, m, mlen, n, pk, sk)
   final def crypto_box_curve25519xsalsa20poly1305_afternm(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_afternm(c, m, mlen, n, k)
   final def crypto_box_curve25519xsalsa20poly1305_beforenm(
-    k: Array[Byte],
-    pk: Array[Byte],
-    sk: Array[Byte]
+      k: Array[Byte],
+      pk: Array[Byte],
+      sk: Array[Byte]
   ): Int = SodiumJNI.crypto_box_curve25519xsalsa20poly1305_beforenm(k, pk, sk)
   final def crypto_box_curve25519xsalsa20poly1305_beforenmbytes(): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_beforenmbytes()
   final def crypto_box_curve25519xsalsa20poly1305_boxzerobytes(): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_boxzerobytes()
   final def crypto_box_curve25519xsalsa20poly1305_keypair(
-    pk: Array[Byte],
-    sk: Array[Byte]
+      pk: Array[Byte],
+      sk: Array[Byte]
   ): Int = SodiumJNI.crypto_box_curve25519xsalsa20poly1305_keypair(pk, sk)
   final def crypto_box_curve25519xsalsa20poly1305_macbytes(): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_macbytes()
   final def crypto_box_curve25519xsalsa20poly1305_noncebytes(): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_noncebytes()
   final def crypto_box_curve25519xsalsa20poly1305_open(
-    m: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    pk: Array[Byte],
-    sk: Array[Byte]
+      m: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      pk: Array[Byte],
+      sk: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_open(m, c, clen, n, pk, sk)
   final def crypto_box_curve25519xsalsa20poly1305_open_afternm(
-    m: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_open_afternm(
       m,
@@ -581,9 +581,9 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_box_curve25519xsalsa20poly1305_secretkeybytes(): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_secretkeybytes()
   final def crypto_box_curve25519xsalsa20poly1305_seed_keypair(
-    pk: Array[Byte],
-    sk: Array[Byte],
-    seed: Array[Byte]
+      pk: Array[Byte],
+      sk: Array[Byte],
+      seed: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_seed_keypair(pk, sk, seed)
   final def crypto_box_curve25519xsalsa20poly1305_seedbytes(): Int =
@@ -591,13 +591,13 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_box_curve25519xsalsa20poly1305_zerobytes(): Int =
     SodiumJNI.crypto_box_curve25519xsalsa20poly1305_zerobytes()
   final def crypto_box_detached(
-    dst_cipher: Array[Byte],
-    dst_mac: Array[Byte],
-    src_plain: Array[Byte],
-    plain_len: Int,
-    nonces: Array[Byte],
-    remote_public_key: Array[Byte],
-    local_private_key: Array[Byte]
+      dst_cipher: Array[Byte],
+      dst_mac: Array[Byte],
+      src_plain: Array[Byte],
+      plain_len: Int,
+      nonces: Array[Byte],
+      remote_public_key: Array[Byte],
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_detached(
       dst_cipher,
@@ -609,12 +609,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       local_private_key
     )
   final def crypto_box_detached_afternm(
-    dst_cipher: Array[Byte],
-    dst_mac: Array[Byte],
-    src_plain: Array[Byte],
-    plain_len: Int,
-    nonce: Array[Byte],
-    shared_key: Array[Byte]
+      dst_cipher: Array[Byte],
+      dst_mac: Array[Byte],
+      src_plain: Array[Byte],
+      plain_len: Int,
+      nonce: Array[Byte],
+      shared_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_detached_afternm(
       dst_cipher,
@@ -625,12 +625,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       shared_key
     )
   final def crypto_box_easy(
-    dst_cipher: Array[Byte],
-    src_plain: Array[Byte],
-    plain_len: Int,
-    nonce: Array[Byte],
-    remote_public_key: Array[Byte],
-    local_private_key: Array[Byte]
+      dst_cipher: Array[Byte],
+      src_plain: Array[Byte],
+      plain_len: Int,
+      nonce: Array[Byte],
+      remote_public_key: Array[Byte],
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_easy(
       dst_cipher,
@@ -641,11 +641,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       local_private_key
     )
   final def crypto_box_easy_afternm(
-    dst_cipher: Array[Byte],
-    src_plain: Array[Byte],
-    plain_len: Int,
-    nonce: Array[Byte],
-    shared_key: Array[Byte]
+      dst_cipher: Array[Byte],
+      src_plain: Array[Byte],
+      plain_len: Int,
+      nonce: Array[Byte],
+      shared_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_easy_afternm(
       dst_cipher,
@@ -655,18 +655,18 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       shared_key
     )
   final def crypto_box_keypair(
-    dst_public_Key: Array[Byte],
-    dst_private_key: Array[Byte]
-  ): Int = SodiumJNI.crypto_box_keypair(dst_public_Key, dst_private_key)
-  final def crypto_box_macbytes(): Int = SodiumJNI.crypto_box_macbytes()
+      dst_public_Key: Array[Byte],
+      dst_private_key: Array[Byte]
+  ): Int                                 = SodiumJNI.crypto_box_keypair(dst_public_Key, dst_private_key)
+  final def crypto_box_macbytes(): Int   = SodiumJNI.crypto_box_macbytes()
   final def crypto_box_noncebytes(): Int = SodiumJNI.crypto_box_noncebytes()
   final def crypto_box_open(
-    dst_msg: Array[Byte],
-    src_cipher: Array[Byte],
-    cipher_len: Int,
-    src_nonce: Array[Byte],
-    src_pub: Array[Byte],
-    src_secret: Array[Byte]
+      dst_msg: Array[Byte],
+      src_cipher: Array[Byte],
+      cipher_len: Int,
+      src_nonce: Array[Byte],
+      src_pub: Array[Byte],
+      src_secret: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_open(
       dst_msg,
@@ -677,11 +677,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       src_secret
     )
   final def crypto_box_open_afternm(
-    dst_msg: Array[Byte],
-    src_cipher: Array[Byte],
-    cipher_len: Int,
-    src_nonce: Array[Byte],
-    src_key: Array[Byte]
+      dst_msg: Array[Byte],
+      src_cipher: Array[Byte],
+      cipher_len: Int,
+      src_nonce: Array[Byte],
+      src_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_open_afternm(
       dst_msg,
@@ -691,13 +691,13 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       src_key
     )
   final def crypto_box_open_detached(
-    dst_plain: Array[Byte],
-    src_cipher: Array[Byte],
-    src_mac: Array[Byte],
-    cipher_len: Int,
-    nonce: Array[Byte],
-    remote_public_key: Array[Byte],
-    local_private_key: Array[Byte]
+      dst_plain: Array[Byte],
+      src_cipher: Array[Byte],
+      src_mac: Array[Byte],
+      cipher_len: Int,
+      nonce: Array[Byte],
+      remote_public_key: Array[Byte],
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_open_detached(
       dst_plain,
@@ -709,12 +709,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       local_private_key
     )
   final def crypto_box_open_detached_afternm(
-    dst_plain: Array[Byte],
-    src_cipher: Array[Byte],
-    src_mac: Array[Byte],
-    cipher_len: Int,
-    nonce: Array[Byte],
-    shared_key: Array[Byte]
+      dst_plain: Array[Byte],
+      src_cipher: Array[Byte],
+      src_mac: Array[Byte],
+      cipher_len: Int,
+      nonce: Array[Byte],
+      shared_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_open_detached_afternm(
       dst_plain,
@@ -725,12 +725,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       shared_key
     )
   final def crypto_box_open_easy(
-    dst_plain: Array[Byte],
-    src_cipher: Array[Byte],
-    cipher_len: Int,
-    nonce: Array[Byte],
-    remote_public_key: Array[Byte],
-    local_private_key: Array[Byte]
+      dst_plain: Array[Byte],
+      src_cipher: Array[Byte],
+      cipher_len: Int,
+      nonce: Array[Byte],
+      remote_public_key: Array[Byte],
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_open_easy(
       dst_plain,
@@ -741,11 +741,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       local_private_key
     )
   final def crypto_box_open_easy_afternm(
-    dst_plain: Array[Byte],
-    src_cipher: Array[Byte],
-    cipher_len: Int,
-    nonce: Array[Byte],
-    shared_key: Array[Byte]
+      dst_plain: Array[Byte],
+      src_cipher: Array[Byte],
+      cipher_len: Int,
+      nonce: Array[Byte],
+      shared_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_open_easy_afternm(
       dst_plain,
@@ -759,10 +759,10 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_box_publickeybytes(): Int =
     SodiumJNI.crypto_box_publickeybytes()
   final def crypto_box_seal(
-    dst_cipher: Array[Byte],
-    src_plain: Array[Byte],
-    plain_len: Int,
-    remote_public_key: Array[Byte]
+      dst_cipher: Array[Byte],
+      src_plain: Array[Byte],
+      plain_len: Int,
+      remote_public_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_seal(
       dst_cipher,
@@ -771,11 +771,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       remote_public_key
     )
   final def crypto_box_seal_open(
-    dst_plain: Array[Byte],
-    src_cipher: Array[Byte],
-    cipher_len: Int,
-    local_public_key: Array[Byte],
-    local_private_key: Array[Byte]
+      dst_plain: Array[Byte],
+      src_cipher: Array[Byte],
+      cipher_len: Int,
+      local_public_key: Array[Byte],
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_seal_open(
       dst_plain,
@@ -788,24 +788,24 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_box_secretkeybytes(): Int =
     SodiumJNI.crypto_box_secretkeybytes()
   final def crypto_box_seed_keypair(
-    dst_public_key: Array[Byte],
-    dst_private_key: Array[Byte],
-    src_seed: Array[Byte]
+      dst_public_key: Array[Byte],
+      dst_private_key: Array[Byte],
+      src_seed: Array[Byte]
   ): Int =
     SodiumJNI.crypto_box_seed_keypair(dst_public_key, dst_private_key, src_seed)
   final def crypto_box_seedbytes(): Int = SodiumJNI.crypto_box_seedbytes()
   final def crypto_box_zerobytes(): Int = SodiumJNI.crypto_box_zerobytes()
   final def crypto_core_hchacha20(
-    out: Array[Byte],
-    in: Array[Byte],
-    k: Array[Byte],
-    c: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      k: Array[Byte],
+      c: Array[Byte]
   ): Int = SodiumJNI.crypto_core_hchacha20(out, in, k, c)
   final def crypto_core_hsalsa20(
-    out: Array[Byte],
-    in: Array[Byte],
-    k: Array[Byte],
-    c: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      k: Array[Byte],
+      c: Array[Byte]
   ): Int = SodiumJNI.crypto_core_hsalsa20(out, in, k, c)
   final def crypto_core_hsalsa20_constbytes(): Int =
     SodiumJNI.crypto_core_hsalsa20_constbytes()
@@ -816,10 +816,10 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_core_hsalsa20_outputbytes(): Int =
     SodiumJNI.crypto_core_hsalsa20_outputbytes()
   final def crypto_core_salsa20(
-    out: Array[Byte],
-    in: Array[Byte],
-    k: Array[Byte],
-    c: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      k: Array[Byte],
+      c: Array[Byte]
   ): Int = SodiumJNI.crypto_core_salsa20(out, in, k, c)
   final def crypto_core_salsa20_constbytes(): Int =
     SodiumJNI.crypto_core_salsa20_constbytes()
@@ -830,12 +830,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_core_salsa20_outputbytes(): Int =
     SodiumJNI.crypto_core_salsa20_outputbytes()
   final def crypto_generichash(
-    dst_hash: Array[Byte],
-    dst_len: Int,
-    src_input: Array[Byte],
-    input_len: Int,
-    src_key: Array[Byte],
-    key_len: Int
+      dst_hash: Array[Byte],
+      dst_len: Int,
+      src_input: Array[Byte],
+      input_len: Int,
+      src_key: Array[Byte],
+      key_len: Int
   ): Int =
     SodiumJNI.crypto_generichash(
       dst_hash,
@@ -846,12 +846,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       key_len
     )
   final def crypto_generichash_blake2b(
-    out: Array[Byte],
-    outlen: Int,
-    in: Array[Byte],
-    inlen: Int,
-    key: Array[Byte],
-    keylen: Int
+      out: Array[Byte],
+      outlen: Int,
+      in: Array[Byte],
+      inlen: Int,
+      key: Array[Byte],
+      keylen: Int
   ): Int =
     SodiumJNI.crypto_generichash_blake2b(out, outlen, in, inlen, key, keylen)
   final def crypto_generichash_blake2b_bytes(): Int =
@@ -861,23 +861,23 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_generichash_blake2b_bytes_min(): Int =
     SodiumJNI.crypto_generichash_blake2b_bytes_min()
   final def crypto_generichash_blake2b_final(
-    state: Array[Byte],
-    out: Array[Byte],
-    outlen: Int
+      state: Array[Byte],
+      out: Array[Byte],
+      outlen: Int
   ): Int = SodiumJNI.crypto_generichash_blake2b_final(state, out, outlen)
   final def crypto_generichash_blake2b_init(
-    state: Array[Byte],
-    key: Array[Byte],
-    keylen: Int,
-    outlen: Int
+      state: Array[Byte],
+      key: Array[Byte],
+      keylen: Int,
+      outlen: Int
   ): Int = SodiumJNI.crypto_generichash_blake2b_init(state, key, keylen, outlen)
   final def crypto_generichash_blake2b_init_salt_personal(
-    state: Array[Byte],
-    key: Array[Byte],
-    keylen: Int,
-    outlen: Int,
-    salt: Array[Byte],
-    personal: Array[Byte]
+      state: Array[Byte],
+      key: Array[Byte],
+      keylen: Int,
+      outlen: Int,
+      salt: Array[Byte],
+      personal: Array[Byte]
   ): Int =
     SodiumJNI.crypto_generichash_blake2b_init_salt_personal(
       state,
@@ -896,14 +896,14 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_generichash_blake2b_personalbytes(): Int =
     SodiumJNI.crypto_generichash_blake2b_personalbytes()
   final def crypto_generichash_blake2b_salt_personal(
-    out: Array[Byte],
-    outlen: Int,
-    in: Array[Byte],
-    inlen: Int,
-    key: Array[Byte],
-    keylen: Int,
-    salt: Array[Byte],
-    personal: Array[Byte]
+      out: Array[Byte],
+      outlen: Int,
+      in: Array[Byte],
+      inlen: Int,
+      key: Array[Byte],
+      keylen: Int,
+      salt: Array[Byte],
+      personal: Array[Byte]
   ): Int =
     SodiumJNI.crypto_generichash_blake2b_salt_personal(
       out,
@@ -918,9 +918,9 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_generichash_blake2b_saltbytes(): Int =
     SodiumJNI.crypto_generichash_blake2b_saltbytes()
   final def crypto_generichash_blake2b_update(
-    state: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      state: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_generichash_blake2b_update(state, in, inlen)
   final def crypto_generichash_bytes(): Int =
     SodiumJNI.crypto_generichash_bytes()
@@ -929,15 +929,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_generichash_bytes_min(): Int =
     SodiumJNI.crypto_generichash_bytes_min()
   final def crypto_generichash_final(
-    state: Array[Byte],
-    dst_out: Array[Byte],
-    out_len: Int
+      state: Array[Byte],
+      dst_out: Array[Byte],
+      out_len: Int
   ): Int = SodiumJNI.crypto_generichash_final(state, dst_out, out_len)
   final def crypto_generichash_init(
-    state: Array[Byte],
-    src_key: Array[Byte],
-    key_len: Int,
-    out_len: Int
+      state: Array[Byte],
+      src_key: Array[Byte],
+      key_len: Int,
+      out_len: Int
   ): Int = SodiumJNI.crypto_generichash_init(state, src_key, key_len, out_len)
   final def crypto_generichash_keybytes(): Int =
     SodiumJNI.crypto_generichash_keybytes()
@@ -950,56 +950,56 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_generichash_statebytes(): Int =
     SodiumJNI.crypto_generichash_statebytes()
   final def crypto_generichash_update(
-    state: Array[Byte],
-    src_input: Array[Byte],
-    input_len: Int
+      state: Array[Byte],
+      src_input: Array[Byte],
+      input_len: Int
   ): Int = SodiumJNI.crypto_generichash_update(state, src_input, input_len)
   final def crypto_hash_sha256(
-    out: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      out: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_hash_sha256(out, in, inlen)
   final def crypto_hash_sha256_bytes(): Int =
     SodiumJNI.crypto_hash_sha256_bytes()
   final def crypto_hash_sha256_final(
-    state: Array[Byte],
-    out: Array[Byte]
+      state: Array[Byte],
+      out: Array[Byte]
   ): Int = SodiumJNI.crypto_hash_sha256_final(state, out)
   final def crypto_hash_sha256_init(state: Array[Byte]): Int =
     SodiumJNI.crypto_hash_sha256_init(state)
   final def crypto_hash_sha256_statebytes(): Int =
     SodiumJNI.crypto_hash_sha256_statebytes()
   final def crypto_hash_sha256_update(
-    state: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      state: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_hash_sha256_update(state, in, inlen)
   final def crypto_hash_sha512(
-    out: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      out: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_hash_sha512(out, in, inlen)
   final def crypto_hash_sha512_bytes(): Int =
     SodiumJNI.crypto_hash_sha512_bytes()
   final def crypto_hash_sha512_final(
-    state: Array[Byte],
-    out: Array[Byte]
+      state: Array[Byte],
+      out: Array[Byte]
   ): Int = SodiumJNI.crypto_hash_sha512_final(state, out)
   final def crypto_hash_sha512_init(state: Array[Byte]): Int =
     SodiumJNI.crypto_hash_sha512_init(state)
   final def crypto_hash_sha512_statebytes(): Int =
     SodiumJNI.crypto_hash_sha512_statebytes()
   final def crypto_hash_sha512_update(
-    state: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      state: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_hash_sha512_update(state, in, inlen)
   final def crypto_kdf_derive_from_key(
-    subkey: Array[Byte],
-    subkey_len: Int,
-    subkey_id: Int,
-    ctx: Array[Byte],
-    key: Array[Byte]
+      subkey: Array[Byte],
+      subkey_len: Int,
+      subkey_id: Int,
+      ctx: Array[Byte],
+      key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_kdf_derive_from_key(
       subkey,
@@ -1011,11 +1011,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_kdf_keygen(key: Array[Byte]): Unit =
     SodiumJNI.crypto_kdf_keygen(key)
   final def crypto_kx_client_session_keys(
-    rx: Array[Byte],
-    tx: Array[Byte],
-    client_pk: Array[Byte],
-    client_sk: Array[Byte],
-    server_pk: Array[Byte]
+      rx: Array[Byte],
+      tx: Array[Byte],
+      client_pk: Array[Byte],
+      client_sk: Array[Byte],
+      server_pk: Array[Byte]
   ): Int =
     SodiumJNI.crypto_kx_client_session_keys(
       rx,
@@ -1027,16 +1027,16 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_kx_keypair(pk: Array[Byte], sk: Array[Byte]): Int =
     SodiumJNI.crypto_kx_keypair(pk, sk)
   final def crypto_kx_seed_keypair(
-    pk: Array[Byte],
-    sk: Array[Byte],
-    seed: Array[Byte]
+      pk: Array[Byte],
+      sk: Array[Byte],
+      seed: Array[Byte]
   ): Int = SodiumJNI.crypto_kx_seed_keypair(pk, sk, seed)
   final def crypto_kx_server_session_keys(
-    rx: Array[Byte],
-    tx: Array[Byte],
-    server_pk: Array[Byte],
-    server_sk: Array[Byte],
-    client_pk: Array[Byte]
+      rx: Array[Byte],
+      tx: Array[Byte],
+      server_pk: Array[Byte],
+      server_sk: Array[Byte],
+      client_pk: Array[Byte]
   ): Int =
     SodiumJNI.crypto_kx_server_session_keys(
       rx,
@@ -1046,79 +1046,79 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       client_pk
     )
   final def crypto_onetimeauth(
-    dst_out: Array[Byte],
-    src_input: Array[Byte],
-    input_len: Int,
-    src_key: Array[Byte]
+      dst_out: Array[Byte],
+      src_input: Array[Byte],
+      input_len: Int,
+      src_key: Array[Byte]
   ): Int = SodiumJNI.crypto_onetimeauth(dst_out, src_input, input_len, src_key)
   final def crypto_onetimeauth_bytes(): Int =
     SodiumJNI.crypto_onetimeauth_bytes()
   final def crypto_onetimeauth_final(
-    final_state: Array[Byte],
-    dst_out: Array[Byte]
+      final_state: Array[Byte],
+      dst_out: Array[Byte]
   ): Int = SodiumJNI.crypto_onetimeauth_final(final_state, dst_out)
   final def crypto_onetimeauth_init(
-    dst_state: Array[Byte],
-    src_key: Array[Byte]
+      dst_state: Array[Byte],
+      src_key: Array[Byte]
   ): Int = SodiumJNI.crypto_onetimeauth_init(dst_state, src_key)
   final def crypto_onetimeauth_keybytes(): Int =
     SodiumJNI.crypto_onetimeauth_keybytes()
   final def crypto_onetimeauth_keygen(k: Array[Byte]): Unit =
     SodiumJNI.crypto_onetimeauth_keygen(k)
   final def crypto_onetimeauth_poly1305(
-    out: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_onetimeauth_poly1305(out, in, inlen, k)
   final def crypto_onetimeauth_poly1305_bytes(): Int =
     SodiumJNI.crypto_onetimeauth_poly1305_bytes()
   final def crypto_onetimeauth_poly1305_final(
-    state: Array[Byte],
-    out: Array[Byte]
+      state: Array[Byte],
+      out: Array[Byte]
   ): Int = SodiumJNI.crypto_onetimeauth_poly1305_final(state, out)
   final def crypto_onetimeauth_poly1305_init(
-    state: Array[Byte],
-    key: Array[Byte]
+      state: Array[Byte],
+      key: Array[Byte]
   ): Int = SodiumJNI.crypto_onetimeauth_poly1305_init(state, key)
   final def crypto_onetimeauth_poly1305_keybytes(): Int =
     SodiumJNI.crypto_onetimeauth_poly1305_keybytes()
   final def crypto_onetimeauth_poly1305_update(
-    state: Array[Byte],
-    in: Array[Byte],
-    inlen: Int
+      state: Array[Byte],
+      in: Array[Byte],
+      inlen: Int
   ): Int = SodiumJNI.crypto_onetimeauth_poly1305_update(state, in, inlen)
   final def crypto_onetimeauth_poly1305_verify(
-    h: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      h: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_onetimeauth_poly1305_verify(h, in, inlen, k)
   final def crypto_onetimeauth_primitive(): Array[Byte] =
     SodiumJNI.crypto_onetimeauth_primitive()
   final def crypto_onetimeauth_statebytes(): Int =
     SodiumJNI.crypto_onetimeauth_statebytes()
   final def crypto_onetimeauth_update(
-    dst_state: Array[Byte],
-    src_input: Array[Byte],
-    input_len: Int
+      dst_state: Array[Byte],
+      src_input: Array[Byte],
+      input_len: Int
   ): Int = SodiumJNI.crypto_onetimeauth_update(dst_state, src_input, input_len)
   final def crypto_onetimeauth_verify(
-    src_mac: Array[Byte],
-    src_input: Array[Byte],
-    input_len: Int,
-    src_key: Array[Byte]
+      src_mac: Array[Byte],
+      src_input: Array[Byte],
+      input_len: Int,
+      src_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_onetimeauth_verify(src_mac, src_input, input_len, src_key)
   final def crypto_pwhash(
-    out: Array[Byte],
-    outlen: Int,
-    passwd: Array[Byte],
-    passwdlen: Int,
-    salt: Array[Byte],
-    opslimit: Int,
-    memlimit: Int,
-    alg: Int
+      out: Array[Byte],
+      outlen: Int,
+      passwd: Array[Byte],
+      passwdlen: Int,
+      salt: Array[Byte],
+      opslimit: Int,
+      memlimit: Int,
+      alg: Int
   ): Int =
     SodiumJNI.crypto_pwhash(
       out,
@@ -1164,13 +1164,13 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
     SodiumJNI.crypto_pwhash_primitive()
   final def crypto_pwhash_saltbytes(): Int = SodiumJNI.crypto_pwhash_saltbytes()
   final def crypto_pwhash_scryptsalsa208sha256(
-    out: Array[Byte],
-    outlen: Int,
-    passwd: Array[Byte],
-    passwdlen: Int,
-    salt: Array[Byte],
-    opslimit: Int,
-    memlimit: Int
+      out: Array[Byte],
+      outlen: Int,
+      passwd: Array[Byte],
+      passwdlen: Int,
+      salt: Array[Byte],
+      opslimit: Int,
+      memlimit: Int
   ): Int =
     SodiumJNI.crypto_pwhash_scryptsalsa208sha256(
       out,
@@ -1182,15 +1182,15 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       memlimit
     )
   final def crypto_pwhash_scryptsalsa208sha256_ll(
-    passwd: Array[Byte],
-    passwdlen: Int,
-    salt: Array[Byte],
-    saltlen: Int,
-    N: Int,
-    r: Int,
-    p: Int,
-    buf: Array[Byte],
-    buflen: Int
+      passwd: Array[Byte],
+      passwdlen: Int,
+      salt: Array[Byte],
+      saltlen: Int,
+      N: Int,
+      r: Int,
+      p: Int,
+      buf: Array[Byte],
+      buflen: Int
   ): Int =
     SodiumJNI.crypto_pwhash_scryptsalsa208sha256_ll(
       passwd,
@@ -1214,11 +1214,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_pwhash_scryptsalsa208sha256_saltbytes(): Int =
     SodiumJNI.crypto_pwhash_scryptsalsa208sha256_saltbytes()
   final def crypto_pwhash_scryptsalsa208sha256_str(
-    out: Array[Byte],
-    passwd: Array[Byte],
-    passwdlen: Int,
-    opslimit: Int,
-    memlimit: Int
+      out: Array[Byte],
+      passwd: Array[Byte],
+      passwdlen: Int,
+      opslimit: Int,
+      memlimit: Int
   ): Int =
     SodiumJNI.crypto_pwhash_scryptsalsa208sha256_str(
       out,
@@ -1228,9 +1228,9 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       memlimit
     )
   final def crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
-    str: Array[Byte],
-    opslimit: Int,
-    memlimit: Int
+      str: Array[Byte],
+      opslimit: Int,
+      memlimit: Int
   ): Int =
     SodiumJNI.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
       str,
@@ -1238,9 +1238,9 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       memlimit
     )
   final def crypto_pwhash_scryptsalsa208sha256_str_verify(
-    str: Array[Byte],
-    passwd: Array[Byte],
-    passwdlen: Int
+      str: Array[Byte],
+      passwd: Array[Byte],
+      passwdlen: Int
   ): Int =
     SodiumJNI.crypto_pwhash_scryptsalsa208sha256_str_verify(
       str,
@@ -1252,37 +1252,37 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_pwhash_scryptsalsa208sha256_strprefix(): Array[Byte] =
     SodiumJNI.crypto_pwhash_scryptsalsa208sha256_strprefix()
   final def crypto_pwhash_str(
-    out: Array[Byte],
-    passwd: Array[Byte],
-    passwdlen: Int,
-    opslimit: Int,
-    memlimit: Int
+      out: Array[Byte],
+      passwd: Array[Byte],
+      passwdlen: Int,
+      opslimit: Int,
+      memlimit: Int
   ): Int =
     SodiumJNI.crypto_pwhash_str(out, passwd, passwdlen, opslimit, memlimit)
   final def crypto_pwhash_str_verify(
-    str: Array[Byte],
-    passwd: Array[Byte],
-    passwdlen: Int
-  ): Int = SodiumJNI.crypto_pwhash_str_verify(str, passwd, passwdlen)
+      str: Array[Byte],
+      passwd: Array[Byte],
+      passwdlen: Int
+  ): Int                                  = SodiumJNI.crypto_pwhash_str_verify(str, passwd, passwdlen)
   final def crypto_pwhash_strbytes(): Int = SodiumJNI.crypto_pwhash_strbytes()
   final def crypto_pwhash_strprefix(): Array[Byte] =
     SodiumJNI.crypto_pwhash_strprefix()
   final def crypto_scalarmult(
-    q: Array[Byte],
-    n: Array[Byte],
-    p: Array[Byte]
+      q: Array[Byte],
+      n: Array[Byte],
+      p: Array[Byte]
   ): Int = SodiumJNI.crypto_scalarmult(q, n, p)
   final def crypto_scalarmult_base(q: Array[Byte], n: Array[Byte]): Int =
     SodiumJNI.crypto_scalarmult_base(q, n)
   final def crypto_scalarmult_bytes(): Int = SodiumJNI.crypto_scalarmult_bytes()
   final def crypto_scalarmult_curve25519(
-    q: Array[Byte],
-    n: Array[Byte],
-    p: Array[Byte]
+      q: Array[Byte],
+      n: Array[Byte],
+      p: Array[Byte]
   ): Int = SodiumJNI.crypto_scalarmult_curve25519(q, n, p)
   final def crypto_scalarmult_curve25519_base(
-    q: Array[Byte],
-    n: Array[Byte]
+      q: Array[Byte],
+      n: Array[Byte]
   ): Int = SodiumJNI.crypto_scalarmult_curve25519_base(q, n)
   final def crypto_scalarmult_curve25519_bytes(): Int =
     SodiumJNI.crypto_scalarmult_curve25519_bytes()
@@ -1295,12 +1295,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_secretbox_boxzerobytes(): Int =
     SodiumJNI.crypto_secretbox_boxzerobytes()
   final def crypto_secretbox_detached(
-    dst_cipher: Array[Byte],
-    mac: Array[Byte],
-    src_plain: Array[Byte],
-    plain_len: Int,
-    nonce: Array[Byte],
-    secretkey: Array[Byte]
+      dst_cipher: Array[Byte],
+      mac: Array[Byte],
+      src_plain: Array[Byte],
+      plain_len: Int,
+      nonce: Array[Byte],
+      secretkey: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretbox_detached(
       dst_cipher,
@@ -1311,11 +1311,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       secretkey
     )
   final def crypto_secretbox_easy(
-    dst_cipher: Array[Byte],
-    src_plain: Array[Byte],
-    plain_len: Int,
-    nonce: Array[Byte],
-    secret_key: Array[Byte]
+      dst_cipher: Array[Byte],
+      src_plain: Array[Byte],
+      plain_len: Int,
+      nonce: Array[Byte],
+      secret_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretbox_easy(
       dst_cipher,
@@ -1331,12 +1331,12 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_secretbox_noncebytes(): Int =
     SodiumJNI.crypto_secretbox_noncebytes()
   final def crypto_secretbox_open_detached(
-    dst_plain: Array[Byte],
-    src_cipher: Array[Byte],
-    mac: Array[Byte],
-    cipher_len: Int,
-    nonce: Array[Byte],
-    secretkey: Array[Byte]
+      dst_plain: Array[Byte],
+      src_cipher: Array[Byte],
+      mac: Array[Byte],
+      cipher_len: Int,
+      nonce: Array[Byte],
+      secretkey: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretbox_open_detached(
       dst_plain,
@@ -1347,11 +1347,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       secretkey
     )
   final def crypto_secretbox_open_easy(
-    dst_plain: Array[Byte],
-    src_cipher: Array[Byte],
-    cipher_len: Int,
-    nonce: Array[Byte],
-    secret_key: Array[Byte]
+      dst_plain: Array[Byte],
+      src_cipher: Array[Byte],
+      cipher_len: Int,
+      nonce: Array[Byte],
+      secret_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretbox_open_easy(
       dst_plain,
@@ -1363,28 +1363,28 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_secretbox_primitive(): Array[Byte] =
     SodiumJNI.crypto_secretbox_primitive()
   final def crypto_secretbox_xchacha20poly1305_detached(
-    c: Array[Byte],
-    mac: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      mac: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretbox_xchacha20poly1305_detached(c, mac, m, mlen, n, k)
   final def crypto_secretbox_xchacha20poly1305_easy(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_secretbox_xchacha20poly1305_easy(c, m, mlen, n, k)
   final def crypto_secretbox_xchacha20poly1305_open_detached(
-    m: Array[Byte],
-    c: Array[Byte],
-    mac: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      c: Array[Byte],
+      mac: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretbox_xchacha20poly1305_open_detached(
       m,
@@ -1395,19 +1395,19 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       k
     )
   final def crypto_secretbox_xchacha20poly1305_open_easy(
-    m: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretbox_xchacha20poly1305_open_easy(m, c, clen, n, k)
   final def crypto_secretbox_xsalsa20poly1305(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_secretbox_xsalsa20poly1305(c, m, mlen, n, k)
   final def crypto_secretbox_xsalsa20poly1305_boxzerobytes(): Int =
     SodiumJNI.crypto_secretbox_xsalsa20poly1305_boxzerobytes()
@@ -1418,37 +1418,37 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_secretbox_xsalsa20poly1305_noncebytes(): Int =
     SodiumJNI.crypto_secretbox_xsalsa20poly1305_noncebytes()
   final def crypto_secretbox_xsalsa20poly1305_open(
-    m: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      m: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_secretbox_xsalsa20poly1305_open(m, c, clen, n, k)
   final def crypto_secretbox_xsalsa20poly1305_zerobytes(): Int =
     SodiumJNI.crypto_secretbox_xsalsa20poly1305_zerobytes()
   final def crypto_secretbox_zerobytes(): Int =
     SodiumJNI.crypto_secretbox_zerobytes()
   final def crypto_secretstream_xchacha20poly1305_init_pull(
-    state: Array[Byte],
-    header: Array[Byte],
-    k: Array[Byte]
+      state: Array[Byte],
+      header: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretstream_xchacha20poly1305_init_pull(state, header, k)
   final def crypto_secretstream_xchacha20poly1305_init_push(
-    state: Array[Byte],
-    header: Array[Byte],
-    k: Array[Byte]
+      state: Array[Byte],
+      header: Array[Byte],
+      k: Array[Byte]
   ): Int =
     SodiumJNI.crypto_secretstream_xchacha20poly1305_init_push(state, header, k)
   final def crypto_secretstream_xchacha20poly1305_pull(
-    state: Array[Byte],
-    m: Array[Byte],
-    mlen_p: Array[Int],
-    tag_p: Array[Byte],
-    c: Array[Byte],
-    clen: Int,
-    ad: Array[Byte],
-    adlen: Int
+      state: Array[Byte],
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      tag_p: Array[Byte],
+      c: Array[Byte],
+      clen: Int,
+      ad: Array[Byte],
+      adlen: Int
   ): Int =
     SodiumJNI.crypto_secretstream_xchacha20poly1305_pull(
       state,
@@ -1461,14 +1461,14 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       adlen
     )
   final def crypto_secretstream_xchacha20poly1305_push(
-    state: Array[Byte],
-    c: Array[Byte],
-    clen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    ad: Array[Byte],
-    adlen: Int,
-    tag: Short
+      state: Array[Byte],
+      c: Array[Byte],
+      clen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      ad: Array[Byte],
+      adlen: Int,
+      tag: Short
   ): Int =
     SodiumJNI.crypto_secretstream_xchacha20poly1305_push(
       state,
@@ -1483,32 +1483,32 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_secretstream_xchacha20poly1305_statebytes(): Int =
     SodiumJNI.crypto_secretstream_xchacha20poly1305_statebytes()
   final def crypto_shorthash(
-    dst_out: Array[Byte],
-    src_input: Array[Byte],
-    input_len: Int,
-    src_key: Array[Byte]
-  ): Int = SodiumJNI.crypto_shorthash(dst_out, src_input, input_len, src_key)
+      dst_out: Array[Byte],
+      src_input: Array[Byte],
+      input_len: Int,
+      src_key: Array[Byte]
+  ): Int                                  = SodiumJNI.crypto_shorthash(dst_out, src_input, input_len, src_key)
   final def crypto_shorthash_bytes(): Int = SodiumJNI.crypto_shorthash_bytes()
   final def crypto_shorthash_keybytes(): Int =
     SodiumJNI.crypto_shorthash_keybytes()
   final def crypto_shorthash_primitive(): Array[Byte] =
     SodiumJNI.crypto_shorthash_primitive()
   final def crypto_shorthash_siphash24(
-    out: Array[Byte],
-    in: Array[Byte],
-    inlen: Int,
-    k: Array[Byte]
+      out: Array[Byte],
+      in: Array[Byte],
+      inlen: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_shorthash_siphash24(out, in, inlen, k)
   final def crypto_shorthash_siphash24_bytes(): Int =
     SodiumJNI.crypto_shorthash_siphash24_bytes()
   final def crypto_shorthash_siphash24_keybytes(): Int =
     SodiumJNI.crypto_shorthash_siphash24_keybytes()
   final def crypto_sign(
-    dst_signed_msg: Array[Byte],
-    signed_msg_len: Array[Int],
-    src_msg: Array[Byte],
-    msg_len: Int,
-    local_private_key: Array[Byte]
+      dst_signed_msg: Array[Byte],
+      signed_msg_len: Array[Int],
+      src_msg: Array[Byte],
+      msg_len: Int,
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign(
       dst_signed_msg,
@@ -1519,11 +1519,11 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
     )
   final def crypto_sign_bytes(): Int = SodiumJNI.crypto_sign_bytes()
   final def crypto_sign_detached(
-    dst_signature: Array[Byte],
-    signature_len: Array[Int],
-    src_msg: Array[Byte],
-    msg_len: Int,
-    local_private_key: Array[Byte]
+      dst_signature: Array[Byte],
+      signature_len: Array[Int],
+      src_msg: Array[Byte],
+      msg_len: Int,
+      local_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign_detached(
       dst_signature,
@@ -1533,33 +1533,33 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       local_private_key
     )
   final def crypto_sign_ed25519(
-    sm: Array[Byte],
-    smlen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    sk: Array[Byte]
+      sm: Array[Byte],
+      smlen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      sk: Array[Byte]
   ): Int = SodiumJNI.crypto_sign_ed25519(sm, smlen_p, m, mlen, sk)
   final def crypto_sign_ed25519_bytes(): Int =
     SodiumJNI.crypto_sign_ed25519_bytes()
   final def crypto_sign_ed25519_detached(
-    sig: Array[Byte],
-    siglen_p: Array[Int],
-    m: Array[Byte],
-    mlen: Int,
-    sk: Array[Byte]
+      sig: Array[Byte],
+      siglen_p: Array[Int],
+      m: Array[Byte],
+      mlen: Int,
+      sk: Array[Byte]
   ): Int = SodiumJNI.crypto_sign_ed25519_detached(sig, siglen_p, m, mlen, sk)
   final def crypto_sign_ed25519_keypair(pk: Array[Byte], sk: Array[Byte]): Int =
     SodiumJNI.crypto_sign_ed25519_keypair(pk, sk)
   final def crypto_sign_ed25519_open(
-    m: Array[Byte],
-    mlen_p: Array[Int],
-    sm: Array[Byte],
-    smlen: Int,
-    pk: Array[Byte]
+      m: Array[Byte],
+      mlen_p: Array[Int],
+      sm: Array[Byte],
+      smlen: Int,
+      pk: Array[Byte]
   ): Int = SodiumJNI.crypto_sign_ed25519_open(m, mlen_p, sm, smlen, pk)
   final def crypto_sign_ed25519_pk_to_curve25519(
-    curve25519_pk: Array[Byte],
-    ed25519_pk: Array[Byte]
+      curve25519_pk: Array[Byte],
+      ed25519_pk: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign_ed25519_pk_to_curve25519(curve25519_pk, ed25519_pk)
   final def crypto_sign_ed25519_publickeybytes(): Int =
@@ -1567,42 +1567,42 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_sign_ed25519_secretkeybytes(): Int =
     SodiumJNI.crypto_sign_ed25519_secretkeybytes()
   final def crypto_sign_ed25519_seed_keypair(
-    pk: Array[Byte],
-    sk: Array[Byte],
-    seed: Array[Byte]
+      pk: Array[Byte],
+      sk: Array[Byte],
+      seed: Array[Byte]
   ): Int = SodiumJNI.crypto_sign_ed25519_seed_keypair(pk, sk, seed)
   final def crypto_sign_ed25519_seedbytes(): Int =
     SodiumJNI.crypto_sign_ed25519_seedbytes()
   final def crypto_sign_ed25519_sk_to_curve25519(
-    curve25519_sk: Array[Byte],
-    ed25519_sk: Array[Byte]
+      curve25519_sk: Array[Byte],
+      ed25519_sk: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign_ed25519_sk_to_curve25519(curve25519_sk, ed25519_sk)
   final def crypto_sign_ed25519_sk_to_pk(
-    dst_public_key: Array[Byte],
-    src_private_key: Array[Byte]
+      dst_public_key: Array[Byte],
+      src_private_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign_ed25519_sk_to_pk(dst_public_key, src_private_key)
   final def crypto_sign_ed25519_sk_to_seed(
-    dst_seed: Array[Byte],
-    src_private_key: Array[Byte]
+      dst_seed: Array[Byte],
+      src_private_key: Array[Byte]
   ): Int = SodiumJNI.crypto_sign_ed25519_sk_to_seed(dst_seed, src_private_key)
   final def crypto_sign_ed25519_verify_detached(
-    sig: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    pk: Array[Byte]
+      sig: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      pk: Array[Byte]
   ): Int = SodiumJNI.crypto_sign_ed25519_verify_detached(sig, m, mlen, pk)
   final def crypto_sign_keypair(
-    dst_public_Key: Array[Byte],
-    dst_private_key: Array[Byte]
+      dst_public_Key: Array[Byte],
+      dst_private_key: Array[Byte]
   ): Int = SodiumJNI.crypto_sign_keypair(dst_public_Key, dst_private_key)
   final def crypto_sign_open(
-    dst_msg: Array[Byte],
-    msg_len: Array[Int],
-    src_signed_msg: Array[Byte],
-    signed_msg_len: Int,
-    remote_public_key: Array[Byte]
+      dst_msg: Array[Byte],
+      msg_len: Array[Int],
+      src_signed_msg: Array[Byte],
+      signed_msg_len: Int,
+      remote_public_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign_open(
       dst_msg,
@@ -1618,9 +1618,9 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
   final def crypto_sign_secretkeybytes(): Int =
     SodiumJNI.crypto_sign_secretkeybytes()
   final def crypto_sign_seed_keypair(
-    dst_public_Key: Array[Byte],
-    dst_private_key: Array[Byte],
-    src_seed: Array[Byte]
+      dst_public_Key: Array[Byte],
+      dst_private_key: Array[Byte],
+      src_seed: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign_seed_keypair(
       dst_public_Key,
@@ -1629,10 +1629,10 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
     )
   final def crypto_sign_seedbytes(): Int = SodiumJNI.crypto_sign_seedbytes()
   final def crypto_sign_verify_detached(
-    src_signature: Array[Byte],
-    src_msg: Array[Byte],
-    msg_len: Int,
-    remote_public_key: Array[Byte]
+      src_signature: Array[Byte],
+      src_msg: Array[Byte],
+      msg_len: Int,
+      remote_public_key: Array[Byte]
   ): Int =
     SodiumJNI.crypto_sign_verify_detached(
       src_signature,
@@ -1641,116 +1641,116 @@ abstract protected[tsec] class ScalaSodium0 private[tsec] {
       remote_public_key
     )
   final def crypto_stream_chacha20(
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_chacha20(c, clen, n, k)
   final def crypto_stream_chacha20_ietf(
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_chacha20_ietf(c, clen, n, k)
   final def crypto_stream_chacha20_ietf_noncebytes(): Int =
     SodiumJNI.crypto_stream_chacha20_ietf_noncebytes()
   final def crypto_stream_chacha20_ietf_xor(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_chacha20_ietf_xor(c, m, mlen, n, k)
   final def crypto_stream_chacha20_ietf_xor_ic(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    ic: Int,
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      ic: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_chacha20_ietf_xor_ic(c, m, mlen, n, ic, k)
   final def crypto_stream_chacha20_keybytes(): Int =
     SodiumJNI.crypto_stream_chacha20_keybytes()
   final def crypto_stream_chacha20_noncebytes(): Int =
     SodiumJNI.crypto_stream_chacha20_noncebytes()
   final def crypto_stream_chacha20_xor(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_chacha20_xor(c, m, mlen, n, k)
   final def crypto_stream_chacha20_xor_ic(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    ic: Int,
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      ic: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_chacha20_xor_ic(c, m, mlen, n, ic, k)
   final def crypto_stream_salsa20(
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_salsa20(c, clen, n, k)
   final def crypto_stream_salsa20_keybytes(): Int =
     SodiumJNI.crypto_stream_salsa20_keybytes()
   final def crypto_stream_salsa20_noncebytes(): Int =
     SodiumJNI.crypto_stream_salsa20_noncebytes()
   final def crypto_stream_salsa20_xor(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_salsa20_xor(c, m, mlen, n, k)
   final def crypto_stream_salsa20_xor_ic(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    ic: Int,
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      ic: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_salsa20_xor_ic(c, m, mlen, n, ic, k)
   final def crypto_stream_xsalsa20(
-    c: Array[Byte],
-    clen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      clen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_xsalsa20(c, clen, n, k)
   final def crypto_stream_xsalsa20_keybytes(): Int =
     SodiumJNI.crypto_stream_xsalsa20_keybytes()
   final def crypto_stream_xsalsa20_noncebytes(): Int =
     SodiumJNI.crypto_stream_xsalsa20_noncebytes()
   final def crypto_stream_xsalsa20_xor(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_xsalsa20_xor(c, m, mlen, n, k)
   final def crypto_stream_xsalsa20_xor_ic(
-    c: Array[Byte],
-    m: Array[Byte],
-    mlen: Int,
-    n: Array[Byte],
-    ic: Int,
-    k: Array[Byte]
+      c: Array[Byte],
+      m: Array[Byte],
+      mlen: Int,
+      n: Array[Byte],
+      ic: Int,
+      k: Array[Byte]
   ): Int = SodiumJNI.crypto_stream_xsalsa20_xor_ic(c, m, mlen, n, ic, k)
   final def randombytes(dst_buf: Array[Byte], buf_len: Int): Unit =
     SodiumJNI.randombytes(dst_buf, buf_len)
   final def randombytes_buf(buff: Array[Byte], buff_len: Int): Unit =
     SodiumJNI.randombytes_buf(buff, buff_len)
-  final def randombytes_close(): Int = SodiumJNI.randombytes_close()
+  final def randombytes_close(): Int  = SodiumJNI.randombytes_close()
   final def randombytes_random(): Int = SodiumJNI.randombytes_random()
-  final def randombytes_stir(): Unit = SodiumJNI.randombytes_stir()
+  final def randombytes_stir(): Unit  = SodiumJNI.randombytes_stir()
   final def randombytes_uniform(upper_bound: Int): Int =
     SodiumJNI.randombytes_uniform(upper_bound)
   final def sodium_increment(
-    src_dst_number: Array[Byte],
-    number_len: Int
-  ): Unit = SodiumJNI.sodium_increment(src_dst_number, number_len)
+      src_dst_number: Array[Byte],
+      number_len: Int
+  ): Unit                      = SodiumJNI.sodium_increment(src_dst_number, number_len)
   final def sodium_init(): Int = SodiumJNI.sodium_init()
   final def sodium_version_string(): Array[Byte] =
     SodiumJNI.sodium_version_string()
