@@ -11,7 +11,7 @@ object Dependencies {
     val http4sV       = "0.19.0-M3"
     val scalacheckV   = "1.14.0"
     val commonsCodecV = "1.11"
-    val fs2Version    = "1.0.0-RC1"
+    val fs2Version    = "1.0.0-RC2"
     val log4sV        = "1.6.1"
     val gitHub4s      = "0.18.8"
   }
