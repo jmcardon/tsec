@@ -84,7 +84,7 @@ class ProtectedResourceSpec extends FlatSpec {
     }
 
     val localHandler = ProtectedResource.apply[IO, MockUser](dataHandler)
-    val f            = localHandler.authorize(request).value.unsafeRunSync()
+    val f = localHandler.authorize(request).value.unsafeRunSync()
 
     f shouldBe Left(ExpiredToken)
   }
@@ -95,7 +95,7 @@ class ProtectedResourceSpec extends FlatSpec {
       Map("username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     )
 
-    val f = handler.authorize(request).value.unsafeRunSync()
+    val f           = handler.authorize(request).value.unsafeRunSync()
 
     f shouldBe Left(InvalidRequest("Access token is not found"))
   }
@@ -114,7 +114,7 @@ class ProtectedResourceSpec extends FlatSpec {
 
     }
     val localHandler = ProtectedResource.apply[IO, MockUser](dataHandler)
-    val f            = localHandler.authorize(request).value.unsafeRunSync()
+    val f = localHandler.authorize(request).value.unsafeRunSync()
     f shouldBe Left(InvalidToken("The access token is not found"))
   }
 
@@ -133,7 +133,7 @@ class ProtectedResourceSpec extends FlatSpec {
 
     }
     val localHandler = ProtectedResource.apply[IO, MockUser](dataHandler)
-    val f            = localHandler.authorize(request).value.unsafeRunSync()
+    val f = localHandler.authorize(request).value.unsafeRunSync()
     f shouldBe Left(InvalidToken("The access token is invalid"))
   }
 }

@@ -3,6 +3,7 @@ package tsec.hashing.libsodium.internal
 import tsec.libsodium.ScalaSodium
 import tsec.hashing.libsodium._
 
+
 trait SodiumHash[A] {
 
   val hashLen: Int

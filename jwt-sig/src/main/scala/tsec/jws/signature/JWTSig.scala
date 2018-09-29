@@ -20,48 +20,48 @@ case class JWTSig[A](header: JWSSignedHeader[A], body: JWTClaims, signature: Cry
 object JWTSig {
 
   def signAndBuild[F[_]: Sync, A: JWTSigAlgo](
-      body: JWTClaims,
-      sigPrivateKey: SigPrivateKey[A]
+    body: JWTClaims,
+    sigPrivateKey: SigPrivateKey[A]
   )(implicit sigCV: JWSSigCV[F, A]): F[JWTSig[A]] = sigCV.signAndBuild(JWSSignedHeader[A](), body, sigPrivateKey)
 
   def signAndBuild[F[_]: Sync, A: JWTSigAlgo](
-      header: JWSSignedHeader[A],
-      body: JWTClaims,
-      sigPrivateKey: SigPrivateKey[A]
+    header: JWSSignedHeader[A],
+    body: JWTClaims,
+    sigPrivateKey: SigPrivateKey[A]
   )(implicit sigCV: JWSSigCV[F, A]): F[JWTSig[A]] = sigCV.signAndBuild(header, body, sigPrivateKey)
 
   def signToString[F[_]: Sync, A: JWTSigAlgo](
-      body: JWTClaims,
-      sigPrivateKey: SigPrivateKey[A]
+    body: JWTClaims,
+    sigPrivateKey: SigPrivateKey[A]
   )(implicit sigCV: JWSSigCV[F, A]): F[String] = sigCV.signToString(JWSSignedHeader[A](), body, sigPrivateKey)
 
   def signToString[F[_]: Sync, A: JWTSigAlgo](
-      header: JWSSignedHeader[A],
-      body: JWTClaims,
-      sigPrivateKey: SigPrivateKey[A]
+    header: JWSSignedHeader[A],
+    body: JWTClaims,
+    sigPrivateKey: SigPrivateKey[A]
   )(implicit sigCV: JWSSigCV[F, A]): F[String] = sigCV.signToString(header, body, sigPrivateKey)
 
   def verifyK[F[_], A: JWTSigAlgo](
-      jwt: String,
-      pubKey: SigPublicKey[A]
+    jwt: String,
+    pubKey: SigPublicKey[A]
   )(implicit F: Sync[F], sigCV: JWSSigCV[F, A]): F[JWTSig[A]] =
     F.delay(Instant.now()).flatMap(sigCV.verify(jwt, pubKey, _))
 
   def verifyC[F[_], A: JWTSigAlgo](
-      jwt: String,
-      cert: SigCertificate[A]
+    jwt: String,
+    cert: SigCertificate[A]
   )(implicit F: Sync[F], sigCV: JWSSigCV[F, A]): F[JWTSig[A]] =
     F.delay(Instant.now()).flatMap(sigCV.verifyCert(jwt, cert, _))
 
   def verifyKI[F[_], A: JWTSigAlgo](
-      jwt: JWTSig[A],
-      extract: SigPublicKey[A]
+    jwt: JWTSig[A],
+    extract: SigPublicKey[A]
   )(implicit F: Sync[F], sigCV: JWSSigCV[F, A], hs: JWSSerializer[JWSSignedHeader[A]]): F[JWTSig[A]] =
     verifyK[F, A](jwt.toEncodedString, extract)
 
   def verifyCI[F[_], A: JWTSigAlgo](
-      jwt: JWTSig[A],
-      extract: SigCertificate[A]
+    jwt: JWTSig[A],
+    extract: SigCertificate[A]
   )(implicit F: Sync[F], sigCV: JWSSigCV[F, A], hs: JWSSerializer[JWSSignedHeader[A]]): F[JWTSig[A]] =
     verifyC[F, A](jwt.toEncodedString, extract)
 

@@ -13,7 +13,7 @@ package object csrf {
   object CSRFToken extends ManagedRandom {
     type Token <: String
 
-    def apply(s: String): CSRFToken                 = s.asInstanceOf[CSRFToken]
+    def apply(s: String): CSRFToken   = s.asInstanceOf[CSRFToken]
     def subst[F[_]](value: F[String]): F[CSRFToken] = value.asInstanceOf[F[CSRFToken]]
 
     def generateHexBase(tokenLength: Int = 32): String = {

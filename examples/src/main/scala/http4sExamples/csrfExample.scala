@@ -9,7 +9,7 @@ object csrfExample {
   import tsec.csrf.TSecCSRF
   import tsec.mac.jca._
 
-  val newKey   = HMACSHA256.generateKey[Id]
+  val newKey = HMACSHA256.generateKey[Id]
   val tsecCSRF = TSecCSRF[IO, HMACSHA256](newKey)
 
   val dummyService: HttpRoutes[IO] = tsecCSRF.withNewToken(HttpRoutes.of[IO] {
@@ -20,5 +20,5 @@ object csrfExample {
   val dummyService2: HttpRoutes[IO] = tsecCSRF.validate()(HttpRoutes.of[IO] {
     case GET -> Root / "hi" =>
       Ok()
-  }) //This endpoint is csrf checked
+  })//This endpoint is csrf checked
 }

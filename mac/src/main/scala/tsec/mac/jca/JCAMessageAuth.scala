@@ -8,7 +8,8 @@ import tsec.mac.{MAC, MessageAuth}
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 
-abstract class JCAMessageAuth[F[_], A](implicit F: Monad[F]) extends MessageAuth[F, A, MacSigningKey] {
+abstract class JCAMessageAuth[F[_], A](implicit F: Monad[F])
+  extends MessageAuth[F, A, MacSigningKey] {
 
   protected[tsec] def genInstance: F[Mac]
 

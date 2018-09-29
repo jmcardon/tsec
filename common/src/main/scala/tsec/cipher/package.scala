@@ -1,3 +1,5 @@
 package tsec
 
-package object cipher extends CipherErrors {}
+package object cipher extends CipherErrors {
+
+}

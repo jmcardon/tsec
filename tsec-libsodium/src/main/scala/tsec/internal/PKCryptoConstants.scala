@@ -36,6 +36,7 @@ trait PKCryptoConstants {
 
   val crypto_sign_ed25519_SECRETKEYBYTES = 64
 
+
   def crypto_sign_BYTES = crypto_sign_ed25519_BYTES
 
   def crypto_sign_SEEDBYTES = crypto_sign_ed25519_SEEDBYTES

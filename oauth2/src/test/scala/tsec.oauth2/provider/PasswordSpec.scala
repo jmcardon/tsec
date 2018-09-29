@@ -17,8 +17,7 @@ import scala.concurrent.duration._
 
 class PasswordSpec extends FlatSpec with OptionValues {
 
-  val passwordClientCredReq =
-    ValidatedPasswordWithClientCred(ClientCredential("clientId1", Some("clientSecret1")), "pass", "user", Some("all"))
+  val passwordClientCredReq   = ValidatedPasswordWithClientCred(ClientCredential("clientId1", Some("clientSecret1")), "pass", "user", Some("all"))
   val passwordNoClientCredReq = ValidatedPasswordNoClientCred("pass", "user", Some("all"))
 
   "Password when client credential required" should "handle request" in handlesRequestPasswordWithClientCredReq(
@@ -33,15 +32,14 @@ class PasswordSpec extends FlatSpec with OptionValues {
       override def validateClient(request: ValidatedPasswordWithClientCred): IO[Boolean] = IO.pure(true)
 
       override def findUser(
-          request: ValidatedPasswordWithClientCred
-      ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
+                             request: ValidatedPasswordWithClientCred
+                           ): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
 
       override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
         IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now()))
 
       override def getStoredAccessToken(authInfo: AuthInfo[MockUser]): IO[Option[AccessToken]] = IO.pure(None)
-      override def refreshAccessToken(authInfo: AuthInfo[MockUser], refreshToken: String): IO[AccessToken] =
-        IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), Instant.now()))
+      override def refreshAccessToken(authInfo: AuthInfo[MockUser], refreshToken: String): IO[AccessToken] = IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), Instant.now()))
     }
     val handler = new PasswordWithClientCredGrantHandler[IO, MockUser](dataHandler)
     val f = handler.handleRequest(
@@ -60,13 +58,9 @@ class PasswordSpec extends FlatSpec with OptionValues {
     val dataHandler = new PasswordNoClientCredHandler[IO, MockUser] {
       override def createAccessToken(authInfo: AuthInfo[MockUser]): IO[AccessToken] =
         IO.pure(AccessToken("token1", Some("refreshToken1"), Some("all"), Some(3600 seconds), Instant.now()))
-      override def findUser(
-          maybeCredential: Option[ClientCredential],
-          request: ValidatedPasswordNoClientCred
-      ): IO[Option[MockUser]]                                                                  = IO.pure(Some(MockUser(10000, "username")))
+      override def findUser(maybeCredential: Option[ClientCredential], request: ValidatedPasswordNoClientCred): IO[Option[MockUser]] = IO.pure(Some(MockUser(10000, "username")))
       override def getStoredAccessToken(authInfo: AuthInfo[MockUser]): IO[Option[AccessToken]] = IO.pure(None)
-      override def refreshAccessToken(authInfo: AuthInfo[MockUser], refreshToken: String): IO[AccessToken] =
-        IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), Instant.now()))
+      override def refreshAccessToken(authInfo: AuthInfo[MockUser], refreshToken: String): IO[AccessToken] = IO.pure(AccessToken("", Some(""), Some(""), Some(0 seconds), Instant.now()))
     }
     val handler = new PasswordNoClientCredGrantHandler[IO, MockUser](dataHandler)
     val f = handler.handleRequest(

@@ -1,3 +1,4 @@
+
 object JWTSignatureExamples {
 
   import cats.effect.Sync
@@ -9,14 +10,13 @@ object JWTSignatureExamples {
   /** Example usage */
   val claims = JWTClaims()
 
-  def jwtStuffMonadic[F[_]](implicit F: Sync[F]): F[JWTSig[SHA256withECDSA]] =
-    for {
-      keyPair      <- SHA256withECDSA.generateKeyPair[F]
-      jwtSig       <- JWTSig.signAndBuild[F, SHA256withECDSA](claims, keyPair.privateKey) //ToInstance
-      jwtSigString <- JWTSig.signToString[F, SHA256withECDSA](claims, keyPair.privateKey)
-      verified1    <- JWTSig.verifyK[F, SHA256withECDSA](jwtSigString, keyPair.publicKey)
-      verified2    <- JWTSig.verifyKI[F, SHA256withECDSA](jwtSig, keyPair.publicKey)
-    } yield verified2
+  def jwtStuffMonadic[F[_]](implicit F: Sync[F]): F[JWTSig[SHA256withECDSA]] = for {
+    keyPair      <- SHA256withECDSA.generateKeyPair[F]
+    jwtSig       <- JWTSig.signAndBuild[F, SHA256withECDSA](claims, keyPair.privateKey) //ToInstance
+    jwtSigString <- JWTSig.signToString[F, SHA256withECDSA](claims, keyPair.privateKey)
+    verified1    <- JWTSig.verifyK[F, SHA256withECDSA](jwtSigString, keyPair.publicKey)
+    verified2    <- JWTSig.verifyKI[F, SHA256withECDSA](jwtSig, keyPair.publicKey)
+  } yield verified2
 
   val jwtStuff: Either[Throwable, JWTSig[SHA256withECDSA]] = for {
     keyPair      <- SHA256withECDSA.generateKeyPair[SigErrorM]

@@ -66,7 +66,7 @@ package object symmetric {
     def tagSizeBytes: Int
   }
 
-  object AEADCipher {
+  object AEADCipher{
     def apply[A](implicit A: AEADCipher[A]): AEADCipher[A] = A
   }
 

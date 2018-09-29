@@ -67,7 +67,7 @@ object SymmetricCipherExamples {
     */
   import tsec.cipher.common.padding._
   import tsec.cipher.symmetric.jca.primitive._
-  val desStrategy       = JCAIvGen.random[IO, DES]
+  val desStrategy = JCAIvGen.random[IO, DES]
   implicit val instance = JCAPrimitiveCipher.sync[IO, DES, CBC, PKCS7Padding]
 
   val advancedUsage: IO[String] = for {

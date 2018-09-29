@@ -21,11 +21,12 @@ object MessageDigestExamples {
     */
   SHA1.hash[Id]("hiHello".utf8Bytes)
   SHA256.hash[Id]("hiHello".utf8Bytes)
-
   /** Some Monad with a sync bound: **/
   SHA512.hash[IO]("hiHello".utf8Bytes)
 
-  def hashPipeExample[F[_]: Sync](str: Stream[F, Byte]): Stream[F, Byte] =
+
+  def hashPipeExample[F[_]: Sync](str: Stream[F, Byte]): Stream[F, Byte] = {
     str.through(SHA512.hashPipe[F])
+  }
 
 }

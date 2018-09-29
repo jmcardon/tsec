@@ -1,5 +1,6 @@
 package tsec.internal
 
+
 /** Constants defined in:
   * https://github.com/jedisct1/libsodium/blob/master/src/libsodium/include/sodium/crypto_secretbox_xsalsa20poly1305.h#L29
   */

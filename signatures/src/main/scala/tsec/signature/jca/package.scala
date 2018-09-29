@@ -11,7 +11,7 @@ package object jca {
   object SigCertificate {
     type Repr[A]
 
-    @inline def apply[A](cert: Certificate): SigCertificate[A]             = cert.asInstanceOf[SigCertificate[A]]
+    @inline def apply[A](cert: Certificate): SigCertificate[A]  = cert.asInstanceOf[SigCertificate[A]]
     @inline def toJavaCertificate[A](cert: SigCertificate[A]): Certificate = cert.asInstanceOf[Certificate]
   }
 
@@ -20,8 +20,8 @@ package object jca {
   object SigPublicKey {
     type Repr[A]
 
-    @inline def apply[A](key: PublicKey): SigPublicKey[A]           = key.asInstanceOf[SigPublicKey[A]]
-    @inline def toJavaPublicKey[A](key: SigPublicKey[A]): PublicKey = key.asInstanceOf[PublicKey]
+    @inline def apply[A](key: PublicKey): SigPublicKey[A] = key.asInstanceOf[SigPublicKey[A]]
+    @inline def toJavaPublicKey[A](key: SigPublicKey[A]): PublicKey  = key.asInstanceOf[PublicKey]
   }
 
   type SigPrivateKey[A] = SigPrivateKey.Repr[A]
@@ -29,9 +29,11 @@ package object jca {
   object SigPrivateKey {
     type Repr[A]
 
-    @inline def apply[A](key: PrivateKey): SigPrivateKey[A]            = key.asInstanceOf[SigPrivateKey[A]]
+    @inline def apply[A](key: PrivateKey): SigPrivateKey[A] = key.asInstanceOf[SigPrivateKey[A]]
     @inline def toJavaPrivateKey[A](key: SigPrivateKey[A]): PrivateKey = key.asInstanceOf[PrivateKey]
   }
+
+
 //  implicit def signer[F[_]: Sync, A](
 //      implicit C: JCASigInterpreter[F, A]
 //  ): JCASigner[F, A] = new JCASigner[F, A](C)
