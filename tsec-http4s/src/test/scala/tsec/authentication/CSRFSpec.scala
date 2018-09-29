@@ -71,11 +71,9 @@ class CSRFSpec extends TestSpec with MustMatchers {
 
       val (origToken, origRaw, response, newToken, newRaw) =
         (for {
-          t1   <- OptionT.liftF[IO, CSRFToken](tsecCSRF.generateToken)
-          raw1 <- tsecCSRF.extractRaw(t1)
-          resp <- tsecCSRF.validate()(dummyService)(
-            passThroughRequest.addCookie(RequestCookie(tsecCSRF.cookieName, t1))
-          )
+          t1     <- OptionT.liftF[IO, CSRFToken](tsecCSRF.generateToken)
+          raw1   <- tsecCSRF.extractRaw(t1)
+          resp   <- tsecCSRF.validate()(dummyService)(passThroughRequest.addCookie(RequestCookie(tsecCSRF.cookieName, t1)))
           cookie <- OptionT.fromOption[IO](resp.cookies.find(_.name == tsecCSRF.cookieName))
           raw2   <- tsecCSRF.extractRaw(CSRFToken(cookie.content))
         } yield (t1, raw1, resp, CSRFToken(cookie.content), raw2))

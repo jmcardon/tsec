@@ -20,7 +20,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
       service: TSecAuthService[User, Auth, F],
       onNotAuthenticated: Request[F] => F[Response[F]] = defaultNotAuthenticated
   ): HttpRoutes[F] = {
-    val middleware = TSecMiddleware[F, User, Auth](Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
+    val middleware = TSecMiddleware(Kleisli(authenticator.extractAndValidate), onNotAuthenticated)
 
     middleware(service)
       .handleErrorWith { e: Throwable =>
