@@ -1,5 +1,6 @@
 package tsec.authentication
 
+import cats.Applicative
 import cats.ApplicativeError
 import cats.data.OptionT
 import cats.effect.IO
@@ -77,7 +78,8 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     s <- Gen.alphaNumStr
   } yield DummyUser(i, s))
 
-  def errorToNone(t: Throwable): OptionT = OptionT.none
+  def errorToNone[F[_]: Applicative, A](t: Throwable): OptionT[F, A] =
+    OptionT.none[F, A]
 
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: MonadError[F, Throwable]) = new BackingStore[F, I, V] {
     val storageMap = mutable.HashMap.empty[I, V]
