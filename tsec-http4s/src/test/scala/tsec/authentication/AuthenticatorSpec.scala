@@ -77,6 +77,8 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
     s <- Gen.alphaNumStr
   } yield DummyUser(i, s))
 
+  def errorToNone(t: Throwable): OptionT = OptionT.none
+
   def dummyBackingStore[F[_], I, V](getId: V => I)(implicit F: MonadError[F, Throwable]) = new BackingStore[F, I, V] {
     val storageMap = mutable.HashMap.empty[I, V]
 
@@ -116,7 +118,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           fromRequest <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
           _           <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield fromRequest)
-          .handleErrorWith((_: Throwable) => OptionT.none)
+          .handleErrorWith(errorToNone)
           .value
 
         val extracted = results.unsafeRunSync()
@@ -152,7 +154,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
           _        <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
-          .handleErrorWith((_: Throwable) => OptionT.none)
+          .handleErrorWith(errorToNone)
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe false
@@ -183,7 +185,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           req2      <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
           _         <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
         } yield req2)
-          .handleErrorWith((_: Throwable) => OptionT.none)
+          .handleErrorWith(errorToNone)
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe true
@@ -219,7 +221,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
             req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
             _        <- OptionT.liftF(authSpec.dummyStore.delete(dummy1.id))
           } yield req2)
-            .handleErrorWith((_: Throwable) => OptionT.none)
+            .handleErrorWith(errorToNone)
             .value
           val extracted = results.unsafeRunSync()
           extracted.isEmpty mustBe false
@@ -255,7 +257,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           auth        <- OptionT.liftF(authSpec.auth.create(dummy1))
           fromRequest <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), auth))
         } yield fromRequest)
-          .handleErrorWith((_: Throwable) => OptionT.none)
+          .handleErrorWith(errorToNone)
           .value
 
         val extracted = results.unsafeRunSync()
@@ -272,7 +274,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           updated <- OptionT.liftF(authSpec.auth.update(expired))
           req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
         } yield req2)
-          .handleErrorWith((_: Throwable) => OptionT.none) // Only delete if it fails as expected
+          .handleErrorWith(errorToNone) // Only delete if it fails as expected
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe true
@@ -288,7 +290,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           renewed  <- OptionT.liftF(authSpec.auth.renew(updated1))
           req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
         } yield req2)
-          .handleErrorWith((_: Throwable) => OptionT.none)
+          .handleErrorWith(errorToNone)
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe false
@@ -301,7 +303,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           wrong <- OptionT.liftF(authSpec.wrongKeyAuthenticator)
           req2  <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), wrong))
         } yield req2)
-          .handleErrorWith((_: Throwable) => OptionT.none)
+          .handleErrorWith(errorToNone)
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe true
@@ -315,7 +317,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
           discarded <- OptionT.liftF(authSpec.auth.discard(auth))
           req2      <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), discarded))
         } yield req2)
-          .handleErrorWith((_: Throwable) => OptionT.none)
+          .handleErrorWith(errorToNone)
           .value
         val extracted = results.unsafeRunSync()
         extracted.isEmpty mustBe true
@@ -332,7 +334,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
             updated <- OptionT.liftF(authSpec.auth.update(expired))
             req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
           } yield req2)
-            .handleErrorWith((_: Throwable) => OptionT.none)
+            .handleErrorWith(errorToNone)
             .value
           val extracted = results.unsafeRunSync()
           extracted.isEmpty mustBe true
@@ -348,7 +350,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
             renewed  <- OptionT.liftF(authSpec.auth.refresh(updated1))
             req2     <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), renewed))
           } yield req2)
-            .handleErrorWith((_: Throwable) => OptionT.none)
+            .handleErrorWith(errorToNone)
             .value
           val extracted = results.unsafeRunSync()
           extracted.isEmpty mustBe false
@@ -363,7 +365,7 @@ abstract class AuthenticatorSpec extends TestSpec with MustMatchers with Propert
             updated <- OptionT.liftF(authSpec.auth.update(expired))
             req2    <- authSpec.auth.extractAndValidate(authSpec.embedInRequest(Request[IO](), updated))
           } yield req2)
-            .handleErrorWith((_: Throwable) => OptionT.none)
+            .handleErrorWith(errorToNone)
             .value
           val extracted = results.unsafeRunSync()
           extracted.isDefined mustBe true
