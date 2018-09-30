@@ -3,17 +3,17 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val circeV        = "0.9.3"
-    val catsV         = "1.1.0"
-    val bouncyCastleV = "1.58"
+    val circeV        = "0.10.0"
+    val catsV         = "1.4.0"
+    val bouncyCastleV = "1.60"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.5"
-    val http4sV       = "0.18.15"
-    val scalacheckV   = "1.13.5"
+    val http4sV       = "0.19.0-M3"
+    val scalacheckV   = "1.14.0"
     val commonsCodecV = "1.11"
-    val fs2Version    = "0.10.4"
-    val log4sV        = "1.4.0"
-    val gitHub4s      = "0.18.1"
+    val fs2Version    = "1.0.0-RC2"
+    val log4sV        = "1.6.1"
+    val gitHub4s      = "0.18.8"
   }
 
   object Libraries {

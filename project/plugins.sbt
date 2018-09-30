@@ -1,7 +1,7 @@
 logLevel := Level.Warn
 addSbtPlugin("com.lucidchart"     % "sbt-scalafmt"   % "1.15")
 addSbtPlugin("com.47deg"          % "sbt-microsites" % "0.7.18")
-addSbtPlugin("org.tpolecat"       % "tut-plugin"     % "0.6.4")
+addSbtPlugin("org.tpolecat"       % "tut-plugin"     % "0.6.7")
 addSbtPlugin("com.typesafe.sbt"   % "sbt-ghpages"    % "0.6.2")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"        % "0.3.2")
 addSbtPlugin("com.timushev.sbt"   % "sbt-updates"    % "0.3.3")

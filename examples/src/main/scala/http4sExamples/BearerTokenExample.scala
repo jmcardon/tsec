@@ -2,7 +2,7 @@ package http4sExamples
 
 import cats.effect.IO
 import cats.syntax.semigroupk._
-import org.http4s.HttpService
+import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.common.SecureRandomId
@@ -54,6 +54,6 @@ object BearerTokenExample {
       Ok()
   }
 
-  val lifted: HttpService[IO] = Auth.liftService(authService1)
-  val liftedComposed: HttpService[IO] = Auth.liftService(authService1 <+> authedService2)
+  val lifted: HttpRoutes[IO]         = Auth.liftService(authService1)
+  val liftedComposed: HttpRoutes[IO] = Auth.liftService(authService1 <+> authedService2)
 }

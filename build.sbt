@@ -115,14 +115,13 @@ lazy val commonSettings = Seq(
     Libraries.fs2IO
   ),
   organization in ThisBuild := "io.github.jmcardon",
-  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.6"),
-  scalaVersion in ThisBuild := "2.12.6",
+  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.7"),
+  scalaVersion in ThisBuild := "2.12.7",
   fork in test := true,
   fork in run := true,
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7"),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
-  version in ThisBuild := "0.0.1-M11",
   scalacOpts
 )
 

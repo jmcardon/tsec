@@ -149,7 +149,7 @@ final case class AuthenticatedCookie[A, Id](
     path: Option[String] = None,
     extension: Option[String] = None
 ) {
-  def toCookie = Cookie(
+  def toCookie = ResponseCookie(
     name,
     content,
     Some(HttpDate.unsafeFromInstant(expiry)),

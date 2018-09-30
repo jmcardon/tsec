@@ -8,7 +8,7 @@ import cats.instances.string._
 import cats.syntax.all._
 import io.circe.{Decoder, Encoder, ObjectEncoder}
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{Cookie, Header, HttpDate, Request, Response}
+import org.http4s.{Header, HttpDate, Request, Response, ResponseCookie}
 import tsec.authentication.internal._
 import tsec.common._
 import tsec.jws.mac._
@@ -34,7 +34,7 @@ final case class AugmentedJWT[A, I](
     lastTouched: Option[Instant]
 ) {
   def toCookie[F[_]](settings: TSecCookieSettings)(implicit F: Sync[F], J: JWSMacCV[F, A], algo: JWTMacAlgo[A]) =
-    Cookie(
+    ResponseCookie(
       settings.cookieName,
       JWTMac.toEncodedString[F, A](jwt),
       expires = Some(HttpDate.unsafeFromInstant(expiry)),

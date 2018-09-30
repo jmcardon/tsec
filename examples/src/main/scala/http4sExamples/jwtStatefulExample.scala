@@ -3,7 +3,7 @@ package http4sExamples
 import cats.Id
 import cats.effect.IO
 import cats.syntax.semigroupk._
-import org.http4s.HttpService
+import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.common.SecureRandomId
@@ -40,7 +40,7 @@ object jwtStatefulExample {
 
   /*
   Now from here, if want want to create services, we simply use the following
-  (Note: Since the type of the service is HttpService[IO], we can mount it like any other endpoint!):
+  (Note: Since the type of the service is HttpRoutes[IO], we can mount it like any other endpoint!):
    */
   val service1: AuthService = TSecAuthService {
     //Where user is the case class User above
@@ -61,7 +61,7 @@ object jwtStatefulExample {
       Ok()
   }
 
-  val liftedService1: HttpService[IO] = Auth.liftService(service1)
-  val liftedComposed: HttpService[IO] = Auth.liftService(service1 <+> service2)
+  val liftedService1: HttpRoutes[IO] = Auth.liftService(service1)
+  val liftedComposed: HttpRoutes[IO] = Auth.liftService(service1 <+> service2)
 
 }

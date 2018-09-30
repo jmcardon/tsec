@@ -97,24 +97,24 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
     */
   private def decryptPull[F[_]: Sync](
       chunkSize: Int,
-      lastChunk: Segment[Byte, Unit],
+      lastChunk: Chunk[Byte],
       stream: Stream[F, Byte],
       state: CryptoStreamState
   )(implicit S: ScalaSodium): Pull[F, Byte, Unit] =
     stream.pull.unconsLimit(chunkSize).flatMap {
       case Some((seg, str)) =>
-        val cipherText = lastChunk.force.toArray
+        val cipherText = lastChunk.toArray
         if (cipherText.length < NonEmptyMinLen)
           Pull.raiseError(GenericDecryptError)
         else {
           Pull
             .eval(decryptSodiumStream[F](cipherText, state))
             .flatMap { ct =>
-              Pull.outputChunk(Chunk.bytes(ct)) >> decryptPull[F](chunkSize, seg, str, state)
+              Pull.output(Chunk.bytes(ct)) >> decryptPull[F](chunkSize, seg, str, state)
             }
         }
       case None =>
-        val cipherText = lastChunk.force.toArray
+        val cipherText = lastChunk.toArray
         if (cipherText.length < NonEmptyMinLen)
           Pull.raiseError(GenericDecryptError)
         else {
@@ -125,7 +125,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
                 if (tag != CompletionTag)
                   Pull.raiseError(GenericDecryptError)
                 else
-                  Pull.outputChunk(Chunk.bytes(ct)) >> Pull.done
+                  Pull.output(Chunk.bytes(ct)) >> Pull.done
             }
         }
     }
@@ -178,7 +178,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
     */
   private def encryptPull[F[_]: Sync](
       chunkSize: Int,
-      lastChunk: Segment[Byte, Unit],
+      lastChunk: Chunk[Byte],
       stream: Stream[F, Byte],
       state: CryptoStreamState
   )(
@@ -186,15 +186,15 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   ): Pull[F, Byte, Unit] =
     stream.pull.unconsLimit(chunkSize).flatMap {
       case Some((c, str)) =>
-        val inArray = lastChunk.force.toArray
+        val inArray = lastChunk.toArray
         Pull
           .eval(encryptSodiumStream(inArray, state))
-          .flatMap(ct => Pull.outputChunk(Chunk.bytes(ct)) >> encryptPull[F](chunkSize, c, str, state))
+          .flatMap(ct => Pull.output(Chunk.bytes(ct)) >> encryptPull[F](chunkSize, c, str, state))
       case None =>
-        val inArray = lastChunk.force.toArray
+        val inArray = lastChunk.toArray
         Pull
           .eval(encryptStreamFinal(inArray, state))
-          .flatMap(ct => Pull.outputChunk(Chunk.bytes(ct)) >> Pull.done)
+          .flatMap(ct => Pull.output(Chunk.bytes(ct)) >> Pull.done)
     }
 
   /** Encrypt the in array using the crypto stream state **/

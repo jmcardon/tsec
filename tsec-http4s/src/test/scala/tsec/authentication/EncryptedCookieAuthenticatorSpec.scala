@@ -9,7 +9,7 @@ import cats.syntax.either._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.http4s.headers.`Set-Cookie`
-import org.http4s.{Request, Response}
+import org.http4s.{Request, RequestCookie, Response}
 import tsec.cipher.symmetric.jca._
 import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
 import tsec.keygen.symmetric.IdKeyGen
@@ -39,8 +39,10 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
     )
     new AuthSpecTester[AuthEncryptedCookie[A, Int]](authenticator, dummyStore) {
 
-      def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] =
-        request.addCookie(authenticator.toCookie)
+      def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] = {
+        val cookie = authenticator.toCookie
+        request.addCookie(RequestCookie(cookie.name, cookie.content))
+      }
 
       def expireAuthenticator(b: AuthEncryptedCookie[A, Int]): IO[AuthEncryptedCookie[A, Int]] = {
         val now     = Instant.now()
@@ -82,8 +84,10 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
     )
     new AuthSpecTester[AuthEncryptedCookie[A, Int]](authenticator, dummyStore) {
 
-      def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] =
-        request.addCookie(authenticator.toCookie)
+      def embedInRequest(request: Request[IO], authenticator: AuthEncryptedCookie[A, Int]): Request[IO] = {
+        val cookie = authenticator.toCookie
+        request.addCookie(RequestCookie(cookie.name, cookie.content))
+      }
 
       /** our method here has to be unique, since we cannot afford to renew the token for a stateless token, as
         * it carries rolling window expiration information.

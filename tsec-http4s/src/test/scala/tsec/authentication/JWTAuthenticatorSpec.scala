@@ -3,7 +3,7 @@ package tsec.authentication
 import java.time.Instant
 
 import cats.effect.IO
-import org.http4s.{Header, Request}
+import org.http4s.{Header, Request, RequestCookie}
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
@@ -83,7 +83,10 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       settings: TSecCookieSettings
   )(r: Request[IO], a: AugmentedJWT[A, I])(
       implicit cv: JWSMacCV[IO, A]
-  ): Request[IO] = r.addCookie(a.toCookie[IO](settings))
+  ): Request[IO] = {
+    val cookie = a.toCookie[IO](settings)
+    r.addCookie(RequestCookie(cookie.name, cookie.content))
+  }
 
   /** Stateful tests using Authorization: Header
     *

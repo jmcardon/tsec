@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.Id
 import cats.effect.IO
 import cats.syntax.semigroupk._
-import org.http4s.HttpService
+import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import tsec.authentication._
 import tsec.mac.jca.{HMACSHA256, MacSigningKey}
@@ -64,7 +64,7 @@ object SignedCookieExample {
       Ok()
   }
 
-  val liftedService1: HttpService[IO] = Auth.liftService(service1)
-  val liftedComposed: HttpService[IO] = Auth.liftService(service1 <+> service2)
+  val liftedService1: HttpRoutes[IO] = Auth.liftService(service1)
+  val liftedComposed: HttpRoutes[IO] = Auth.liftService(service1 <+> service2)
 
 }

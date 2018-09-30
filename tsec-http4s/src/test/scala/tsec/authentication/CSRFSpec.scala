@@ -12,7 +12,7 @@ import tsec.mac.jca._
 
 class CSRFSpec extends TestSpec with MustMatchers {
 
-  val dummyService: HttpService[IO] = HttpService[IO] {
+  val dummyService: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root =>
       Thread.sleep(1) //Necessary to advance the clock
       Ok()
@@ -59,7 +59,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
     it should "fail and not embed a new token for a safe method but invalid cookie" in {
 
       val response = tsecCSRF
-        .validate()(dummyService)(passThroughRequest.addCookie(Cookie(tsecCSRF.cookieName, "MOOSE")))
+        .validate()(dummyService)(passThroughRequest.addCookie(RequestCookie(tsecCSRF.cookieName, "MOOSE")))
         .getOrElse(orElse)
         .unsafeRunSync()
 
@@ -73,7 +73,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
         (for {
           t1     <- OptionT.liftF[IO, CSRFToken](tsecCSRF.generateToken)
           raw1   <- tsecCSRF.extractRaw(t1)
-          resp   <- tsecCSRF.validate()(dummyService)(passThroughRequest.addCookie(Cookie(tsecCSRF.cookieName, t1)))
+          resp   <- tsecCSRF.validate()(dummyService)(passThroughRequest.addCookie(RequestCookie(tsecCSRF.cookieName, t1)))
           cookie <- OptionT.fromOption[IO](resp.cookies.find(_.name == tsecCSRF.cookieName))
           raw2   <- tsecCSRF.extractRaw(CSRFToken(cookie.content))
         } yield (t1, raw1, resp, CSRFToken(cookie.content), raw2))
