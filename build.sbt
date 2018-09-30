@@ -141,7 +141,8 @@ lazy val jwtCommonLibs = libraryDependencies ++= Seq(
 lazy val http4sDeps = libraryDependencies ++= Seq(
   Libraries.http4sdsl,
   Libraries.http4sServer,
-  Libraries.http4sCirce
+  Libraries.http4sCirce,
+  Libraries.http4sClient
 )
 
 lazy val loggingLibs = libraryDependencies ++= Seq(
@@ -313,7 +314,9 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     mac,
     messageDigests,
     passwordHashers,
-    jwtMac
+    jwtMac,
+    jwtSig,
+    signatures
   )
   .settings(releaseSettings)
 

@@ -76,6 +76,19 @@ sealed abstract class JWSSigCV[F[_], A](
     }
   }
 
+  def extractRaw(jwt: String): F[JWTSig[A]] = {
+    val split: Array[String] = jwt.split("\\.", 3)
+    if (split.length != 3)
+      M.raiseError[JWTSig[A]](defaultError)
+    else {
+      val providedBytes: Array[Byte] = split(2).base64UrlBytes
+      for {
+        header <- M.fromEither(hs.fromUtf8Bytes(split(0).base64UrlBytes).left.map(_ => defaultError))
+        body   <- M.fromEither(JWTClaims.fromB64URL(split(1)))
+      } yield JWTSig(header, body, CryptoSignature[A](providedBytes))
+    }
+  }
+
   def verifyCert(
       jwt: String,
       cert: SigCertificate[A],
