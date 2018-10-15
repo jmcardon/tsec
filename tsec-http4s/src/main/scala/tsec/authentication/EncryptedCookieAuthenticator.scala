@@ -121,20 +121,20 @@ object AuthEncryptedCookie {
   def build[A, Id](
       internal: Internal[Id],
       content: AEADCookie[A],
-      c: ResponseCookie
+      settings: TSecCookieSettings
   ): AuthEncryptedCookie[A, Id] =
     AuthEncryptedCookie[A, Id](
       internal.id,
-      c.name,
+      settings.cookieName,
       content,
       internal.messageId,
       internal.expiry,
       internal.lastTouched,
-      c.secure,
-      c.httpOnly,
-      c.domain,
-      c.path,
-      c.extension
+      settings.secure,
+      settings.httpOnly,
+      settings.domain,
+      settings.path,
+      settings.extension
     )
 
 }
@@ -391,11 +391,10 @@ object EncryptedCookieAuthenticator {
         (for {
           now       <- OptionT.liftF(F.delay(Instant.now()))
           rawCookie <- cookieFromRequest[F](settings.cookieName, request)
-          response = ResponseCookie(rawCookie.name, rawCookie.content)
-          coerced  = AEADCookie[A](response.content)
+          coerced = AEADCookie[A](rawCookie.content)
           contentRaw <- OptionT.liftF(AEADCookieEncryptor.retrieveFromSigned[F, A](coerced, key))
           internal   <- OptionT.liftF(F.fromEither(decode[AuthEncryptedCookie.Internal[I]](contentRaw)))
-          authed = AuthEncryptedCookie.build[A, I](internal, coerced, response)
+          authed = AuthEncryptedCookie.build[A, I](internal, coerced, settings)
           refreshed <- validateAndRefresh(authed, now)
           identity  <- identityStore.get(authed.identity)
         } yield SecuredRequest(request, identity, refreshed))

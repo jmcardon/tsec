@@ -74,6 +74,30 @@ class EncryptedCookieAuthenticatorTests extends EncryptedCookieAuthenticatorSpec
 
       program.unsafeRunSync() mustBe false
     }
+
+    it should "pass along fixed settings" in {
+
+      val program: IO[List[AuthEncryptedCookie[A, Int]]] = for {
+        cookie  <- auth.auth.create(0)
+        update  <- auth.auth.update(cookie)
+        renew   <- auth.auth.renew(cookie)
+        refresh <- auth.auth.refresh(cookie)
+        expire  <- auth.auth.discard(cookie)
+      } yield List(cookie, update, renew, refresh, expire)
+
+      program.unsafeRunSync().forall { aec ⇒
+
+        settings.cookieName === aec.name      &&
+        settings.secure     === aec.secure    &&
+        settings.httpOnly   === aec.httpOnly  &&
+        settings.domain     === aec.domain    &&
+        settings.path       === aec.path      &&
+        settings.extension  === aec.extension
+
+      } mustBe true
+
+    }
+
   }
 
   encryptedCookieAuthenticatorTests[AES256GCM](genStatelessAuthenticator[AES256GCM], "Stateless")
