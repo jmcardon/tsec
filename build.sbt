@@ -161,7 +161,7 @@ lazy val root = Project(id = "tsec", base = file("."))
     http4s,
     microsite,
     oauth2
-  ).settings(commonSettings, noPublishSettings)
+  ).settings(commonSettings, releaseSettings, noPublishSettings)
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
