@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import cats.syntax.semigroupk._
 import org.http4s._
+import org.http4s.implicits._
 import org.http4s.dsl.io._
 
 class TSecAuthServiceTests extends AuthenticatorSpec {

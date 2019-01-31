@@ -1,7 +1,5 @@
 import Dependencies._
 
-name := "tsec"
-
 lazy val contributors = Seq(
   "jmcardon"             -> "Jose Cardona",
   "rsoeldner"            -> "Robert Soeldner",
@@ -115,12 +113,12 @@ lazy val commonSettings = Seq(
     Libraries.fs2IO
   ),
   organization in ThisBuild := "io.github.jmcardon",
-  crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.7"),
-  scalaVersion in ThisBuild := "2.12.7",
+  scalaVersion := "2.12.8",
+  crossScalaVersions := Seq(scalaVersion.value, "2.11.12"),
   fork in test := true,
   fork in run := true,
   parallelExecution in test := false,
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7"),
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
   scalacOpts
 )
@@ -148,7 +146,7 @@ lazy val loggingLibs = libraryDependencies ++= Seq(
   Libraries.log4s
 )
 
-lazy val root = project
+lazy val root = Project(id = "tsec", base = file("."))
   .aggregate(
     common,
     messageDigests,
@@ -163,7 +161,7 @@ lazy val root = project
     http4s,
     microsite,
     oauth2
-  ).settings(noPublishSettings)
+  ).settings(commonSettings, noPublishSettings)
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)

@@ -59,25 +59,27 @@ type CSRFMiddleware[F[_]] =
 
 Thus, you can use it as such:
 
-```tut
-  import cats.Id
-  import cats.effect.IO
-  import tsec.mac.jca._
-  import cats.syntax.all._
-  import tsec.csrf.TSecCSRF
-  import org.http4s._
-  import org.http4s.dsl.io._
+```tut:book
+import cats._
+import cats.implicits._
+import cats.effect.IO
+import tsec.mac.jca._
+import tsec.csrf.TSecCSRF
+import org.http4s._
+import org.http4s.dsl.io._
+val newKey = HMACSHA256.unsafeGenerateKey
+val tsecCSRF = TSecCSRF[IO, HMACSHA256](newKey)
 
-  val newKey = HMACSHA256.unsafeGenerateKey
-  val tsecCSRF = TSecCSRF[IO, HMACSHA256](newKey)
-
-  val dummyService: HttpService[IO] = tsecCSRF.withNewToken(HttpService[IO] {
+val baseService: HttpRoutes[IO] = {
+  HttpRoutes.of[IO] {
     case GET -> Root =>
       Ok()
-  }) // This endpoint now provides a user with a new csrf token.
-  
-  val dummyService2: HttpService[IO] = tsecCSRF.validate()(HttpService[IO] {
-    case GET -> Root / "hi" =>
-      Ok()
-  })//This endpoint is csrf checked
+  }
+}
+
+// This endpoint now provides a user with a new csrf token.
+val dummyService: HttpRoutes[IO] = tsecCSRF.withNewToken(baseService)
+
+//This endpoint is csrf checked
+val dummyServiceChecked: HttpRoutes[IO] = tsecCSRF.validate()(baseService)
 ```
