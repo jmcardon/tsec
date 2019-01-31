@@ -8,6 +8,12 @@ addSbtPlugin("com.github.gseitz"  % "sbt-release"    % "1.0.8")
 addSbtPlugin("com.jsuereth"       % "sbt-pgp"        % "1.1.1")
 addSbtPlugin("org.xerial.sbt"     % "sbt-sonatype"   % "2.3")
 
+
+libraryDependencies ++= List(
+  "com.geirsson" %% "scalafmt-core" % "1.3.0",
+  "com.geirsson" %% "scalafmt-cli"  % "1.3.0"
+)
+
 unmanagedJars in Compile ++= tsec.build.SunShine.`tools.jar`.toSeq
 
 sources in Compile ++= {
