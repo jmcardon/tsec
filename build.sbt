@@ -74,7 +74,7 @@ lazy val releaseSettings = {
   )
 }
 
-lazy val scalacOpts = scalacOptions := Seq(
+lazy val scalacOpts = scalacOptions ++= Seq(
   "-unchecked",
   "-feature",
   "-deprecation",
@@ -166,7 +166,7 @@ lazy val root = Project(id = "tsec", base = file("."))
     http4s,
     microsite,
     oauth2
-  ).settings(commonSettings, releaseSettings, noPublishSettings)
+  ).settings(commonSettings, publishSettings, releaseSettings, noPublishSettings)
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
