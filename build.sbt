@@ -117,6 +117,11 @@ lazy val commonSettings = Seq(
   crossScalaVersions := Seq(scalaVersion.value, "2.11.12"),
   fork in test := true,
   fork in run := true,
+  scalacOptions in (Compile, doc) ++= Seq(
+      "-groups",
+      "-sourcepath", (baseDirectory in LocalRootProject).value.getAbsolutePath,
+      "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
+  ),
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
@@ -350,16 +355,15 @@ lazy val publishSettings = Seq(
   homepage := Some(url("https://github.com/jmcardon/tsec")),
   licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
   scmInfo := Some(ScmInfo(url("https://github.com/jmcardon/tsec"), "scm:git:git@github.com:jmcardon/tsec.git")),
-  autoAPIMappings := true,
-  apiURL := None
 )
 
 lazy val noPublishSettings = {
   import com.typesafe.sbt.pgp.PgpKeys.publishSigned
   Seq(
-    publish := {},
-    publishLocal := {},
-    publishSigned := {},
-    publishArtifact := false
+    skip in publish := true,
+    publish := (()),
+    publishLocal := (()),
+    publishArtifact := false,
+    publishTo := None
   )
 }
