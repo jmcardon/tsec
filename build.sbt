@@ -154,6 +154,9 @@ lazy val loggingLibs = libraryDependencies ++= Seq(
 lazy val root = Project(id = "tsec", base = file("."))
   .aggregate(
     common,
+    bouncyCastle,
+    bouncyHash,
+    bouncyCipher,
     messageDigests,
     cipherCore,
     jwtCore,
@@ -165,7 +168,10 @@ lazy val root = Project(id = "tsec", base = file("."))
     passwordHashers,
     http4s,
     microsite,
-    oauth2
+    oauth2,
+    // bench,
+    // examples,
+    // libsodium
   ).settings(commonSettings, publishSettings, releaseSettings, noPublishSettings)
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
@@ -330,6 +336,7 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
   .settings(loggingLibs)
   .dependsOn(common % "compile->compile;test->test")
   .settings(releaseSettings)
+  .settings(publishSettings)
 
 lazy val microsite = Project(id = "microsite", base = file("docs"))
   .settings(commonSettings, noPublishSettings)
