@@ -114,7 +114,7 @@ lazy val commonSettings = Seq(
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion := "2.12.8",
-  crossScalaVersions := Seq(scalaVersion.value, "2.11.12"),
+  crossScalaVersions := Seq("2.13.0-M5", "2.12.8", "2.11.12"),
   fork in test := true,
   fork in run := true,
   scalacOptions in (Compile, doc) ++= Seq(
@@ -124,7 +124,7 @@ lazy val commonSettings = Seq(
   ),
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
-  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
+  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
   scalacOpts
 )
 
