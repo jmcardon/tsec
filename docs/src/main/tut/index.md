@@ -79,9 +79,7 @@ val tsecV = "0.0.1-M11"
 
 ## Testing:
 
-All tests can be run locally, but make sure you have the 
-[Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
-installed for tests that use Keys larger than 128 bits. More information under [symmetric cipher](/tsec/docs/symmetric.html) in the docs.
+All tests can be run locally.
 
 ## Inspirations:
 

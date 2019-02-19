@@ -85,24 +85,6 @@ val tsecV = "0.0.1-M11"
 ## Note on contributing
 
 See CONTRIBUTING.md
-
-## IMPORTANT NOTE: About higher than 128-bit encryption key sizes on the JCA!
-## This applies to you if you are using any AES algorithms with higher than 128-bit key sizes
-For 256-bit key sizes, you will have to install the Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy
-
-You can get it at: http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html
-
-You can refer to:
-https://stackoverflow.com/questions/41580489/how-to-install-unlimited-strength-jurisdiction-policy-files
-
-Alternatively, if you are using a package manager like aptitude and have the java8 repositories on your machine,
-you can install oracle-java8-unlimited-jce-policy 
-  
-For debian-like distros:
-Follow the instructions [here](http://tipsonubuntu.com/2016/07/31/install-oracle-java-8-9-ubuntu-16-04-linux-mint-18)
-then use:
-
- `sudo apt-get install oracle-java8-unlimited-jce-policy`
  
 ## A note on logging
 We use `log4s` which is a logging facade over [SLF4J](https://www.slf4j.org/). This implies you need to add a
