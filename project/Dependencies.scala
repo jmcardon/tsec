@@ -13,7 +13,7 @@ object Dependencies {
     val commonsCodecV = "1.12"
     val fs2Version    = "1.0.3"
     val log4sV        = "1.7.0"
-    val gitHub4s      = "0.20.0"
+    val gitHub4s      = "0.20.1"
   }
 
   object Libraries {
