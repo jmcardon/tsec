@@ -6,21 +6,6 @@ title: "Symmetric Ciphers"
 
 # Symmetric Ciphers
 
-### Important note:
-For 256-bit key sizes, you will have to install the
-Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy
-    
-You can get it [here](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
-    
-You can refer to [this](https://stackoverflow.com/questions/41580489/how-to-install-unlimited-strength-jurisdiction-policy-files) for installation help 
-    
-Alternatively, if you are using a package manager like aptitude and have the java8 repositories on your machine,
-you can install oracle-java8-unlimited-jce-policy
-   
-For debian-like distros:
-Follow the instructions [here](http://tipsonubuntu.com/2016/07/31/install-oracle-java-8-9-ubuntu-16-04-linux-mint-18)
-then use: `sudo apt-get install oracle-java8-unlimited-jce-policy`
-
 ## Introduction
 
 For symmetric ciphers, we provide a low level as well as a high-level api construction.
