@@ -344,7 +344,7 @@ abstract class ECDSASignature[A](sigAlgo: String, dCurve: String, outLen: Int)
       Either.catchNonFatal(buildPrivateKeyFromPoint(S)).mapError(SignatureKeyError.apply)
 
     def buildPrivateKeyFromPoint(S: BigInt): SigPrivateKey[A] = {
-      val spec = new ECPrivateKeySpec(S.underlying(), curveSpec)
+      val spec = new ECPrivateKeySpec(S.underlying, curveSpec)
       SigPrivateKey[A](
         KeyFactory
           .getInstance(KeyFactoryAlgo, ECDSASignature.Provider)
@@ -361,7 +361,7 @@ abstract class ECDSASignature[A](sigAlgo: String, dCurve: String, outLen: Int)
       Either.catchNonFatal(buildPublicKeyUnsafeFromPoints(x, y)).mapError(SignatureKeyError.apply)
 
     def buildPublicKeyUnsafeFromPoints(x: BigInt, y: BigInt): SigPublicKey[A] = {
-      val spec = new ECPublicKeySpec(new ECPoint(x.underlying(), y.underlying()), curveSpec)
+      val spec = new ECPublicKeySpec(new ECPoint(x.underlying, y.underlying), curveSpec)
       SigPublicKey[A](KeyFactory.getInstance(KeyFactoryAlgo, ECDSASignature.Provider).generatePublic(spec))
     }
 
