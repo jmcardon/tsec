@@ -45,7 +45,16 @@ script:
   - test $TRAVIS_SCALA_VERSION == "2.12.8" && sbt ++$TRAVIS_SCALA_VERSION tut || test $TRAVIS_SCALA_VERSION == "2.11.12"
   - test $TRAVIS_SCALA_VERSION == "2.12.8" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite || test $TRAVIS_SCALA_VERSION == "2.11.12"
 
-
 after_success:
 - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && sbt ++$TRAVIS_SCALA_VERSION publish
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && test $TRAVIS_SCALA_VERSION == "2.12.8" && sbt ++$TRAVIS_SCALA_VERSION microsite/publishMicrosite
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && test $TRAVIS_SCALA_VERSION == "2.12.8" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true
+  local-dir: docs/target/site/
+  target-branch: gh-pages
+  on:
+    branch: master

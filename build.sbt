@@ -90,7 +90,6 @@ lazy val scalacOpts = scalacOptions ++= Seq(
 )
 
 lazy val micrositeSettings = Seq(
-  libraryDependencies += Libraries.gitHub4s,
   micrositeName := "TSec",
   micrositeBaseUrl := "/tsec",
   micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",
@@ -100,8 +99,8 @@ lazy val micrositeSettings = Seq(
   micrositeGithubRepo := "tsec",
   micrositeDocumentationUrl := "/tsec/docs/symmetric.html",
   micrositeGitterChannel := false,
-  micrositePushSiteWith := GitHub4s,
-  micrositeGithubToken := sys.env.get("GITHUB_TOKEN")
+  micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
+  scalacOptions -= "-Ywarn-adapted-args"
 )
 
 lazy val commonSettings = Seq(

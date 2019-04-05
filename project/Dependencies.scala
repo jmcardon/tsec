@@ -13,7 +13,6 @@ object Dependencies {
     val commonsCodecV = "1.12"
     val fs2Version    = "1.0.4"
     val log4sV        = "1.7.0"
-    val gitHub4s      = "0.20.1"
   }
 
   object Libraries {
@@ -33,7 +32,6 @@ object Dependencies {
     val scalaCheck         = "org.scalacheck"   %% "scalacheck"           % Versions.scalacheckV % "test"
     val commonsCodec       = "commons-codec"    % "commons-codec"         % Versions.commonsCodecV
     val log4s              = "org.log4s"        %% "log4s"                % Versions.log4sV
-    val gitHub4s           = "com.47deg"        %% "github4s"             % Versions.gitHub4s
   }
 
 }
