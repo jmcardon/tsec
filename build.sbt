@@ -74,21 +74,6 @@ lazy val releaseSettings = {
   )
 }
 
-lazy val scalacOpts = scalacOptions ++= Seq(
-  "-unchecked",
-  "-feature",
-  "-deprecation",
-  "-encoding",
-  "utf8",
-  "-Ywarn-adapted-args",
-  "-Ywarn-inaccessible",
-  "-Ywarn-nullary-override",
-  "-Ypartial-unification",
-  "-language:higherKinds",
-  "-language:implicitConversions",
-  "-language:postfixOps"
-)
-
 lazy val micrositeSettings = Seq(
   micrositeName := "TSec",
   micrositeBaseUrl := "/tsec",
@@ -99,9 +84,31 @@ lazy val micrositeSettings = Seq(
   micrositeGithubRepo := "tsec",
   micrositeDocumentationUrl := "/tsec/docs/symmetric.html",
   micrositeGitterChannel := false,
-  micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
-  scalacOptions -= "-Ywarn-adapted-args"
+  micrositeGithubToken := sys.env.get("GITHUB_TOKEN")
 )
+
+def scalacOptionsForVersion(scalaVersion: String): Seq[String] = {
+  val defaultOpts = Seq(
+    "-unchecked",
+    "-feature",
+    "-deprecation",
+    "-encoding",
+    "utf8",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-language:postfixOps"
+  )
+  val versionOpts: Seq[String] = CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, major)) if major < 13 => Seq(
+      "-Ywarn-adapted-args", 
+      "-Ywarn-inaccessible",
+      "-Ywarn-nullary-override",
+      "-Ypartial-unification",
+    )
+    case _ => Seq()
+  }
+  defaultOpts ++ versionOpts
+}
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
@@ -124,7 +131,7 @@ lazy val commonSettings = Seq(
   parallelExecution in test := false,
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
-  scalacOpts
+  scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )
 
 lazy val passwordHasherLibs = libraryDependencies ++= Seq(
