@@ -123,7 +123,7 @@ lazy val commonSettings = Seq(
       "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
   ),
   parallelExecution in test := false,
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.10"),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
   scalacOpts
 )
