@@ -74,23 +74,7 @@ lazy val releaseSettings = {
   )
 }
 
-lazy val scalacOpts = scalacOptions ++= Seq(
-  "-unchecked",
-  "-feature",
-  "-deprecation",
-  "-encoding",
-  "utf8",
-  "-Ywarn-adapted-args",
-  "-Ywarn-inaccessible",
-  "-Ywarn-nullary-override",
-  "-Ypartial-unification",
-  "-language:higherKinds",
-  "-language:implicitConversions",
-  "-language:postfixOps"
-)
-
 lazy val micrositeSettings = Seq(
-  libraryDependencies += Libraries.gitHub4s,
   micrositeName := "TSec",
   micrositeBaseUrl := "/tsec",
   micrositeDescription := "A Type-Safe General Cryptography Library on the JVM",
@@ -100,9 +84,31 @@ lazy val micrositeSettings = Seq(
   micrositeGithubRepo := "tsec",
   micrositeDocumentationUrl := "/tsec/docs/symmetric.html",
   micrositeGitterChannel := false,
-  micrositePushSiteWith := GitHub4s,
   micrositeGithubToken := sys.env.get("GITHUB_TOKEN")
 )
+
+def scalacOptionsForVersion(scalaVersion: String): Seq[String] = {
+  val defaultOpts = Seq(
+    "-unchecked",
+    "-feature",
+    "-deprecation",
+    "-encoding",
+    "utf8",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-language:postfixOps"
+  )
+  val versionOpts: Seq[String] = CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, major)) if major < 13 => Seq(
+      "-Ywarn-adapted-args",
+      "-Ywarn-inaccessible",
+      "-Ywarn-nullary-override",
+      "-Ypartial-unification",
+    )
+    case _ => Seq()
+  }
+  defaultOpts ++ versionOpts
+}
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
@@ -114,7 +120,7 @@ lazy val commonSettings = Seq(
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion := "2.12.8",
-  crossScalaVersions := Seq(scalaVersion.value, "2.11.12"),
+  crossScalaVersions := Seq("2.13.0-M5", "2.12.8", "2.11.12"),
   fork in test := true,
   fork in run := true,
   scalacOptions in (Compile, doc) ++= Seq(
@@ -123,9 +129,9 @@ lazy val commonSettings = Seq(
       "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
   ),
   parallelExecution in test := false,
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.10"),
-  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
-  scalacOpts
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
+  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
+  scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )
 
 lazy val passwordHasherLibs = libraryDependencies ++= Seq(

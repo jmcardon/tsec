@@ -63,7 +63,7 @@ abstract class SimpleAuthEnum[T, @specialized(Specializable.Integral) Repr: Deco
 
   def viewAll(implicit classTag: ClassTag[T]): AuthGroup[T] = {
     val arr = new Array[T](values.length)
-    values.copyToArray(arr)
+    values.copyToArray(arr, 0, values.length)
     AuthGroup.unsafeFromArray[T](arr)
   }
 
