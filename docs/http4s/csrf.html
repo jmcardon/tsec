@@ -76,7 +76,7 @@ using <code class="highlighter-rouge">embed</code></li>
 <span class="c1">// import org.http4s.dsl.io._
 </span>
 <span class="k">val</span> <span class="n">newKey</span> <span class="k">=</span> <span class="nc">HMACSHA256</span><span class="o">.</span><span class="n">unsafeGenerateKey</span>
-<span class="c1">// newKey: tsec.mac.jca.MacSigningKey[tsec.mac.jca.HMACSHA256] = javax.crypto.spec.SecretKeySpec@fa77c656
+<span class="c1">// newKey: tsec.mac.jca.MacSigningKey[tsec.mac.jca.HMACSHA256] = javax.crypto.spec.SecretKeySpec@fa77d6b1
 </span>
 <span class="k">val</span> <span class="n">tsecCSRF</span> <span class="k">=</span> <span class="nc">TSecCSRF</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">HMACSHA256</span><span class="o">](</span><span class="n">newKey</span><span class="o">)</span>
 <span class="c1">// tsecCSRF: tsec.csrf.TSecCSRF[cats.effect.IO,tsec.mac.jca.HMACSHA256] = tsec.csrf.TSecCSRF@55c9c47a
@@ -91,11 +91,11 @@ using <code class="highlighter-rouge">embed</code></li>
 </span>
 <span class="c1">// This endpoint now provides a user with a new csrf token.
 </span><span class="k">val</span> <span class="n">dummyService</span><span class="k">:</span> <span class="kt">HttpRoutes</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="n">tsecCSRF</span><span class="o">.</span><span class="n">withNewToken</span><span class="o">(</span><span class="n">baseService</span><span class="o">)</span>
-<span class="c1">// dummyService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(cats.data.Kleisli$$$Lambda$1627/724720956@5b5e1ef0)
+<span class="c1">// dummyService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(cats.data.Kleisli$$$Lambda$1627/135671379@2d21f8fc)
 </span>
 <span class="c1">//This endpoint is csrf checked
 </span><span class="k">val</span> <span class="n">dummyServiceChecked</span><span class="k">:</span> <span class="kt">HttpRoutes</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="n">tsecCSRF</span><span class="o">.</span><span class="n">validate</span><span class="o">()(</span><span class="n">baseService</span><span class="o">)</span>
-<span class="c1">// dummyServiceChecked: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(tsec.csrf.TSecCSRF$$Lambda$1630/1038649963@621e80aa)
+<span class="c1">// dummyServiceChecked: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(tsec.csrf.TSecCSRF$$Lambda$1630/1193690398@49f43525)
 </span></code></pre>
 </div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/tsec/highlight/highlight.pack.js"></script><script>hljs.configure({
