@@ -100,7 +100,7 @@ def scalacOptionsForVersion(scalaVersion: String): Seq[String] = {
   )
   val versionOpts: Seq[String] = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, major)) if major < 13 => Seq(
-      "-Ywarn-adapted-args", 
+      "-Ywarn-adapted-args",
       "-Ywarn-inaccessible",
       "-Ywarn-nullary-override",
       "-Ypartial-unification",
@@ -129,7 +129,7 @@ lazy val commonSettings = Seq(
       "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
   ),
   parallelExecution in test := false,
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.10"),
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
   scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )
