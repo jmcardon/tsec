@@ -4,7 +4,6 @@ import cats._
 import cats.data.OptionT
 import cats.effect.{IO, Sync}
 import cats.instances.string._
-import http4sExamples.ExampleAuthHelpers.Role.{Administrator, Customer}
 import tsec.authentication._
 import tsec.authorization._
 import tsec.mac.jca.HMACSHA256
@@ -54,17 +53,19 @@ object ExampleAuthHelpers {
 
     implicit val E: Eq[Role] = Eq.fromUniversalEquals[Role]
 
-    def getRepr(t: Role): String = t.roleRepr
-
     protected val values: AuthGroup[Role] = AuthGroup(Administrator, Customer, Seller)
+    override val orElse: Role             = Seller
+    override val getRepr: Role => String  = _.roleRepr
   }
+
+  import Role._
 
   val AdminRequired: BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]] =
     BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]](Administrator)
   val CustomerRequired: BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]] =
     BasicRBAC[IO, Role, User, AugmentedJWT[HMACSHA256, Int]](Administrator, Customer)
 
-  case class User(id: Int, age: Int, name: String, role: Role = Role.Customer)
+  case class User(id: Int, age: Int, name: String, role: Role = Customer)
 
   object User {
     implicit def authRole[F[_]](implicit F: MonadError[F, Throwable]): AuthorizationInfo[F, Role, User] =
