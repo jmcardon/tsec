@@ -4,7 +4,7 @@ object Dependencies {
 
   object Versions {
     val circeV        = "0.11.1"
-    val catsV         = "1.6.0"
+    val catsV         = "1.6.1"
     val bouncyCastleV = "1.60"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.0.7"
