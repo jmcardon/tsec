@@ -3,16 +3,16 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val circeV        = "0.11.1"
-    val catsV         = "1.6.1"
+    val circeV        = "0.12.0-M3"
+    val catsV         = "2.0.0-M4"
     val bouncyCastleV = "1.62"
     val sCryptV       = "1.4.0"
-    val scalaTestV    = "3.0.7"
-    val http4sV       = "0.20.3"
+    val scalaTestV    = "3.1.0-SNAP13"
+    val http4sV       = "0.21.0-M1"
     val scalacheckV   = "1.14.0"
     val commonsCodecV = "1.12"
-    val fs2Version    = "1.0.4"
-    val log4sV        = "1.7.0"
+    val fs2Version    = "1.1.0-M1"
+    val log4sV        = "1.8.2"
   }
 
   object Libraries {

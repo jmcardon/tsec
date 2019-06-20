@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.Sync
 import cats.syntax.all._
 import io.circe.syntax._
-import io.circe.{Decoder, ObjectEncoder}
+import io.circe.{Decoder, Encoder}
 import org.http4s._
 import tsec.authentication._
 import tsec.common._
@@ -18,7 +18,7 @@ import tsec.mac.jca._
 
 import scala.concurrent.duration._
 
-private[tsec] abstract class StatelessJWTAuth[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
+private[tsec] abstract class StatelessJWTAuth[F[_], V: Decoder: Encoder.AsObject, A: JWTMacAlgo](
     val expiry: FiniteDuration,
     val maxIdle: Option[FiniteDuration],
     signingKey: MacSigningKey[A]

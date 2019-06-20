@@ -34,7 +34,7 @@ We can also add custom claims to a JWT object. Imagine we have some custom case 
   case class Doge(suchChars: String, much32Bits: Int, so64Bits: Long)
   
   //Note: Normally this would be in the companion
-  implicit val encoder: ObjectEncoder[Doge] = deriveEncoder[Doge]
+  implicit val encoder: Encoder[Doge]       = deriveEncoder[Doge]
   implicit val decoder: Decoder[Doge]       = deriveDecoder[Doge]
   val WowSuchClaim                          = "Doge"
 ```
