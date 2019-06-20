@@ -12,7 +12,7 @@ import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature.jca._
 
-class JWTSigTests extends TestSpec with MustMatchers {
+class JWTSigTests extends TestSpec {
 
   if (Security.getProvider("BC") == null)
     Security.addProvider(new BouncyCastleProvider())

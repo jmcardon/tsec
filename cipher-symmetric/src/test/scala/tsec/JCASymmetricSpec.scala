@@ -1,8 +1,6 @@
 package tsec
 
 import cats.effect.IO
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
 import tsec.cipher.common.padding._
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
@@ -11,7 +9,7 @@ import tsec.keygen.symmetric._
 
 import scala.util.Random
 
-class JCASymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
+class JCASymmetricSpec extends TestSpec {
 
   final def cipherTest[A, M, P](algebra: JCACipherAPI[A, M, P] with SymmetricKeyGenAPI[A, SecretKey])(
       implicit symm: BlockCipher[A],

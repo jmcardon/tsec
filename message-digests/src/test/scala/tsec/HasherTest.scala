@@ -5,13 +5,11 @@ import java.security.MessageDigest
 import cats.effect.IO
 import cats.Id
 import fs2._
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
 import tsec.common._
 import tsec.hashing._
 import tsec.hashing.jca._
 
-class HasherTest extends TestSpec with MustMatchers with PropertyChecks {
+class HasherTest extends TestSpec {
 
   def hashTests[A](implicit P1: CryptoHasher[Id, A], P2: CryptoHasher[IO, A]): Unit = {
     s"A cryptographic hash function for ${P1.algorithm}" should s"generate an equal hash for two equal byte arrays" in {

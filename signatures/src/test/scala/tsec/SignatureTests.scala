@@ -3,11 +3,10 @@ package tsec
 import java.security.interfaces.{ECPublicKey, RSAPublicKey}
 
 import cats.effect.IO
-import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.signature.jca._
 
-class SignatureTests extends TestSpec with MustMatchers {
+class SignatureTests extends TestSpec {
 
   //Todo: Property check here
   val toSign = "HItHERE!".utf8Bytes

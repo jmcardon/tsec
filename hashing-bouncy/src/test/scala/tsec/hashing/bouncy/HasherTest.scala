@@ -5,13 +5,11 @@ import java.security.MessageDigest
 import cats.Id
 import cats.effect.IO
 import fs2._
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
 import tsec.TestSpec
 import tsec.common._
 import tsec.hashing.{CryptoHashAPI, CryptoHasher}
 
-class HasherTest extends TestSpec with MustMatchers with PropertyChecks {
+class HasherTest extends TestSpec {
   val str     = "hello World"
   val strList = List("a", "a", "bcd")
 

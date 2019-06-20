@@ -1,7 +1,6 @@
 package tsec
 
 import cats.effect.IO
-import org.scalatest.MustMatchers
 import org.scalacheck._
 import tsec.cipher.symmetric.{Encryptor, IvGen, _}
 import tsec.common._

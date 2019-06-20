@@ -9,8 +9,7 @@ import cats.syntax.applicativeError._
 import cats.instances.string._
 import org.http4s._
 import org.scalacheck._
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.{BeforeAndAfterEach, MustMatchers}
+import org.scalatest.BeforeAndAfterEach
 import tsec.TestSpec
 import tsec.authorization.{AuthGroup, AuthorizationInfo, SimpleAuthEnum}
 
@@ -71,7 +70,7 @@ protected[authentication] abstract case class StatelessSpecTester[Auth](
   def wrongKeyAuthenticator: IO[Auth]
 }
 
-abstract class AuthenticatorSpec extends TestSpec with MustMatchers with PropertyChecks with BeforeAndAfterEach {
+abstract class AuthenticatorSpec extends TestSpec with BeforeAndAfterEach {
 
   implicit val genDummy: Arbitrary[DummyUser] = Arbitrary(for {
     i <- Gen.chooseNum[Int](0, Int.MaxValue)

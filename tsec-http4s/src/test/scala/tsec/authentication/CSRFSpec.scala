@@ -4,13 +4,12 @@ import cats.data.OptionT
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
-import org.scalatest.MustMatchers
 import tsec.TestSpec
 import tsec.csrf.{CSRFToken, TSecCSRF}
 import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.jca._
 
-class CSRFSpec extends TestSpec with MustMatchers {
+class CSRFSpec extends TestSpec {
 
   val dummyService: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root =>
