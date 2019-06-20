@@ -37,7 +37,7 @@ class AuthorizationCodeGrantHandlerSpec extends FlatSpec with OptionValues {
       override def deleteAuthCode(code: String): IO[Unit] = {
         Thread.sleep(300)
         codeDeleted = true
-        IO.pure(Unit)
+        IO.pure(())
       }
 
       override def getStoredAccessToken(authInfo: AuthInfo[MockUser]): IO[Option[AccessToken]] = IO.pure(None)
