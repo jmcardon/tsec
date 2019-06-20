@@ -22,7 +22,7 @@ class JWTMacTests extends TestSpec {
       hs: JWSSerializer[JWSMacHeader[A]],
       keyGen: MacKeyGen[IO, A],
       idgen: MacKeyGen[MacErrorM, A]
-  ) {
+  ): Unit = {
     behavior of "JWT pure" + algo.jwtRepr
 
     it should "sign and verify properly with no expiry" in {
