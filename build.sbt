@@ -114,6 +114,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
     Libraries.scalaTest,
+    Libraries.scalaTestPlus,
     Libraries.scalaCheck,
     Libraries.commonsCodec,
     Libraries.fs2IO

@@ -8,6 +8,7 @@ object Dependencies {
     val bouncyCastleV = "1.62"
     val sCryptV       = "1.4.0"
     val scalaTestV    = "3.1.0-SNAP13"
+    val scalaTestPlusV= "1.0.0-SNAP8"
     val http4sV       = "0.21.0-M1"
     val scalacheckV   = "1.14.0"
     val commonsCodecV = "1.12"
@@ -21,6 +22,7 @@ object Dependencies {
     val cats               = "org.typelevel"    %% "cats-core"            % Versions.catsV
     val sCrypt             = "com.lambdaworks"  % "scrypt"                % Versions.sCryptV
     val scalaTest          = "org.scalatest"    %% "scalatest"            % Versions.scalaTestV % "test"
+    val scalaTestPlus      = "org.scalatestplus"%% "scalatestplus-scalacheck" % Versions.scalaTestPlusV % "test"
     val BC                 = "org.bouncycastle" % "bcprov-jdk15on"        % Versions.bouncyCastleV
     val circeCore          = "io.circe"         %% "circe-core"           % Versions.circeV
     val circeGeneric       = "io.circe"         %% "circe-generic"        % Versions.circeV
