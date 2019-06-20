@@ -12,7 +12,7 @@ import tsec.oauth2.provider.grantHandler.AuthorizationCodeHandler
 
 import scala.concurrent.duration._
 
-class AuthorizationCodeGrantHandlerSpec extends FlatSpec with OptionValues {
+class AuthorizationCodeGrantHandlerSpec extends flatspec.AnyFlatSpec with OptionValues {
 
   it should "handle request" in {
     var codeDeleted: Boolean = false

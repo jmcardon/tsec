@@ -5,7 +5,7 @@ import org.scalatest._
 import org.scalatest.Matchers._
 import tsec.oauth2.provider.AccessTokenFetcher.AuthHeader
 
-class AuthHeaderSpec extends FlatSpec {
+class AuthHeaderSpec extends flatspec.AnyFlatSpec {
 
   def createRequest(authorization: Option[String]): ProtectedResourceRequest = authorization match {
     case Some(s) => new ProtectedResourceRequest(Map("Authorization" -> Seq(s)), Map())

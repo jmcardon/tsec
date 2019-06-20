@@ -3,7 +3,7 @@ package tsec.oauth2.provider
 import java.time.Instant
 
 import cats.effect.IO
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.Matchers._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedPasswordWithClientCred
 import tsec.oauth2.provider.grantHandler.PasswordNoClientCredHandler
@@ -11,7 +11,7 @@ import tsec.oauth2.provider.grantHandler.PasswordWithClientCredHandler
 
 import scala.concurrent.duration._
 
-class TokenEndPointSpec extends FlatSpec {
+class TokenEndPointSpec extends AnyFlatSpec {
   val dataHandler = new PasswordWithClientCredHandler[IO, MockUser]{
 
     override def validateClient(request: ValidatedPasswordWithClientCred): IO[Boolean] =

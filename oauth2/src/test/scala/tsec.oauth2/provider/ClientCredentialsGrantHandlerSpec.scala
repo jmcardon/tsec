@@ -12,7 +12,7 @@ import tsec.oauth2.provider.grantHandler.ClientCredentialsHandler
 
 import scala.concurrent.duration._
 
-class ClientCredentialsGrantHandlerSpec extends FlatSpec with OptionValues {
+class ClientCredentialsGrantHandlerSpec extends flatspec.AnyFlatSpec with OptionValues {
 
   it should "handle request" in {
     val dataHandler = new ClientCredentialsHandler[IO, MockUser] {

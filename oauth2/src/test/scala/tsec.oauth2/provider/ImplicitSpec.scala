@@ -13,7 +13,7 @@ import tsec.oauth2.provider.grantHandler.ImplicitHandler
 
 import scala.concurrent.duration._
 
-class ImplicitSpec extends FlatSpec with ScalaFutures with OptionValues {
+class ImplicitSpec extends flatspec.AnyFlatSpec with ScalaFutures with OptionValues {
 
   it should "grant access with valid user authentication" in handlesRequest("user", "pass", true)
   it should "not grant access with invalid user authentication" in handlesRequest("user", "wrong_pass", false)
