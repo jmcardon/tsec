@@ -29,13 +29,13 @@ class RequestParameterSpec extends AnyFlatSpec {
   it should "fetch only oauth token parameter" in {
     val result = RequestParameter.fetch(createRequest(Some("token1"), None)).toOption.get
     result.token should be("token1")
-    result.params should be('empty)
+    result.params should be(Symbol("empty"))
   }
 
   it should "fetch only access token parameter" in {
     val result = RequestParameter.fetch(createRequest(None, Some("token2"))).toOption.get
     result.token should be("token2")
-    result.params should be('empty)
+    result.params should be(Symbol("empty"))
   }
 
   it should "fetch with another parameter" in {

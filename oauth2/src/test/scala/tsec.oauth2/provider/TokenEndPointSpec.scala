@@ -32,7 +32,7 @@ class TokenEndPointSpec extends AnyFlatSpec {
     val headers                  = Map("Authorization" -> Seq("Basic Y2xpZW50X2lkX3ZhbHVlOmNsaWVudF9zZWNyZXRfdmFsdWU="))
     val params = Map("grant_type"    -> Seq("password"), "username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     val result = te.authorize(headers, params, true).value.unsafeRunSync()
-    result should be('right)
+    result should be(Symbol("right"))
   }
 
   it should "be error if grant type doesn't exist" in {
@@ -66,7 +66,7 @@ class TokenEndPointSpec extends AnyFlatSpec {
     }
     val t = TokenEndpoint(DataHandlers(None, Some(dataHandler), None, None, None, None))
     val res = t.authorize(Map.empty, params, false).value.unsafeRunSync()
-    res should be('right)
+    res should be(Symbol("right"))
   }
 
   it should "be invalid grant if client information is wrong" in {

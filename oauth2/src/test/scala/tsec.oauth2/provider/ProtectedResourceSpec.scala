@@ -36,7 +36,7 @@ class ProtectedResourceSpec extends flatspec.AnyFlatSpec {
       Map("username"      -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     )
 
-    handler.authorize(request).map(_ should be('right))
+    handler.authorize(request).map(_ should be(Symbol("right")))
   }
 
   it should "be handled request with token into body" in {
@@ -45,7 +45,7 @@ class ProtectedResourceSpec extends flatspec.AnyFlatSpec {
       Map("access_token" -> Seq("token1"), "username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     )
 
-    handler.authorize(request).map(_ should be('right))
+    handler.authorize(request).map(_ should be(Symbol("right")))
   }
 
   it should "be lost expired" in {
