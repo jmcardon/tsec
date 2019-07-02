@@ -1,15 +1,14 @@
 package tsec
 
 import cats.effect.IO
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
+import org.scalacheck._
 import tsec.cipher.symmetric.{Encryptor, IvGen, _}
 import tsec.common._
 import tsec.keygen.symmetric._
 
 import scala.util.Random
 
-class SymmetricSpec extends TestSpec with MustMatchers with PropertyChecks {
+class SymmetricSpec extends TestSpec {
 
   final def cipherTest[A, K[_]](testName: String, gen: IvGen[IO, A])(
       implicit E: Encryptor[IO, A, K],

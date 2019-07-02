@@ -2,10 +2,10 @@ package tsec.oauth2.provider
 
 import cats.syntax.either._
 import org.scalatest.Matchers._
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 import tsec.oauth2.provider.AccessTokenFetcher.RequestParameter
 
-class RequestParameterSpec extends FlatSpec {
+class RequestParameterSpec extends AnyFlatSpec {
 
   def createRequest(
       oauthToken: Option[String],
@@ -29,13 +29,13 @@ class RequestParameterSpec extends FlatSpec {
   it should "fetch only oauth token parameter" in {
     val result = RequestParameter.fetch(createRequest(Some("token1"), None)).toOption.get
     result.token should be("token1")
-    result.params should be('empty)
+    result.params should be(Symbol("empty"))
   }
 
   it should "fetch only access token parameter" in {
     val result = RequestParameter.fetch(createRequest(None, Some("token2"))).toOption.get
     result.token should be("token2")
-    result.params should be('empty)
+    result.params should be(Symbol("empty"))
   }
 
   it should "fetch with another parameter" in {

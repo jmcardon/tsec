@@ -4,7 +4,6 @@ import java.time.Instant
 
 import cats.effect.IO
 import cats.syntax.either._
-import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.jws.JWSSerializer
 import tsec.jws.mac._
@@ -14,7 +13,7 @@ import tsec.mac.jca._
 
 import scala.concurrent.duration._
 
-class JWTMacTests extends TestSpec with MustMatchers {
+class JWTMacTests extends TestSpec {
 
   def jwtBehavior[A](
       implicit algo: JWTMacAlgo[A],
@@ -23,7 +22,7 @@ class JWTMacTests extends TestSpec with MustMatchers {
       hs: JWSSerializer[JWSMacHeader[A]],
       keyGen: MacKeyGen[IO, A],
       idgen: MacKeyGen[MacErrorM, A]
-  ) {
+  ): Unit = {
     behavior of "JWT pure" + algo.jwtRepr
 
     it should "sign and verify properly with no expiry" in {

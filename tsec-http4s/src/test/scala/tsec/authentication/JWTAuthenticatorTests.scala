@@ -4,7 +4,6 @@ import cats.effect.IO
 import io.circe.generic.auto._
 import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials}
-import org.scalatest.prop.PropertyChecks
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
@@ -12,7 +11,7 @@ import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.MessageAuth
 import tsec.mac.jca._
 
-class JWTAuthenticatorTests extends JWTAuthenticatorSpec with PropertyChecks {
+class JWTAuthenticatorTests extends JWTAuthenticatorSpec {
 
   case class JWTTestingGroup[A, B](authenticator: A, embedder: B, title: String)
 

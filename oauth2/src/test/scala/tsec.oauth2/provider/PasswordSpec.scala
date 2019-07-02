@@ -15,7 +15,7 @@ import tsec.oauth2.provider.grantHandler.PasswordWithClientCredHandler
 
 import scala.concurrent.duration._
 
-class PasswordSpec extends FlatSpec with OptionValues {
+class PasswordSpec extends flatspec.AnyFlatSpec with OptionValues {
 
   val passwordClientCredReq   = ValidatedPasswordWithClientCred(ClientCredential("clientId1", Some("clientSecret1")), "pass", "user", Some("all"))
   val passwordNoClientCredReq = ValidatedPasswordNoClientCred("pass", "user", Some("all"))

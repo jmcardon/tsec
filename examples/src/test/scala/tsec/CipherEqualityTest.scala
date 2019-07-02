@@ -9,7 +9,7 @@ import tsec.cipher.symmetric.libsodium.{SodiumKey, CryptoSecretBox => SodiumSals
 import tsec.cipher.symmetric.libsodium.{XChacha20AEAD => SodiumXChaCha, IETFChacha20}
 import tsec.libsodium.ScalaSodium
 
-class CipherEqualityTest extends TestSpec with MustMatchers {
+class CipherEqualityTest extends TestSpec {
 
   /** These are all libsodium test vectors **/
   val fixedPTRaw = "Ladies and Gentlemen of the class of '99: If I could offer you only one " +

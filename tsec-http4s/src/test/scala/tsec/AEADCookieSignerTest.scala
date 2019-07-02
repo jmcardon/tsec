@@ -1,15 +1,13 @@
 package tsec
 
 import cats.effect.IO
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.cookies.AEADCookieEncryptor
 import tsec.keygen.symmetric.SymmetricKeyGen
 
-class AEADCookieSignerTest extends TestSpec with MustMatchers with PropertyChecks {
+class AEADCookieSignerTest extends TestSpec {
 
   def aeadCookieTest[A](implicit api: AESGCM[A], keyGen: SymmetricKeyGen[IO, A, SecretKey]): Unit = {
     implicit val strategy = api.defaultIvStrategy[IO]

@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.Sync
 import cats.instances.string._
 import cats.syntax.all._
-import io.circe.{Decoder, Encoder, ObjectEncoder}
+import io.circe.{Decoder, Encoder}
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, HttpDate, Request, Response, ResponseCookie}
 import tsec.authentication.internal._
@@ -184,7 +184,7 @@ object JWTAuthenticator {
         }
     }
 
-  private[tsec] def embedded[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
+  private[tsec] def embedded[F[_], V: Decoder: Encoder.AsObject, A: JWTMacAlgo](
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration],
       signingKey: MacSigningKey[A],
@@ -380,7 +380,7 @@ object JWTAuthenticator {
     /** Create a JWT Authenticator that will transport it as a
       * bearer token
       */
-    def inBearerToken[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
+    def inBearerToken[F[_], V: Decoder: Encoder.AsObject, A: JWTMacAlgo](
         expiryDuration: FiniteDuration,
         maxIdle: Option[FiniteDuration],
         signingKey: MacSigningKey[A]
@@ -397,7 +397,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inHeader[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
+    def inHeader[F[_], V: Decoder: Encoder.AsObject, A: JWTMacAlgo](
         settings: TSecJWTSettings,
         signingKey: MacSigningKey[A]
     )(implicit cv: JWSMacCV[F, A], F: Sync[F]): JWTAuthenticator[F, V, V, A] =
@@ -413,7 +413,7 @@ object JWTAuthenticator {
       * an arbitrary header, with a backing store.
       *
       */
-    def inCookie[F[_], V: Decoder: ObjectEncoder, A: JWTMacAlgo](
+    def inCookie[F[_], V: Decoder: Encoder.AsObject, A: JWTMacAlgo](
         settings: TSecCookieSettings,
         signingKey: MacSigningKey[A]
     )(implicit cv: JWSMacCV[F, A], F: Sync[F]): JWTAuthenticator[F, V, V, A] =

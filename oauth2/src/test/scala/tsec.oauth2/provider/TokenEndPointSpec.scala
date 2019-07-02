@@ -3,7 +3,7 @@ package tsec.oauth2.provider
 import java.time.Instant
 
 import cats.effect.IO
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.Matchers._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedPasswordWithClientCred
 import tsec.oauth2.provider.grantHandler.PasswordNoClientCredHandler
@@ -11,7 +11,7 @@ import tsec.oauth2.provider.grantHandler.PasswordWithClientCredHandler
 
 import scala.concurrent.duration._
 
-class TokenEndPointSpec extends FlatSpec {
+class TokenEndPointSpec extends AnyFlatSpec {
   val dataHandler = new PasswordWithClientCredHandler[IO, MockUser]{
 
     override def validateClient(request: ValidatedPasswordWithClientCred): IO[Boolean] =
@@ -32,7 +32,7 @@ class TokenEndPointSpec extends FlatSpec {
     val headers                  = Map("Authorization" -> Seq("Basic Y2xpZW50X2lkX3ZhbHVlOmNsaWVudF9zZWNyZXRfdmFsdWU="))
     val params = Map("grant_type"    -> Seq("password"), "username" -> Seq("user"), "password" -> Seq("pass"), "scope" -> Seq("all"))
     val result = te.authorize(headers, params, true).value.unsafeRunSync()
-    result should be('right)
+    result should be(Symbol("right"))
   }
 
   it should "be error if grant type doesn't exist" in {
@@ -66,7 +66,7 @@ class TokenEndPointSpec extends FlatSpec {
     }
     val t = TokenEndpoint(DataHandlers(None, Some(dataHandler), None, None, None, None))
     val res = t.authorize(Map.empty, params, false).value.unsafeRunSync()
-    res should be('right)
+    res should be(Symbol("right"))
   }
 
   it should "be invalid grant if client information is wrong" in {

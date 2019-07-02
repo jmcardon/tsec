@@ -85,7 +85,7 @@ class EncryptedCookieAuthenticatorTests extends EncryptedCookieAuthenticatorSpec
         expire  <- auth.auth.discard(cookie)
       } yield List(cookie, update, renew, refresh, expire)
 
-      program.unsafeRunSync().forall { aec ⇒
+      program.unsafeRunSync().forall { aec =>
 
         settings.cookieName === aec.name      &&
         settings.secure     === aec.secure    &&

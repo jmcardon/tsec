@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import org.scalatest.Matchers._
 import org.scalatest._
 
-class AccessTokenSpec extends FlatSpec {
+class AccessTokenSpec extends flatspec.AnyFlatSpec {
 
   it should "say a token is active that is not yet expired" in {
     val token = AccessToken("token", None, None, lifeTime = Some(15 seconds), createdAt = Instant.now())

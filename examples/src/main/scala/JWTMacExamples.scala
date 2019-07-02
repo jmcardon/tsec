@@ -29,7 +29,7 @@ object JWTMacExamples {
   case class Doge(suchChars: String, much32Bits: Int, so64Bits: Long)
 
   object Doge {
-    implicit val encoder: ObjectEncoder[Doge] = deriveEncoder[Doge]
+    implicit val encoder: Encoder[Doge]       = deriveEncoder[Doge]
     implicit val decoder: Decoder[Doge]       = deriveDecoder[Doge]
     val WowSuchClaim                          = "Doge"
   }

@@ -3,15 +3,13 @@ package tsec
 import java.util.UUID
 
 import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
 import tsec.cookies.CookieSigner
 import tsec.mac.jca._
 import cats.instances.either._
 import cats.syntax.either._
 import tsec.mac.MessageAuth
 
-class CookieSignerTests extends TestSpec with MustMatchers with PropertyChecks {
+class CookieSignerTests extends TestSpec {
 
   implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary.apply(Gen.uuid)
 

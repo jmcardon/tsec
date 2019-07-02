@@ -114,13 +114,14 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     Libraries.cats,
     Libraries.scalaTest,
+    Libraries.scalaTestPlus,
     Libraries.scalaCheck,
     Libraries.commonsCodec,
     Libraries.fs2IO
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion := "2.12.8",
-  crossScalaVersions := Seq("2.13.0-M5", "2.12.8", "2.11.12"),
+  crossScalaVersions := Seq("2.13.0", "2.12.8", "2.11.12"),
   fork in test := true,
   fork in run := true,
   scalacOptions in (Compile, doc) ++= Seq(
@@ -129,8 +130,8 @@ lazy val commonSettings = Seq(
       "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
   ),
   parallelExecution in test := false,
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9"),
-  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
+  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0"),
   scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )
 

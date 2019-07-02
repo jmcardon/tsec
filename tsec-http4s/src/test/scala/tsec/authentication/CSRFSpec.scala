@@ -4,13 +4,12 @@ import cats.data.OptionT
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
-import org.scalatest.MustMatchers
 import tsec.TestSpec
 import tsec.csrf.{CSRFToken, TSecCSRF}
 import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.jca._
 
-class CSRFSpec extends TestSpec with MustMatchers {
+class CSRFSpec extends TestSpec {
 
   val dummyService: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root =>
@@ -89,7 +88,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
       (for {
         token <- OptionT.liftF(tsecCSRF.generateToken)
         res <- tsecCSRF.validate()(dummyService)(
-          dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token))).addCookie(tsecCSRF.cookieName, token)
+          dummyRequest.withHeaders(Headers.of(Header(tsecCSRF.headerName, token))).addCookie(tsecCSRF.cookieName, token)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Ok
     }
@@ -113,7 +112,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
       (for {
         token <- OptionT.liftF(tsecCSRF.generateToken)
         res <- tsecCSRF.validate()(dummyService)(
-          dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token)))
+          dummyRequest.withHeaders(Headers.of(Header(tsecCSRF.headerName, token)))
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Unauthorized
     }
@@ -123,7 +122,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
         token1 <- OptionT.liftF(tsecCSRF.generateToken)
         token2 <- OptionT.liftF(tsecCSRF.generateToken)
         res <- tsecCSRF.validate()(dummyService)(
-          dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
+          dummyRequest.withHeaders(Headers.of(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status mustBe Status.Unauthorized
     }
@@ -133,7 +132,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
         token <- OptionT.liftF(tsecCSRF.generateToken)
         raw1  <- tsecCSRF.extractRaw(token)
         res <- tsecCSRF.validate()(dummyService)(
-          dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token))).addCookie(tsecCSRF.cookieName, token)
+          dummyRequest.withHeaders(Headers.of(Header(tsecCSRF.headerName, token))).addCookie(tsecCSRF.cookieName, token)
         )
         r    <- OptionT.fromOption[IO](res.cookies.find(_.name == tsecCSRF.cookieName).map(_.content))
         raw2 <- tsecCSRF.extractRaw(CSRFToken(r))
@@ -145,7 +144,7 @@ class CSRFSpec extends TestSpec with MustMatchers {
         token1 <- OptionT.liftF(tsecCSRF.generateToken)
         token2 <- OptionT.liftF(tsecCSRF.generateToken)
         res <- tsecCSRF.validate()(dummyService)(
-          dummyRequest.withHeaders(Headers(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
+          dummyRequest.withHeaders(Headers.of(Header(tsecCSRF.headerName, token1))).addCookie(tsecCSRF.cookieName, token2)
         )
       } yield res).getOrElse(Response.notFound).unsafeRunSync()
 

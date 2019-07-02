@@ -5,13 +5,11 @@ import java.security.MessageDigest
 import cats.Eq
 import cats.effect.IO
 import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.MustMatchers
-import org.scalatest.prop.PropertyChecks
 import tsec.common._
 import tsec.passwordhashers.jca._
 import tsec.passwordhashers.{PasswordHashAPI, PasswordHasher, _}
 
-class PasswordTest extends TestSpec with MustMatchers with PropertyChecks {
+class PasswordTest extends TestSpec {
 
   implicit val PasswordErrorCatsEqInstance = new Eq[PasswordError] {
     override def eqv(x: PasswordError, y: PasswordError): Boolean =

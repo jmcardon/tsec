@@ -3,12 +3,11 @@ package tsec
 import java.security.MessageDigest
 
 import cats.effect.IO
-import org.scalatest.MustMatchers
 import tsec.common._
 import tsec.keygen.symmetric.SymmetricKeyGen
 import tsec.mac.jca._
 
-class MacTests extends TestSpec with MustMatchers {
+class MacTests extends TestSpec {
 
   def macTest[A](
       implicit keyGen: SymmetricKeyGen[IO, A, MacSigningKey],

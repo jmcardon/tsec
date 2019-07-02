@@ -6,7 +6,7 @@ import cats.implicits._
 import io.circe.Decoder.Result
 
 package object jwt {
-  val JWTPrinter = Printer(preserveOrder = true, dropNullValues = true, "")
+  val JWTPrinter = Printer(true, "")
 
   sealed trait JWTAudience {
     def toList: List[String]

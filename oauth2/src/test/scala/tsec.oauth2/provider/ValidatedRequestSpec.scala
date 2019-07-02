@@ -1,10 +1,10 @@
 package tsec.oauth2.provider
 
 import cats.syntax.either._
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.Matchers._
 
-class ValidatedRequestSpec extends FlatSpec {
+class ValidatedRequestSpec extends AnyFlatSpec {
   it should "fetch Basic64" in {
     val c = ValidatedRequest.parseClientCredential(Map("Authorization" -> Seq("Basic Y2xpZW50X2lkX3ZhbHVlOmNsaWVudF9zZWNyZXRfdmFsdWU=")), Map.empty).toOption.get
     c.clientId should be("client_id_value")
