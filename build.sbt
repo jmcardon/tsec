@@ -131,7 +131,7 @@ lazy val commonSettings = Seq(
   ),
   parallelExecution in test := false,
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
-  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0"),
+  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
   scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )
 
