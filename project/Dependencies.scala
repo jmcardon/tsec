@@ -11,7 +11,7 @@ object Dependencies {
     val scalaTestPlusV= "1.0.0-SNAP8"
     val http4sV       = "0.21.0-M1"
     val scalacheckV   = "1.14.0"
-    val commonsCodecV = "1.12"
+    val commonsCodecV = "1.13"
     val fs2Version    = "1.1.0-M1"
     val log4sV        = "1.8.2"
   }
