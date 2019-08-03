@@ -1,4 +1,3 @@
-sudo: required
 language: scala
 
 before_install:
@@ -29,7 +28,6 @@ cache:
     - $HOME/libsodium
 
 jdk:
-  - oraclejdk8
   - openjdk8
 
 install:
@@ -46,8 +44,8 @@ script:
   - test $TRAVIS_SCALA_VERSION != "2.12.8" || sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
 
 after_success:
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && sbt ++$TRAVIS_SCALA_VERSION publish
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && test $TRAVIS_SCALA_VERSION == "2.12.8" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && sbt ++$TRAVIS_SCALA_VERSION publish
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_SCALA_VERSION == "2.12.8" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
 
 deploy:
   provider: pages
