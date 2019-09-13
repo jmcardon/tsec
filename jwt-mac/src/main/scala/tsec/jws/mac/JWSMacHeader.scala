@@ -26,7 +26,7 @@ sealed abstract case class JWSMacHeader[A](
     critical: Option[NonEmptyList[String]] = None //Headers not to ignore, they must be understood by the JWT implementation
 )(implicit val algorithm: JWTMacAlgo[A])
     extends JWSHeader[A] {
-  def toJsonString: String = jwt.JWTPrinter.pretty(this.asJson)
+  def toJsonString: String = jwt.JWTPrinter.print(this.asJson)
 }
 
 object JWSMacHeader {
@@ -83,7 +83,7 @@ object JWSMacHeader {
       e: Encoder[JWSMacHeader[A]]
   ): JWSSerializer[JWSMacHeader[A]] =
     new JWSSerializer[JWSMacHeader[A]] {
-      def serializeToUtf8(body: JWSMacHeader[A]): Array[Byte] = jwt.JWTPrinter.pretty(body.asJson).utf8Bytes
+      def serializeToUtf8(body: JWSMacHeader[A]): Array[Byte] = jwt.JWTPrinter.print(body.asJson).utf8Bytes
 
       def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWSMacHeader[A]] =
         io.circe.parser.decode[JWSMacHeader[A]](array.toUtf8String)

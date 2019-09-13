@@ -298,7 +298,7 @@ object JWTClaims extends JWSSerializer[JWTClaims] {
 
   }
 
-  def serializeToUtf8(body: JWTClaims): Array[Byte] = JWTPrinter.pretty(body.asJson).getBytes(StandardCharsets.UTF_8)
+  def serializeToUtf8(body: JWTClaims): Array[Byte] = JWTPrinter.print(body.asJson).getBytes(StandardCharsets.UTF_8)
 
   def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWTClaims] =
     decode[JWTClaims](new String(array, StandardCharsets.UTF_8))
