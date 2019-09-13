@@ -121,7 +121,7 @@ lazy val commonSettings = Seq(
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion := "2.12.10",
-  crossScalaVersions := Seq("2.13.0", "2.12.10", "2.11.12"),
+  crossScalaVersions := Seq("2.13.0", "2.12.10"),
   fork in test := true,
   fork in run := true,
   scalacOptions in (Compile, doc) ++= Seq(
