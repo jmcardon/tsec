@@ -7,7 +7,7 @@ object Dependencies {
     val catsV         = "2.0.0-M4"
     val bouncyCastleV = "1.62"
     val sCryptV       = "1.4.0"
-    val scalaTestV    = "3.1.0-SNAP13"
+    val scalaTestV    = "3.2.0-M1"
     val scalaTestPlusV= "1.0.0-SNAP8"
     val http4sV       = "0.21.0-M1"
     val scalacheckV   = "1.14.0"
