@@ -411,7 +411,7 @@ object EncryptedCookieAuthenticator {
           now      <- F.delay(Instant.now())
           expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
           lastTouched = settings.maxIdle.map(_ => now)
-          messageBody = AuthEncryptedCookie.Internal(cookieId, body, expiry, lastTouched).asJson.pretty(JWTPrinter)
+          messageBody = AuthEncryptedCookie.Internal(cookieId, body, expiry, lastTouched).asJson.printWith(JWTPrinter)
           encrypted <- AEADCookieEncryptor.signAndEncrypt[F, A](messageBody, generateAAD(messageBody), key)
         } yield AuthEncryptedCookie.build[A, I](cookieId, encrypted, body, expiry, lastTouched, settings)
 
@@ -425,7 +425,7 @@ object EncryptedCookieAuthenticator {
         val serialized = AuthEncryptedCookie
           .Internal(authenticator.id, authenticator.identity, authenticator.expiry, authenticator.lastTouched)
           .asJson
-          .pretty(JWTPrinter)
+          .printWith(JWTPrinter)
         for {
           encrypted <- AEADCookieEncryptor.signAndEncrypt[F, A](serialized, generateAAD(serialized), key)
         } yield authenticator.copy[A, I](content = encrypted)

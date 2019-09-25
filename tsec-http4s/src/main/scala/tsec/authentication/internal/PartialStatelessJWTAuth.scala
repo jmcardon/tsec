@@ -59,7 +59,7 @@ private[tsec] abstract class PartialStatelessJWTAuth[F[_], I: Decoder: Encoder, 
       cookieId <- F.delay(SecureRandomId.Interactive.generate)
       expiryTime  = now.plusSeconds(expiry.toSeconds)
       lastTouched = touch(now)
-      subj        = Some(body.asJson.pretty(JWTPrinter))
+      subj        = Some(body.asJson.printWith(JWTPrinter))
       claims = JWTClaims(
         issuedAt = Some(now),
         subject = subj,
