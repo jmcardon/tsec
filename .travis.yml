@@ -15,8 +15,7 @@ before_install:
 
 scala:
   - 2.13.0
-  - 2.12.8
-  - 2.11.12
+  - 2.12.10
 
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
@@ -29,7 +28,6 @@ cache:
     - $HOME/libsodium
 
 jdk:
-  - oraclejdk8
   - openjdk8
 
 install:
@@ -42,12 +40,12 @@ script:
   - bash sodium_setup.sh
   - sbt ++$TRAVIS_SCALA_VERSION clean
   - sbt ++$TRAVIS_SCALA_VERSION test
-  - test $TRAVIS_SCALA_VERSION != "2.12.8" || sbt ++$TRAVIS_SCALA_VERSION tut
-  - test $TRAVIS_SCALA_VERSION != "2.12.8" || sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+  - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION tut
+  - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
 
 after_success:
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && sbt ++$TRAVIS_SCALA_VERSION publish
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_JDK_VERSION == "oraclejdk8" && test $TRAVIS_SCALA_VERSION == "2.12.8" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && sbt ++$TRAVIS_SCALA_VERSION publish
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_SCALA_VERSION == "2.12.10" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
 
 deploy:
   provider: pages

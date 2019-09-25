@@ -3,17 +3,17 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val circeV        = "0.12.0-M3"
-    val catsV         = "2.0.0-M4"
-    val bouncyCastleV = "1.62"
-    val sCryptV       = "1.4.0"
-    val scalaTestV    = "3.1.0-SNAP13"
-    val scalaTestPlusV= "1.0.0-SNAP8"
-    val http4sV       = "0.21.0-M1"
-    val scalacheckV   = "1.14.0"
-    val commonsCodecV = "1.13"
-    val fs2Version    = "1.1.0-M1"
-    val log4sV        = "1.8.2"
+    val circeV        = "0.12.1"       //https://github.com/circe/circe/releases
+    val catsV         = "2.0.0"        //https://github.com/typelevel/cats/releases
+    val bouncyCastleV = "1.62"         //https://github.com/bcgit/bc-java/releases
+    val sCryptV       = "1.4.0"        //https://github.com/wg/scrypt/releases
+    val scalaTestV    = "3.1.0-SNAP13" //https://github.com/scalatest/scalatest/releases
+    val scalaTestPlusV= "1.0.0-SNAP8"  //https://github.com/scalatest/scalatestplus-scalacheck
+    val http4sV       = "0.21.0-M5"    //https://github.com/http4s/http4s/releases
+    val scalacheckV   = "1.14.0"       //https://github.com/typelevel/scalacheck/releases
+    val commonsCodecV = "1.12"         //https://github.com/apache/commons-codec/releases
+    val fs2Version    = "2.0.0"        //https://github.com/functional-streams-for-scala/fs2/releases
+    val log4sV        = "1.8.2"        //https://github.com/Log4s/log4s
   }
 
   object Libraries {
