@@ -101,7 +101,7 @@ object JWSSignedHeader {
     def fromUtf8Bytes(array: Array[Byte]): Either[Error, JWSSignedHeader[A]] =
       io.circe.parser.decode[JWSSignedHeader[A]](array.toUtf8String)
 
-    def serializeToUtf8(body: JWSSignedHeader[A]): Array[Byte] = jwt.JWTPrinter.pretty(body.asJson).utf8Bytes
+    def serializeToUtf8(body: JWSSignedHeader[A]): Array[Byte] = jwt.JWTPrinter.print(body.asJson).utf8Bytes
   }
 
 }
