@@ -5,14 +5,14 @@ object Dependencies {
   object Versions {
     val circeV        = "0.12.1"       //https://github.com/circe/circe/releases
     val catsV         = "2.0.0"        //https://github.com/typelevel/cats/releases
-    val bouncyCastleV = "1.62"         //https://github.com/bcgit/bc-java/releases
+    val bouncyCastleV = "1.64"         //https://github.com/bcgit/bc-java/releases
     val sCryptV       = "1.4.0"        //https://github.com/wg/scrypt/releases
     val scalaTestV    = "3.1.0-SNAP13" //https://github.com/scalatest/scalatest/releases
     val scalaTestPlusV= "1.0.0-SNAP8"  //https://github.com/scalatest/scalatestplus-scalacheck
     val http4sV       = "0.21.0-M5"    //https://github.com/http4s/http4s/releases
-    val scalacheckV   = "1.14.0"       //https://github.com/typelevel/scalacheck/releases
-    val commonsCodecV = "1.12"         //https://github.com/apache/commons-codec/releases
-    val fs2Version    = "2.0.0"        //https://github.com/functional-streams-for-scala/fs2/releases
+    val scalacheckV   = "1.14.2"       //https://github.com/typelevel/scalacheck/releases
+    val commonsCodecV = "1.13"         //https://github.com/apache/commons-codec/releases
+    val fs2Version    = "2.0.1"        //https://github.com/functional-streams-for-scala/fs2/releases
     val log4sV        = "1.8.2"        //https://github.com/Log4s/log4s
   }
 
