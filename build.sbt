@@ -121,7 +121,7 @@ lazy val commonSettings = Seq(
   ),
   organization in ThisBuild := "io.github.jmcardon",
   scalaVersion := "2.12.10",
-  crossScalaVersions := Seq("2.13.0", "2.12.10"),
+  crossScalaVersions := Seq("2.13.1", "2.12.10"),
   fork in test := true,
   fork in run := true,
   scalacOptions in (Compile, doc) ++= Seq(
@@ -130,7 +130,7 @@ lazy val commonSettings = Seq(
       "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
   ),
   parallelExecution in test := false,
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
   scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )

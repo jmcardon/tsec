@@ -14,7 +14,7 @@ before_install:
 - export PATH=${PATH}:./vendor/bundle
 
 scala:
-  - 2.13.0
+  - 2.13.1
   - 2.12.10
 
 before_cache:
