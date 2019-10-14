@@ -76,7 +76,7 @@ using <code class="highlighter-rouge">embed</code></li>
 <span class="c1">// import org.http4s.dsl.io._
 </span>
 <span class="k">val</span> <span class="n">newKey</span> <span class="k">=</span> <span class="nc">HMACSHA256</span><span class="o">.</span><span class="n">unsafeGenerateKey</span>
-<span class="c1">// newKey: tsec.mac.jca.MacSigningKey[tsec.mac.jca.HMACSHA256] = javax.crypto.spec.SecretKeySpec@5882f7c
+<span class="c1">// newKey: tsec.mac.jca.MacSigningKey[tsec.mac.jca.HMACSHA256] = javax.crypto.spec.SecretKeySpec@fa77cfa0
 </span>
 <span class="k">val</span> <span class="n">tsecCSRF</span> <span class="k">=</span> <span class="nc">TSecCSRF</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">HMACSHA256</span><span class="o">](</span><span class="n">newKey</span><span class="o">)</span>
 <span class="c1">// tsecCSRF: tsec.csrf.TSecCSRF[cats.effect.IO,tsec.mac.jca.HMACSHA256] = tsec.csrf.TSecCSRF@5ae51222
