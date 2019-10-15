@@ -8,7 +8,7 @@ object Dependencies {
     val bouncyCastleV = "1.64"         //https://github.com/bcgit/bc-java/releases
     val sCryptV       = "1.4.0"        //https://github.com/wg/scrypt/releases
     val scalaTestV    = "3.1.0-SNAP13" //https://github.com/scalatest/scalatest/releases
-    val scalaTestPlusV= "1.0.0-SNAP8"  //https://github.com/scalatest/scalatestplus-scalacheck
+    val scalaTestPlusV= "1.0.0-M2"  //https://github.com/scalatest/scalatestplus-scalacheck
     val http4sV       = "0.21.0-M5"    //https://github.com/http4s/http4s/releases
     val scalacheckV   = "1.14.2"       //https://github.com/typelevel/scalacheck/releases
     val commonsCodecV = "1.13"         //https://github.com/apache/commons-codec/releases
