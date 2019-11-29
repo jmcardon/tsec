@@ -10,8 +10,8 @@ addSbtPlugin("org.xerial.sbt"     % "sbt-sonatype"   % "2.3")
 
 
 libraryDependencies ++= List(
-  "com.geirsson" %% "scalafmt-core" % "1.3.0",
-  "com.geirsson" %% "scalafmt-cli"  % "1.3.0"
+  "com.geirsson" %% "scalafmt-core" % "1.5.1",
+  "com.geirsson" %% "scalafmt-cli"  % "1.5.1"
 )
 
 unmanagedJars in Compile ++= tsec.build.SunShine.`tools.jar`.toSeq
