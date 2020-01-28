@@ -144,7 +144,7 @@ lazy val bouncyLib = libraryDependencies += Libraries.BC
 lazy val jwtCommonLibs = libraryDependencies ++= Seq(
   Libraries.circeCore,
   Libraries.circeGeneric,
-  Libraries.circeGenericExtras,
+  // Libraries.circeGenericExtras,
   Libraries.circeParser
 )
 

@@ -9,3 +9,4 @@ tsec-libsodium/jni/*.so
 tsec-libsodium/jni/*.dylib
 .metals
 .bloop
+project/metals.sbt
