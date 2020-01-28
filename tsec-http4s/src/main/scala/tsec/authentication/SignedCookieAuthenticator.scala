@@ -147,6 +147,7 @@ final case class AuthenticatedCookie[A, Id](
     httpOnly: Boolean = true,
     domain: Option[String] = None,
     path: Option[String] = None,
+    sameSite: SameSite = SameSite.Lax,
     extension: Option[String] = None
 ) {
   def toCookie = ResponseCookie(
@@ -156,6 +157,7 @@ final case class AuthenticatedCookie[A, Id](
     None,
     domain,
     path,
+    sameSite,
     secure,
     httpOnly,
     extension
@@ -189,6 +191,7 @@ object AuthenticatedCookie {
       settings.httpOnly,
       settings.domain,
       settings.path,
+      settings.sameSite,
       settings.extension
     )
 }

@@ -3,7 +3,7 @@ package tsec.authentication
 import java.time.Instant
 
 import cats.effect.IO
-import org.http4s.{Header, Request, RequestCookie}
+import org.http4s.{Header, Request, RequestCookie, SameSite}
 import tsec.common.SecureRandomId
 import tsec.jws.mac.{JWSMacCV, JWTMac}
 import tsec.jwt.algorithms.JWTMacAlgo
@@ -35,6 +35,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       false,
       None,
       None,
+      SameSite.Lax,
       None,
       10.minutes,
       Some(10.minutes)
@@ -47,6 +48,7 @@ class JWTAuthenticatorSpec extends RequestAuthenticatorSpec {
       false,
       None,
       None,
+      SameSite.Lax,
       None,
       10.minutes,
       None
