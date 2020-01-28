@@ -70,6 +70,7 @@ final case class AuthEncryptedCookie[A, Id](
     httpOnly: Boolean = true,
     domain: Option[String] = None,
     path: Option[String] = None,
+    sameSite: SameSite = SameSite.Lax,
     extension: Option[String] = None
 ) {
 
@@ -80,6 +81,7 @@ final case class AuthEncryptedCookie[A, Id](
     None,
     domain,
     path,
+    sameSite,
     secure,
     httpOnly,
     extension
@@ -115,6 +117,7 @@ object AuthEncryptedCookie {
       settings.httpOnly,
       settings.domain,
       settings.path,
+      settings.sameSite,
       settings.extension
     )
 
@@ -134,6 +137,7 @@ object AuthEncryptedCookie {
       settings.httpOnly,
       settings.domain,
       settings.path,
+      settings.sameSite,
       settings.extension
     )
 

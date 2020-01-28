@@ -233,6 +233,7 @@ package object authentication {
       httpOnly: Boolean = true,
       domain: Option[String] = None,
       path: Option[String] = None,
+      sameSite: SameSite = SameSite.Lax,
       extension: Option[String] = None,
       expiryDuration: FiniteDuration,
       maxIdle: Option[FiniteDuration]
@@ -278,6 +279,7 @@ package object authentication {
               .leftMap(_ => DecodingFailure("InvalidEpoch", Nil))
         )
   }
+
 
   private[tsec] implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
     def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)

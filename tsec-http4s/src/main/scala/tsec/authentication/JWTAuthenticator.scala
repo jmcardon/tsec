@@ -41,6 +41,7 @@ final case class AugmentedJWT[A, I](
       None,
       settings.domain,
       settings.path,
+      settings.sameSite,
       settings.secure,
       settings.httpOnly,
       settings.extension
