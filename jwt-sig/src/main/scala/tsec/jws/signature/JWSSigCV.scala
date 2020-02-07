@@ -37,6 +37,20 @@ sealed abstract class JWSSigCV[F[_], A](
         M.raiseError(defaultError)
     }
 
+  def extractRaw(jwt: String): F[UnverifiedJWTSig[A]] = {
+    jwt.split("\\.", 3) match {
+      case Array(headerEncoded, bodyEncoded, signatureEncoded) => {
+        for {
+          providedBytes <- base64UrlSafeF(signatureEncoded)
+          header        <- M.fromEither(hs.fromB64URL(headerEncoded))
+          body          <- M.fromEither(JWTClaims.fromB64URL(bodyEncoded))
+        } yield UnverifiedJWTSig(header, body, CryptoSignature[A](providedBytes))
+      }
+      case _ =>
+        M.raiseError[UnverifiedJWTSig[A]](defaultError)
+    }
+  }
+
   def signAndBuild(header: JWSSignedHeader[A], body: JWTClaims, sigPrivateKey: SigPrivateKey[A]): F[JWTSig[A]] = {
     val toSign = hs.toB64URL(header) + "." + JWTClaims.toB64URL(body)
     for {
