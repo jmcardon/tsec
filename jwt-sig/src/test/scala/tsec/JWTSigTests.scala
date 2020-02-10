@@ -41,6 +41,22 @@ class JWTSigTests extends TestSpec {
       expression.unsafeRunSync() mustBe a[JWTSig[_]]
     }
 
+    it should "Sign and verify properly for proper params with Unverified JWT" in {
+      val expression: IO[JWTSig[A]] = for {
+        now     <- IO(Instant.now())
+        keyPair <- kfTag.generateKeyPair
+        build <- JWTSig.signToString[IO, A](
+          JWSSignedHeader[A](),
+          JWTClaims(issuedAt = Some(now.minusSeconds(2)), expiration = Some(now.plusSeconds(25))),
+          keyPair.privateKey
+        )
+        unverified <- UnverifiedJWTSig.unverified[IO, A](build)
+        verified <- UnverifiedJWTSig.verifyK[IO, A](unverified, keyPair.publicKey)
+      } yield verified
+
+      expression.unsafeRunSync() mustBe a[JWTSig[_]]
+    }
+
     it should "not verify for an incorrect key" in {
       val expression: IO[JWTSig[A]] = for {
         now      <- IO(Instant.now())
@@ -113,6 +129,20 @@ class JWTSigTests extends TestSpec {
           keyPair.privateKey
         )
         verified <- JWTSigImpure.verifyK[A](build, keyPair.publicKey)
+      } yield verified
+
+      expression mustBe a[Right[Throwable, _]]
+    }
+    it should "Sign and verify properly for proper params with Unverified JWT" in {
+      val expression: Either[Throwable, JWTSig[A]] = for {
+        keyPair <- kfSigError.generateKeyPair
+        build <- JWTSigImpure.signToString(
+          JWSSignedHeader[A](),
+          JWTClaims(),
+          keyPair.privateKey
+        )
+        unverified <- UnverifiedJWTSigImpure.unverified[A](build)
+        verified <- UnverifiedJWTSigImpure.verifyK[A](unverified, keyPair.publicKey)
       } yield verified
 
       expression mustBe a[Right[Throwable, _]]
