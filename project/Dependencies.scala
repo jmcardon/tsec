@@ -9,7 +9,7 @@ object Dependencies {
     val sCryptV       = "1.4.0"        //https://github.com/wg/scrypt/releases
     val scalaTestV    = "3.1.0-SNAP13" //https://github.com/scalatest/scalatest/releases
     val scalaTestPlusV= "1.0.0-SNAP8"  //https://github.com/scalatest/scalatestplus-scalacheck
-    val http4sV       = "0.21.0"   //https://github.com/http4s/http4s/releases
+    val http4sV       = "0.21.1"   //https://github.com/http4s/http4s/releases
     val scalacheckV   = "1.14.2"       //https://github.com/typelevel/scalacheck/releases
     val commonsCodecV = "1.14"         //https://github.com/apache/commons-codec/releases
     val fs2Version    = "2.2.2"        //https://github.com/functional-streams-for-scala/fs2/releases
