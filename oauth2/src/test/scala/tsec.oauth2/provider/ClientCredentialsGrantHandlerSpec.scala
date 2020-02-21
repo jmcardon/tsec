@@ -4,13 +4,14 @@ import java.time.Instant
 
 import cats.effect.IO
 import cats.syntax.either._
-import org.scalatest.Matchers._
+import matchers.should.Matchers._
 import org.scalatest._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedClientCredentials
 import tsec.oauth2.provider.grantHandler.ClientCredentialsGrantHandler
 import tsec.oauth2.provider.grantHandler.ClientCredentialsHandler
 
 import scala.concurrent.duration._
+import org.scalatest.matchers
 
 class ClientCredentialsGrantHandlerSpec extends flatspec.AnyFlatSpec with OptionValues {
 
