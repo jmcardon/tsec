@@ -8,44 +8,10 @@ lazy val contributors = Seq(
   "ChristopherDavenport" -> "Christopher Davenport"
 )
 
+
 lazy val releaseSettings = {
   import ReleaseTransformations._
   Seq(
-    releaseCrossBuild := true,
-    releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      runTest,
-      setReleaseVersion,
-      commitReleaseVersion,
-      tagRelease,
-      // For non cross-build projects, use releaseStepCommand("publishSigned")
-      releaseStepCommandAndRemaining("+publishSigned"),
-      setNextVersion,
-      commitNextVersion,
-      releaseStepCommand("sonatypeReleaseAll"),
-      pushChanges
-    ),
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
-    credentials ++= (
-      for {
-        username <- Option(System.getenv().get("SONATYPE_USERNAME"))
-        password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
-      } yield
-        Credentials(
-          "Sonatype Nexus Repository Manager",
-          "oss.sonatype.org",
-          username,
-          password
-        )
-    ).toSeq,
     publishArtifact in Test := false,
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     scmInfo := Some(
@@ -120,7 +86,6 @@ lazy val commonSettings = Seq(
     Libraries.fs2IO
   ),
   organization in ThisBuild := "io.github.jmcardon",
-  scalaVersion := "2.12.10",
   crossScalaVersions := Seq("2.13.1", "2.12.10"),
   fork in test := true,
   fork in run := true,
@@ -179,79 +144,57 @@ lazy val root = Project(id = "tsec", base = file("."))
     // bench,
     // examples,
     // libsodium
-  ).settings(commonSettings, publishSettings, releaseSettings, noPublishSettings)
+  ).settings(commonSettings, noPublishSettings)
 
 lazy val common = Project(id = "tsec-common", base = file("common"))
   .settings(commonSettings)
-  .settings(publishSettings)
-  .settings(releaseSettings)
 
 lazy val bouncyCastle = Project(id = "tsec-bouncy", base = file("bouncycastle"))
   .settings(commonSettings)
   .settings(bouncyLib)
-  .settings(publishSettings)
-  .settings(releaseSettings)
 
 lazy val passwordHashers = Project(id = "tsec-password", base = file("password-hashers"))
   .settings(commonSettings)
   .settings(passwordHasherLibs)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
-  .settings(releaseSettings)
 
 lazy val cipherCore = Project(id = "tsec-cipher-core", base = file("cipher-core"))
   .settings(commonSettings)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
-  .settings(releaseSettings)
 
 lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-symmetric"))
   .settings(commonSettings)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
-  .settings(releaseSettings)
   .settings(sources in (Compile, doc) := Seq.empty)
 
 lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(commonSettings)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
-  .settings(releaseSettings)
 
 lazy val messageDigests = Project(id = "tsec-hash-jca", base = file("message-digests"))
   .settings(commonSettings)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
-  .settings(releaseSettings)
 
 lazy val bouncyHash = Project(id = "tsec-hash-bouncy", base = file("hashing-bouncy"))
   .settings(commonSettings)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(bouncyCastle)
-  .settings(releaseSettings)
 
 lazy val bouncyCipher = Project(id = "tsec-cipher-bouncy", base = file("cipher-bouncy"))
   .settings(commonSettings)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(bouncyCastle)
-  .settings(releaseSettings)
 
 lazy val signatures = Project(id = "tsec-signatures", base = file("signatures"))
   .settings(commonSettings)
   .settings(bouncyLib)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(bouncyCastle)
-  .settings(releaseSettings)
 
 lazy val jwtCore = Project(id = "tsec-jwt-core", base = file("jwt-core"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
-  .settings(publishSettings)
-  .settings(releaseSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(mac)
   .dependsOn(signatures)
@@ -259,23 +202,19 @@ lazy val jwtCore = Project(id = "tsec-jwt-core", base = file("jwt-core"))
 lazy val jwtMac = Project(id = "tsec-jwt-mac", base = file("jwt-mac"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(mac)
   .dependsOn(jwtCore)
-  .settings(releaseSettings)
 
 lazy val jwtSig = Project(id = "tsec-jwt-sig", base = file("jwt-sig"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
   .settings(bouncyLib)
-  .settings(publishSettings)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(jwtCore)
   .dependsOn(signatures)
   .dependsOn(messageDigests)
   .dependsOn(bouncyCastle)
-  .settings(releaseSettings)
 
 lazy val bench = Project(id = "tsec-bench", base = file("bench"))
   .settings(commonSettings)
@@ -321,7 +260,6 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(jwtCommonLibs)
   .settings(passwordHasherLibs)
   .settings(http4sDeps)
-  .settings(publishSettings)
   .settings(loggingLibs)
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(
@@ -331,7 +269,6 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     passwordHashers,
     jwtMac
   )
-  .settings(releaseSettings)
 
 lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"))
   .settings(commonSettings)
@@ -342,8 +279,6 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
   )
   .settings(loggingLibs)
   .dependsOn(common % "compile->compile;test->test")
-  .settings(releaseSettings)
-  .settings(publishSettings)
 
 lazy val microsite = Project(id = "microsite", base = file("docs"))
   .settings(commonSettings, noPublishSettings)
@@ -365,14 +300,7 @@ lazy val microsite = Project(id = "microsite", base = file("docs"))
     examples
   )
 
-lazy val publishSettings = Seq(
-  homepage := Some(url("https://github.com/jmcardon/tsec")),
-  licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
-  scmInfo := Some(ScmInfo(url("https://github.com/jmcardon/tsec"), "scm:git:git@github.com:jmcardon/tsec.git")),
-)
-
 lazy val noPublishSettings = {
-  import com.typesafe.sbt.pgp.PgpKeys.publishSigned
   Seq(
     skip in publish := true,
     publish := (()),
