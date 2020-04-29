@@ -10,10 +10,8 @@ lazy val contributors = Seq(
 
 
 lazy val releaseSettings = {
-  import ReleaseTransformations._
   Seq(
     publishArtifact in Test := false,
-    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/jmcardon/tsec"),
