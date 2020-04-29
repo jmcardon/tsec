@@ -13,9 +13,8 @@ before_install:
 - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install swig
 - export PATH=${PATH}:./vendor/bundle
 
-scala:
-  - 2.13.1
-  - 2.12.10
+scala_212: &scala_212 2.12.10
+scala_213: &scala_213 2.13.1
 
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
@@ -36,23 +35,39 @@ install:
 - gem install sass
 - gem install jekyll -v 3.2.1
 
-script:
-  - bash sodium_setup.sh
-  - sbt ++$TRAVIS_SCALA_VERSION clean
-  - sbt ++$TRAVIS_SCALA_VERSION test
-  - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION tut
-  - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
 
-after_success:
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && sbt ++$TRAVIS_SCALA_VERSION publish
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_SCALA_VERSION == "2.12.10" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+stages:
+  - name: test
+  - name: release
+    if: "((branch = master AND type = push) OR (tag IS present)) AND (NOT fork OR env(DEPLOY) = true)"
 
-deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  keep-history: true
-  local-dir: docs/target/site/
-  target-branch: gh-pages
-  on:
-    branch: master
+
+
+jobs:
+  include:
+    - &all_tests
+      env: TEST="all_tests"
+      stage: test
+      script:
+        - bash sodium_setup.sh
+        - sbt ++$TRAVIS_SCALA_VERSION clean
+        - sbt ++$TRAVIS_SCALA_VERSION test
+      scala: *scala_213
+    - <<: *all_tests
+      env: TEST="all_tests"
+      scala: *scala_212
+    - env: TEST="docs"
+      scala: *scala_212
+      script: sbt ++$TRAVIS_SCALA_VERSION tut && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+      deploy:
+        provider: pages
+        skip-cleanup: true
+        github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+        keep-history: true
+        local-dir: docs/target/site/
+        target-branch: gh-pages
+        on:
+          branch: master
+    - stage: release
+      # allow deploy organization to be overridden by environment variable:
+      script: sbt "set organization in ThisBuild := \"${DEPLOY_ORG:-io.github.jmcardon}\"; ci-release"
