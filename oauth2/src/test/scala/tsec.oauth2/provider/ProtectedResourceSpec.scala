@@ -4,9 +4,10 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.scalatest._
-import org.scalatest.Matchers._
+import matchers.should.Matchers._
 
 import scala.concurrent.duration._
+import org.scalatest.matchers
 
 class ProtectedResourceSpec extends flatspec.AnyFlatSpec {
   val pureProtectedResourceHandler = new ProtectedResourceHandler[IO, MockUser] {
