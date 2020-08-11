@@ -1,9 +1,10 @@
 package tsec.oauth2.provider
 
 import cats.syntax.either._
-import org.scalatest.Matchers._
+import matchers.should.Matchers._
 import org.scalatest.flatspec.AnyFlatSpec
 import tsec.oauth2.provider.AccessTokenFetcher.RequestParameter
+import org.scalatest.matchers
 
 class RequestParameterSpec extends AnyFlatSpec {
 
