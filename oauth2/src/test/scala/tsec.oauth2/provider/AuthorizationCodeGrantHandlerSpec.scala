@@ -1,11 +1,9 @@
 package tsec.oauth2.provider
 
 import java.time.Instant
-
 import cats.effect.IO
-import cats.syntax.either._
-import org.scalatest.Matchers._
 import org.scalatest._
+import org.scalatest.matchers.should.Matchers._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedAuthorizationCode
 import tsec.oauth2.provider.grantHandler.AuthorizationCodeGrantHandler
 import tsec.oauth2.provider.grantHandler.AuthorizationCodeHandler

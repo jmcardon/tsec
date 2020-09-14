@@ -8,7 +8,7 @@ sealed trait SodiumSHA256
 object SodiumSHA256 extends SodiumHashPlatform[SodiumSHA256]("SHA256") {
   val hashLen: Int = 32
 
-  def stateSize(implicit S: ScalaSodium): Int = S.crypto_hash_sha256_statebytes
+  def stateSize(implicit S: ScalaSodium): Int = S.crypto_hash_sha256_statebytes()
 
   def sodiumHash(in: Array[Byte], out: Array[Byte])(implicit S: ScalaSodium): Int =
     S.crypto_hash_sha256(out, in, in.length)

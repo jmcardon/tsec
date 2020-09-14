@@ -3,7 +3,6 @@ package tsec.authentication
 import cats.effect.IO
 import cats.implicits._
 import org.http4s.Request
-import org.scalatest.MustMatchers
 import tsec.TestSpec
 import tsec.authentication.DummyRole.{Admin, Other}
 import tsec.authorization._
@@ -34,7 +33,7 @@ object AuthLevel extends SimpleAuthEnum[AuthLevel, Int] {
   protected val values: AuthGroup[AuthLevel] = AuthGroup(CEO, Staff, AugmentedUser, RegularUser)
 }
 
-class AuthorizationTests extends TestSpec with MustMatchers {
+class AuthorizationTests extends TestSpec {
 
   val basicRBAC = BasicRBAC[IO, DummyRole, AuthDummyUser, Int](Admin, Other)
 

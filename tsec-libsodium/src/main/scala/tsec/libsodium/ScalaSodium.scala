@@ -23,7 +23,7 @@ object ScalaSodium
     with OriginalChacha20Poly1305Constants
     with Chacha20Poly1305IETFConstants
     with XChacha20Poly1305IETFConstants
-    with KeyDerivationConstants 
+    with KeyDerivationConstants
     with KxConstants
     with OnetimeAuthConstants
     with PKCryptoConstants {
@@ -63,7 +63,7 @@ object ScalaSodium
     System.loadLibrary(libraryName)
     val sodium = new ScalaSodium()
     checkVersion(SodiumJNI.sodium_version_string.asInstanceOf[String])
-    if (sodium.sodium_init < 0) {
+    if (sodium.sodium_init() < 0) {
       val err = new SodiumLoadError("Has not been initialized properly")
       logger.error(err)("ScalaSodium has not been initialized properly")
       throw err
