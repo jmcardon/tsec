@@ -150,14 +150,14 @@ final case class AuthenticatedCookie[A, Id](
     sameSite: SameSite = SameSite.Lax,
     extension: Option[String] = None
 ) {
-  def toCookie = ResponseCookie(
+  def toCookie: ResponseCookie = ResponseCookie(
     name,
     content,
     Some(HttpDate.unsafeFromInstant(expiry)),
     None,
     domain,
     path,
-    sameSite,
+    Some(sameSite),
     secure,
     httpOnly,
     extension

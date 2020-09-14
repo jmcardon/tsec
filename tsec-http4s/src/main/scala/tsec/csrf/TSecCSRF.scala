@@ -6,7 +6,7 @@ import java.time.Clock
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import cats.syntax.all._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 import org.http4s.{HttpRoutes, Request, Response, ResponseCookie, Status}
 import tsec.authentication.{cookieFromRequest, unliftedCookieFromRequest}
 import tsec.common._
@@ -101,7 +101,7 @@ final class TSecCSRF[F[_], A] private[tsec] (
   private[tsec] def checkCSRF(r: Request[F], service: HttpRoutes[F]): F[Response[F]] =
     (for {
       c1       <- cookieFromRequest[F](cookieName, r)
-      c2       <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)).map(_.value))
+      c2       <- OptionT.fromOption[F](r.headers.get(CIString(headerName)).map(_.value))
       raw1     <- extractRaw(CSRFToken(c1.content))
       raw2     <- extractRaw(CSRFToken(c2))
       res      <- if (isEqual(raw1, raw2)) service(r) else OptionT.none
