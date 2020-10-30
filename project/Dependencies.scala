@@ -13,7 +13,7 @@ object Dependencies {
     val scalacheckV   = "1.14.2"       //https://github.com/typelevel/scalacheck/releases
     val commonsCodecV = "1.14"         //https://github.com/apache/commons-codec/releases
     val fs2Version    = "2.2.2"        //https://github.com/functional-streams-for-scala/fs2/releases
-    val log4sV        = "1.8.2"        //https://github.com/Log4s/log4s
+    val log4sV        = "1.9.0"        //https://github.com/Log4s/log4s
   }
 
   object Libraries {
