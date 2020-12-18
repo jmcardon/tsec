@@ -11,7 +11,7 @@ object Dependencies {
     val scalaTestPlusV= "1.0.0-SNAP8"  //https://github.com/scalatest/scalatestplus-scalacheck
     val http4sV       = "0.21.0"   //https://github.com/http4s/http4s/releases
     val scalacheckV   = "1.14.2"       //https://github.com/typelevel/scalacheck/releases
-    val commonsCodecV = "1.14"         //https://github.com/apache/commons-codec/releases
+    val commonsCodecV = "1.15"         //https://github.com/apache/commons-codec/releases
     val fs2Version    = "2.2.2"        //https://github.com/functional-streams-for-scala/fs2/releases
     val log4sV        = "1.8.2"        //https://github.com/Log4s/log4s
   }
