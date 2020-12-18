@@ -4,9 +4,7 @@ import java.security.Security
 import java.time.Instant
 
 import cats.effect.IO
-import cats.syntax.either._
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.scalatest.MustMatchers
 import tsec.jws.signature._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo

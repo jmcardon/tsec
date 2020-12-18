@@ -65,7 +65,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       chunkSize: Int
   )(implicit F: Sync[F], S: ScalaSodium): Pipe[F, Byte, Byte] = { in =>
     val initState = F.delay {
-      val state = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes)
+      val state = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes())
       S.crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)
       CryptoStreamState(state)
     }
@@ -135,7 +135,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
       chunkSize: Int
   )(implicit F: Sync[F], S: ScalaSodium): F[(CryptoStreamHeader, Pipe[F, Byte, Byte])] =
     F.delay {
-      val state  = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes)
+      val state  = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes())
       val header = new Array[Byte](StreamHeaderBytes)
       S.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
       (CryptoStreamHeader(header), streamEncryption[F](CryptoStreamState(state), chunkSize))
@@ -146,7 +146,7 @@ object XChacha20Poly1305 extends SodiumCipherPlatform[XChacha20Poly1305] {
   )(implicit F: Sync[F], S: ScalaSodium): F[XChacha20Poly1305.CipherState] =
     F.delay {
       val header = new Array[Byte](StreamHeaderBytes)
-      val state  = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes)
+      val state  = new Array[Byte](S.crypto_secretstream_xchacha20poly1305_statebytes())
       S.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
       new CipherState(CryptoStreamHeader(header), CryptoStreamState(state))
     }

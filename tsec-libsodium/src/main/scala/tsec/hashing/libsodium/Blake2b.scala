@@ -1,7 +1,6 @@
 package tsec.hashing.libsodium
 
 import java.security.MessageDigest
-
 import cats.effect.Sync
 import tsec.hashing._
 import tsec.hashing.libsodium.internal.SodiumHashPlatform
@@ -76,7 +75,7 @@ object Blake2b extends SodiumHashPlatform[Blake2b]("Blake2b") {
     CryptoHash[Blake2b](out)
   }
 
-  def stateSize(implicit S: ScalaSodium): Int = S.crypto_generichash_statebytes
+  def stateSize(implicit S: ScalaSodium): Int = S.crypto_generichash_statebytes()
 
   def sodiumHash(in: Array[Byte], out: Array[Byte])(implicit S: ScalaSodium): Int =
     S.crypto_generichash(out, hashLen, in, in.length, NullPtrBytes, 0)
