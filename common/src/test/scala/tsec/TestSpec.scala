@@ -1,7 +1,7 @@
 package tsec
 
-import org.scalatest.MustMatchers
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import org.scalatest.matchers.must.Matchers
 
-trait TestSpec extends AnyFlatSpec with MustMatchers with ScalaCheckPropertyChecks
+trait TestSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks
