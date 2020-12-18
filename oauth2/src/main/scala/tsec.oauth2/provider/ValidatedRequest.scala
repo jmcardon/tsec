@@ -1,13 +1,10 @@
 package tsec.oauth2.provider
 
 import java.nio.charset.StandardCharsets
-
 import cats.implicits._
 import tsec.common._
 import tsec.oauth2.provider.grantHandler.GrantType
-
 import scala.collection.immutable.TreeMap
-import scala.util.Try
 
 case class ClientCredential(clientId: String, clientSecret: Option[String])
 
@@ -151,7 +148,8 @@ object ValidatedRequest {
   }
 
   private def clientCredentialByAuthorization(s: String): Either[InvalidClient, ClientCredential] =
-    Try(new String(s.base64Bytes, StandardCharsets.UTF_8))
+    s.b64Bytes
+      .map(new String(_, StandardCharsets.UTF_8))
       .map(_.split(":", 2))
       .getOrElse(Array.empty) match {
       case Array(clientId, clientSecret) =>
