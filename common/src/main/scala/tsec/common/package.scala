@@ -18,7 +18,7 @@ package object common {
   }
 
   /** Convenience alias since
-    * Either[Throwable, ?] is really annoying
+    * Either[Throwable, *] is really annoying
     * to write over and over
     */
   type CatchE[A] = Either[Throwable, A]

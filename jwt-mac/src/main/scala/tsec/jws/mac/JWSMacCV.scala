@@ -141,6 +141,6 @@ object JWSMacCV {
       implicit hs: JWSSerializer[JWSMacHeader[A]],
       messageAuth: MessageAuth[MacErrorM, A, MacSigningKey]
   ): JWSMacCV[MacErrorM, A] =
-    new JWSMacCV[Either[Throwable, ?], A]() {}
+    new JWSMacCV[Either[Throwable, *], A]() {}
 
 }
