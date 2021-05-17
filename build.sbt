@@ -173,7 +173,7 @@ lazy val root = Project(id = "tsec", base = file("."))
     jwtSig,
     passwordHashers,
     http4s,
-    microsite,
+    // microsite,
     oauth2,
     // bench,
     // examples,
@@ -210,7 +210,7 @@ lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-s
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .settings(releaseSettings)
-  
+
 lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(commonSettings)
   .settings(publishSettings)
@@ -342,7 +342,7 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
   .dependsOn(common % "compile->compile;test->test")
   .settings(releaseSettings)
   .settings(publishSettings)
-
+/*
 lazy val microsite = Project(id = "microsite", base = file("docs"))
   .settings(commonSettings, noPublishSettings)
   .settings(micrositeSettings)
@@ -362,6 +362,7 @@ lazy val microsite = Project(id = "microsite", base = file("docs"))
     http4s,
     examples
   )
+*/
 
 lazy val publishSettings = Seq(
   homepage := Some(url("https://github.com/jmcardon/tsec")),
