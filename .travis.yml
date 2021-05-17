@@ -14,8 +14,9 @@ before_install:
 - export PATH=${PATH}:./vendor/bundle
 
 scala:
-  - 2.13.1
-  - 2.12.10
+  - 2.13.5
+  - 2.12.13
+  - 3.0.0
 
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
