@@ -2,7 +2,7 @@ package tsec.oauth2.provider
 
 import cats.syntax.either._
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 
 class ValidatedRequestSpec extends AnyFlatSpec {
   it should "fetch Basic64" in {

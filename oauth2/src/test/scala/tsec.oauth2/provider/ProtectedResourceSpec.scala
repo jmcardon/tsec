@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.scalatest._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 
 import scala.concurrent.duration._
 

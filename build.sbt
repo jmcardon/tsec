@@ -46,7 +46,7 @@ lazy val releaseSettings = {
           password
         )
     ).toSeq,
-    publishArtifact in Test := false,
+    Test / publishArtifact := false,
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     scmInfo := Some(
       ScmInfo(
@@ -119,18 +119,17 @@ lazy val commonSettings = Seq(
     Libraries.commonsCodec,
     Libraries.fs2IO
   ),
-  organization in ThisBuild := "io.github.jmcardon",
-  scalaVersion := "2.12.10",
-  crossScalaVersions := Seq("2.13.1", "2.12.10"),
-  fork in test := true,
-  fork in run := true,
-  scalacOptions in (Compile, doc) ++= Seq(
-      "-groups",
-      "-sourcepath", (baseDirectory in LocalRootProject).value.getAbsolutePath,
-      "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
-  ),
-  parallelExecution in test := false,
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+  ThisBuild / organization := "io.github.jmcardon",
+  scalaVersion := "2.13.4",
+  crossScalaVersions := Seq(scalaVersion.value, "2.12.13"),
+  Test / fork := true,
+  run / fork := true,
+  // doc / scalacOptions ++= Seq(
+  //     "-sourcepath", (LocalRootProject / baseDirectory).value.getAbsolutePath,
+  //     "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
+  // ),
+  Test / parallelExecution := false,
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
   scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )
@@ -174,7 +173,7 @@ lazy val root = Project(id = "tsec", base = file("."))
     jwtSig,
     passwordHashers,
     http4s,
-    microsite,
+    // microsite,
     oauth2,
     // bench,
     // examples,
@@ -211,7 +210,6 @@ lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-s
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .settings(releaseSettings)
-  .settings(sources in (Compile, doc) := Seq.empty)
 
 lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(commonSettings)
@@ -344,7 +342,7 @@ lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"
   .dependsOn(common % "compile->compile;test->test")
   .settings(releaseSettings)
   .settings(publishSettings)
-
+/*
 lazy val microsite = Project(id = "microsite", base = file("docs"))
   .settings(commonSettings, noPublishSettings)
   .settings(micrositeSettings)
@@ -364,6 +362,7 @@ lazy val microsite = Project(id = "microsite", base = file("docs"))
     http4s,
     examples
   )
+*/
 
 lazy val publishSettings = Seq(
   homepage := Some(url("https://github.com/jmcardon/tsec")),
@@ -374,7 +373,7 @@ lazy val publishSettings = Seq(
 lazy val noPublishSettings = {
   import com.typesafe.sbt.pgp.PgpKeys.publishSigned
   Seq(
-    skip in publish := true,
+    publish / skip := true,
     publish := (()),
     publishLocal := (()),
     publishArtifact := false,

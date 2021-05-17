@@ -53,11 +53,11 @@ package object authentication {
   }
 
   type TSecMiddleware[F[_], I, A] =
-    Middleware[OptionT[F, ?], SecuredRequest[F, I, A], Response[F], Request[F], Response[F]]
+    Middleware[OptionT[F, *], SecuredRequest[F, I, A], Response[F], Request[F], Response[F]]
 
   object TSecMiddleware {
     def apply[F[_]: Monad, I, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Auth]],
+        authedStuff: Kleisli[OptionT[F, *], Request[F], SecuredRequest[F, I, Auth]],
         onNotAuthenticated: Request[F] => F[Response[F]]
     ): TSecMiddleware[F, I, Auth] =
       service => {
@@ -72,7 +72,7 @@ package object authentication {
       }
 
     def withFallthrough[F[_]: Monad, I, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Auth]],
+        authedStuff: Kleisli[OptionT[F, *], Request[F], SecuredRequest[F, I, Auth]],
         onNotAuthenticated: Request[F] => F[Response[F]]
     ): TSecMiddleware[F, I, Auth] =
       service => {
@@ -89,7 +89,7 @@ package object authentication {
   // we'd expect. This is a workaround to ensure partial unification
   // is triggered.  See https://github.com/jmcardon/tsec/issues/88 for
   // more info.
-  type TSecAuthService[I, A, F[_]] = Kleisli[OptionT[F, ?], SecuredRequest[F, I, A], Response[F]]
+  type TSecAuthService[I, A, F[_]] = Kleisli[OptionT[F, *], SecuredRequest[F, I, A], Response[F]]
 
   object TSecAuthService {
 
@@ -163,10 +163,10 @@ package object authentication {
   }
 
   type UserAwareService[I, A, F[_]] =
-    Kleisli[OptionT[F, ?], UserAwareRequest[F, I, A], Response[F]]
+    Kleisli[OptionT[F, *], UserAwareRequest[F, I, A], Response[F]]
 
   type UserAwareMiddleware[F[_], I, A] =
-    Middleware[OptionT[F, ?], UserAwareRequest[F, I, A], Response[F], Request[F], Response[F]]
+    Middleware[OptionT[F, *], UserAwareRequest[F, I, A], Response[F], Request[F], Response[F]]
 
   object UserAwareService {
     def apply[I, A, F[_]](
@@ -190,7 +190,7 @@ package object authentication {
       )
 
     def extract[F[_]: Monad, I, Auth](
-        authedStuff: Kleisli[OptionT[F, ?], Request[F], SecuredRequest[F, I, Auth]]
+        authedStuff: Kleisli[OptionT[F, *], Request[F], SecuredRequest[F, I, Auth]]
     ): UserAwareMiddleware[F, I, Auth] =
       service => {
         Kleisli { r: Request[F] =>
