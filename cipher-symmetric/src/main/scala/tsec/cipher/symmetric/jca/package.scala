@@ -34,11 +34,11 @@ package object jca extends CipherErrors {
   }
 
   final class SecretKeySyntax[A](val key: SecretKey[A]) extends AnyVal {
-    @inline def toJavaKey: JSecretKey = SecretKey.toJavaKey(key)
+    def toJavaKey: JSecretKey = SecretKey.toJavaKey(key)
     def getEncoded: Array[Byte]       = toJavaKey.getEncoded
   }
 
-  implicit final def _secretKeySyntax[A](key: SecretKey[A]) = new SecretKeySyntax[A](key)
+  implicit final def _secretKeySyntax[A](key: SecretKey[A]): SecretKeySyntax[A] = new SecretKeySyntax[A](key)
 
   private[tsec] class WithCipherMode[M](val mode: String) extends CipherMode[M] {
     implicit val m: CipherMode[M] = this

@@ -6,7 +6,7 @@ import cats.syntax.either._
 import io.circe._
 import io.circe.parser._
 import io.circe.syntax._
-import io.circe.generic.auto._
+import io.circe.generic.auto.`package`._
 import tsec.TestSpec
 
 class JWTClaimsTest extends TestSpec {

@@ -153,7 +153,7 @@ object ValidatedRequest {
   private def clientCredentialByAuthorization(s: String): Either[InvalidClient, ClientCredential] =
     Try(new String(s.base64Bytes, StandardCharsets.UTF_8))
       .map(_.split(":", 2))
-      .getOrElse(Array.empty) match {
+      .getOrElse(Array.empty[String]) match {
       case Array(clientId, clientSecret) =>
         Right(ClientCredential(clientId, if (clientSecret.isEmpty) None else Some(clientSecret)))
       case _ =>

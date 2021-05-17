@@ -48,7 +48,7 @@ package object common {
     def encode(v: Double) = ByteBuffer.allocate(8).putDouble(v).array()
   }
 
-  final class JerryStringer(val s: String) extends AnyVal {
+  implicit final class JerryStringer(val s: String) extends AnyVal {
 
     def utf8Bytes: Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
 
@@ -75,7 +75,7 @@ package object common {
     def hexBytesUnsafe: Array[Byte] = Hex.decodeHex(s)
   }
 
-  final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {
+  implicit final class ByteSyntaxHelpers(val array: Array[Byte]) extends AnyVal {
     def toUtf8String           = new String(array, StandardCharsets.UTF_8)
     def toAsciiString          = new String(array, StandardCharsets.US_ASCII)
     def toB64UrlString: String = AB64.encodeBase64URLSafeString(array)
@@ -96,8 +96,8 @@ package object common {
 
   }
 
-  implicit final def byteSyntaxOps(array: Array[Byte]) = new ByteSyntaxHelpers(array)
-  implicit final def costanzaOps(jerry: String)        = new JerryStringer(jerry)
+  // implicit final def byteSyntaxOps(array: Array[Byte]): By  = new ByteSyntaxHelpers(array)
+  // implicit final def costanzaOps(jerry: String)        = new JerryStringer(jerry)
 
   implicit final class primitiveEncoderOps[T](v: T)(implicit E: TSecPrimitiveEncoder[T]) {
     def toBytes: Array[Byte] = E.encode(v)

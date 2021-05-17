@@ -120,8 +120,8 @@ lazy val commonSettings = Seq(
     Libraries.fs2IO
   ),
   ThisBuild / organization := "io.github.jmcardon",
-  scalaVersion := "2.13.4",
-  crossScalaVersions := Seq(scalaVersion.value, "2.12.13"),
+  scalaVersion := "2.13.5",
+  crossScalaVersions := Seq(scalaVersion.value, "2.12.13", "3.0.0"),
   Test / fork := true,
   run / fork := true,
   // doc / scalacOptions ++= Seq(
@@ -129,8 +129,25 @@ lazy val commonSettings = Seq(
   //     "-doc-source-url", "https://github.com/jmcardon/tsec/blob/v" + version.value + "€{FILE_PATH}.scala"
   // ),
   Test / parallelExecution := false,
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
-  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+
+  libraryDependencies ++= {
+    if (isDotty(scalaVersion.value)) Seq.empty
+    else Seq(
+      compilerPlugin("org.typelevel" % "kind-projector" % "0.13.0" cross CrossVersion.full),
+      compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+    )
+  },
+  scalacOptions ++= {
+    if (isDotty(scalaVersion.value)) Seq("-source:3.0-migration")
+    else Seq()
+  },
+  Compile / doc / sources := {
+    val old = (Compile / doc / sources).value
+    if (isDotty(scalaVersion.value))
+      Seq()
+    else
+      old
+  },
   scalacOptions ++= scalacOptionsForVersion(scalaVersion.value)
 )
 
@@ -172,7 +189,7 @@ lazy val root = Project(id = "tsec", base = file("."))
     jwtMac,
     jwtSig,
     passwordHashers,
-    http4s,
+    // http4s,
     // microsite,
     oauth2,
     // bench,
@@ -302,7 +319,7 @@ lazy val examples = Project(id = "tsec-examples", base = file("examples"))
     jwtMac,
     jwtSig,
     passwordHashers,
-    http4s,
+    // http4s,
     bouncyHash,
     bouncyCipher,
     libsodium
@@ -313,7 +330,7 @@ lazy val oauth2 = Project(id = "tsec-oauth2", base = file("oauth2"))
   .settings(commonSettings)
   .dependsOn(common % "compile->compile;test->test")
   .settings(noPublishSettings)
-
+/*
 lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
@@ -330,6 +347,7 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     jwtMac
   )
   .settings(releaseSettings)
+*/
 
 lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"))
   .settings(commonSettings)
@@ -379,4 +397,8 @@ lazy val noPublishSettings = {
     publishArtifact := false,
     publishTo := None
   )
+}
+
+def isDotty(string: String): Boolean = {
+  VersionNumber(string)._1.exists(_ == 3L)
 }

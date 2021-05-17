@@ -24,14 +24,14 @@ sealed abstract class JCAPrimitiveCipher[F[_], C, M, P](
   def encrypt(plainText: PlainText, key: SecretKey[C], iv: Iv[C]): F[CipherText[C]] =
     catchF {
       val instance = getInstance
-      ivProcess.encryptInit(instance, iv, key.toJavaKey)
+      ivProcess.encryptInit(instance, iv, SecretKey.toJavaKey(key))
       val encrypted = instance.doFinal(plainText)
       CipherText[C](RawCipherText(encrypted), iv)
     }
 
   def decrypt(cipherText: CipherText[C], key: SecretKey[C]): F[PlainText] = catchF {
     val instance = getInstance
-    ivProcess.decryptInit(instance, cipherText.nonce, key.toJavaKey)
+    ivProcess.decryptInit(instance, cipherText.nonce, SecretKey.toJavaKey(key))
     val out = instance.doFinal(cipherText.content)
     PlainText(out)
   }
