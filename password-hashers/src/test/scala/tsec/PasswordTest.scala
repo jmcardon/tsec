@@ -8,14 +8,15 @@ import org.scalacheck.{Arbitrary, Gen}
 import tsec.common._
 import tsec.passwordhashers.jca._
 import tsec.passwordhashers.{PasswordHashAPI, PasswordHasher, _}
+import cats.effect.unsafe.implicits.global
 
 class PasswordTest extends TestSpec {
 
-  implicit val PasswordErrorCatsEqInstance = new Eq[PasswordError] {
+  implicit val PasswordErrorCatsEqInstance: Eq[PasswordError] = new Eq[PasswordError] {
     override def eqv(x: PasswordError, y: PasswordError): Boolean =
       x.cause === y.cause
   }
-  implicit val BCryptCatsEqInstance = new Eq[BCrypt] {
+  implicit val BCryptCatsEqInstance: Eq[BCrypt] = new Eq[BCrypt] {
     override def eqv(x: BCrypt, y: BCrypt): Boolean =
       x === y
   }
@@ -24,7 +25,7 @@ class PasswordTest extends TestSpec {
     val choose = Gen.choose(33.toChar, 126.toChar)
     Gen.listOf(choose).map(_.mkString)
   }
-  implicit val arbStr = Arbitrary(genStringAscii)
+  implicit val arbStr: Arbitrary[String] = Arbitrary(genStringAscii)
 
   val plainPassword = "abc213A"
 

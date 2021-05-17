@@ -10,6 +10,7 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import tsec.authorization.BasicRBAC
+import cats.effect.unsafe.implicits.global
 
 class RequestAuthenticatorSpec extends AuthenticatorSpec {
 

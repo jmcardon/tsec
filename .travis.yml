@@ -14,8 +14,8 @@ before_install:
 - export PATH=${PATH}:./vendor/bundle
 
 scala:
-  - 2.13.1
-  - 2.12.10
+  - 2.13.5
+  - 2.12.13
 
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
@@ -40,19 +40,19 @@ script:
   - bash sodium_setup.sh
   - sbt ++$TRAVIS_SCALA_VERSION clean
   - sbt ++$TRAVIS_SCALA_VERSION test
-  - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION tut
-  - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+  # - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION tut
+  # - test $TRAVIS_SCALA_VERSION != "2.12.10" || sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
 
 after_success:
 - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && sbt ++$TRAVIS_SCALA_VERSION publish
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_SCALA_VERSION == "2.12.10" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
+# - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && test $TRAVIS_REPO_SLUG == "jmcardon/tsec" && test $TRAVIS_SCALA_VERSION == "2.12.10" && sbt ++$TRAVIS_SCALA_VERSION microsite/makeMicrosite
 
-deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  keep-history: true
-  local-dir: docs/target/site/
-  target-branch: gh-pages
-  on:
-    branch: master
+# deploy:
+#   provider: pages
+#   skip-cleanup: true
+#   github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+#   keep-history: true
+#   local-dir: docs/target/site/
+#   target-branch: gh-pages
+#   on:
+#     branch: master

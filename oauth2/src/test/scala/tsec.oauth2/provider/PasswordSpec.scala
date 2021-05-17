@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import cats.syntax.either._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedPasswordNoClientCred
 import tsec.oauth2.provider.ValidatedRequest.ValidatedPasswordWithClientCred
@@ -12,6 +12,7 @@ import tsec.oauth2.provider.grantHandler.PasswordNoClientCredGrantHandler
 import tsec.oauth2.provider.grantHandler.PasswordNoClientCredHandler
 import tsec.oauth2.provider.grantHandler.PasswordWithClientCredGrantHandler
 import tsec.oauth2.provider.grantHandler.PasswordWithClientCredHandler
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 

@@ -4,12 +4,13 @@ import java.time.Instant
 
 import cats.effect.IO
 import cats.syntax.either._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import tsec.oauth2.provider.ValidatedRequest.ValidatedImplicit
 import tsec.oauth2.provider.grantHandler.ImplicitGrantHandler
 import tsec.oauth2.provider.grantHandler.ImplicitHandler
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 

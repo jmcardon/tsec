@@ -4,8 +4,8 @@ import java.time.Instant
 
 import cats.effect.IO
 import org.scalatest._
-import org.scalatest.Matchers._
-
+import org.scalatest.matchers.should.Matchers._
+import cats.effect.unsafe.implicits.global
 import scala.concurrent.duration._
 
 class ProtectedResourceSpec extends flatspec.AnyFlatSpec {

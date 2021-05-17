@@ -10,6 +10,7 @@ import tsec.jws.mac._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.jca._
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 
@@ -17,7 +18,7 @@ class JWTMacTests extends TestSpec {
 
   def jwtBehavior[A](
       implicit algo: JWTMacAlgo[A],
-      cv: JWSMacCV[Either[Throwable, ?], A],
+      cv: JWSMacCV[Either[Throwable, *], A],
       cv2: JWSMacCV[IO, A],
       hs: JWSSerializer[JWSMacHeader[A]],
       keyGen: MacKeyGen[IO, A],

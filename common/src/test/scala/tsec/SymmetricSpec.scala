@@ -5,6 +5,7 @@ import org.scalacheck._
 import tsec.cipher.symmetric.{Encryptor, IvGen, _}
 import tsec.common._
 import tsec.keygen.symmetric._
+import cats.effect.unsafe.implicits.global
 
 import scala.util.Random
 
@@ -19,14 +20,14 @@ class SymmetricSpec extends TestSpec {
 
     behavior of spec
 
-    implicit val defaultStrat: IvGen[IO, A] = gen
+    // implicit val defaultStrat: IvGen[IO, A] = gen
 
     it should "Encrypt and decrypt for the same key" in {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
           key       <- S.generateKey
-          encrypted <- E.encrypt(testPlainText, key)
+          encrypted <- E.encrypt(testPlainText, key)(gen, cats.Monad[IO])
           decrypted <- E.decrypt(encrypted, key)
         } yield decrypted.toUtf8String
         testEncryptionDecryption.attempt.unsafeRunSync() must equal(Right(testMessage))
@@ -39,7 +40,7 @@ class SymmetricSpec extends TestSpec {
         val testEncryptionDecryption: IO[String] = for {
           key1      <- S.generateKey
           key2      <- S.generateKey
-          encrypted <- E.encrypt(testPlainText, key1)
+          encrypted <- E.encrypt(testPlainText, key1)(gen, cats.Monad[IO])
           decrypted <- E.decrypt(encrypted, key2)
         } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)
@@ -69,14 +70,14 @@ class SymmetricSpec extends TestSpec {
 
     behavior of spec
 
-    implicit val defaultStrat: IvGen[IO, A] = gen
+    // implicit val defaultStrat: IvGen[IO, A] = gen
 
     it should "Encrypt and decrypt for the same key" in {
       forAll { (testMessage: String) =>
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
           key       <- S.generateKey
-          encrypted <- E.encrypt(testPlainText, key)
+          encrypted <- E.encrypt(testPlainText, key)(gen, cats.Monad[IO])
           decrypted <- E.decrypt(encrypted, key)
         } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)
@@ -90,7 +91,7 @@ class SymmetricSpec extends TestSpec {
         val testEncryptionDecryption: IO[String] = for {
           key1      <- S.generateKey
           key2      <- S.generateKey
-          encrypted <- E.encrypt(testPlainText, key1)
+          encrypted <- E.encrypt(testPlainText, key1)(gen, cats.Monad[IO])
           decrypted <- E.decrypt(encrypted, key2)
         } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)
@@ -104,7 +105,7 @@ class SymmetricSpec extends TestSpec {
         val testPlainText = PlainText(testMessage.utf8Bytes)
         val testEncryptionDecryption: IO[String] = for {
           key       <- S.generateKey
-          encrypted <- E.encryptDetached(testPlainText, key)
+          encrypted <- E.encryptDetached(testPlainText, key)(gen, cats.Monad[IO])
           decrypted <- E.decryptDetached(encrypted._1, key, encrypted._2)
         } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)
@@ -118,7 +119,7 @@ class SymmetricSpec extends TestSpec {
         val testEncryptionDecryption: IO[String] = for {
           key1      <- S.generateKey
           key2      <- S.generateKey
-          encrypted <- E.encryptDetached(testPlainText, key1)
+          encrypted <- E.encryptDetached(testPlainText, key1)(gen, cats.Monad[IO])
           decrypted <- E.decryptDetached(encrypted._1, key2, encrypted._2)
         } yield decrypted.toUtf8String
         if (!testMessage.isEmpty)

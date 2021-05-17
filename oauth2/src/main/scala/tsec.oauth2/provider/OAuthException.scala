@@ -28,7 +28,7 @@ final case class InvalidRequest(override val description: String) extends OAuthE
   val errorType  = "invalid_request"
 }
 
-final case object InvalidAuthorizationHeader extends OAuthError("invalid Authorization header") {
+case object InvalidAuthorizationHeader extends OAuthError("invalid Authorization header") {
   val statusCode = 400
   val errorType  = "invalid_request"
 }
@@ -43,7 +43,7 @@ final case class UnauthorizedClient(override val description: String) extends OA
   val errorType  = "unauthorized_client"
 }
 
-final case object RedirectUriMismatch extends OAuthError("redirect uri mismatch") {
+case object RedirectUriMismatch extends OAuthError("redirect uri mismatch") {
   val statusCode = 400
   val errorType  = "invalid_request"
 }
@@ -78,7 +78,7 @@ final case class InvalidToken(override val description: String) extends OAuthErr
   val errorType  = "invalid_token"
 }
 
-final case object ExpiredToken extends OAuthError("The access token expired") {
+case object ExpiredToken extends OAuthError("The access token expired") {
   val statusCode = 401
   val errorType  = "invalid_token"
 }

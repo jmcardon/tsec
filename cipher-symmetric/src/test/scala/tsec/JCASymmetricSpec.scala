@@ -6,6 +6,7 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.keygen.symmetric._
+import cats.effect.unsafe.implicits.global
 
 import scala.util.Random
 

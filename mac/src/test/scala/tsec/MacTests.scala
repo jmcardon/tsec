@@ -6,6 +6,7 @@ import cats.effect.IO
 import tsec.common._
 import tsec.keygen.symmetric.SymmetricKeyGen
 import tsec.mac.jca._
+import cats.effect.unsafe.implicits.global
 
 class MacTests extends TestSpec {
 
