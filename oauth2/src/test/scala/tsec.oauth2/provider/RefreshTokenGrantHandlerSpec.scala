@@ -6,7 +6,7 @@ import cats.effect.IO
 import cats.syntax.either._
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedRefreshToken
 import tsec.oauth2.provider.grantHandler.RefreshTokenGrantHandler
 import tsec.oauth2.provider.grantHandler.RefreshTokenHandler

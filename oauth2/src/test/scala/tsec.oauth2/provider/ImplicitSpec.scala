@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import cats.syntax.either._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import tsec.oauth2.provider.ValidatedRequest.ValidatedImplicit

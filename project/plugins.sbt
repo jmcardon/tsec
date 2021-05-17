@@ -14,9 +14,9 @@ libraryDependencies ++= List(
   "com.geirsson" %% "scalafmt-cli"  % "1.3.0"
 )
 
-unmanagedJars in Compile ++= tsec.build.SunShine.`tools.jar`.toSeq
+Compile / unmanagedJars ++= tsec.build.SunShine.`tools.jar`.toSeq
 
-sources in Compile ++= {
+Compile / sources ++= {
   if (tsec.build.SunShine.canWeUseToolsDotJar_?)
     file("project/boiler/gensodium.scala").getAbsoluteFile :: Nil
   else Nil

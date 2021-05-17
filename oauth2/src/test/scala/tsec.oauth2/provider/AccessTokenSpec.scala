@@ -6,7 +6,8 @@ import java.time.{ZoneOffset, ZonedDateTime}
 import cats.effect.IO
 
 import scala.concurrent.duration._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.must.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest._
 
 class AccessTokenSpec extends flatspec.AnyFlatSpec {

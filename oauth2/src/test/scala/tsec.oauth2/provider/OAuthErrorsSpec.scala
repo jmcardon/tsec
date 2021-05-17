@@ -1,6 +1,6 @@
 package tsec.oauth2.provider
 
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest._
 
 class OAuthErrorsSpec extends flatspec.AnyFlatSpec {

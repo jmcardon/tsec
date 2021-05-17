@@ -210,11 +210,7 @@ lazy val symmetricCipher = Project(id = "tsec-cipher-jca", base = file("cipher-s
   .dependsOn(common % "compile->compile;test->test")
   .dependsOn(cipherCore)
   .settings(releaseSettings)
-  .settings(
-    Compile / sources := Seq.empty,
-    doc / sources := Seq.empty
-  )
-
+  
 lazy val mac = Project(id = "tsec-mac", base = file("mac"))
   .settings(commonSettings)
   .settings(publishSettings)

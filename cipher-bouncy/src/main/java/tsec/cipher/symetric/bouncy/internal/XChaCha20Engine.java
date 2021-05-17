@@ -119,13 +119,13 @@ public class XChaCha20Engine extends ChaChaEngine {
 
     private static void quarterRound(int[] x, int a, int b, int c, int d) {
         x[a] += x[b];
-        x[d] = rotl(x[d] ^ x[a], 16);
+        x[d] = Integer.rotateLeft(x[d] ^ x[a], 16);
         x[c] += x[d];
-        x[b] = rotl(x[b] ^ x[c], 12);
+        x[b] = Integer.rotateLeft(x[b] ^ x[c], 12);
         x[a] += x[b];
-        x[d] = rotl(x[d] ^ x[a], 8);
+        x[d] = Integer.rotateLeft(x[d] ^ x[a], 8);
         x[c] += x[d];
-        x[b] = rotl(x[b] ^ x[c], 7);
+        x[b] = Integer.rotateLeft(x[b] ^ x[c], 7);
     }
 
     private static void doubleRound(final int[] state) {
