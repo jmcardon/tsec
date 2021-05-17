@@ -23,12 +23,12 @@ final class JHasher[F[_], A] private[jca] (val algorithm: String)(
       Stream.suspend[F, Byte] {
         in.chunks
           .fold(genInstance) { (d, c) =>
-            val bytes = c.toBytes
-            d.update(bytes.values, bytes.offset, bytes.size)
+            val bytes = c.toArray
+            d.update(bytes, 0, bytes.size)
             d
           }
           .flatMap { d =>
-            Stream.chunk(Chunk.bytes(d.digest()))
+            Stream.chunk(Chunk.array(d.digest()))
           }
     }
 }

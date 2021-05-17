@@ -5,6 +5,7 @@ import java.security.interfaces.{ECPublicKey, RSAPublicKey}
 import cats.effect.IO
 import tsec.common._
 import tsec.signature.jca._
+import cats.effect.unsafe.implicits.global
 
 class SignatureTests extends TestSpec {
 

@@ -8,6 +8,7 @@ import fs2._
 import tsec.TestSpec
 import tsec.common._
 import tsec.hashing.{CryptoHashAPI, CryptoHasher}
+import cats.effect.unsafe.implicits.global
 
 class HasherTest extends TestSpec {
   val str     = "hello World"

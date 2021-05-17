@@ -4,12 +4,13 @@ import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.either._
 import io.circe.Json
-import io.circe.generic.auto.`package`._
+import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import tsec.authorization.BasicRBAC
+import cats.effect.unsafe.implicits.global
 
 class RequestAuthenticatorSpec extends AuthenticatorSpec {
 

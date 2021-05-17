@@ -9,6 +9,7 @@ import scala.concurrent.duration._
 import org.scalatest.matchers.must.Matchers._
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest._
+import cats.effect.unsafe.implicits.global
 
 class AccessTokenSpec extends flatspec.AnyFlatSpec {
 

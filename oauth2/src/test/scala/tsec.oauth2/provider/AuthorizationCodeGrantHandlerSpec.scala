@@ -9,6 +9,7 @@ import org.scalatest._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedAuthorizationCode
 import tsec.oauth2.provider.grantHandler.AuthorizationCodeGrantHandler
 import tsec.oauth2.provider.grantHandler.AuthorizationCodeHandler
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 

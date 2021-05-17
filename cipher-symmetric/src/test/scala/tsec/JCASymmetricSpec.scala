@@ -6,6 +6,7 @@ import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.keygen.symmetric._
+import cats.effect.unsafe.implicits.global
 
 import scala.util.Random
 
@@ -24,7 +25,7 @@ class JCASymmetricSpec extends TestSpec {
 
     behavior of spec
 
-    implicit val defaultStrat: IvGen[IO, A] = JCAIvGen.random[IO, A]
+    // implicit val defaultStrat: IvGen[IO, A] = JCAIvGen.random[IO, A]
 
     it should "Encrypt and decrypt for the same key" in {
       forAll { (testMessage: String) =>
@@ -90,7 +91,7 @@ class JCASymmetricSpec extends TestSpec {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""
 
-    implicit val defaultStrat = JCAIvGen.random[IO, A]
+    // implicit val defaultStrat = JCAIvGen.random[IO, A]
 
     behavior of spec
 

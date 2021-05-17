@@ -8,6 +8,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import tsec.common._
 import tsec.passwordhashers.jca._
 import tsec.passwordhashers.{PasswordHashAPI, PasswordHasher, _}
+import cats.effect.unsafe.implicits.global
 
 class PasswordTest extends TestSpec {
 

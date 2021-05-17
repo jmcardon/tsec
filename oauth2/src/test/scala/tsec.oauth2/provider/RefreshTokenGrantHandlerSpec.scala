@@ -10,6 +10,7 @@ import org.scalatest.matchers.should.Matchers._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedRefreshToken
 import tsec.oauth2.provider.grantHandler.RefreshTokenGrantHandler
 import tsec.oauth2.provider.grantHandler.RefreshTokenHandler
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 

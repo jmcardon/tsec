@@ -8,6 +8,7 @@ import org.scalatest.matchers.should.Matchers._
 import tsec.oauth2.provider.ValidatedRequest.ValidatedPasswordWithClientCred
 import tsec.oauth2.provider.grantHandler.PasswordNoClientCredHandler
 import tsec.oauth2.provider.grantHandler.PasswordWithClientCredHandler
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 

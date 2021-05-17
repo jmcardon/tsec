@@ -10,6 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import tsec.oauth2.provider.ValidatedRequest.ValidatedImplicit
 import tsec.oauth2.provider.grantHandler.ImplicitGrantHandler
 import tsec.oauth2.provider.grantHandler.ImplicitHandler
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 

@@ -1,6 +1,7 @@
 package tsec
 import cats.effect.IO
 import tsec.common._
+import cats.effect.unsafe.implicits.global
 class TSecOpsTest extends TestSpec {
 
   behavior of "TSec ops"

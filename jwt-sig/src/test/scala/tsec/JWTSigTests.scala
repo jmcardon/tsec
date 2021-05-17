@@ -11,6 +11,7 @@ import tsec.jws.signature._
 import tsec.jwt.JWTClaims
 import tsec.jwt.algorithms.JWTSigAlgo
 import tsec.signature.jca._
+import cats.effect.unsafe.implicits.global
 
 class JWTSigTests extends TestSpec {
 

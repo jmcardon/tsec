@@ -8,6 +8,7 @@ import fs2._
 import tsec.common._
 import tsec.hashing._
 import tsec.hashing.jca._
+import cats.effect.unsafe.implicits.global
 
 class HasherTest extends TestSpec {
 

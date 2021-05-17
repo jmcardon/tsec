@@ -12,6 +12,7 @@ import tsec.oauth2.provider.grantHandler.PasswordNoClientCredGrantHandler
 import tsec.oauth2.provider.grantHandler.PasswordNoClientCredHandler
 import tsec.oauth2.provider.grantHandler.PasswordWithClientCredGrantHandler
 import tsec.oauth2.provider.grantHandler.PasswordWithClientCredHandler
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 
