@@ -90,7 +90,7 @@ class JCASymmetricSpec extends TestSpec {
 
     val spec = s"""${symm.cipherName}_${symm.keySizeBytes * 8}/${mode.mode}/${p.algorithm}"""
 
-    implicit val defaultStrat = JCAIvGen.random[IO, A]
+    implicit val defaultStrat: IvGen[IO, A]  = JCAIvGen.random[IO, A]
 
     behavior of spec
 
