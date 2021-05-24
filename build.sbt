@@ -120,8 +120,8 @@ lazy val commonSettings = Seq(
     Libraries.fs2IO
   ),
   ThisBuild / organization := "io.github.jmcardon",
-  scalaVersion := "2.13.5",
-  crossScalaVersions := Seq(scalaVersion.value, "2.12.13"),
+  scalaVersion := crossScalaVersions.value.last,
+  crossScalaVersions := Seq("2.12.13", "2.13.5", "3.0.0"),
   Test / fork := true,
   run / fork := true,
   // doc / scalacOptions ++= Seq(
