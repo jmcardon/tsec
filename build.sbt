@@ -389,7 +389,6 @@ lazy val publishSettings = Seq(
 )
 
 lazy val noPublishSettings = {
-  import com.typesafe.sbt.pgp.PgpKeys.publishSigned
   Seq(
     publish / skip := true,
     publish := (()),
