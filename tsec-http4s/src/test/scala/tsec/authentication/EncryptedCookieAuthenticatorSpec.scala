@@ -8,9 +8,9 @@ import cats.syntax.either._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.http4s.headers.`Set-Cookie`
-import org.http4s.{Response, RequestCookie, Request}
+import org.http4s.{Request, RequestCookie, Response}
 import tsec.cipher.symmetric.jca._
-import tsec.cookies.{AEADCookieEncryptor, AEADCookie}
+import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
 import tsec.keygen.symmetric.IdKeyGen
 
 import scala.concurrent.duration._
@@ -39,7 +39,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       store: BackingStore[IO, UUID, AuthEncryptedCookie[A, Int]]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     implicit val instance: AADEncryptor[IO, A, SecretKey] = cipherAPI.genEncryptor[IO]
-    implicit val stategy: IvGen[IO, A] = cipherAPI.defaultIvStrategy[IO]
+    implicit val stategy: IvGen[IO, A]                    = cipherAPI.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val authenticator = EncryptedCookieAuthenticator.withBackingStore[IO, Int, DummyUser, A](
@@ -84,7 +84,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       idKeyGen: IdKeyGen[A, SecretKey]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
     implicit val instance: AADEncryptor[IO, A, SecretKey] = cipherAPI.genEncryptor[IO]
-    implicit val stategy: IvGen[IO, A] = cipherAPI.defaultIvStrategy[IO]
+    implicit val stategy: IvGen[IO, A]                    = cipherAPI.defaultIvStrategy[IO]
 
     val dummyStore    = dummyBackingStore[IO, Int, DummyUser](_.id)
     val secretKey     = cipherAPI.unsafeGenerateKey

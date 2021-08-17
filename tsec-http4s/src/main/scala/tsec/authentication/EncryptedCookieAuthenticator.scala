@@ -8,7 +8,7 @@ import cats.syntax.all._
 import io.circe.Json
 import io.circe.parser.decode
 import io.circe.syntax._
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
 import org.http4s._
 import tsec.cipher.symmetric.{IvGen, _}
 import tsec.cipher.symmetric.jca._
@@ -99,8 +99,8 @@ object AuthEncryptedCookie {
 
   object Internal {
     import io.circe.generic.semiauto._
-    implicit def decoder[T : Decoder]: Decoder[Internal[T]] = deriveDecoder[Internal[T]]
-    implicit def encoder[T : Encoder]: Encoder[Internal[T]] = deriveEncoder[Internal[T]]
+    implicit def decoder[T: Decoder]: Decoder[Internal[T]] = deriveDecoder[Internal[T]]
+    implicit def encoder[T: Encoder]: Encoder[Internal[T]] = deriveEncoder[Internal[T]]
   }
 
   def build[A, Id](
@@ -418,10 +418,10 @@ object EncryptedCookieAuthenticator {
         for {
           cookieId <- F.delay(UUID.randomUUID())
           now      <- F.delay(Instant.now())
-          expiry      = now.plusSeconds(settings.expiryDuration.toSeconds)
-          lastTouched = settings.maxIdle.map(_ => now)
-          messageBodyJson = AuthEncryptedCookie.Internal(cookieId, body, expiry, lastTouched).asJson : Json
-          messageBody = messageBodyJson.printWith(JWTPrinter)
+          expiry          = now.plusSeconds(settings.expiryDuration.toSeconds)
+          lastTouched     = settings.maxIdle.map(_ => now)
+          messageBodyJson = AuthEncryptedCookie.Internal(cookieId, body, expiry, lastTouched).asJson: Json
+          messageBody     = messageBodyJson.printWith(JWTPrinter)
           encrypted <- AEADCookieEncryptor.signAndEncrypt[F, A](messageBody, generateAAD(messageBody), key)
         } yield AuthEncryptedCookie.build[A, I](cookieId, encrypted, body, expiry, lastTouched, settings)
 

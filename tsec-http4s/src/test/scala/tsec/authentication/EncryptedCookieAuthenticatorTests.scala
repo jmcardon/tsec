@@ -87,13 +87,12 @@ class EncryptedCookieAuthenticatorTests extends EncryptedCookieAuthenticatorSpec
       } yield List(cookie, update, renew, refresh, expire)
 
       program.unsafeRunSync().forall { aec =>
-
-        settings.cookieName === aec.name      &&
-        settings.secure     === aec.secure    &&
-        settings.httpOnly   === aec.httpOnly  &&
-        settings.domain     === aec.domain    &&
-        settings.path       === aec.path      &&
-        settings.extension  === aec.extension
+        settings.cookieName === aec.name &&
+        settings.secure === aec.secure &&
+        settings.httpOnly === aec.httpOnly &&
+        settings.domain === aec.domain &&
+        settings.path === aec.path &&
+        settings.extension === aec.extension
 
       } mustBe true
 

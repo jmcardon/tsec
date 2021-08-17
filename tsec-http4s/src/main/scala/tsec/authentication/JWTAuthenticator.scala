@@ -5,8 +5,8 @@ import cats.data.OptionT
 import cats.effect.Sync
 import cats.instances.string._
 import cats.syntax.all._
-import io.circe.{Encoder, Decoder}
-import org.http4s.{Request, Header, ResponseCookie, Response, HttpDate}
+import io.circe.{Decoder, Encoder}
+import org.http4s.{Header, HttpDate, Request, Response, ResponseCookie}
 import org.typelevel.ci.CIString
 import tsec.authentication.internal._
 import tsec.common._

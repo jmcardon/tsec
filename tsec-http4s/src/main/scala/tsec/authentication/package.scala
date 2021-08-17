@@ -280,7 +280,6 @@ package object authentication {
         )
   }
 
-
   private[tsec] implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
     def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
   }
