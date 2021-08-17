@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import tsec.cipher.symmetric._
 import tsec.cipher.symmetric.jca._
+import cats.effect.unsafe.implicits.global
 
 class EncryptedCookieAuthenticatorTests extends EncryptedCookieAuthenticatorSpec {
 

@@ -37,7 +37,7 @@ package object authorization {
 
   type InvalidAuthLevel = InvalidAuthLevelError.type
 
-  final object InvalidAuthLevelError extends TSecError {
+  object InvalidAuthLevelError extends TSecError {
     val cause: String = "The minimum auth level is zero."
   }
 

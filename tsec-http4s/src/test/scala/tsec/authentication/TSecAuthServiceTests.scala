@@ -7,6 +7,7 @@ import cats.syntax.semigroupk._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.io._
+import cats.effect.unsafe.implicits.global
 
 class TSecAuthServiceTests extends AuthenticatorSpec {
 

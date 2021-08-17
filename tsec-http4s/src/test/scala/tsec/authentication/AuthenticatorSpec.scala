@@ -12,7 +12,7 @@ import org.scalacheck._
 import org.scalatest.BeforeAndAfterEach
 import tsec.TestSpec
 import tsec.authorization.{AuthGroup, AuthorizationInfo, SimpleAuthEnum}
-
+import cats.effect.unsafe.implicits.global
 import scala.collection.mutable
 
 sealed abstract case class DummyRole(repr: String)
