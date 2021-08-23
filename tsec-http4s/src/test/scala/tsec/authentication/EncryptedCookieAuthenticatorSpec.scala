@@ -2,7 +2,6 @@ package tsec.authentication
 
 import java.time.Instant
 import java.util.UUID
-
 import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.either._
@@ -15,6 +14,9 @@ import tsec.cookies.{AEADCookie, AEADCookieEncryptor}
 import tsec.keygen.symmetric.IdKeyGen
 
 import scala.concurrent.duration._
+import cats.effect.unsafe.implicits.global
+import tsec.cipher.symmetric.AADEncryptor
+import tsec.cipher.symmetric.IvGen
 
 class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
 
@@ -36,8 +38,8 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       idKeyGen: IdKeyGen[A, SecretKey],
       store: BackingStore[IO, UUID, AuthEncryptedCookie[A, Int]]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
-    implicit val instance = cipherAPI.genEncryptor[IO]
-    implicit val stategy  = cipherAPI.defaultIvStrategy[IO]
+    implicit val instance: AADEncryptor[IO, A, SecretKey] = cipherAPI.genEncryptor[IO]
+    implicit val stategy: IvGen[IO, A]                    = cipherAPI.defaultIvStrategy[IO]
 
     val dummyStore = dummyBackingStore[IO, Int, DummyUser](_.id)
     val authenticator = EncryptedCookieAuthenticator.withBackingStore[IO, Int, DummyUser, A](
@@ -81,8 +83,8 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
       implicit cipherAPI: AESGCM[A],
       idKeyGen: IdKeyGen[A, SecretKey]
   ): AuthSpecTester[AuthEncryptedCookie[A, Int]] = {
-    implicit val instance = cipherAPI.genEncryptor[IO]
-    implicit val stategy  = cipherAPI.defaultIvStrategy[IO]
+    implicit val instance: AADEncryptor[IO, A, SecretKey] = cipherAPI.genEncryptor[IO]
+    implicit val stategy: IvGen[IO, A]                    = cipherAPI.defaultIvStrategy[IO]
 
     val dummyStore    = dummyBackingStore[IO, Int, DummyUser](_.id)
     val secretKey     = cipherAPI.unsafeGenerateKey
@@ -101,7 +103,7 @@ class EncryptedCookieAuthenticatorSpec extends RequestAuthenticatorSpec {
         * @return
         */
       def extractFromResponse(response: Response[IO]): OptionT[IO, AuthEncryptedCookie[A, Int]] = {
-        val cookieOpt = `Set-Cookie`.from(response.headers).map(_.cookie).find(_.name === cookieName)
+        val cookieOpt = response.headers.get[`Set-Cookie`].map(_.head.cookie).find(_.name === cookieName)
         cookieOpt match {
           case None =>
             OptionT.none

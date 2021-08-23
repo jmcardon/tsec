@@ -157,7 +157,7 @@ final case class AuthenticatedCookie[A, Id](
     None,
     domain,
     path,
-    sameSite,
+    Some(sameSite),
     secure,
     httpOnly,
     extension
