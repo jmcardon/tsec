@@ -7,6 +7,7 @@ import org.scalatest.matchers.should.Matchers._
 import tsec.TestSpec
 import tsec.authentication.DummyRole.{Admin, Other}
 import tsec.authorization._
+import cats.effect.unsafe.implicits.global
 
 final case class AuthDummyUser(id: Int, role: DummyRole, authLevel: AuthLevel = AuthLevel.CEO)
 
@@ -79,7 +80,7 @@ class AuthorizationTests extends TestSpec {
 
   behavior of "HierarchyAuth"
 
-  implicit val authInfo = new AuthorizationInfo[IO, AuthLevel, AuthLevel] {
+  implicit val authInfo: AuthorizationInfo[IO, AuthLevel, AuthLevel] = new AuthorizationInfo[IO, AuthLevel, AuthLevel] {
     def fetchInfo(u: AuthLevel): IO[AuthLevel] = IO.pure(u)
   }
 

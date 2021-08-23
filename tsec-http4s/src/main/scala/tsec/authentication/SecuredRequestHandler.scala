@@ -54,7 +54,7 @@ sealed abstract class SecuredRequestHandler[F[_], Identity, User, Auth](
 }
 
 object SecuredRequestHandler {
-  private[authentication] val logger = getLogger("tsec.authentication.SecureRequestHandler")
+  private[authentication] val logger = org.log4s.getLogger("tsec.authentication.SecureRequestHandler")
 
   /** Build our SecuredRequestHandler detecting whether it is rolling window or not **/
   def apply[F[_], Identity, User, Auth](

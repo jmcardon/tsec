@@ -1,19 +1,18 @@
 package tsec.authentication
 
 import java.time.Instant
-
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.instances.string._
 import cats.syntax.all._
 import io.circe.{Decoder, Encoder}
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, HttpDate, Request, Response, ResponseCookie}
+import org.typelevel.ci.CIString
 import tsec.authentication.internal._
 import tsec.common._
 import tsec.jws.mac._
 import tsec.jwt.algorithms.JWTMacAlgo
-import tsec.mac.jca.{MacSigningKey}
+import tsec.mac.jca.MacSigningKey
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -41,7 +40,7 @@ final case class AugmentedJWT[A, I](
       None,
       settings.domain,
       settings.path,
-      settings.sameSite,
+      Some(settings.sameSite),
       settings.secure,
       settings.httpOnly,
       settings.extension
@@ -239,12 +238,12 @@ object JWTAuthenticator {
   ) = r.putHeaders(buildBearerAuthHeader(JWTMac.toEncodedString(a.jwt)))
 
   private[tsec] def extractFromHeader[F[_]](headerName: String)(r: Request[F]): Option[String] =
-    r.headers.get(CaseInsensitiveString(headerName)).map(_.value)
+    r.headers.get(CIString(headerName)).map(_.head.value)
 
   private[tsec] def embedInHeader[F[_], I, A: JWTMacAlgo](headerName: String)(r: Response[F], a: AugmentedJWT[A, I])(
       implicit cv: JWSMacCV[F, A],
       F: Sync[F]
-  ): Response[F] = r.putHeaders(Header(headerName, JWTMac.toEncodedString(a.jwt)))
+  ): Response[F] = r.putHeaders(Header.Raw(CIString(headerName), JWTMac.toEncodedString(a.jwt)))
 
   private[tsec] def extractFromCookie[F[_]](cookieName: String)(r: Request[F]): Option[String] =
     unliftedCookieFromRequest[F](cookieName, r).map(_.content)

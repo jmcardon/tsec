@@ -251,13 +251,13 @@ package object authentication {
   )
 
   def cookieFromRequest[F[_]: Monad](name: String, request: Request[F]): OptionT[F, RequestCookie] =
-    OptionT.fromOption[F](C.from(request.headers).flatMap(_.values.find(_.name === name)))
+    OptionT.fromOption[F](request.cookies.find(_.name === name))
 
   def unliftedCookieFromRequest[F[_]](name: String, request: Request[F]): Option[RequestCookie] =
-    C.from(request.headers).flatMap(_.values.find(_.name === name))
+    request.cookies.find(_.name === name)
 
   def extractBearerToken[F[_]: Monad](request: Request[F]): Option[String] =
-    request.headers.get(Authorization).flatMap { t =>
+    request.headers.get[Authorization].flatMap { t =>
       t.credentials match {
         case Credentials.Token(scheme, token) if scheme == AuthScheme.Bearer =>
           Some(token)
@@ -279,7 +279,6 @@ package object authentication {
               .leftMap(_ => DecodingFailure("InvalidEpoch", Nil))
         )
   }
-
 
   private[tsec] implicit val InstantLongEncoder: Encoder[Instant] = new Encoder[Instant] {
     def apply(a: Instant): Json = Json.fromLong(a.getEpochSecond)
