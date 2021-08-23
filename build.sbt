@@ -99,6 +99,9 @@ def scalacOptionsForVersion(scalaVersion: String): Seq[String] = {
     "-language:postfixOps"
   )
   val versionOpts: Seq[String] = CrossVersion.partialVersion(scalaVersion) match {
+    case Some((3, _)) => Seq(
+      "-Ykind-projector",
+    )
     case Some((2, major)) if major < 13 => Seq(
       "-Ywarn-adapted-args",
       "-Ywarn-inaccessible",
@@ -121,7 +124,7 @@ lazy val commonSettings = Seq(
   ),
   ThisBuild / organization := "io.github.jmcardon",
   scalaVersion := crossScalaVersions.value.last,
-  crossScalaVersions := Seq("2.12.14", "2.13.5", "3.0.0"),
+  crossScalaVersions := Seq("2.12.13", "2.13.6", "3.0.1"),
   Test / fork := true,
   run / fork := true,
   // doc / scalacOptions ++= Seq(
@@ -189,7 +192,7 @@ lazy val root = Project(id = "tsec", base = file("."))
     jwtMac,
     jwtSig,
     passwordHashers,
-    // http4s,
+    http4s,
     // microsite,
     oauth2,
     // bench,
@@ -330,7 +333,7 @@ lazy val oauth2 = Project(id = "tsec-oauth2", base = file("oauth2"))
   .settings(commonSettings)
   .dependsOn(common % "compile->compile;test->test")
   .settings(noPublishSettings)
-/*
+
 lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
   .settings(commonSettings)
   .settings(jwtCommonLibs)
@@ -347,7 +350,6 @@ lazy val http4s = Project(id = "tsec-http4s", base = file("tsec-http4s"))
     jwtMac
   )
   .settings(releaseSettings)
-*/
 
 lazy val libsodium = Project(id = "tsec-libsodium", base = file("tsec-libsodium"))
   .settings(commonSettings)

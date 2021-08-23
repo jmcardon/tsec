@@ -6,11 +6,11 @@ import tsec.cipher.symmetric.jca._
 import tsec.common._
 import tsec.cookies.AEADCookieEncryptor
 import tsec.keygen.symmetric.SymmetricKeyGen
-
+import cats.effect.unsafe.implicits.global
 class AEADCookieSignerTest extends TestSpec {
 
   def aeadCookieTest[A](implicit api: AESGCM[A], keyGen: SymmetricKeyGen[IO, A, SecretKey]): Unit = {
-    implicit val strategy = api.defaultIvStrategy[IO]
+    implicit val strategy: IvGen[IO, A] = api.defaultIvStrategy[IO]
 
     implicit val instance: AADEncryptor[IO, A, SecretKey] = api.genEncryptor[IO]
 

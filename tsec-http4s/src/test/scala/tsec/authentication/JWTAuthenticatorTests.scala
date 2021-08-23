@@ -10,6 +10,7 @@ import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.keygen.symmetric.IdKeyGen
 import tsec.mac.MessageAuth
 import tsec.mac.jca._
+import cats.effect.unsafe.implicits.global
 
 class JWTAuthenticatorTests extends JWTAuthenticatorSpec {
 
