@@ -136,7 +136,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= {
     if (isDotty(scalaVersion.value)) Seq.empty
     else Seq(
-      compilerPlugin("org.typelevel" % "kind-projector" % "0.13.0" cross CrossVersion.full),
+      compilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full),
       compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
     )
   },
