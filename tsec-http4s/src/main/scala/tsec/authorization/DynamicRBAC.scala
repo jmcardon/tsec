@@ -7,7 +7,7 @@ import tsec.authentication
 
 case class DynamicRBAC[F[_], Role, U, Auth](dynamic: DynamicAuthGroup[F, Role])(
     implicit authInfo: AuthorizationInfo[F, Role, U],
-    enum: SimpleAuthEnum[Role, String],
+    authEnum: SimpleAuthEnum[Role, String],
     F: MonadError[F, Throwable]
 ) extends Authorization[F, U, Auth] {
   def isAuthorized(
@@ -17,7 +17,7 @@ case class DynamicRBAC[F[_], Role, U, Auth](dynamic: DynamicAuthGroup[F, Role])(
       info  <- authInfo.fetchInfo(toAuth.identity)
       group <- dynamic.fetchGroupInfo
     } yield {
-      if (enum.contains(info) && group.contains(info))
+      if (authEnum.contains(info) && group.contains(info))
         Some(toAuth)
       else
         None
