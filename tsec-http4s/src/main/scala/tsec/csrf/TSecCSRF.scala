@@ -122,7 +122,7 @@ final class TSecCSRF[F[_], A] private[tsec] (
 
   def validate(predicate: Request[F] => Boolean = _.method.isSafe): CSRFMiddleware[F] =
     req =>
-      Kleisli { r: Request[F] =>
+      Kleisli { (r: Request[F]) =>
         filter(predicate, r, req)
     }
 

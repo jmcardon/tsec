@@ -44,7 +44,7 @@ object SCryptUtil extends ManagedRandom {
     val params   = java.lang.Long.parseLong(parts(2), 16)
     val salt     = Base64.decode(parts(3).toCharArray)
     val derived0 = Base64.decode(parts(4).toCharArray)
-    val N        = Math.pow(2, params >> 16 & 0xffff).toInt
+    val N        = Math.pow(2, (params >> 16 & 0xffff).toDouble).toInt
     val r        = params.toInt >> 8 & 0xff
     val p        = params.toInt & 0xff
     Either.catchNonFatal(JSCrypt.scrypt(passwd, salt, N, r, p, 32)) match {
@@ -95,7 +95,7 @@ object SCryptUtil extends ManagedRandom {
 
     nextBytes(salt)
     val derived = JSCrypt.scrypt(passwd, salt, N, r, p, DerivedKeyLen)
-    val params  = java.lang.Long.toString(log2(N) << 16L | r << 8 | p, 16)
+    val params  = java.lang.Long.toString(log2(N).toLong << 16L | r << 8 | p, 16)
 
     val sb = new java.lang.StringBuilder((salt.length + derived.length) * 2)
     sb.append(SCryptPrepend).append(params).append('$')
