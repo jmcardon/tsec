@@ -151,7 +151,7 @@ object ValidatedRequest {
   }
 
   private def clientCredentialByAuthorization(s: String): Either[InvalidClient, ClientCredential] =
-    Try(new String(s.base64Bytes, StandardCharsets.UTF_8))
+    Try(new String(s.b64Bytes.getOrElse(Array.empty[Byte]), StandardCharsets.UTF_8))
       .map(_.split(":", 2))
       .getOrElse(Array.empty[String]) match {
       case Array(clientId, clientSecret) =>

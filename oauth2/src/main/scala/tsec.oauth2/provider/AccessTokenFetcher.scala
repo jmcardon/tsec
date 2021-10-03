@@ -20,7 +20,7 @@ object AccessTokenFetcher {
     override def fetch(request: ProtectedResourceRequest): Either[InvalidRequest, FetchResult] = {
       val t      = request.oauthToken orElse (request.accessToken)
       val params = request.params.filter { case (_, v) => !v.isEmpty } map { case (k, v) => (k, v.head) }
-      t.map(s => FetchResult(s, params - ("oauth_token", "access_token")))
+      t.map(s => FetchResult(s, params -- Seq("oauth_token", "access_token")))
         .toRight(InvalidRequest("missing access token"))
     }
   }
